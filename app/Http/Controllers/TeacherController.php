@@ -11,7 +11,7 @@ use App\Models\TeacherPoint;
 use App\Models\Team;
 use App\Models\TeamActivity;
 use App\Models\User;
-use App\Services\GamificationService;
+use App\Services\AwardService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -1286,24 +1286,25 @@ class TeacherController extends Controller
         ]);
 
         // منح نقاط لكل عضو في الفريق
-        $pointsPerMember = floor($validated['total_score'] / 2); // نصف الدرجة كنقاط
-        $coinsPerMember = floor($validated['total_score'] / 4); // ربع الدرجة كعملات
-
-        $gamification = new GamificationService;
+        $pointsPerMember = (int) floor($validated['total_score'] / 2); // نصف الدرجة كنقاط
+        $coinsPerMember = (int) floor($validated['total_score'] / 4); // ربع الدرجة كعملات
 
         // كل عضو فريق محاط بـ try-catch — فشل عضو واحد لا يكسر تقييم البقية (P1-D)
         $activityTitle = optional($teamActivity->activity)->title ?? 'نشاط';
         foreach ($teamActivity->team->members as $member) {
+            // مفتاح idempotency = (team_activity_id, member_user_id): إعادة تقييم نفس النشاط = لا شيء،
+            // لكن كل عضو يُدفع له مرة واحدة بالضبط؛ نشاط فريق جديد (id مختلف) يدفع من جديد.
             try {
-                $gamification->addXP($member->id, $pointsPerMember, 'team_activity_completed', "إكمال نشاط فريق: {$activityTitle}");
+                AwardService::award(
+                    $member->id,
+                    'team_activity',
+                    $teamActivity->id . ':' . $member->id,
+                    $pointsPerMember,
+                    $coinsPerMember,
+                    "إكمال نشاط فريق: {$activityTitle}",
+                );
             } catch (\Throwable $e) {
-                \Log::warning("team XP failed for member {$member->id}: " . $e->getMessage());
-            }
-
-            try {
-                $gamification->addCoins($member->id, $coinsPerMember, 'team_activity_reward', "مكافأة نشاط فريق: {$activityTitle}");
-            } catch (\Throwable $e) {
-                \Log::warning("team coins failed for member {$member->id}: " . $e->getMessage());
+                \Log::warning("team award failed for member {$member->id}: " . $e->getMessage());
             }
 
             try {

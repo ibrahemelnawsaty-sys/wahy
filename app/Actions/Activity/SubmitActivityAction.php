@@ -4,14 +4,11 @@ namespace App\Actions\Activity;
 
 use App\Models\Activity;
 use App\Models\ActivitySubmission;
-use App\Models\Coin;
-use App\Models\Point;
 use App\Models\User;
-use App\Services\Activity\PointsDistributionService;
 use App\Services\ActivityGradingService;
+use App\Services\AwardService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -33,11 +30,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class SubmitActivityAction
 {
-    public function __construct(
-        private PointsDistributionService $pointsDistribution
-    ) {
-    }
-
     /**
      * @param  array<string, mixed> $payload  ['answer' => ..., 'file' => UploadedFile|null]
      */
@@ -90,8 +82,25 @@ class SubmitActivityAction
                     'submitted_at' => now(),
                 ]);
 
+                // منح الطالب XP/Coins + توزيع المعلم/الولي/المدرسة كوحدة ذرّية واحدة.
+                // ملاحظة الحدود (a): الدالة تفتح معاملتها الخاصة لكنها تتداخل هنا كـ savepoint
+                // داخل معاملة هذا الإجراء — فإن رمت لأي سبب تراجع إنشاء الـ submission كاملًا.
+                // المفتاح activity_submission + submission.id يضمن exactly-once. ولأن حارس
+                // الـ lockForUpdate يُرجِع 'duplicate' عند الإعادة (فلا تُعاد المحاولة لتمنح)،
+                // يجب أن يكون المنح ذرّيًا مع الإنشاء — لا نافذة marked-but-unawarded.
                 if ($xp > 0) {
-                    $this->awardXpAndCoins($student, $activity, $xp, $activityPoints, $score);
+                    // داخل هذا الفرع $score غير فارغ دائماً (xp يساوي 0 عندما يكون score = null).
+                    $scoreText = " | الدرجة: {$score}% | {$xp}/{$activityPoints} نقطة";
+
+                    AwardService::award(
+                        $student->id,
+                        'activity_submission',
+                        (string) $submission->id,
+                        $xp,
+                        max(1, (int) floor($xp / 2)),
+                        'إكمال نشاط: ' . $activity->title . $scoreText,
+                        distribute: true,
+                    );
                 }
 
                 return [
@@ -111,16 +120,6 @@ class SubmitActivityAction
             throw $e;
         }
 
-        // 4. توزيع النقاط على المعلم/ولي الأمر/المدرسة (بعد commit ناجح)
-        if (!empty($result['success']) && $xp > 0) {
-            $this->pointsDistribution->distribute(
-                $student,
-                $xp,
-                'activity_completion',
-                $activity->title
-            );
-        }
-
         return $result;
     }
 
@@ -137,42 +136,5 @@ class SubmitActivityAction
         return is_array($rawAnswer)
             ? json_encode($rawAnswer, JSON_UNESCAPED_UNICODE)
             : $rawAnswer;
-    }
-
-    private function awardXpAndCoins(User $student, Activity $activity, int $xp, int $activityPoints, ?int $score): void
-    {
-        try {
-            Point::create([
-                'user_id'     => $student->id,
-                'points'      => $xp,
-                'reason'      => 'إكمال نشاط: ' . $activity->title,
-                'activity_id' => $activity->id,
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Activity XP award failed', [
-                'student_id'  => $student->id,
-                'activity_id' => $activity->id,
-                'error'       => $e->getMessage(),
-            ]);
-        }
-
-        try {
-            $scoreText = $score !== null
-                ? " | الدرجة: {$score}% | {$xp}/{$activityPoints} نقطة"
-                : " | {$xp} نقطة";
-
-            Coin::create([
-                'user_id'          => $student->id,
-                'coins'            => max(1, (int) floor($xp / 2)),
-                'reason'           => 'إكمال نشاط: ' . $activity->title . $scoreText,
-                'transaction_type' => 'earn',
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Activity coins award failed', [
-                'student_id'  => $student->id,
-                'activity_id' => $activity->id,
-                'error'       => $e->getMessage(),
-            ]);
-        }
     }
 }

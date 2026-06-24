@@ -283,17 +283,24 @@ class ParentController extends Controller
     // ==================== نظام النقاط والمدح ====================
 
     /**
-     * إضافة نقاط لولي الأمر
+     * مكافأة ولي الأمر بشكل idempotent — مثبّتة على (reference_type, reference_id) لصف
+     * المجال الذي أُنشئ مرة واحدة (هدية/نشاط عائلي). إعادة محاولة المعاملة لا تُكرر
+     * المكافأة لأن firstOrCreate لا يُدرج صفاً ثانياً لنفس المرجع.
+     * يجب استدعاؤها داخل نفس معاملة إنشاء صف المجال.
      */
-    private function givePoints($parentId, $points, $reason, $referenceType = null, $referenceId = null)
+    private function givePointsOnce($parentId, $points, $reason, $referenceType, $referenceId): void
     {
-        \App\Models\ParentPoint::create([
-            'parent_id' => $parentId,
-            'points' => $points,
-            'reason' => $reason,
-            'reference_type' => $referenceType,
-            'reference_id' => $referenceId,
-        ]);
+        \App\Models\ParentPoint::firstOrCreate(
+            [
+                'reference_type' => $referenceType,
+                'reference_id' => $referenceId,
+            ],
+            [
+                'parent_id' => $parentId,
+                'points' => $points,
+                'reason' => $reason,
+            ],
+        );
     }
 
     /**
@@ -318,68 +325,71 @@ class ParentController extends Controller
                 return response()->json(['success' => false, 'error' => 'غير مصرح لك'], 403);
             }
 
-            // P2-E + race: التحقق من الحد + إنشاء praise + نقطة الطالب — كله في معاملة
-            // لمنع تجاوز الحد اليومي عبر double-click متزامن
-            $rateLimitHit = DB::transaction(function () use ($parent, $childId, $message, $type) {
-                if (Schema::hasTable('parent_praises')) {
-                    $todayCount = DB::table('parent_praises')
-                        ->where('parent_id', $parent->id)
-                        ->where('student_id', (int) $childId)
-                        ->whereDate('created_at', now()->toDateString())
-                        ->lockForUpdate()
-                        ->count();
-                    if ($todayCount >= 5) {
-                        return true;
-                    }
-
-                    // نُدرج هنا داخل المعاملة لمنع race بين الفحص و الإدراج
-                    DB::table('parent_praises')->insert([
-                        'parent_id' => $parent->id,
-                        'student_id' => (int) $childId,
-                        'praise_message' => $message,
-                        'praise_type' => $type,
-                        'points_awarded' => 5,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-
-                    // منح نقطة الطالب داخل فرع الجدول فقط — حتى لا يُتجاوز الحد اليومي عند غياب الجدول
-                    \App\Models\Point::create([
-                        'user_id' => (int) $childId,
-                        'points' => 5,
-                        'reason' => 'تشجيع من ولي الأمر: ' . mb_substr($message, 0, 100),
-                        'reference_type' => 'parent_praise',
-                        'reference_id' => null,
-                    ]);
+            // P2-E + race: التحقق من الحد + إنشاء praise (+ نقطة ولي الأمر) — كله في معاملة
+            // لمنع تجاوز الحد اليومي عبر double-click متزامن. نُعيد معرّف الصف المُنشأ
+            // ليُستخدم كمفتاح idempotency لمنح نقطة الطالب بعد المعاملة.
+            $praiseId = DB::transaction(function () use ($parent, $childId, $message, $type) {
+                if (! Schema::hasTable('parent_praises')) {
+                    return 0; // لا جدول => لا حدّ ولا منح
                 }
 
-                return false;
-            }, 3);
+                $todayCount = DB::table('parent_praises')
+                    ->where('parent_id', $parent->id)
+                    ->where('student_id', (int) $childId)
+                    ->whereDate('created_at', now()->toDateString())
+                    ->lockForUpdate()
+                    ->count();
+                if ($todayCount >= 5) {
+                    return -1; // تجاوز الحد
+                }
 
-            if ($rateLimitHit) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'وصلت الحد اليومي لرسائل التشجيع (5 رسائل). جرّب مرة أخرى غداً.',
-                ], 429);
-            }
+                // نُدرج هنا داخل المعاملة لمنع race بين الفحص و الإدراج
+                $praiseId = DB::table('parent_praises')->insertGetId([
+                    'parent_id' => $parent->id,
+                    'student_id' => (int) $childId,
+                    'praise_message' => $message,
+                    'praise_type' => $type,
+                    'points_awarded' => 5,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
-            // ملاحظة: حفظ parent_praises تم داخل المعاملة أعلاه لمنع race مع rate-limit
-
-            // محاولة نقاط ولي الأمر (اختياري)
-            try {
+                // مكافأة ولي الأمر مثبّتة على معرّف المدحة. تُدرَج داخل نفس معاملة إنشاء
+                // المدحة: إعادة محاولة المعاملة تُنشئ معرّف مدحة جديداً بالكامل (حدث جديد)،
+                // فلا تتضاعف المكافأة لنفس المدحة الملتزَمة.
                 if (Schema::hasTable('parent_points')) {
                     DB::table('parent_points')->insert([
                         'parent_id' => $parent->id,
                         'points' => 5,
                         'reason' => 'مدح الطالب',
                         'reference_type' => 'parent_praise',
-                        'reference_id' => null,
+                        'reference_id' => $praiseId,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
                 }
-            } catch (\Exception $e) {
-                // تجاهل
+
+                return $praiseId;
+            }, 3);
+
+            if ($praiseId === -1) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'وصلت الحد اليومي لرسائل التشجيع (5 رسائل). جرّب مرة أخرى غداً.',
+                ], 429);
+            }
+
+            // منح نقطة الطالب عبر AwardService — المفتاح = parent_praises.id
+            // (كل مدحة حدث مستقل؛ لا يُقصَر المفتاح على child_id+date).
+            if ($praiseId > 0) {
+                \App\Services\AwardService::award(
+                    (int) $childId,
+                    'parent_praise',
+                    (string) $praiseId,
+                    5,
+                    0,
+                    'تشجيع من ولي الأمر: ' . mb_substr($message, 0, 100),
+                );
             }
 
             return response()->json([
@@ -414,41 +424,53 @@ class ParentController extends Controller
             return back()->with('error', 'غير مصرح لك بإرسال هدية لهذا الطالب');
         }
 
-        // P2-E: حد أقصى 3 هدايا لنفس الابن في اليوم
-        $todayGifts = \App\Models\ParentGift::where('parent_id', Auth::id())
-            ->where('student_id', $childId)
-            ->whereDate('created_at', now()->toDateString())
-            ->count();
-        if ($todayGifts >= 3) {
-            return back()->with('error', 'وصلت الحد اليومي للهدايا (3 هدايا). جرّب مرة أخرى غداً.');
-        }
-
-        \DB::beginTransaction();
         try {
-            $gift = \App\Models\ParentGift::create([
-                'parent_id' => Auth::id(),
-                'student_id' => $childId,
-                'gift_type' => $validated['gift_type'],
-                'gift_message' => $validated['gift_message'],
-                'points_cost' => 10,
-            ]);
+            // إنشاء الهدية + فحص الحد اليومي داخل معاملة واحدة (إغلاق TOCTOU)
+            // كان فحص الحد سابقاً خارج المعاملة فيسمح بتجاوزه عبر double-click متزامن.
+            // قفل صفوف هدايا اليوم لنفس الابن يجعل العدّ ثم الإنشاء ذرّياً.
+            $gift = DB::transaction(function () use ($childId, $validated) {
+                $todayGifts = \App\Models\ParentGift::where('parent_id', Auth::id())
+                    ->where('student_id', $childId)
+                    ->whereDate('created_at', now()->toDateString())
+                    ->lockForUpdate()
+                    ->count();
+                if ($todayGifts >= 3) {
+                    return null; // إشارة لتجاوز الحد
+                }
 
-            $this->givePoints(Auth::id(), 10, 'إرسال هدية للطالب', 'parent_gift', $gift->id);
+                $gift = \App\Models\ParentGift::create([
+                    'parent_id' => Auth::id(),
+                    'student_id' => $childId,
+                    'gift_type' => $validated['gift_type'],
+                    'gift_message' => $validated['gift_message'],
+                    'points_cost' => 10,
+                ]);
 
-            \App\Models\Point::create([
-                'user_id' => $childId,
-                'points' => 10,
-                'reason' => 'هدية من ولي الأمر',
-                'reference_type' => 'parent_gift',
-                'reference_id' => $gift->id,
-            ]);
+                // مكافأة ولي الأمر مثبّتة على gift->id حتى لا تتضاعف عند إعادة المحاولة
+                $this->givePointsOnce(Auth::id(), 10, 'إرسال هدية للطالب', 'parent_gift', $gift->id);
 
-            \DB::commit();
+                // منح نقطة الطالب ذرّياً داخل نفس المعاملة (يتداخل كـ savepoint): لا توجد
+                // نافذة "هدية مُنشأة بلا منح" — لو فشل المنح تتراجع الهدية ومكافأة الولي كاملةً.
+                // المفتاح = ParentGift.id فهدية ثانية شرعية تُمنح، وإعادة محاولة لا تُضاعف.
+                \App\Services\AwardService::award(
+                    (int) $childId,
+                    'parent_gift',
+                    (string) $gift->id,
+                    10,
+                    0,
+                    'هدية من ولي الأمر',
+                );
+
+                return $gift;
+            }, 3);
+
+            if ($gift === null) {
+                return back()->with('error', 'وصلت الحد اليومي للهدايا (3 هدايا). جرّب مرة أخرى غداً.');
+            }
 
             return back()->with('success', 'تم إرسال الهدية بنجاح وحصلت على 10 نقاط');
 
         } catch (\Exception $e) {
-            \DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Parent sendGift failed', ['error' => $e->getMessage()]);
 
             return back()->with('error', 'حدث خطأ');
@@ -515,15 +537,20 @@ class ParentController extends Controller
                     'parent_praise' => $praiseValue,
                 ]);
 
-                \App\Models\Point::create([
-                    'user_id' => $submission->student_id,
-                    'points' => 20,
-                    'reason' => 'إكمال نشاط عائلي',
-                    'reference_type' => 'family_activity',
-                    'reference_id' => $submission->id,
-                ]);
+                // منح نقطة الطالب عبر AwardService — المفتاح = FamilyActivitySubmission.id.
+                // يُستدعى داخل المعاملة الخارجية (savepoint) فيكون تحديث الحالة + منح الطالب
+                // ذرّيين معاً: لا تُترك حالة "approved" بلا منح ولا منح مزدوج.
+                \App\Services\AwardService::award(
+                    (int) $submission->student_id,
+                    'family_activity',
+                    (string) $submission->id,
+                    20,
+                    0,
+                    'إكمال نشاط عائلي',
+                );
 
-                $this->givePoints(Auth::id(), 10, 'الموافقة على نشاط عائلي', 'family_activity', $submission->id);
+                // مكافأة ولي الأمر مثبّتة على معرّف الطلب — لا تتضاعف عند إعادة المحاولة
+                $this->givePointsOnce(Auth::id(), 10, 'الموافقة على نشاط عائلي', 'family_activity', $submission->id);
 
                 return back()->with('success', 'تم الموافقة على النشاط بنجاح! حصل الطالب على 20 نقطة وحصلت على 10 نقاط');
             }, 3);

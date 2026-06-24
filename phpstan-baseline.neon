@@ -1195,18 +1195,6 @@ parameters:
 			path: app/Listeners/SendWelcomeNotification.php
 
 		-
-			message: '#^Attribute class Livewire\\Attributes\\Computed does not exist\.$#'
-			identifier: attribute.notFound
-			count: 1
-			path: app/Livewire/Student/QuickStats.php
-
-		-
-			message: '#^Attribute class Livewire\\Attributes\\On does not exist\.$#'
-			identifier: attribute.notFound
-			count: 1
-			path: app/Livewire/Student/QuickStats.php
-
-		-
 			message: '#^Property App\\Models\\ActivityUserStreak\:\:\$last_activity_date \(Carbon\\Carbon\|null\) does not accept string\.$#'
 			identifier: assign.propertyType
 			count: 1
@@ -1279,12 +1267,6 @@ parameters:
 			path: app/Models/Survey.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\User\:\:\$points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/User.php
-
-		-
 			message: '#^Cannot access property \$age on string\.$#'
 			identifier: property.nonObject
 			count: 1
@@ -1355,18 +1337,6 @@ parameters:
 			identifier: if.alwaysTrue
 			count: 1
 			path: app/Services/Backup/BackupService.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\User\:\:\$points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PointsService.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Services/PointsService.php
 
 		-
 			message: '#^Relation ''classrooms'' is not found in App\\Models\\User model\.$#'

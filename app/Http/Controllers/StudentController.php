@@ -12,6 +12,7 @@ use App\Models\Point;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\Value;
+use App\Services\AwardService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -2254,47 +2255,39 @@ class StudentController extends Controller
 
         if ($bothSubmitted) {
             // determineWinner ذرّي (lockForUpdate) — ينتقل من playing → completed مرة واحدة
-            $wasNotCompleted = $match->status !== 'completed';
             $match->determineWinner();
             $match->refresh();
 
-            // منح نقاط/عملات للفائز — idempotent: مرة واحدة فقط بعد التحول إلى completed
-            $rewardCacheKey = "pvp:reward:match:{$match->id}";
-            if ($match->winner_id && $wasNotCompleted && ! \Illuminate\Support\Facades\Cache::has($rewardCacheKey)) {
-                \Illuminate\Support\Facades\Cache::put($rewardCacheKey, true, now()->addDays(7));
+            // منح نقاط/عملات للفائز — idempotent عبر AwardService: مفتاح = pvp_match/match.id
+            // فائز واحد فقط يُدفع له مرة واحدة لكل مباراة. AwardService يملك المعاملة (ذرّية:
+            // مطالبة دفتر القيد + Point + Coin معًا) ويعيد true فقط عند المنح الأول.
+            // الحدود: إتمام المباراة (determineWinner) يُلتزم بشكل منفصل قبل المنح؛ التدفق
+            // idempotent من طرف لطرف — إعادة الاستدعاء بعد completed لا تعيد المنح
+            // (insertOrIgnore على match.id يقصر الدائرة) ولا تعيد إتمام المباراة (بوابة الحالة).
+            if ($match->winner_id) {
                 try {
-                    \Illuminate\Support\Facades\DB::transaction(function () use ($match) {
-                        // نقاط الفائز — استخدام أعمدة موجودة فقط (description بدلًا من reference_*)
-                        \App\Models\Point::create([
-                            'user_id' => $match->winner_id,
-                            'points' => 20,
-                            'reason' => 'فوز في تحدي PvP',
-                            'source' => 'pvp_match',
-                            'description' => 'مباراة #' . $match->id,
-                        ]);
+                    $newlyAwarded = AwardService::award(
+                        $match->winner_id,
+                        'pvp_match',
+                        (string) $match->id,
+                        20,
+                        10,
+                        'فوز في تحدي PvP — مباراة #' . $match->id,
+                    );
 
-                        // عملات الفائز
-                        \App\Models\Coin::create([
-                            'user_id' => $match->winner_id,
-                            'coins' => 10,
-                            'reason' => 'فوز في تحدي PvP',
-                            'transaction_type' => 'earn',
-                            'source' => 'pvp_match',
-                            'description' => 'مباراة #' . $match->id,
-                        ]);
-                    }, 3);
-
-                    // إشعار للفائز
-                    try {
-                        \App\Services\NotificationService::create(
-                            $match->winner_id,
-                            'pvp_win',
-                            '🏆 مبروك! فزت بتحدي PvP',
-                            'حصلت على 20 نقطة و 10 عملات',
-                            ['match_id' => $match->id],
-                        );
-                    } catch (\Throwable $e) {
-                        \Log::warning('PvP win notification failed', ['error' => $e->getMessage()]);
+                    // إشعار للفائز — مرة واحدة فقط، عند المنح الأول
+                    if ($newlyAwarded) {
+                        try {
+                            \App\Services\NotificationService::create(
+                                $match->winner_id,
+                                'pvp_win',
+                                '🏆 مبروك! فزت بتحدي PvP',
+                                'حصلت على 20 نقطة و 10 عملات',
+                                ['match_id' => $match->id],
+                            );
+                        } catch (\Throwable $e) {
+                            \Log::warning('PvP win notification failed', ['error' => $e->getMessage()]);
+                        }
                     }
                 } catch (\Throwable $e) {
                     \Log::error('PvP winner reward failed', [

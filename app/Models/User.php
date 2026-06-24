@@ -252,7 +252,7 @@ class User extends Authenticatable
     /**
      * النقاط
      */
-    public function points()
+    public function points(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Point::class);
     }
@@ -260,13 +260,23 @@ class User extends Authenticatable
     /**
      * مستوى المستخدم الموحّد: floor(إجمالي النقاط / 100) + 1.
      * مصدر حقيقة واحد بدل حساب المستوى بصيغ متعددة متباعدة عبر الكود.
-     * يستخدم total_points المحمّل مسبقاً (withSum) إن وُجد لتفادي N+1، وإلا يستعلم.
+     *
+     * مصدر الحقيقة هو SUM(points) من سجل النقاط — لا يُقرأ عمود users.total_points
+     * فهو عمود ميت (يساوي 0 دائماً ولا شيء يحدّثه). يفضّل alias المحمّل مسبقاً
+     * عبر withSum('points', 'points') وهو points_sum_points لتفادي N+1، وإلا
+     * يستعلم من العلاقة المحمّلة أو من قاعدة البيانات مباشرة.
      */
     public function getLevelAttribute(): int
     {
-        $total = $this->attributes['total_points']
-            ?? ($this->relationLoaded('points') ? $this->points->sum('points') : (int) $this->points()->sum('points'));
-        return intdiv((int) $total, 100) + 1;
+        if (array_key_exists('points_sum_points', $this->attributes)) {
+            $total = (int) $this->attributes['points_sum_points'];
+        } elseif ($this->relationLoaded('points')) {
+            $total = (int) $this->points->sum('points');
+        } else {
+            $total = (int) $this->points()->sum('points');
+        }
+
+        return intdiv($total, 100) + 1;
     }
 
     /**

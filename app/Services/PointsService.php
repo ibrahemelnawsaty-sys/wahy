@@ -313,7 +313,8 @@ class PointsService
     {
         $query = User::where('role', 'student')
             ->where('status', 'active')
-            ->select('id', 'name', 'avatar', 'school_id', 'points');
+            ->select('id', 'name', 'avatar', 'school_id')
+            ->withSum('points', 'points');
 
         if ($schoolId) {
             $query->where('school_id', $schoolId);
@@ -325,7 +326,7 @@ class PointsService
             });
         }
 
-        $students = $query->orderByDesc('points')
+        $students = $query->orderByDesc('points_sum_points')
             ->limit($limit)
             ->get();
 
@@ -336,7 +337,7 @@ class PointsService
                 'id' => $student->id,
                 'name' => $student->name,
                 'avatar' => $student->avatar,
-                'points' => $student->points,
+                'points' => (int) ($student->points_sum_points ?? 0),
                 'school' => $student->school?->name ?? 'غير محدد',
             ];
         })->toArray();
