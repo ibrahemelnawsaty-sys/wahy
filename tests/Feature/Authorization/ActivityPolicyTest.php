@@ -19,13 +19,13 @@ class ActivityPolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->policy = new ActivityPolicy();
+        $this->policy = new ActivityPolicy;
     }
 
     public function test_super_admin_can_do_everything(): void
     {
         $superAdmin = User::factory()->superAdmin()->create();
-        $activity   = Activity::factory()->create();
+        $activity = Activity::factory()->create();
 
         $this->assertTrue($this->policy->view($superAdmin, $activity));
         $this->assertTrue($this->policy->update($superAdmin, $activity));
@@ -36,8 +36,8 @@ class ActivityPolicyTest extends TestCase
 
     public function test_creator_can_update_and_delete_own_activity(): void
     {
-        $school   = School::factory()->create();
-        $teacher  = User::factory()->teacher($school)->create();
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create();
         $activity = Activity::factory()->create(['created_by' => $teacher->id]);
 
         $this->assertTrue($this->policy->update($teacher, $activity));
@@ -46,10 +46,10 @@ class ActivityPolicyTest extends TestCase
 
     public function test_other_teacher_cannot_update_others_activity(): void
     {
-        $school        = School::factory()->create();
-        $teacher       = User::factory()->teacher($school)->create();
-        $otherTeacher  = User::factory()->teacher($school)->create();
-        $activity      = Activity::factory()->create(['created_by' => $teacher->id]);
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create();
+        $otherTeacher = User::factory()->teacher($school)->create();
+        $activity = Activity::factory()->create(['created_by' => $teacher->id]);
 
         $this->assertFalse($this->policy->update($otherTeacher, $activity));
         $this->assertFalse($this->policy->delete($otherTeacher, $activity));
@@ -57,12 +57,12 @@ class ActivityPolicyTest extends TestCase
 
     public function test_school_admin_can_manage_activities_in_own_school(): void
     {
-        $school     = School::factory()->create();
-        $admin      = User::factory()->schoolAdmin($school)->create();
-        $teacher    = User::factory()->teacher($school)->create();
-        $classroom  = Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
-        $activity   = Activity::factory()->create([
-            'created_by'   => $teacher->id,
+        $school = School::factory()->create();
+        $admin = User::factory()->schoolAdmin($school)->create();
+        $teacher = User::factory()->teacher($school)->create();
+        $classroom = Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
+        $activity = Activity::factory()->create([
+            'created_by' => $teacher->id,
             'classroom_id' => $classroom->id,
         ]);
 
@@ -72,13 +72,13 @@ class ActivityPolicyTest extends TestCase
 
     public function test_school_admin_cannot_manage_activities_in_other_school(): void
     {
-        $schoolA   = School::factory()->create();
-        $schoolB   = School::factory()->create();
-        $admin     = User::factory()->schoolAdmin($schoolA)->create();
-        $teacher   = User::factory()->teacher($schoolB)->create();
+        $schoolA = School::factory()->create();
+        $schoolB = School::factory()->create();
+        $admin = User::factory()->schoolAdmin($schoolA)->create();
+        $teacher = User::factory()->teacher($schoolB)->create();
         $classroom = Classroom::factory()->create(['school_id' => $schoolB->id, 'teacher_id' => $teacher->id]);
-        $activity  = Activity::factory()->create([
-            'created_by'   => $teacher->id,
+        $activity = Activity::factory()->create([
+            'created_by' => $teacher->id,
             'classroom_id' => $classroom->id,
         ]);
 
@@ -88,8 +88,8 @@ class ActivityPolicyTest extends TestCase
 
     public function test_only_super_admin_can_feature_activity(): void
     {
-        $teacher    = User::factory()->teacher()->create();
-        $admin      = User::factory()->schoolAdmin()->create();
+        $teacher = User::factory()->teacher()->create();
+        $admin = User::factory()->schoolAdmin()->create();
         $superAdmin = User::factory()->superAdmin()->create();
 
         $this->assertFalse($this->policy->feature($teacher));
@@ -99,7 +99,7 @@ class ActivityPolicyTest extends TestCase
 
     public function test_student_cannot_create_or_update_activity(): void
     {
-        $student  = User::factory()->student()->create();
+        $student = User::factory()->student()->create();
         $activity = Activity::factory()->create();
 
         $this->assertFalse($this->policy->create($student));

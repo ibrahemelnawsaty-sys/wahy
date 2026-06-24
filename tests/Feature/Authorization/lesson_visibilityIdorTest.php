@@ -61,7 +61,7 @@ class lesson_visibilityIdorTest extends TestCase
 
         return Lesson::factory()->create([
             'concept_id' => $concept->id,
-            'status'     => 'active',
+            'status' => 'active',
         ]);
     }
 
@@ -72,8 +72,8 @@ class lesson_visibilityIdorTest extends TestCase
      */
     public function test_student_cannot_open_lesson_from_another_school(): void
     {
-        $schoolB     = School::factory()->create();
-        $lessonB     = $this->lessonActivatedOnlyFor($schoolB);
+        $schoolB = School::factory()->create();
+        $lessonB = $this->lessonActivatedOnlyFor($schoolB);
 
         // Attacker lives in school A. Give school A its OWN custom-activated
         // value so school A is NOT in the legacy "all values active" fallback,

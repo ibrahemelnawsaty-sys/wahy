@@ -40,7 +40,7 @@ class StoreTeamIdorTest extends TestCase
 
         // The object owned by school B.
         $classroomB = Classroom::factory()->create([
-            'school_id'  => $schoolB->id,
+            'school_id' => $schoolB->id,
             'teacher_id' => $teacherB->id,
         ]);
 
@@ -48,11 +48,11 @@ class StoreTeamIdorTest extends TestCase
         $studentB = User::factory()->student($schoolB)->create();
 
         $response = $this->actingAs($teacherA)->post(route('teacher.teams.store'), [
-            'name'         => 'فريق متسلل',
+            'name' => 'فريق متسلل',
             'classroom_id' => $classroomB->id,
-            'leader_id'    => $studentB->id,
-            'member_ids'   => [$studentB->id],
-            'description'  => 'محاولة عبر المدارس',
+            'leader_id' => $studentB->id,
+            'member_ids' => [$studentB->id],
+            'description' => 'محاولة عبر المدارس',
         ]);
 
         // firstOrFail() on a classroom not owned by teacherA -> 404.
@@ -76,7 +76,7 @@ class StoreTeamIdorTest extends TestCase
         $teacherA = User::factory()->teacher($schoolA)->create();
 
         $classroomA = Classroom::factory()->create([
-            'school_id'  => $schoolA->id,
+            'school_id' => $schoolA->id,
             'teacher_id' => $teacherA->id,
         ]);
 
@@ -84,11 +84,11 @@ class StoreTeamIdorTest extends TestCase
         $foreignStudent = User::factory()->student($schoolB)->create();
 
         $response = $this->actingAs($teacherA)->post(route('teacher.teams.store'), [
-            'name'         => 'فريق بقائد دخيل',
+            'name' => 'فريق بقائد دخيل',
             'classroom_id' => $classroomA->id,
-            'leader_id'    => $foreignStudent->id,
-            'member_ids'   => [$foreignStudent->id],
-            'description'  => null,
+            'leader_id' => $foreignStudent->id,
+            'member_ids' => [$foreignStudent->id],
+            'description' => null,
         ]);
 
         // Leader is not a student in the teacher's school -> abort_unless 422.
@@ -109,7 +109,7 @@ class StoreTeamIdorTest extends TestCase
         $teacher = User::factory()->teacher($school)->create();
 
         $classroom = Classroom::factory()->create([
-            'school_id'  => $school->id,
+            'school_id' => $school->id,
             'teacher_id' => $teacher->id,
         ]);
 
@@ -117,11 +117,11 @@ class StoreTeamIdorTest extends TestCase
         $member = User::factory()->student($school)->create();
 
         $response = $this->actingAs($teacher)->post(route('teacher.teams.store'), [
-            'name'         => 'فريق شرعي',
+            'name' => 'فريق شرعي',
             'classroom_id' => $classroom->id,
-            'leader_id'    => $leader->id,
-            'member_ids'   => [$leader->id, $member->id],
-            'description'  => 'فريق صحيح',
+            'leader_id' => $leader->id,
+            'member_ids' => [$leader->id, $member->id],
+            'description' => 'فريق صحيح',
         ]);
 
         // Controller redirects to teacher.teams on success.
@@ -129,22 +129,22 @@ class StoreTeamIdorTest extends TestCase
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('teams', [
-            'name'         => 'فريق شرعي',
+            'name' => 'فريق شرعي',
             'classroom_id' => $classroom->id,
-            'created_by'   => $teacher->id,
+            'created_by' => $teacher->id,
         ]);
 
         $team = Team::where('name', 'فريق شرعي')->firstOrFail();
 
         $this->assertDatabaseHas('team_members', [
-            'team_id'    => $team->id,
+            'team_id' => $team->id,
             'student_id' => $leader->id,
-            'role'       => 'leader',
+            'role' => 'leader',
         ]);
         $this->assertDatabaseHas('team_members', [
-            'team_id'    => $team->id,
+            'team_id' => $team->id,
             'student_id' => $member->id,
-            'role'       => 'member',
+            'role' => 'member',
         ]);
     }
 }

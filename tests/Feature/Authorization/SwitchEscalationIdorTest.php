@@ -47,7 +47,7 @@ class SwitchEscalationIdorTest extends TestCase
      */
     public function test_actor_cannot_escalate_to_admin_roles(): void
     {
-        $school  = School::factory()->create();
+        $school = School::factory()->create();
         $teacher = User::factory()->teacher($school)->create([
             'secondary_roles' => null,
         ]);
@@ -90,7 +90,7 @@ class SwitchEscalationIdorTest extends TestCase
     public function test_owner_can_switch_to_their_primary_role(): void
     {
         $school = School::factory()->create();
-        $user   = User::factory()->teacher($school)->create([
+        $user = User::factory()->teacher($school)->create([
             'secondary_roles' => null,
         ]);
 

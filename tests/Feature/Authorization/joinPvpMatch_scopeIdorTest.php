@@ -52,30 +52,30 @@ class joinPvpMatch_scopeIdorTest extends TestCase
         // (a school with custom active values only sees those values).
         $valueForA = Value::factory()->create(['status' => 'active']);
         DB::table('school_active_values')->insert([
-            'school_id'    => $schoolA->id,
-            'value_id'     => $valueForA->id,
+            'school_id' => $schoolA->id,
+            'value_id' => $valueForA->id,
             'activated_at' => now(),
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         // The OBJECT owned by school B: a value activated only for school B,
         // and a challenge bound to that value.
         $valueForB = Value::factory()->create(['status' => 'active']);
         DB::table('school_active_values')->insert([
-            'school_id'    => $schoolB->id,
-            'value_id'     => $valueForB->id,
+            'school_id' => $schoolB->id,
+            'value_id' => $valueForB->id,
             'activated_at' => now(),
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $challengeB = PvpChallenge::create([
-            'title'      => 'تحدي مدرسة ب',
-            'value_id'   => $valueForB->id,
-            'questions'  => [],
+            'title' => 'تحدي مدرسة ب',
+            'value_id' => $valueForB->id,
+            'questions' => [],
             'time_limit' => 30,
-            'is_active'  => true,
+            'is_active' => true,
             'created_by' => User::factory()->superAdmin()->create()->id,
         ]);
 
@@ -102,19 +102,19 @@ class joinPvpMatch_scopeIdorTest extends TestCase
 
         $valueForB = Value::factory()->create(['status' => 'active']);
         DB::table('school_active_values')->insert([
-            'school_id'    => $schoolB->id,
-            'value_id'     => $valueForB->id,
+            'school_id' => $schoolB->id,
+            'value_id' => $valueForB->id,
             'activated_at' => now(),
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $challengeB = PvpChallenge::create([
-            'title'      => 'تحدي مدرسة ب',
-            'value_id'   => $valueForB->id,
-            'questions'  => [],
+            'title' => 'تحدي مدرسة ب',
+            'value_id' => $valueForB->id,
+            'questions' => [],
             'time_limit' => 30,
-            'is_active'  => true,
+            'is_active' => true,
             'created_by' => User::factory()->superAdmin()->create()->id,
         ]);
 
@@ -124,14 +124,14 @@ class joinPvpMatch_scopeIdorTest extends TestCase
         $response->assertOk();
         $response->assertJson([
             'success' => true,
-            'status'  => 'waiting',
+            'status' => 'waiting',
         ]);
 
         // The legitimate owner's join created exactly one match.
         $this->assertDatabaseHas('pvp_matches', [
             'challenge_id' => $challengeB->id,
-            'player1_id'   => $studentB->id,
-            'status'       => 'waiting',
+            'player1_id' => $studentB->id,
+            'status' => 'waiting',
         ]);
     }
 }

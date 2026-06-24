@@ -40,7 +40,7 @@ class updateTeamIdorTest extends TestCase
         $teacher = User::factory()->teacher($school)->create();
 
         $classroom = Classroom::factory()->create([
-            'school_id'  => $school->id,
+            'school_id' => $school->id,
             'teacher_id' => $teacher->id,
         ]);
 
@@ -48,17 +48,17 @@ class updateTeamIdorTest extends TestCase
         $classroom->students()->attach($student->id);
 
         $team = Team::create([
-            'name'         => 'فريق ' . $school->id,
+            'name' => 'فريق ' . $school->id,
             'classroom_id' => $classroom->id,
-            'created_by'   => $teacher->id,
-            'status'       => 'active',
+            'created_by' => $teacher->id,
+            'status' => 'active',
         ]);
 
         DB::table('team_members')->insert([
-            'team_id'    => $team->id,
+            'team_id' => $team->id,
             'student_id' => $student->id,
-            'role'       => 'leader',
-            'joined_at'  => now(),
+            'role' => 'leader',
+            'joined_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -77,22 +77,22 @@ class updateTeamIdorTest extends TestCase
         [, $teamB, $studentB] = $this->makeTenant();
 
         $response = $this->actingAs($teacherA)->post('/teacher/teams/' . $teamB->id, [
-            'name'         => 'اسم مخترق',
-            'description'  => 'محاولة عبر المدارس',
-            'leader_id'    => $studentB->id,
-            'member_ids'   => [$studentB->id],
-            'status'       => 'active',
+            'name' => 'اسم مخترق',
+            'description' => 'محاولة عبر المدارس',
+            'leader_id' => $studentB->id,
+            'member_ids' => [$studentB->id],
+            'status' => 'active',
         ]);
 
         $response->assertStatus(404);
 
         // The target team was NOT mutated by the cross-tenant actor.
         $this->assertDatabaseHas('teams', [
-            'id'   => $teamB->id,
+            'id' => $teamB->id,
             'name' => $teamB->name,
         ]);
         $this->assertDatabaseMissing('teams', [
-            'id'   => $teamB->id,
+            'id' => $teamB->id,
             'name' => 'اسم مخترق',
         ]);
     }
@@ -106,18 +106,18 @@ class updateTeamIdorTest extends TestCase
         [$teacherA, $teamA, $studentA] = $this->makeTenant();
 
         $response = $this->actingAs($teacherA)->post('/teacher/teams/' . $teamA->id, [
-            'name'         => 'اسم محدّث',
-            'description'  => 'تحديث مشروع',
-            'leader_id'    => $studentA->id,
-            'member_ids'   => [$studentA->id],
-            'status'       => 'active',
+            'name' => 'اسم محدّث',
+            'description' => 'تحديث مشروع',
+            'leader_id' => $studentA->id,
+            'member_ids' => [$studentA->id],
+            'status' => 'active',
         ]);
 
         $response->assertRedirect(route('teacher.teams.show', $teamA->id));
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('teams', [
-            'id'   => $teamA->id,
+            'id' => $teamA->id,
             'name' => 'اسم محدّث',
         ]);
     }

@@ -17,15 +17,15 @@ class MessagePolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->policy = new MessagePolicy();
+        $this->policy = new MessagePolicy;
     }
 
     public function test_sender_can_view_own_message(): void
     {
-        $sender   = User::factory()->create();
+        $sender = User::factory()->create();
         $receiver = User::factory()->create();
-        $message  = Message::factory()->create([
-            'sender_id'   => $sender->id,
+        $message = Message::factory()->create([
+            'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
         ]);
 
@@ -35,11 +35,11 @@ class MessagePolicyTest extends TestCase
 
     public function test_third_party_cannot_view_message(): void
     {
-        $sender    = User::factory()->create();
-        $receiver  = User::factory()->create();
+        $sender = User::factory()->create();
+        $receiver = User::factory()->create();
         $thirdUser = User::factory()->create();
-        $message   = Message::factory()->create([
-            'sender_id'   => $sender->id,
+        $message = Message::factory()->create([
+            'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
         ]);
 
@@ -48,11 +48,11 @@ class MessagePolicyTest extends TestCase
 
     public function test_super_admin_can_view_any_message(): void
     {
-        $sender     = User::factory()->create();
-        $receiver   = User::factory()->create();
+        $sender = User::factory()->create();
+        $receiver = User::factory()->create();
         $superAdmin = User::factory()->superAdmin()->create();
-        $message    = Message::factory()->create([
-            'sender_id'   => $sender->id,
+        $message = Message::factory()->create([
+            'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
         ]);
 
@@ -61,10 +61,10 @@ class MessagePolicyTest extends TestCase
 
     public function test_only_sender_can_update_message(): void
     {
-        $sender   = User::factory()->create();
+        $sender = User::factory()->create();
         $receiver = User::factory()->create();
-        $message  = Message::factory()->create([
-            'sender_id'   => $sender->id,
+        $message = Message::factory()->create([
+            'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
         ]);
 
@@ -74,10 +74,10 @@ class MessagePolicyTest extends TestCase
 
     public function test_only_receiver_can_mark_as_read(): void
     {
-        $sender   = User::factory()->create();
+        $sender = User::factory()->create();
         $receiver = User::factory()->create();
-        $message  = Message::factory()->create([
-            'sender_id'   => $sender->id,
+        $message = Message::factory()->create([
+            'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
         ]);
 

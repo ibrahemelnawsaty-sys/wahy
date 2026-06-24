@@ -37,28 +37,28 @@ class null_school_cross_leakIdorTest extends TestCase
     {
         // Attacker: school_admin whose account is not linked to any school.
         $attacker = User::factory()->create([
-            'role'      => UserRole::SchoolAdmin->value,
+            'role' => UserRole::SchoolAdmin->value,
             'school_id' => null,
         ]);
 
         // Victim tenant (school B) the attacker explicitly tries to target by
         // passing school B's id. The controller must reject the schoolless
         // sender rather than honour the attacker-supplied school_id.
-        $schoolB     = School::factory()->create();
-        $victimB     = User::factory()->student($schoolB)->create();
+        $schoolB = School::factory()->create();
+        $victimB = User::factory()->student($schoolB)->create();
         // Also a schoolless victim — exactly the population a null IS NULL query
         // would wrongly broadcast to if the override were missing.
-        $victimNull  = User::factory()->create([
-            'role'      => UserRole::Student->value,
+        $victimNull = User::factory()->create([
+            'role' => UserRole::Student->value,
             'school_id' => null,
         ]);
 
         $response = $this->actingAs($attacker)->post(route('messages.bulk.send'), [
             'recipient_type' => 'school_all',
             // Attacker-supplied target tenant — must NOT be honoured.
-            'school_id'      => $schoolB->id,
-            'subject'        => 'cross tenant leak attempt',
-            'message'        => 'should never be delivered',
+            'school_id' => $schoolB->id,
+            'subject' => 'cross tenant leak attempt',
+            'message' => 'should never be delivered',
         ]);
 
         // Controller aborts with 403 for a schoolless bulk sender.
@@ -83,22 +83,22 @@ class null_school_cross_leakIdorTest extends TestCase
     public function test_school_admin_can_broadcast_to_own_school(): void
     {
         $schoolA = School::factory()->create();
-        $admin   = User::factory()->schoolAdmin($schoolA)->create();
+        $admin = User::factory()->schoolAdmin($schoolA)->create();
 
         // Member of the admin's own school — should receive the message.
         $ownStudent = User::factory()->student($schoolA)->create();
 
         // Member of a different tenant (school B) — must NOT receive it.
-        $schoolB      = School::factory()->create();
+        $schoolB = School::factory()->create();
         $otherStudent = User::factory()->student($schoolB)->create();
 
         $response = $this->actingAs($admin)->post(route('messages.bulk.send'), [
             'recipient_type' => 'school_all',
             // IDOR attempt: admin passes ANOTHER school's id. The controller
             // must force the sender's own school_id (schoolA) regardless.
-            'school_id'      => $schoolB->id,
-            'subject'        => 'own school broadcast',
-            'message'        => 'hello my school',
+            'school_id' => $schoolB->id,
+            'subject' => 'own school broadcast',
+            'message' => 'hello my school',
         ]);
 
         // Successful send redirects to the bulk index with a success flash.
@@ -107,10 +107,10 @@ class null_school_cross_leakIdorTest extends TestCase
 
         // Exactly one bulk message, scoped to the admin's own school.
         $this->assertDatabaseHas('bulk_messages', [
-            'sender_id'      => $admin->id,
+            'sender_id' => $admin->id,
             'recipient_type' => 'school_all',
-            'school_id'      => $schoolA->id,
-            'subject'        => 'own school broadcast',
+            'school_id' => $schoolA->id,
+            'subject' => 'own school broadcast',
         ]);
 
         $message = BulkMessage::where('sender_id', $admin->id)->firstOrFail();
@@ -118,11 +118,11 @@ class null_school_cross_leakIdorTest extends TestCase
         // Own-school student is a recipient; cross-tenant student is not.
         $this->assertDatabaseHas('bulk_message_recipients', [
             'bulk_message_id' => $message->id,
-            'user_id'         => $ownStudent->id,
+            'user_id' => $ownStudent->id,
         ]);
         $this->assertDatabaseMissing('bulk_message_recipients', [
             'bulk_message_id' => $message->id,
-            'user_id'         => $otherStudent->id,
+            'user_id' => $otherStudent->id,
         ]);
 
         // No recipient outside the admin's school leaked in.
@@ -142,8 +142,8 @@ class null_school_cross_leakIdorTest extends TestCase
 
         $response = $this->actingAs($student)->post(route('messages.bulk.send'), [
             'recipient_type' => 'all',
-            'subject'        => 'nope',
-            'message'        => 'nope',
+            'subject' => 'nope',
+            'message' => 'nope',
         ]);
 
         $response->assertStatus(403);

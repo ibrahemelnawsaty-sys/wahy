@@ -23,13 +23,13 @@ class ChildDetailsIdorTest extends TestCase
     public function test_cross_tenant_parent_cannot_view_another_schools_child(): void
     {
         // المدرسة B + ولي أمر فيها + طفله (الضحية / الكائن المملوك للمدرسة B)
-        $schoolB     = School::factory()->create();
+        $schoolB = School::factory()->create();
         $ownerParent = User::factory()->parent($schoolB)->create();
         $victimChild = User::factory()->student($schoolB)->create();
         $ownerParent->children()->attach($victimChild->id, ['relationship' => 'أب']);
 
         // المهاجم: ولي أمر من المدرسة A — غير مرتبط بطفل المدرسة B
-        $schoolA       = School::factory()->create();
+        $schoolA = School::factory()->create();
         $attackerParent = User::factory()->parent($schoolA)->create();
 
         $response = $this->actingAs($attackerParent)
@@ -43,7 +43,7 @@ class ChildDetailsIdorTest extends TestCase
     {
         $school = School::factory()->create();
         $parent = User::factory()->parent($school)->create();
-        $child  = User::factory()->student($school)->create();
+        $child = User::factory()->student($school)->create();
         $parent->children()->attach($child->id, ['relationship' => 'أب']);
 
         $response = $this->actingAs($parent)

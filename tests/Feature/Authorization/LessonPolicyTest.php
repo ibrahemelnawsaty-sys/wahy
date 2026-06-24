@@ -17,7 +17,7 @@ class LessonPolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->policy = new LessonPolicy();
+        $this->policy = new LessonPolicy;
     }
 
     public function test_anyone_can_view_lessons(): void

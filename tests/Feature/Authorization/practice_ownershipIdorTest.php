@@ -43,19 +43,19 @@ class practice_ownershipIdorTest extends TestCase
 
         // The object owned by school B: a classroom + a classroom-bound exercise.
         $classroomB = Classroom::factory()->create([
-            'school_id'  => $schoolB->id,
+            'school_id' => $schoolB->id,
             'teacher_id' => $teacherB->id,
         ]);
 
         $exerciseB = PracticeExercise::create([
-            'teacher_id'   => $teacherB->id,
+            'teacher_id' => $teacherB->id,
             'classroom_id' => $classroomB->id,
-            'title'        => 'تمرين مدرسة ب',
-            'type'         => 'quiz',
-            'difficulty'   => 'easy',
+            'title' => 'تمرين مدرسة ب',
+            'type' => 'quiz',
+            'difficulty' => 'easy',
             'max_attempts' => 3,
-            'is_active'    => true,
-            'questions'    => [],
+            'is_active' => true,
+            'questions' => [],
         ]);
 
         // studentA is NOT enrolled in classroomB -> exerciseBelongsToStudent() false.
@@ -77,25 +77,25 @@ class practice_ownershipIdorTest extends TestCase
         $teacher = User::factory()->teacher($school)->create();
 
         $classroom = Classroom::factory()->create([
-            'school_id'  => $school->id,
+            'school_id' => $school->id,
             'teacher_id' => $teacher->id,
         ]);
 
         // Enroll the student into the classroom that owns the exercise.
         $student->classrooms()->attach($classroom->id, [
             'enrollment_date' => now(),
-            'status'          => 'active',
+            'status' => 'active',
         ]);
 
         $exercise = PracticeExercise::create([
-            'teacher_id'   => $teacher->id,
+            'teacher_id' => $teacher->id,
             'classroom_id' => $classroom->id,
-            'title'        => 'تمرين فصلي شرعي',
-            'type'         => 'quiz',
-            'difficulty'   => 'easy',
+            'title' => 'تمرين فصلي شرعي',
+            'type' => 'quiz',
+            'difficulty' => 'easy',
             'max_attempts' => 3,
-            'is_active'    => true,
-            'questions'    => [],
+            'is_active' => true,
+            'questions' => [],
         ]);
 
         $response = $this->actingAs($student)
@@ -119,14 +119,14 @@ class practice_ownershipIdorTest extends TestCase
         $teacherB = User::factory()->teacher($schoolB)->create();
 
         $publicExerciseB = PracticeExercise::create([
-            'teacher_id'   => $teacherB->id,
+            'teacher_id' => $teacherB->id,
             'classroom_id' => null, // public — no classroom anchor
-            'title'        => 'تمرين عام مدرسة ب',
-            'type'         => 'quiz',
-            'difficulty'   => 'easy',
+            'title' => 'تمرين عام مدرسة ب',
+            'type' => 'quiz',
+            'difficulty' => 'easy',
             'max_attempts' => 3,
-            'is_active'    => true,
-            'questions'    => [],
+            'is_active' => true,
+            'questions' => [],
         ]);
 
         $this->actingAs($studentA)
@@ -145,14 +145,14 @@ class practice_ownershipIdorTest extends TestCase
         $teacher = User::factory()->teacher($school)->create();
 
         $publicExercise = PracticeExercise::create([
-            'teacher_id'   => $teacher->id,
+            'teacher_id' => $teacher->id,
             'classroom_id' => null,
-            'title'        => 'تمرين عام مدرستي',
-            'type'         => 'quiz',
-            'difficulty'   => 'easy',
+            'title' => 'تمرين عام مدرستي',
+            'type' => 'quiz',
+            'difficulty' => 'easy',
             'max_attempts' => 3,
-            'is_active'    => true,
-            'questions'    => [],
+            'is_active' => true,
+            'questions' => [],
         ]);
 
         $this->actingAs($student)

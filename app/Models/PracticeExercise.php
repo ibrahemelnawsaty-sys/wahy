@@ -23,23 +23,42 @@ class PracticeExercise extends Model
         'ends_at' => 'datetime',
     ];
 
-    public function teacher() { return $this->belongsTo(User::class, 'teacher_id'); }
-    public function classroom() { return $this->belongsTo(Classroom::class); }
-    public function attempts() { return $this->hasMany(PracticeAttempt::class, 'exercise_id'); }
+    public function teacher()
+    {
+        return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function classroom()
+    {
+        return $this->belongsTo(Classroom::class);
+    }
+
+    public function attempts()
+    {
+        return $this->hasMany(PracticeAttempt::class, 'exercise_id');
+    }
 
     // الأسئلة الكاملة من بنك الأسئلة
     public function getFullQuestionsAttribute()
     {
         $ids = $this->questions ?? [];
+
         return QuestionBank::whereIn('id', $ids)->get();
     }
 
     // هل التمرين متاح حالياً
     public function getIsAvailableAttribute()
     {
-        if (!$this->is_active) return false;
-        if ($this->starts_at && now()->lt($this->starts_at)) return false;
-        if ($this->ends_at && now()->gt($this->ends_at)) return false;
+        if (! $this->is_active) {
+            return false;
+        }
+        if ($this->starts_at && now()->lt($this->starts_at)) {
+            return false;
+        }
+        if ($this->ends_at && now()->gt($this->ends_at)) {
+            return false;
+        }
+
         return true;
     }
 
