@@ -1920,6 +1920,19 @@ class StudentController extends Controller
         $student = Auth::user();
         $exercise = \App\Models\PracticeExercise::findOrFail($id);
 
+        // Pass-4 Batch 2: enforce max_attempts on SUBMIT too. startExercise gated this,
+        // submitExercise did not — the unlimited-points-farming bug (replay the POST →
+        // re-award forever). Sequential replay is now blocked; the concurrent
+        // double-submit race needs a unique (student, exercise, attempt) constraint
+        // (held schema batch).
+        $completedAttempts = \App\Models\PracticeAttempt::where('student_id', $student->id)
+            ->where('exercise_id', $id)
+            ->whereNotNull('completed_at')
+            ->count();
+        if ($completedAttempts >= $exercise->max_attempts) {
+            return back()->with('error', 'لقد استنفدت جميع المحاولات المتاحة');
+        }
+
         $answers = $request->input('answers', []);
         $timeTaken = (int) $request->input('time_taken', 0);
 
@@ -1988,19 +2001,19 @@ class StudentController extends Controller
             'completed_at' => now(),
         ]);
 
-        // إضافة نقاط
-        $points = max(1, round($score / 10));
+        // إضافة نقاط — عبر AwardService (ذرّي + idempotent مفتاحه المحاولة).
+        $points = max(1, (int) round($score / 10));
         try {
-            \App\Models\Point::create([
-                'user_id' => $student->id,
-                'points' => $points,
-                'reason' => 'إكمال تمرين: ' . $exercise->title,
-                // الأعمدة الموجودة فعلاً في Point هي source/description (لا reference_*)
-                'source' => 'practice_exercise',
-                'description' => 'محاولة #' . $attempt->id,
-            ]);
-        } catch (\Exception $e) {
-            Log::warning('Practice exercise points award failed', [
+            \App\Services\AwardService::award(
+                $student->id,
+                'practice_attempt',
+                (string) $attempt->id,
+                $points,
+                0,
+                'إكمال تمرين: ' . $exercise->title,
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Practice exercise award failed', [
                 'student_id' => $student->id,
                 'exercise_id' => $exercise->id ?? null,
                 'attempt_id' => $attempt->id ?? null,

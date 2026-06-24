@@ -215,30 +215,25 @@ class TeacherController extends Controller
         // كل العمليات الثانوية (XP/Coins/إشعارات) ملفوفة بـ try-catch
         // لأن submission update تم بنجاح قبلها — لا نريد كسر الرد لو فشل listener/خدمة (P1-D).
         try {
-            $gamification = new GamificationService;
             $student = User::find($submission->student_id);
             $activityTitle = optional($submission->activity)->title ?? 'نشاط';
 
+            // Pass-4 Batch 2: ONE atomic + idempotent award keyed on this submission.
+            // Re-grading the same submission is a no-op — no double XP/coins and no
+            // re-distribution. Student XP+coins and the teacher/parent/school fan-out
+            // commit (or roll back) together inside AwardService.
             try {
-                $gamification->addXP($submission->student_id, $request->xp_awarded, 'activity_completed', 'إكمال نشاط: ' . $activityTitle);
+                \App\Services\AwardService::award(
+                    $submission->student_id,
+                    'activity_submission',
+                    (string) $submission->id,
+                    (int) $request->xp_awarded,
+                    (int) $request->coins_awarded,
+                    'إكمال نشاط: ' . $activityTitle,
+                    distribute: true,
+                );
             } catch (\Throwable $e) {
-                \Log::warning('addXP failed: ' . $e->getMessage());
-            }
-
-            try {
-                $gamification->addCoins($submission->student_id, $request->coins_awarded, 'activity_completed', 'مكافأة نشاط: ' . $activityTitle);
-            } catch (\Throwable $e) {
-                \Log::warning('addCoins failed: ' . $e->getMessage());
-            }
-
-            // توزيع النقاط على المعلم/الولي/المدرسة (كان التصحيح اليدوي يمنح الطالب فقط) — Issue M20
-            try {
-                if ($student) {
-                    app(\App\Services\Activity\PointsDistributionService::class)
-                        ->distribute($student, (int) $request->xp_awarded, 'activity_completion', $activityTitle);
-                }
-            } catch (\Throwable $e) {
-                \Log::warning('points distribution failed: ' . $e->getMessage());
+                \Log::warning('activity award failed: ' . $e->getMessage());
             }
 
             try {
