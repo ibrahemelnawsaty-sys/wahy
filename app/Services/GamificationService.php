@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
+use App\Events\LevelUp;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Events\LevelUp;
-use App\Services\NotificationService;
 
 class GamificationService
 {
@@ -24,12 +23,12 @@ class GamificationService
             $oldLevel = (int) floor($currentXP / 100) + 1;
 
             DB::table('points')->insert([
-                'user_id'     => $studentId,
-                'points'      => $points,
-                'source'      => $source,
+                'user_id' => $studentId,
+                'points' => $points,
+                'source' => $source,
                 'description' => $description,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $newXP = $currentXP + (int) $points;
@@ -44,7 +43,7 @@ class GamificationService
             return [
                 'old_level' => $oldLevel,
                 'new_level' => $newLevel,
-                'level_up'  => $leveledUp,
+                'level_up' => $leveledUp,
             ];
         }, 3); // 3 محاولات على الـ Deadlock
 
@@ -80,12 +79,12 @@ class GamificationService
     protected function addCoinsRaw($studentId, $coins, $source, $description): bool
     {
         return DB::table('coins')->insert([
-            'user_id'     => $studentId,
-            'coins'       => $coins,
-            'source'      => $source,
+            'user_id' => $studentId,
+            'coins' => $coins,
+            'source' => $source,
             'description' => $description,
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
