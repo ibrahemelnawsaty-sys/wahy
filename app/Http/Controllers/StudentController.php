@@ -1172,51 +1172,46 @@ class StudentController extends Controller
      */
     public function redeemReward(Request $request)
     {
-        $request->validate([
-            'reward_id' => 'required|integer',
-            'cost' => 'required|integer|min:1',
+        // Pass-4 Batch 2: 'cost' is NO LONGER accepted — price is derived server-side
+        // from ShopItem (closes the forged-client-cost Major). The debit goes through
+        // SpendService (users-row mutex + idempotent + overdraft-proof).
+        $validated = $request->validate([
+            'reward_id' => 'required|integer|exists:shop_items,id',
+            'idempotency_key' => 'nullable|string|max:64',
         ]);
 
         $student = Auth::user();
-        $cost = (int) $request->cost;
+        $item = \App\Models\ShopItem::findOrFail((int) $validated['reward_id']);
 
-        // تنفيذ ذرّي مع pessimistic lock لمنع السحب المضاعف و الرصيد السالب
-        try {
-            $result = DB::transaction(function () use ($student, $cost) {
-                // قفل صفّي على عملات المستخدم لمنع race بين فحص الرصيد و الخصم
-                $currentCoins = (int) Coin::where('user_id', $student->id)
-                    ->lockForUpdate()
-                    ->sum('coins');
-
-                if ($currentCoins < $cost) {
-                    return [
-                        'success' => false,
-                        'message' => 'عملاتك غير كافية',
-                    ];
-                }
-
-                Coin::create([
-                    'user_id' => $student->id,
-                    'coins' => -$cost,
-                    'reason' => 'استبدال مكافأة من المتجر',
-                    'transaction_type' => 'spend',
-                ]);
-
-                $newBalance = $currentCoins - $cost;
-
-                return [
-                    'success' => true,
-                    'new_balance' => $newBalance,
-                ];
-            }, 3);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'حدث خطأ أثناء عملية الشراء',
-            ], 500);
+        if (! $item->isAvailable()) {
+            return response()->json(['success' => false, 'message' => 'هذه المكافأة غير متاحة حالياً']);
         }
 
-        return response()->json($result);
+        // Rewards are repeatable, so the idempotency key is the per-intent client token
+        // (resent unchanged on retry => no double charge; a new intentional redeem uses a
+        // new token => not swallowed). Absent a token, each redeem is distinct (documented).
+        $token = $validated['idempotency_key'] ?? (string) \Illuminate\Support\Str::uuid();
+
+        $result = \App\Services\SpendService::spend(
+            (int) $student->id,
+            'reward_redemption',
+            $token,
+            (int) $item->price,                 // ← server-authoritative price
+            'استبدال مكافأة: ' . $item->name,
+        );
+
+        if (! $result['success'] && $result['reason'] === 'insufficient_balance') {
+            return response()->json(['success' => false, 'message' => 'عملاتك غير كافية']);
+        }
+        if (! $result['success']) {
+            return response()->json(['success' => false, 'message' => 'تعذّر إتمام الاستبدال'], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'new_balance' => $result['balance'],
+            'duplicate' => $result['duplicate'],
+        ]);
     }
 
     /**
@@ -1328,30 +1323,33 @@ class StudentController extends Controller
         // (سابقًا كان فحص الرصيد قبل المعاملة → race يسمح بالرصيد السالب)
         try {
             $result = DB::transaction(function () use ($user, $item, $itemId) {
-                // قفل صفّي على رصيد المستخدم — يُسلسِل معاملات نفس المستخدم المتزامنة
-                $totalCoins = (int) Coin::where('user_id', $user->id)->lockForUpdate()->sum('coins');
-
-                // إعادة فحص الشراء المسبق بعد القفل → يمنع الشراء المزدوج تحت السباق (double-click)
+                // الشراء مرة واحدة لكل عنصر — الحارس الحقيقي مفتاح SpendService (shop_purchase, itemId)
                 if ($user->purchases()->where('shop_item_id', $itemId)->exists()) {
                     return ['success' => false, 'message' => 'لقد اشتريت هذا العنصر مسبقاً'];
                 }
 
-                if ($totalCoins < $item->price) {
+                // الخصم عبر SpendService: يقفل صف users، idempotent على (shop_purchase, itemId)،
+                // ولا رصيد سالب. السعر مشتق من الخادم ($item->price) — لا قيمة من العميل.
+                $spend = \App\Services\SpendService::spend(
+                    (int) $user->id,
+                    'shop_purchase',
+                    (string) $itemId,
+                    (int) $item->price,
+                    'شراء ' . $item->name,
+                );
+
+                if (! empty($spend['duplicate'])) {
+                    return ['success' => false, 'message' => 'لقد اشتريت هذا العنصر مسبقاً'];
+                }
+                if (! $spend['success']) {
                     return ['success' => false, 'message' => 'رصيدك غير كافٍ. تحتاج ' . $item->price . ' عملة'];
                 }
 
-                // فحص المخزون داخل المعاملة (atomic decrementStock تحقق منه)
-                $stockOk = $item->decrementStock();
-                if (! $stockOk) {
-                    return ['success' => false, 'message' => 'نفد المخزون. حاول شراء عنصر آخر.'];
+                // المخزون + سجل الملكية ذرّياً مع الخصم (نفس المعاملة الخارجية)؛ فشل المخزون
+                // يرمي فيتراجع الخصم كاملاً والمفتاح يتحرّر لإعادة محاولة شريفة.
+                if (! $item->decrementStock()) {
+                    throw new \DomainException('out_of_stock');
                 }
-
-                Coin::create([
-                    'user_id' => $user->id,
-                    'coins' => -$item->price,
-                    'source' => 'shop_purchase',
-                    'description' => 'شراء ' . $item->name,
-                ]);
 
                 $user->purchases()->attach($itemId, [
                     'price_paid' => $item->price,
@@ -1361,11 +1359,13 @@ class StudentController extends Controller
                 return [
                     'success' => true,
                     'message' => 'تم الشراء بنجاح! 🎉',
-                    'remaining_coins' => $totalCoins - $item->price,
+                    'remaining_coins' => $spend['balance'],
                 ];
             }, 3);
 
             return response()->json($result);
+        } catch (\DomainException $e) {
+            return response()->json(['success' => false, 'message' => 'نفد المخزون. حاول شراء عنصر آخر.']);
         } catch (\Throwable $e) {
             \Log::error('Shop purchase failed: ' . $e->getMessage(), [
                 'user_id' => $user->id,

@@ -41,7 +41,9 @@ class ShopPurchaseTest extends TestCase
             ->first();
 
         $this->assertNotNull($negativeRecord);
-        $this->assertEquals('shop_purchase', $negativeRecord->source);
+        // deductCoins now routes through SpendService, which labels the audit row by its
+        // spend family ('gamification_deduct') rather than the old hard-coded 'shop_purchase'.
+        $this->assertEquals('gamification_deduct', $negativeRecord->source);
     }
 
     public function test_deduct_coins_zero_does_not_underflow(): void

@@ -90,31 +90,27 @@ class GamificationService
     }
 
     /**
-     * خصم عملات من الطالب (للشراء من المتجر) — Transactional + lockForUpdate لمنع overspend.
+     * خصم عملات من الطالب — يمر الآن عبر SpendService (قفل صف users + idempotent + لا overspend).
+     *
+     * SpendService يملك معاملته الخاصة؛ فإن استُدعيت داخل معاملة مستدعٍ تتداخل كـ savepoint
+     * على صف users نفسه (لا قفل مزدوج خاطئ — نفس المعاملة تحمل القفل). لمنع الخصم المزدوج عند
+     * الإعادة، على المستدعي تمرير $idempotencyKey مستقر؛ بدونه يُولَّد مفتاح فريد لكل نداء.
      */
-    public function deductCoins($studentId, $coins, $description)
+    public function deductCoins($studentId, $coins, $description, ?string $idempotencyKey = null)
     {
-        return DB::transaction(function () use ($studentId, $coins, $description) {
-            $totalCoins = (int) DB::table('coins')
-                ->where('user_id', $studentId)
-                ->lockForUpdate()
-                ->sum('coins');
+        $result = \App\Services\SpendService::spend(
+            (int) $studentId,
+            'gamification_deduct',
+            $idempotencyKey ?? (string) \Illuminate\Support\Str::uuid(),
+            (int) $coins,
+            $description,
+        );
 
-            if ($totalCoins < $coins) {
-                return ['success' => false, 'message' => 'رصيد غير كافٍ'];
-            }
-
-            DB::table('coins')->insert([
-                'user_id'     => $studentId,
-                'coins'       => -$coins,
-                'source'      => 'shop_purchase',
-                'description' => $description,
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ]);
-
-            return ['success' => true, 'remaining' => $totalCoins - $coins];
-        }, 3);
+        return [
+            'success' => $result['success'],
+            'remaining' => $result['balance'],
+            'message' => $result['success'] ? null : 'رصيد غير كافٍ',
+        ];
     }
 
     /**
