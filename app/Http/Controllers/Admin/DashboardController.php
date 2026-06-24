@@ -240,7 +240,7 @@ class DashboardController extends Controller
                 'line'          => $e->getLine(),
             ]);
             return redirect()->back()
-                ->withErrors(['general' => 'تعذّر حفظ المراجعة: ' . $e->getMessage()]);
+                ->withErrors(['general' => 'تعذّر حفظ المراجعة']);
         }
 
         return redirect()->route('admin.pending-submissions')

@@ -886,8 +886,9 @@ class SchoolAdminController extends Controller
             return redirect()->back()->with('success', $message);
             
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('School admin import failed', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'حدث خطأ أثناء الاستيراد: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء الاستيراد');
         }
     }
     

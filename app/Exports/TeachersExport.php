@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Models\User;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -13,6 +14,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
+    use SanitizesCsvOutput;
+
     protected $schoolId;
 
     public function __construct($schoolId = null)
@@ -54,7 +57,7 @@ class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithS
             return $classroom->students()->count();
         });
 
-        return [
+        return $this->sanitizeRow([
             $teacher->id,
             $teacher->name,
             $teacher->email,
@@ -64,7 +67,7 @@ class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithS
             $studentsCount,
             $teacher->status === 'active' ? 'نشط' : 'غير نشط',
             $teacher->created_at->format('Y-m-d'),
-        ];
+        ]);
     }
 
     public function styles(Worksheet $sheet)

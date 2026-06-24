@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -16,6 +17,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, WithStyles, WithColumnWidths, WithEvents
 {
+    use SanitizesCsvOutput;
+
     protected $role;
 
     public function __construct($role = 'students')
@@ -65,7 +68,7 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
             ];
         }
         
-        return $examples;
+        return array_map([$this, 'sanitizeRow'], $examples);
     }
 
     public function headings(): array

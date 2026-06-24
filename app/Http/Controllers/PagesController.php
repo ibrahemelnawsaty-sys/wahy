@@ -110,7 +110,8 @@ class PagesController extends Controller
             LandingContent::createSnapshot();
             return response()->json(['success' => true, 'message' => 'تم حفظ النسخة']);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::error('Landing snapshot failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ غير متوقع'], 500);
         }
     }
 }

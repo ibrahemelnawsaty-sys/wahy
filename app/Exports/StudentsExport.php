@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Models\User;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -13,6 +14,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
+    use SanitizesCsvOutput;
+
     protected $schoolId;
 
     public function __construct($schoolId = null)
@@ -52,7 +55,7 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithS
 
     public function map($student): array
     {
-        return [
+        return $this->sanitizeRow([
             $student->id,
             $student->name,
             $student->email,
@@ -65,7 +68,7 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithS
             $student->coins()->sum('coins'),
             $student->badges()->count(),
             $student->created_at->format('Y-m-d'),
-        ];
+        ]);
     }
 
     public function styles(Worksheet $sheet)

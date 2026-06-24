@@ -98,10 +98,11 @@ class TeacherManagementController extends Controller
                 ->route('admin.teachers.index')
                 ->with('success', 'تم إضافة المعلم بنجاح! ✅');
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Teacher creation failed', ['error' => $e->getMessage()]);
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'حدث خطأ أثناء إضافة المعلم: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء إضافة المعلم');
         }
     }
 

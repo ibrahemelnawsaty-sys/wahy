@@ -123,7 +123,8 @@ class SurveyManagementController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'حدث خطأ أثناء إنشاء الاستبيان: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Survey creation failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'حدث خطأ أثناء إنشاء الاستبيان');
         }
     }
 
@@ -222,7 +223,8 @@ class SurveyManagementController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'حدث خطأ أثناء تحديث الاستبيان: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Survey update failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'حدث خطأ أثناء تحديث الاستبيان');
         }
     }
 

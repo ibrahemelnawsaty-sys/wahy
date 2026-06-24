@@ -46,7 +46,7 @@ class StudentController extends Controller
         
         // آخر الأنشطة المنجزة - تحسين Eager Loading
         $recentActivities = ActivitySubmission::where('student_id', $user->id)
-            ->with(['activity:id,title,lesson_id'])
+            ->with(['activity:id,title,lesson_id', 'activity.lesson:id,title'])
             ->select(['id', 'activity_id', 'status', 'score', 'created_at'])
             ->latest()
             ->take(5)
@@ -112,7 +112,7 @@ class StudentController extends Controller
         
         // جلب القيم المفعّلة لمدرسة الطالب (Issue 11/105)
         $values = Value::visibleForSchool($user->school_id)
-            ->with(['concepts.lessons'])
+            ->with(['concepts.lessons.activities'])
             ->orderBy('order')
             ->get();
         
@@ -310,8 +310,8 @@ class StudentController extends Controller
                 SUM(CASE WHEN status IN ('completed','approved') THEN 1 ELSE 0 END) as completed_count,
                 SUM(CASE WHEN status IN ('pending','needs_review') THEN 1 ELSE 0 END) as pending_count,
                 AVG(CASE WHEN score IS NOT NULL THEN score END) as avg_score,
-                SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as completed_today
-            ")
+                SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as completed_today
+            ", [now()->toDateString()])
             ->first();
         
         // ❗ استخدام subqueries منفصلة لتجنّب cartesian product بين points و coins
@@ -891,7 +891,7 @@ class StudentController extends Controller
             Log::error('Activity submission failed [activity_id=' . $id . ']: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء حفظ الإجابة: ' . $e->getMessage()
+                'message' => 'حدث خطأ أثناء حفظ الإجابة'
             ], 500);
         }
         
@@ -1245,9 +1245,10 @@ class StudentController extends Controller
             ]);
             
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Student profile update failed', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء التحديث: ' . $e->getMessage()
+                'message' => 'حدث خطأ أثناء التحديث'
             ]);
         }
     }

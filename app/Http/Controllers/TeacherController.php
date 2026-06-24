@@ -208,7 +208,8 @@ class TeacherController extends Controller
                 return $submission;
             }, 3);
         } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return response()->json(['error' => $e->getMessage()], 403);
+            \Log::warning('Teacher review authorization failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'غير مصرح بهذا الإجراء'], 403);
         }
         
         // كل العمليات الثانوية (XP/Coins/إشعارات) ملفوفة بـ try-catch

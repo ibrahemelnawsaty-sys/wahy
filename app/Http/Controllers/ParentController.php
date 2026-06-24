@@ -274,7 +274,7 @@ class ParentController extends Controller
             \Log::error('Parent sendMessage error: ' . $e->getMessage() . ' | Line: ' . $e->getLine() . ' | File: ' . $e->getFile());
             return response()->json([
                 'success' => false,
-                'error' => 'حدث خطأ أثناء إرسال الرسالة: ' . $e->getMessage()
+                'error' => 'حدث خطأ أثناء إرسال الرسالة'
             ], 500);
         }
     }
@@ -390,7 +390,7 @@ class ParentController extends Controller
             \Illuminate\Support\Facades\Log::error('praiseChild fatal: ' . $e->getMessage() . ' at line ' . $e->getLine() . ' in ' . $e->getFile());
             return response()->json([
                 'success' => false, 
-                'error' => 'حدث خطأ: ' . $e->getMessage()
+                'error' => 'حدث خطأ'
             ], 500);
         }
     }
@@ -446,7 +446,8 @@ class ParentController extends Controller
 
         } catch (\Exception $e) {
             \DB::rollBack();
-            return back()->with('error', 'حدث خطأ: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Parent sendGift failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'حدث خطأ');
         }
     }
 
@@ -522,7 +523,8 @@ class ParentController extends Controller
                 return back()->with('success', 'تم الموافقة على النشاط بنجاح! حصل الطالب على 20 نقطة وحصلت على 10 نقاط');
             }, 3);
         } catch (\Throwable $e) {
-            return back()->with('error', 'حدث خطأ: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('approveFamilyActivity failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'حدث خطأ');
         }
     }
 }

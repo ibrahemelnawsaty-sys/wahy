@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Models\School;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
+    use SanitizesCsvOutput;
+
     public function collection()
     {
         return School::withCount([
@@ -59,7 +62,7 @@ class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithSt
             ->where('users.role', 'student')
             ->sum('points.points');
 
-        return [
+        return $this->sanitizeRow([
             $school->id,
             $school->name,
             $school->city ?? '-',
@@ -72,7 +75,7 @@ class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithSt
             number_format($totalPoints),
             $school->status === 'active' ? 'نشط' : 'غير نشط',
             $school->created_at->format('Y-m-d'),
-        ];
+        ]);
     }
 
     public function styles(Worksheet $sheet)

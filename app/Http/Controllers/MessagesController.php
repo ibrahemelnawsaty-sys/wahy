@@ -175,7 +175,7 @@ class MessagesController extends Controller
         $conversation = Conversation::findOrCreate($currentUser->id, $otherUser->id);
 
         // جلب الرسائل
-        $messages = $conversation->messages()->with(['sender', 'receiver'])->get();
+        $messages = $conversation->messages()->with(['sender:id,name,avatar,role', 'receiver:id,name,avatar,role'])->get();
 
         // تحديد جميع الرسائل كمقروءة
         $conversation->messages()
@@ -187,7 +187,7 @@ class MessagesController extends Controller
             'success' => true,
             'conversation' => $conversation,
             'messages' => $messages,
-            'otherUser' => $otherUser,
+            'otherUser' => ['id' => $otherUser->id, 'name' => $otherUser->name, 'avatar' => $otherUser->avatar, 'avatar_url' => $otherUser->avatar_url, 'role' => $otherUser->role],
             'currentUser' => $currentUser
         ]);
     }
@@ -209,7 +209,7 @@ class MessagesController extends Controller
         $conversation = Conversation::findOrCreate($currentUser->id, $otherUser->id);
 
         // جلب الرسائل
-        $messages = $conversation->messages()->with(['sender', 'receiver'])->get();
+        $messages = $conversation->messages()->with(['sender:id,name,avatar,role', 'receiver:id,name,avatar,role'])->get();
 
         // تحديد جميع الرسائل كمقروءة
         $conversation->messages()
@@ -265,7 +265,7 @@ class MessagesController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $message->load('sender'),
+                'message' => $message->load('sender:id,name,avatar,role'),
             ]);
             
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -275,9 +275,10 @@ class MessagesController extends Controller
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Message send failed', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'error' => 'حدث خطأ أثناء إرسال الرسالة: ' . $e->getMessage()
+                'error' => 'حدث خطأ أثناء إرسال الرسالة'
             ], 500);
         }
     }
@@ -340,7 +341,7 @@ class MessagesController extends Controller
         $newMessages = $conversation->messages()
             ->where('receiver_id', $currentUser->id)
             ->where('is_read', false)
-            ->with('sender')
+            ->with('sender:id,name,avatar,role')
             ->get();
 
         // تحديثها كمقروءة
@@ -376,7 +377,7 @@ class MessagesController extends Controller
             $message = Message::where('conversation_id', $item->conversation_id)
                 ->where('receiver_id', $userId)
                 ->where('is_read', false)
-                ->with('sender')
+                ->with('sender:id,name,avatar,role')
                 ->latest()
                 ->first();
 

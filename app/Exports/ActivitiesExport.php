@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Models\Activity;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -11,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ActivitiesExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
+    use SanitizesCsvOutput;
+
     protected $schoolId;
 
     public function __construct($schoolId = null)
@@ -66,7 +69,7 @@ class ActivitiesExport implements FromCollection, WithHeadings, WithMapping, Wit
             'hard' => 'صعب',
         ];
 
-        return [
+        return $this->sanitizeRow([
             $activity->id,
             $activity->title,
             $types[$activity->type] ?? $activity->type,
@@ -80,7 +83,7 @@ class ActivitiesExport implements FromCollection, WithHeadings, WithMapping, Wit
             $activity->submissions->where('status', 'pending')->count(),
             $activity->status === 'active' ? 'نشط' : 'غير نشط',
             $activity->created_at->format('Y-m-d'),
-        ];
+        ]);
     }
 
     public function styles(Worksheet $sheet)

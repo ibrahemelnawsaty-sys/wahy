@@ -158,7 +158,8 @@ class BulkMessageController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'حدث خطأ أثناء الإرسال: ' . $e->getMessage())->withInput();
+            \Illuminate\Support\Facades\Log::error('Bulk message send failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'حدث خطأ أثناء الإرسال')->withInput();
         }
     }
 

@@ -25,7 +25,7 @@ Schedule::command('backup:run')
         info('✅ النسخ الاحتياطي التلقائي اكتمل بنجاح');
     })
     ->onFailure(function () {
-        error('❌ فشل النسخ الاحتياطي التلقائي');
+        \Illuminate\Support\Facades\Log::error('❌ فشل النسخ الاحتياطي التلقائي');
     })
     ->appendOutputTo(storage_path('logs/backups.log'));
 

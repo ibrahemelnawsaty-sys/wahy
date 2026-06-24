@@ -48,12 +48,12 @@ class StudentApiController extends Controller
         $user = $request->user();
 
         $stats = [
-            'total_points' => $user->points()->sum('amount'),
-            'total_coins' => $user->coins()->sum('amount'),
+            'total_points' => (int) $user->points()->sum('points'),
+            'total_coins' => (int) $user->coins()->sum('coins'),
             'badges_count' => $user->badges()->count(),
             'completed_activities' => $user->activitySubmissions()->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)->count(),
             'pending_activities' => $user->activitySubmissions()->where('status', 'pending')->count(),
-            'current_streak' => $user->streaks()->latest()->first()?->current_streak ?? 0,
+            'current_streak' => $user->streak?->current_streak ?? 0,
         ];
 
         $recentActivities = $user->activitySubmissions()
@@ -103,20 +103,20 @@ class StudentApiController extends Controller
      */
     public function valuesTree(Request $request)
     {
-        $values = Value::with(['concepts.meanings.lessons'])->get();
+        $values = Value::with(['concepts.lessons'])->get();
 
         $tree = $values->map(function($value) {
             return [
                 'id' => $value->id,
-                'title' => $value->title,
+                'title' => $value->name,
                 'icon' => $value->icon,
-                'color' => $value->color,
+                'image' => $value->image,
                 'concepts_count' => $value->concepts->count(),
                 'concepts' => $value->concepts->map(function($concept) {
                     return [
                         'id' => $concept->id,
-                        'title' => $concept->title,
-                        'meanings_count' => $concept->meanings->count(),
+                        'title' => $concept->name,
+                        'lessons_count' => $concept->lessons->count(),
                     ];
                 }),
             ];
@@ -349,8 +349,8 @@ class StudentApiController extends Controller
 
         $students = \App\Models\User::where('role', 'student')
             ->where('school_id', $user->school_id)
-            ->withSum('points', 'amount')
-            ->orderBy('points_sum_amount', 'desc')
+            ->withSum('points', 'points')
+            ->orderBy('points_sum_points', 'desc')
             ->take(50)
             ->get()
             ->map(function($student, $index) {
@@ -359,15 +359,15 @@ class StudentApiController extends Controller
                     'id' => $student->id,
                     'name' => $student->name,
                     'avatar' => $student->avatar,
-                    'points' => $student->points_sum_amount ?? 0,
+                    'points' => (int) ($student->points_sum_points ?? 0),
                 ];
             });
 
         // Find user's rank
         $allStudents = \App\Models\User::where('role', 'student')
             ->where('school_id', $user->school_id)
-            ->withSum('points', 'amount')
-            ->orderBy('points_sum_amount', 'desc')
+            ->withSum('points', 'points')
+            ->orderBy('points_sum_points', 'desc')
             ->pluck('id');
 
         // التعامل الصحيح مع false (المستخدم خارج الترتيب)
@@ -379,7 +379,7 @@ class StudentApiController extends Controller
             'data' => [
                 'leaderboard' => $students,
                 'user_rank' => $userRank,
-                'user_points' => $user->points()->sum('amount'),
+                'user_points' => (int) $user->points()->sum('points'),
             ]
         ], 200);
     }

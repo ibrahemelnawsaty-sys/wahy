@@ -109,7 +109,7 @@ class LandingContentController extends Controller
             \Log::error('Landing Content Bulk Update Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ: ' . $e->getMessage(),
+                'message' => 'حدث خطأ',
                 'trace' => config('app.debug') ? $e->getTraceAsString() : null
             ], 500);
         }

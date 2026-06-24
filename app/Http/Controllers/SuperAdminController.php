@@ -50,7 +50,7 @@ class SuperAdminController extends Controller
             ]);
 
             return redirect()->route('admin.backups')
-                ->with('error', 'حدث خطأ أثناء إنشاء النسخة الاحتياطية: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء إنشاء النسخة الاحتياطية');
         }
     }
     
@@ -207,8 +207,9 @@ class SuperAdminController extends Controller
             return redirect()->route('admin.backups')
                 ->with('success', 'تم حذف النسخة الاحتياطية بنجاح: ' . $safeName);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Backup deletion failed', ['error' => $e->getMessage()]);
             return redirect()->route('admin.backups')
-                ->with('error', 'حدث خطأ أثناء حذف النسخة: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء حذف النسخة');
         }
     }
 
@@ -321,8 +322,9 @@ class SuperAdminController extends Controller
                 throw new \Exception('فشل فتح ملف ZIP');
             }
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Backup restore failed', ['error' => $e->getMessage()]);
             return redirect()->route('admin.backups')
-                ->with('error', 'حدث خطأ أثناء الاسترداد: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء الاسترداد');
         }
     }
     
@@ -405,8 +407,9 @@ class SuperAdminController extends Controller
             return redirect()->route('admin.backups')
                 ->with('success', "تم تنظيف النسخ القديمة بنجاح. تم حذف {$deleted} ملف");
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Backup cleanup failed', ['error' => $e->getMessage()]);
             return redirect()->route('admin.backups')
-                ->with('error', 'حدث خطأ أثناء التنظيف: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء التنظيف');
         }
     }
 
@@ -561,8 +564,9 @@ class SuperAdminController extends Controller
             return redirect()->route('super-admin.activity-logs')
                 ->with('success', "تم حذف {$deleted} سجل أقدم من {$days} يوم");
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Activity logs cleanup failed', ['error' => $e->getMessage()]);
             return redirect()->route('super-admin.activity-logs')
-                ->with('error', 'حدث خطأ أثناء الحذف: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء الحذف');
         }
     }
 
@@ -667,8 +671,9 @@ class SuperAdminController extends Controller
             return redirect()->route('admin.excel-management')
                 ->with('success', $message);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Student import failed', ['error' => $e->getMessage()]);
             return redirect()->route('admin.excel-management')
-                ->with('error', 'حدث خطأ أثناء الاستيراد: ' . $e->getMessage());
+                ->with('error', 'حدث خطأ أثناء الاستيراد');
         }
     }
 

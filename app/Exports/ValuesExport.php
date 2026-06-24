@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Models\Value;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -13,6 +14,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class ValuesExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
+    use SanitizesCsvOutput;
+
     public function collection()
     {
         return Value::withCount([
@@ -44,7 +47,7 @@ class ValuesExport implements FromCollection, WithHeadings, WithMapping, WithSty
 
     public function map($value): array
     {
-        return [
+        return $this->sanitizeRow([
             $value->id,
             $value->name,
             $value->icon ?? '-',
@@ -53,7 +56,7 @@ class ValuesExport implements FromCollection, WithHeadings, WithMapping, WithSty
             $value->total_activities,
             $value->status === 'active' ? 'نشط' : 'غير نشط',
             $value->created_at ? $value->created_at->format('Y-m-d') : '-',
-        ];
+        ]);
     }
 
     public function styles(Worksheet $sheet)

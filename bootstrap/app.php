@@ -65,4 +65,23 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Auth\AuthenticationException::class,
             \Illuminate\Database\Eloquent\ModelNotFoundException::class,
         ]);
+
+        // Pass-4 cluster 07: never leak internal exception detail to API/JSON clients,
+        // regardless of APP_DEBUG. Known HTTP/validation/auth exceptions are still
+        // rendered normally by the framework (return null = defer to default handler).
+        $exceptions->render(function (\Throwable $e, $request) {
+            if (! ($request->expectsJson() || $request->is('api/*'))) {
+                return null;
+            }
+            if ($e instanceof \Illuminate\Validation\ValidationException
+                || $e instanceof \Illuminate\Auth\AuthenticationException
+                || $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.',
+            ], 500);
+        });
     })->create();

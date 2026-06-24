@@ -381,7 +381,7 @@ class SurveyController extends Controller
                 'line'      => $e->getLine(),
             ]);
             return redirect()->route('admin.surveys.index')
-                ->with('error', 'تعذّر عرض إجابات الاستبيان: ' . $e->getMessage());
+                ->with('error', 'تعذّر عرض إجابات الاستبيان');
         }
     }
 
