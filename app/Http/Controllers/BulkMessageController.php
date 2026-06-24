@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Enums\UserRole;
 use App\Models\BulkMessage;
 use App\Models\BulkMessageRecipient;
-use App\Models\User;
 use App\Models\School;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -20,9 +20,10 @@ class BulkMessageController extends Controller
     private function authorizeBulkSender(): \App\Models\User
     {
         $user = Auth::user();
-        if (!$user || !in_array($user->role, ['super_admin', 'school_admin'], true)) {
+        if (! $user || ! in_array($user->role, ['super_admin', 'school_admin'], true)) {
             abort(403, 'غير مصرّح لك بإرسال الرسائل الجماعية');
         }
+
         return $user;
     }
 
@@ -75,11 +76,11 @@ class BulkMessageController extends Controller
 
         // إحصائيات المستلمين
         $recipientCounts = [
-            'teachers'      => User::where('role', UserRole::Teacher->value)->where('status', 'active')->count(),
-            'students'      => User::where('role', UserRole::Student->value)->where('status', 'active')->count(),
-            'parents'       => User::where('role', UserRole::Parent->value)->where('status', 'active')->count(),
+            'teachers' => User::where('role', UserRole::Teacher->value)->where('status', 'active')->count(),
+            'students' => User::where('role', UserRole::Student->value)->where('status', 'active')->count(),
+            'parents' => User::where('role', UserRole::Parent->value)->where('status', 'active')->count(),
             'school_admins' => User::where('role', UserRole::SchoolAdmin->value)->where('status', 'active')->count(),
-            'all'           => User::where('status', 'active')->count(),
+            'all' => User::where('status', 'active')->count(),
         ];
 
         return view('messages.bulk.create', compact('schools', 'recipientCounts'));
@@ -96,12 +97,12 @@ class BulkMessageController extends Controller
             'recipient_type' => 'required|in:teacher,parent,student,school_admin,all,school_teachers,school_parents,school_students,school_all',
             'school_id' => 'nullable|required_if:recipient_type,school_teachers,school_parents,school_students,school_all|exists:schools,id',
             'subject' => 'required|string|max:255',
-            'message' => 'required|string'
+            'message' => 'required|string',
         ]);
 
         // حصر النطاق: مدير المدرسة يُرسل داخل مدرسته فقط وبأنواع school_* حصراً
         if ($sender->role === 'school_admin') {
-            if (!in_array($validated['recipient_type'], self::SCHOOL_SCOPED_TYPES, true)) {
+            if (! in_array($validated['recipient_type'], self::SCHOOL_SCOPED_TYPES, true)) {
                 return back()->with('error', 'يمكنك الإرسال إلى أعضاء مدرستك فقط')->withInput();
             }
             $validated['school_id'] = $sender->school_id; // فرض مدرسة المُرسِل — يمنع استهداف مدارس أخرى
@@ -126,7 +127,7 @@ class BulkMessageController extends Controller
                 'school_id' => $validated['school_id'] ?? null,
                 'subject' => $validated['subject'],
                 'message' => $validated['message'],
-                'sent_at' => now()
+                'sent_at' => now(),
             ]);
 
             // تحديد المستلمين
@@ -134,6 +135,7 @@ class BulkMessageController extends Controller
 
             if ($recipients->isEmpty()) {
                 DB::rollBack();
+
                 return back()->with('error', 'لا يوجد مستلمين لهذه الفئة المحددة')->withInput();
             }
 
@@ -153,12 +155,14 @@ class BulkMessageController extends Controller
             }
 
             DB::commit();
+
             return redirect()->route('messages.bulk.index')
                 ->with('success', "تم إرسال الرسالة بنجاح إلى {$recipients->count()} مستلم");
 
         } catch (\Exception $e) {
             DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Bulk message send failed', ['error' => $e->getMessage()]);
+
             return back()->with('error', 'حدث خطأ أثناء الإرسال')->withInput();
         }
     }
@@ -255,7 +259,7 @@ class BulkMessageController extends Controller
 
         // نفس حصر مدير المدرسة المطبَّق في send() حتى تتطابق المعاينة مع الإرسال الفعلي
         if ($sender->role === 'school_admin') {
-            if (!in_array($type, self::SCHOOL_SCOPED_TYPES, true)) {
+            if (! in_array($type, self::SCHOOL_SCOPED_TYPES, true)) {
                 return response()->json(['count' => 0]);
             }
             $schoolId = $sender->school_id;

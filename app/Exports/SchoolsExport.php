@@ -4,14 +4,14 @@ namespace App\Exports;
 
 use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Models\School;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
@@ -20,19 +20,19 @@ class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithSt
     public function collection()
     {
         return School::withCount([
-                'users as students_count' => function($q) {
-                    $q->where('role', 'student');
-                },
-                'users as teachers_count' => function($q) {
-                    $q->where('role', 'teacher');
-                },
-                'users as parents_count' => function($q) {
-                    $q->where('role', 'parent');
-                },
-                'users as active_students_count' => function($q) {
-                    $q->where('role', 'student')->where('status', 'active');
-                },
-            ])
+            'users as students_count' => function ($q) {
+                $q->where('role', 'student');
+            },
+            'users as teachers_count' => function ($q) {
+                $q->where('role', 'teacher');
+            },
+            'users as parents_count' => function ($q) {
+                $q->where('role', 'parent');
+            },
+            'users as active_students_count' => function ($q) {
+                $q->where('role', 'student')->where('status', 'active');
+            },
+        ])
             ->get();
     }
 
@@ -98,7 +98,7 @@ class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithSt
 
         $sheet->freezePane('A2');
 
-        foreach(range('A','L') as $col) {
+        foreach (range('A', 'L') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

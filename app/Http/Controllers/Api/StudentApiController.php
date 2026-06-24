@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Activity;
 use App\Models\ActivitySubmission;
-use App\Models\Value;
 use App\Models\Concept;
-
 use App\Models\Lesson;
+use App\Models\Value;
+use Illuminate\Http\Request;
 
 /**
  * @group Student
@@ -61,7 +60,7 @@ class StudentApiController extends Controller
             ->latest()
             ->take(5)
             ->get()
-            ->map(function($submission) {
+            ->map(function ($submission) {
                 return [
                     'id' => $submission->id,
                     'activity_id' => $submission->activity_id,
@@ -77,7 +76,7 @@ class StudentApiController extends Controller
             'data' => [
                 'stats' => $stats,
                 'recent_activities' => $recentActivities,
-            ]
+            ],
         ], 200);
     }
 
@@ -105,14 +104,14 @@ class StudentApiController extends Controller
     {
         $values = Value::with(['concepts.lessons'])->get();
 
-        $tree = $values->map(function($value) {
+        $tree = $values->map(function ($value) {
             return [
                 'id' => $value->id,
                 'title' => $value->name,
                 'icon' => $value->icon,
                 'image' => $value->image,
                 'concepts_count' => $value->concepts->count(),
-                'concepts' => $value->concepts->map(function($concept) {
+                'concepts' => $value->concepts->map(function ($concept) {
                     return [
                         'id' => $concept->id,
                         'title' => $concept->name,
@@ -124,7 +123,7 @@ class StudentApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $tree
+            'data' => $tree,
         ], 200);
     }
 
@@ -160,7 +159,7 @@ class StudentApiController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'activities' => $activities->map(function($activity) use ($user) {
+                'activities' => $activities->map(function ($activity) use ($user) {
                     $submission = $activity->submissions()
                         ->where('student_id', $user->id)
                         ->first();
@@ -192,8 +191,8 @@ class StudentApiController extends Controller
                     'per_page' => $activities->perPage(),
                     'current_page' => $activities->currentPage(),
                     'last_page' => $activities->lastPage(),
-                ]
-            ]
+                ],
+            ],
         ], 200);
     }
 
@@ -210,7 +209,7 @@ class StudentApiController extends Controller
         if ($activity->school_id !== $user->school_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'غير مصرح لك بالوصول لهذا النشاط'
+                'message' => 'غير مصرح لك بالوصول لهذا النشاط',
             ], 403);
         }
 
@@ -248,7 +247,7 @@ class StudentApiController extends Controller
                     'feedback' => $submission->feedback,
                     'submitted_at' => $submission->created_at->format('Y-m-d H:i'),
                 ] : null,
-            ]
+            ],
         ], 200);
     }
 
@@ -264,7 +263,7 @@ class StudentApiController extends Controller
         if ($activity->school_id !== $user->school_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'غير مصرح لك بالوصول لهذا النشاط'
+                'message' => 'غير مصرح لك بالوصول لهذا النشاط',
             ], 403);
         }
 
@@ -281,7 +280,7 @@ class StudentApiController extends Controller
         if ($existing && $existing->status === 'completed') {
             return response()->json([
                 'success' => false,
-                'message' => 'لقد قمت بتقديم هذا النشاط مسبقاً'
+                'message' => 'لقد قمت بتقديم هذا النشاط مسبقاً',
             ], 400);
         }
 
@@ -310,7 +309,7 @@ class StudentApiController extends Controller
             'data' => [
                 'id' => $submission->id,
                 'status' => $submission->status,
-            ]
+            ],
         ], 200);
     }
 
@@ -321,7 +320,7 @@ class StudentApiController extends Controller
     {
         $user = $request->user();
 
-        $userBadges = $user->badges()->get()->map(function($badge) {
+        $userBadges = $user->badges()->get()->map(function ($badge) {
             return [
                 'id' => $badge->id,
                 'name' => $badge->name,
@@ -336,7 +335,7 @@ class StudentApiController extends Controller
             'data' => [
                 'badges' => $userBadges,
                 'total_count' => $userBadges->count(),
-            ]
+            ],
         ], 200);
     }
 
@@ -353,7 +352,7 @@ class StudentApiController extends Controller
             ->orderBy('points_sum_points', 'desc')
             ->take(50)
             ->get()
-            ->map(function($student, $index) {
+            ->map(function ($student, $index) {
                 return [
                     'rank' => $index + 1,
                     'id' => $student->id,
@@ -380,8 +379,7 @@ class StudentApiController extends Controller
                 'leaderboard' => $students,
                 'user_rank' => $userRank,
                 'user_points' => (int) $user->points()->sum('points'),
-            ]
+            ],
         ], 200);
     }
 }
-

@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Lesson;
 use App\Models\Survey;
 use App\Models\SurveyQuestion;
-use App\Models\Lesson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class SurveyController extends Controller
@@ -29,9 +28,9 @@ class SurveyController extends Controller
         // بحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -46,6 +45,7 @@ class SurveyController extends Controller
     public function create()
     {
         $lessons = Lesson::with('concept.value')->orderBy('title')->get();
+
         return view('admin.surveys.create', compact('lessons'));
     }
 
@@ -79,13 +79,11 @@ class SurveyController extends Controller
             'questions.*.order' => 'nullable|integer|min:0',
         ];
 
-
-
         // إذا كان تقييم قبلي/بعدي، الدرس مطلوب والمستهدفون = الطلاب تلقائياً
         if ($surveyType === 'pre_post_assessment') {
             $rules['lesson_id'] = 'required|exists:lessons,id';
             // تعيين المستهدفين تلقائياً إذا لم يتم إرسالها
-            if (!$request->filled('target_type')) {
+            if (! $request->filled('target_type')) {
                 $request->merge(['target_type' => ['students']]);
             }
         }
@@ -106,17 +104,17 @@ class SurveyController extends Controller
             if (in_array($question['question_type'], ['select', 'radio', 'checkbox'])) {
                 if (empty($question['options']) || count($question['options']) < 1) {
                     return back()->withErrors([
-                        "questions.{$index}.options" => "السؤال رقم " . ($index + 1) . " يحتاج إلى خيار واحد على الأقل"
+                        "questions.{$index}.options" => 'السؤال رقم ' . ($index + 1) . ' يحتاج إلى خيار واحد على الأقل',
                     ])->withInput();
                 }
-                
-                $emptyOptions = array_filter($question['options'], function($option) {
+
+                $emptyOptions = array_filter($question['options'], function ($option) {
                     return empty(trim($option));
                 });
-                
+
                 if (count($emptyOptions) > 0) {
                     return back()->withErrors([
-                        "questions.{$index}.options" => "السؤال رقم " . ($index + 1) . " يحتوي على خيارات فارغة"
+                        "questions.{$index}.options" => 'السؤال رقم ' . ($index + 1) . ' يحتوي على خيارات فارغة',
                     ])->withInput();
                 }
             }
@@ -218,7 +216,7 @@ class SurveyController extends Controller
     public function show(Survey $survey)
     {
         $survey->load(['questions', 'responses.user', 'creator']);
-        
+
         // إحصائيات
         $stats = [
             'total_responses' => $survey->responses()->distinct('user_id')->count(),
@@ -228,7 +226,7 @@ class SurveyController extends Controller
 
         // رابط الاستبيان
         $surveyUrl = route('survey.show', ['survey' => $survey->id]);
-        
+
         // QR Code - استخدام SVG بدلاً من PNG لتجنب مشكلة Imagick
         try {
             $qrCode = base64_encode(QrCode::format('svg')->size(200)->generate($surveyUrl));
@@ -248,6 +246,7 @@ class SurveyController extends Controller
     public function edit(Survey $survey)
     {
         $survey->load('questions');
+
         return view('admin.surveys.edit', compact('survey'));
     }
 
@@ -299,18 +298,18 @@ class SurveyController extends Controller
             if (in_array($question['question_type'], ['select', 'radio', 'checkbox'])) {
                 if (empty($question['options']) || count($question['options']) < 1) {
                     return back()->withErrors([
-                        "questions.{$index}.options" => "السؤال رقم " . ($index + 1) . " يحتاج إلى خيار واحد على الأقل"
+                        "questions.{$index}.options" => 'السؤال رقم ' . ($index + 1) . ' يحتاج إلى خيار واحد على الأقل',
                     ])->withInput();
                 }
-                
+
                 // التحقق من أن الخيارات ليست فارغة
-                $emptyOptions = array_filter($question['options'], function($option) {
+                $emptyOptions = array_filter($question['options'], function ($option) {
                     return empty(trim($option));
                 });
-                
+
                 if (count($emptyOptions) > 0) {
                     return back()->withErrors([
-                        "questions.{$index}.options" => "السؤال رقم " . ($index + 1) . " يحتوي على خيارات فارغة"
+                        "questions.{$index}.options" => 'السؤال رقم ' . ($index + 1) . ' يحتوي على خيارات فارغة',
                     ])->withInput();
                 }
             }
@@ -321,18 +320,18 @@ class SurveyController extends Controller
 
         // استخراج قيم Boolean هنا (قبل الـ closure) لأن checkbox لا يرسل قيمة عند عدم التحديد
         $isMandatory = $request->boolean('is_mandatory');
-        $isPopup     = $request->boolean('is_popup');
+        $isPopup = $request->boolean('is_popup');
 
         DB::transaction(function () use ($validated, $survey, $targetRoles, $isMandatory, $isPopup) {
             $survey->update([
-                'title'          => $validated['title'],
-                'description'    => $validated['description'] ?? null,
-                'target_roles'   => $targetRoles,
-                'trigger_type'   => $validated['trigger_type'],
+                'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'target_roles' => $targetRoles,
+                'trigger_type' => $validated['trigger_type'],
                 'requires_login' => $validated['requires_login'] ?? true,
-                'is_mandatory'   => $isMandatory,
-                'is_popup'       => $isPopup,
-                'status'         => $validated['status'],
+                'is_mandatory' => $isMandatory,
+                'is_popup' => $isPopup,
+                'status' => $validated['status'],
             ]);
 
             // حذف الأسئلة القديمة
@@ -341,13 +340,13 @@ class SurveyController extends Controller
             // إضافة الأسئلة الجديدة
             foreach ($validated['questions'] as $index => $questionData) {
                 SurveyQuestion::create([
-                    'survey_id'      => $survey->id,
-                    'question_text'  => $questionData['question_text'],
-                    'question_type'  => $questionData['question_type'],
-                    'options'        => $questionData['options'] ?? null,
-                    'option_scores'  => $questionData['option_scores'] ?? null,
-                    'is_required'    => $questionData['is_required'] ?? false,
-                    'order'          => $questionData['order'] ?? $index,
+                    'survey_id' => $survey->id,
+                    'question_text' => $questionData['question_text'],
+                    'question_type' => $questionData['question_type'],
+                    'options' => $questionData['options'] ?? null,
+                    'option_scores' => $questionData['option_scores'] ?? null,
+                    'is_required' => $questionData['is_required'] ?? false,
+                    'order' => $questionData['order'] ?? $index,
                 ]);
             }
         });
@@ -377,9 +376,10 @@ class SurveyController extends Controller
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Survey responses view failed', [
                 'survey_id' => $survey->id,
-                'error'     => $e->getMessage(),
-                'line'      => $e->getLine(),
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
             ]);
+
             return redirect()->route('admin.surveys.index')
                 ->with('error', 'تعذّر عرض إجابات الاستبيان');
         }
@@ -403,7 +403,7 @@ class SurveyController extends Controller
         if (request()->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'تم حذف الإجابات بنجاح! 🗑️'
+                'message' => 'تم حذف الإجابات بنجاح! 🗑️',
             ]);
         }
 
@@ -427,28 +427,28 @@ class SurveyController extends Controller
 
         // إنشاء محتوى CSV
         $filename = 'survey_responses_' . $survey->id . '_' . date('Y-m-d') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0'
+            'Expires' => '0',
         ];
 
-        $callback = function() use ($responses, $questions) {
+        $callback = function () use ($responses, $questions) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for UTF-8
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
             // رأس الجدول
             $header = ['المستخدم', 'البريد الإلكتروني', 'التاريخ'];
             foreach ($questions as $question) {
                 $header[] = $question->question_text;
             }
             fputcsv($file, $header);
-            
+
             // البيانات — answers مخزنة كـ JSON: { question_id: value }
             foreach ($responses as $userId => $userResponses) {
                 $firstResponse = $userResponses->first();
@@ -475,7 +475,7 @@ class SurveyController extends Controller
 
                 fputcsv($file, $row);
             }
-            
+
             fclose($file);
         };
 
@@ -487,7 +487,7 @@ class SurveyController extends Controller
      */
     public function comparisonReport(Survey $survey)
     {
-        if (!$survey->isAssessment()) {
+        if (! $survey->isAssessment()) {
             return back()->with('error', 'هذا الاستبيان ليس من نوع التقييم القبلي/البعدي');
         }
 
@@ -528,4 +528,3 @@ class SurveyController extends Controller
             ->with('success', 'تم حذف الاستبيان بنجاح! 🗑️');
     }
 }
-

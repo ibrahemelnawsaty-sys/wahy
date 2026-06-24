@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ActivityCompleted;
+use App\Models\Activity;
+use App\Models\ActivitySubmission;
+use App\Models\Classroom;
+use App\Models\QuestionBank;
+use App\Models\TeacherPoint;
+use App\Models\Team;
+use App\Models\TeamActivity;
+use App\Models\User;
+use App\Services\GamificationService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Classroom;
-use App\Models\ActivitySubmission;
-use App\Models\Activity;
-use App\Models\User;
-use App\Models\Team;
-use App\Models\TeamActivity;
-use App\Models\QuestionBank;
-use App\Models\TeacherPoint;
-use App\Events\ActivityCompleted;
-use App\Events\LevelUp;
-use App\Services\GamificationService;
-use App\Services\NotificationService;
 
 class TeacherController extends Controller
 {
@@ -28,44 +27,44 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
         $school = $user->school;
-        
-        if (!$school) {
+
+        if (! $school) {
             abort(403, 'لا يوجد مدرسة مرتبطة بحسابك');
         }
-        
+
         // الفصول التي يدرسها المعلم مع Eager Loading محسّن
         $classrooms = $user->teachingClassrooms()
             ->where('school_id', $school->id)
             ->select(['id', 'name', 'school_id', 'teacher_id', 'grade_level'])
             ->withCount('students')
             ->get();
-        
+
         // جمع IDs الطلاب بطريقة أكثر كفاءة
         $studentIds = DB::table('classroom_student')
             ->whereIn('classroom_id', $classrooms->pluck('id'))
             ->distinct()
             ->pluck('student_id')
             ->toArray();
-        
+
         // حساب إجمالي الأنشطة مرة واحدة خارج الـ loop (إصلاح N+1)
         $totalActivities = Activity::count();
-        
+
         // حساب البيانات الحقيقية لكل فصل
         foreach ($classrooms as $classroom) {
             // عدد الأنشطة المرسلة للفصل
             $classroom->total_activities = $totalActivities;
-            
+
             // الطلاب في هذا الفصل
             $classroomStudentIds = DB::table('classroom_student')
                 ->where('classroom_id', $classroom->id)
                 ->pluck('student_id')
                 ->toArray();
-            
+
             // الأنشطة المعلقة لهذا الفصل
             $classroom->pending_count = ActivitySubmission::whereIn('student_id', $classroomStudentIds)
                 ->where('status', 'pending')
                 ->count();
-            
+
             // الأنشطة المكتملة لهذا الفصل — عدد أزواج (طالب × نشاط) لا DISTINCT
             // المعتمد فقط (completed/approved) ليتطابق مع المعنى الحقيقي للإنجاز
             $completedCount = ActivitySubmission::whereIn('student_id', $classroomStudentIds)
@@ -79,7 +78,7 @@ class TeacherController extends Controller
                 ? min(100, round(($completedCount / $totalPossibleActivities) * 100))
                 : 0;
         }
-        
+
         // الأنشطة المعلقة (تحتاج مراجعة) - مع تحديد الحقول
         $pendingSubmissions = ActivitySubmission::whereIn('student_id', $studentIds)
             ->where('status', 'pending')
@@ -88,7 +87,7 @@ class TeacherController extends Controller
             ->latest()
             ->take(10)
             ->get();
-        
+
         // إحصائيات سريعة - استعلام واحد محسّن
         $stats = [
             'total_classrooms' => $classrooms->count(),
@@ -101,13 +100,13 @@ class TeacherController extends Controller
                 ->count(),
             'average_rating' => 0, // يمكن إضافة نظام التقييم لاحقاً
         ];
-        
+
         // آخر التقييمات من الطلاب (سيتم إضافتها لاحقاً)
         $recentRatings = collect();
-        
+
         // إجمالي الطلاب للـ Dashboard
         $totalStudents = count($studentIds);
-        
+
         return view('teacher.dashboard', compact(
             'user',
             'school',
@@ -115,10 +114,10 @@ class TeacherController extends Controller
             'pendingSubmissions',
             'stats',
             'recentRatings',
-            'totalStudents'
+            'totalStudents',
         ));
     }
-    
+
     /**
      * عرض الأنشطة المعلقة للمراجعة
      */
@@ -126,21 +125,21 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
         $classrooms = $user->teachingClassrooms()->pluck('id');
-        
+
         $studentIds = DB::table('classroom_student')
             ->whereIn('classroom_id', $classrooms)
             ->distinct()
             ->pluck('student_id');
-        
+
         $submissions = ActivitySubmission::whereIn('student_id', $studentIds)
             ->where('status', 'pending')
             ->with(['student', 'activity.lesson.concept.value'])
             ->latest('submitted_at')
             ->paginate(20);
-        
+
         return view('teacher.review-submissions', compact('submissions'));
     }
-    
+
     /**
      * مراجعة نشاط محدد
      */
@@ -148,9 +147,9 @@ class TeacherController extends Controller
     {
         $submission = ActivitySubmission::with([
             'student',
-            'activity.lesson.concept.value'
+            'activity.lesson.concept.value',
         ])->findOrFail($id);
-        
+
         // التحقق من أن الطالب تابع للمعلم
         $user = Auth::user();
         $hasAccess = DB::table('classroom_student')
@@ -158,14 +157,14 @@ class TeacherController extends Controller
             ->where('classrooms.teacher_id', $user->id)
             ->where('classroom_student.student_id', $submission->student_id)
             ->exists();
-        
-        if (!$hasAccess) {
+
+        if (! $hasAccess) {
             abort(403, 'ليس لديك صلاحية لمراجعة هذا النشاط');
         }
-        
+
         return view('teacher.review-single', compact('submission'));
     }
-    
+
     /**
      * حفظ تقييم النشاط
      */
@@ -177,7 +176,7 @@ class TeacherController extends Controller
             'xp_awarded' => 'required|integer|min:0|max:50',
             'coins_awarded' => 'required|integer|min:0|max:20',
         ]);
-        
+
         $user = Auth::user();
 
         // تنفيذ ذرّي: قفل صفّي على التسليم + تحقق الصلاحية + تحديث
@@ -192,7 +191,7 @@ class TeacherController extends Controller
                     ->where('classroom_student.student_id', $submission->student_id)
                     ->exists();
 
-                if (!$hasAccess) {
+                if (! $hasAccess) {
                     throw new \Illuminate\Auth\Access\AuthorizationException('ليس لديك صلاحية');
                 }
 
@@ -209,23 +208,28 @@ class TeacherController extends Controller
             }, 3);
         } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
             \Log::warning('Teacher review authorization failed', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'غير مصرح بهذا الإجراء'], 403);
         }
-        
+
         // كل العمليات الثانوية (XP/Coins/إشعارات) ملفوفة بـ try-catch
         // لأن submission update تم بنجاح قبلها — لا نريد كسر الرد لو فشل listener/خدمة (P1-D).
         try {
-            $gamification = new GamificationService();
+            $gamification = new GamificationService;
             $student = User::find($submission->student_id);
             $activityTitle = optional($submission->activity)->title ?? 'نشاط';
 
             try {
                 $gamification->addXP($submission->student_id, $request->xp_awarded, 'activity_completed', 'إكمال نشاط: ' . $activityTitle);
-            } catch (\Throwable $e) { \Log::warning('addXP failed: ' . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning('addXP failed: ' . $e->getMessage());
+            }
 
             try {
                 $gamification->addCoins($submission->student_id, $request->coins_awarded, 'activity_completed', 'مكافأة نشاط: ' . $activityTitle);
-            } catch (\Throwable $e) { \Log::warning('addCoins failed: ' . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning('addCoins failed: ' . $e->getMessage());
+            }
 
             // توزيع النقاط على المعلم/الولي/المدرسة (كان التصحيح اليدوي يمنح الطالب فقط) — Issue M20
             try {
@@ -233,28 +237,38 @@ class TeacherController extends Controller
                     app(\App\Services\Activity\PointsDistributionService::class)
                         ->distribute($student, (int) $request->xp_awarded, 'activity_completion', $activityTitle);
                 }
-            } catch (\Throwable $e) { \Log::warning('points distribution failed: ' . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning('points distribution failed: ' . $e->getMessage());
+            }
 
             try {
                 NotificationService::activityGraded($submission->student_id, $activityTitle, $request->score, $request->feedback);
-            } catch (\Throwable $e) { \Log::warning('activityGraded notification failed: ' . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning('activityGraded notification failed: ' . $e->getMessage());
+            }
 
             if ($student && $student->parents && $student->parents->count() > 0) {
                 foreach ($student->parents as $parent) {
                     try {
                         NotificationService::parentNotification($parent->id, $student->name, "تم تقييم نشاط '{$activityTitle}' - حصل على {$request->score}%", 'child_activity');
-                    } catch (\Throwable $e) { \Log::warning('parent notification failed: ' . $e->getMessage()); }
+                    } catch (\Throwable $e) {
+                        \Log::warning('parent notification failed: ' . $e->getMessage());
+                    }
                 }
             }
 
             try {
                 event(new \App\Events\ActivityGraded($submission, $request->score, $request->feedback));
-            } catch (\Throwable $e) { \Log::warning('ActivityGraded event failed: ' . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning('ActivityGraded event failed: ' . $e->getMessage());
+            }
 
             if ($student && $submission->activity) {
                 try {
                     event(new ActivityCompleted($student, $submission->activity, $request->score, $request->xp_awarded, $request->coins_awarded));
-                } catch (\Throwable $e) { \Log::warning('ActivityCompleted event failed: ' . $e->getMessage()); }
+                } catch (\Throwable $e) {
+                    \Log::warning('ActivityCompleted event failed: ' . $e->getMessage());
+                }
             }
         } catch (\Throwable $e) {
             \Log::error('submitReview post-processing failed: ' . $e->getMessage());
@@ -263,10 +277,10 @@ class TeacherController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم تقييم النشاط بنجاح'
+            'message' => 'تم تقييم النشاط بنجاح',
         ]);
     }
-    
+
     /**
      * تقارير الطلاب
      */
@@ -274,14 +288,15 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
         $classrooms = $user->teachingClassrooms()->with('students')->get();
-        
+
         $students = $classrooms->flatMap(function ($classroom) {
             return $classroom->students->map(function ($student) use ($classroom) {
                 $student->classroom_name = $classroom->name;
+
                 return $student;
             });
         })->unique('id');
-        
+
         $studentIds = $students->pluck('id')->toArray();
 
         // إصلاح N+1: 4 queries موحَّدة بدلاً من N×5
@@ -310,17 +325,16 @@ class TeacherController extends Controller
 
         // تعيين البيانات لكل طالب من النتائج المجمّعة
         foreach ($students as $student) {
-            $student->total_xp            = $totalXp[$student->id] ?? 0;
-            $student->total_coins         = $totalCoins[$student->id] ?? 0;
+            $student->total_xp = $totalXp[$student->id] ?? 0;
+            $student->total_coins = $totalCoins[$student->id] ?? 0;
             $student->completed_activities = $completedStats[$student->id]->cnt ?? 0;
-            $student->average_score       = $completedStats[$student->id]->avg_score ?? null;
-            $student->streak_days         = $streaks[$student->id] ?? 0;
+            $student->average_score = $completedStats[$student->id]->avg_score ?? null;
+            $student->streak_days = $streaks[$student->id] ?? 0;
         }
 
-        
         return view('teacher.student-reports', compact('students', 'classrooms'));
     }
-    
+
     /**
      * تفاصيل طالب محدد
      */
@@ -328,18 +342,18 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
         $student = \App\Models\User::findOrFail($id);
-        
+
         // التحقق من الصلاحية
         $hasAccess = DB::table('classroom_student')
             ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
             ->where('classrooms.teacher_id', $user->id)
             ->where('classroom_student.student_id', $id)
             ->exists();
-        
-        if (!$hasAccess) {
+
+        if (! $hasAccess) {
             abort(403, 'ليس لديك صلاحية لعرض هذا الطالب');
         }
-        
+
         // الإحصائيات
         $stats = [
             'total_xp' => DB::table('points')->where('user_id', $id)->sum('points'),
@@ -354,14 +368,14 @@ class TeacherController extends Controller
             'average_score' => ActivitySubmission::where('student_id', $id)
                 ->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)->avg('score'),
         ];
-        
+
         // آخر الأنشطة
         $recentActivities = ActivitySubmission::where('student_id', $id)
             ->with('activity.lesson.concept.value')
             ->latest('submitted_at')
             ->take(10)
             ->get();
-        
+
         // تقدم XP الشهري — مع whereYear لمنع تلوث بين السنوات
         $xpProgress = DB::table('points')
             ->where('user_id', $id)
@@ -371,10 +385,10 @@ class TeacherController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get();
-        
+
         return view('teacher.student-detail', compact('student', 'stats', 'recentActivities', 'xpProgress'));
     }
-    
+
     /**
      * عرض الفصول الدراسية
      */
@@ -382,18 +396,18 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
         $school = $user->school;
-        
-        if (!$school) {
+
+        if (! $school) {
             abort(403, 'لا يوجد مدرسة مرتبطة بحسابك');
         }
-        
+
         // الفصول التي يدرسها المعلم
         $classrooms = $user->teachingClassrooms()
             ->where('school_id', $school->id)
             ->withCount('students')
             ->with('students:id,name,email,avatar')
             ->get();
-        
+
         // حساب البيانات الحقيقية لكل فصل
         foreach ($classrooms as $classroom) {
             // الطلاب في هذا الفصل
@@ -401,33 +415,33 @@ class TeacherController extends Controller
                 ->where('classroom_id', $classroom->id)
                 ->pluck('student_id')
                 ->toArray();
-            
+
             // الأنشطة المكتملة لهذا الفصل
             $completedCount = ActivitySubmission::whereIn('student_id', $classroomStudentIds)
                 ->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
                 ->distinct('activity_id')
                 ->count('activity_id');
-            
+
             // إجمالي الأنشطة المتاحة
             $totalActivities = Activity::count();
-            
+
             // نسبة التقدم (الأنشطة المكتملة / إجمالي الأنشطة * عدد الطلاب)
             $totalPossibleActivities = $totalActivities * count($classroomStudentIds);
             $classroom->progress_percent = $totalPossibleActivities > 0 && count($classroomStudentIds) > 0
-                ? round(($completedCount / $totalPossibleActivities) * 100) 
+                ? round(($completedCount / $totalPossibleActivities) * 100)
                 : 0;
         }
-        
+
         // إحصائيات عامة
         $stats = [
             'total_classrooms' => $classrooms->count(),
             'total_students' => $classrooms->sum('students_count'),
-            'active_classrooms' => $classrooms->filter(fn($c) => $c->students_count > 0)->count(),
+            'active_classrooms' => $classrooms->filter(fn ($c) => $c->students_count > 0)->count(),
         ];
-        
+
         return view('teacher.classrooms', compact('classrooms', 'stats', 'school'));
     }
-    
+
     /**
      * تفاصيل فصل محدد
      */
@@ -439,10 +453,10 @@ class TeacherController extends Controller
             ->withCount('students')
             ->with('students')
             ->firstOrFail();
-        
+
         // إحصائيات الفصل
         $studentIds = $classroom->students->pluck('id');
-        
+
         $stats = [
             'total_students' => $classroom->students_count,
             'average_performance' => ActivitySubmission::whereIn('student_id', $studentIds)
@@ -455,10 +469,10 @@ class TeacherController extends Controller
                 ->where('status', 'pending')
                 ->count(),
         ];
-        
+
         return view('teacher.classroom-detail', compact('classroom', 'stats'));
     }
-    
+
     /**
      * صفحة الإعدادات
      */
@@ -466,17 +480,17 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
         $school = $user->school;
-        
+
         return view('teacher.settings', compact('user', 'school'));
     }
-    
+
     /**
      * تحديث الإعدادات
      */
     public function updateSettings(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
@@ -485,7 +499,7 @@ class TeacherController extends Controller
             'bio' => 'sometimes|string|max:500',
             'notifications_enabled' => 'sometimes|boolean',
         ]);
-        
+
         // تحديث الصورة الشخصية
         if ($request->hasFile('avatar')) {
             // حذف الصورة القديمة إن وجدت
@@ -495,25 +509,25 @@ class TeacherController extends Controller
             $path = $request->file('avatar')->store('avatars', 'public');
             $validated['avatar'] = $path;
         }
-        
+
         $user->update($validated);
-        
+
         return redirect()->route('teacher.settings')
             ->with('success', 'تم تحديث الإعدادات بنجاح');
     }
-    
+
     /**
      * عرض صفحة إعدادات مكافأة الالتزام اليومي
      */
     public function streakSettings()
     {
         $teacher = auth()->user();
-        
+
         // جلب الإعدادات الحالية من جدول settings
         $settings = \App\Models\Setting::where('key', 'like', 'streak_%')
             ->get()
             ->keyBy('key');
-        
+
         // الإعدادات الافتراضية
         $streakSettings = [
             'enabled' => $settings->get('streak_enabled')?->value ?? true,
@@ -521,27 +535,27 @@ class TeacherController extends Controller
             'max_days' => $settings->get('streak_max_days')?->value ?? 7,
             'bonus_points' => $settings->get('streak_bonus_points')?->value ?? 50,
         ];
-        
+
         // إحصائيات الطلاب
         $classroomIds = $teacher->teachingClassrooms()->pluck('classrooms.id');
-        $studentIds = \App\Models\User::whereHas('classrooms', function($q) use ($classroomIds) {
+        $studentIds = \App\Models\User::whereHas('classrooms', function ($q) use ($classroomIds) {
             $q->whereIn('classrooms.id', $classroomIds);
         })->where('role', 'student')->pluck('id');
-        
+
         // الطلاب الذين حصلوا على مكافأة streak
         $streakBonusCount = \App\Models\ActivityUserStreak::whereIn('user_id', $studentIds)
             ->where('bonus_claimed', true)
             ->count();
-        
+
         // الطلاب في منتصف streak
         $activeStreakCount = \App\Models\ActivityUserStreak::whereIn('user_id', $studentIds)
             ->where('bonus_claimed', false)
             ->where('completed_days', '>', 0)
             ->count();
-        
+
         return view('teacher.streak-settings', compact('streakSettings', 'streakBonusCount', 'activeStreakCount'));
     }
-    
+
     /**
      * تحديث إعدادات مكافأة الالتزام
      */
@@ -553,9 +567,9 @@ class TeacherController extends Controller
             'max_days' => 'required|integer|min:1|max:60',
             'bonus_points' => 'required|integer|min:0|max:500',
         ]);
-        
+
         $teacher = auth()->user();
-        
+
         // حفظ الإعدادات
         $settings = [
             'streak_enabled' => $request->has('enabled') ? '1' : '0',
@@ -563,108 +577,109 @@ class TeacherController extends Controller
             'streak_max_days' => $validated['max_days'],
             'streak_bonus_points' => $validated['bonus_points'],
         ];
-        
+
         foreach ($settings as $key => $value) {
             \App\Models\Setting::updateOrCreate(
                 ['key' => $key],
-                ['value' => $value]
+                ['value' => $value],
             );
         }
-        
+
         return redirect()
             ->route('teacher.streak.settings')
             ->with('success', 'تم حفظ إعدادات مكافأة الالتزام بنجاح!');
     }
-    
+
     /**
      * عرض جميع الأنشطة التي أنشأها المعلم
      */
     public function activities()
     {
         $user = Auth::user();
-        
+
         // الأنشطة التي أنشأها هذا المعلم
         $activities = Activity::where('created_by', $user->id)
             ->with(['lesson.concept.value', 'classroom', 'creator'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        
+
         // إحصائيات
         $stats = [
             'total_activities' => Activity::where('created_by', $user->id)->count(),
             'homework_count' => Activity::where('created_by', $user->id)->where('is_homework', true)->count(),
             'active_count' => Activity::where('created_by', $user->id)->where('status', 'active')->count(),
-            'submissions_pending' => ActivitySubmission::whereIn('activity_id', 
-                Activity::where('created_by', $user->id)->pluck('id')
+            'submissions_pending' => ActivitySubmission::whereIn(
+                'activity_id',
+                Activity::where('created_by', $user->id)->pluck('id'),
             )->where('status', 'pending')->count(),
         ];
-        
+
         return view('teacher.activities', compact('activities', 'stats'));
     }
-    
+
     /**
      * عرض صفحة إنشاء نشاط جديد
      */
     public function createActivity()
     {
         $user = Auth::user();
-        
+
         // الفصول التي يدرسها المعلم
         $classrooms = $user->teachingClassrooms()->get();
-        
+
         // الدروس المتاحة
         // تقييد الدروس بالقيم المفعّلة لمدرسة المعلم (اتساق مع القيم المفعّلة على مستوى المدرسة)
         $visibleValueIds = \App\Models\Value::visibleForSchool($user->school_id)->pluck('id');
         $lessons = \App\Models\Lesson::with('concept.value')
-            ->whereHas('concept', fn($q) => $q->whereIn('value_id', $visibleValueIds))
+            ->whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))
             ->orderBy('order')
             ->get();
 
         return view('teacher.create-activity', compact('classrooms', 'lessons'));
     }
-    
+
     /**
      * حفظ نشاط جديد
      */
     public function storeActivity(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
-            'lesson_id'           => 'required|exists:lessons,id',
-            'classroom_id'        => 'nullable|exists:classrooms,id',
-            'title'               => 'required|string|max:255',
-            'description'         => 'nullable|string',
-            'type'                => 'required|in:quiz,exercise,project,creative,upload,practical,discussion,image_order',
-            'question_type'       => 'nullable|string',
-            'questions'           => 'nullable|string',
-            'points'              => 'required|integer|min:1|max:100',
-            'passing_score'       => 'nullable|integer|min:0|max:100',
-            'status'              => 'required|in:active,inactive,draft',
-            'order'               => 'nullable|integer|min:0',
-            'quiz_duration'       => 'nullable|integer|min:1',
-            'max_attempts'        => 'nullable|integer|min:1',
-            'allowed_file_types'  => 'nullable|array',
-            'allowed_file_types.*'=> 'in:document,image,video,audio',
-            'max_file_size'       => 'nullable|integer|min:1|max:100',
-            'is_homework'         => 'nullable|boolean',
-            'due_date'            => 'nullable|date',
+            'lesson_id' => 'required|exists:lessons,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:quiz,exercise,project,creative,upload,practical,discussion,image_order',
+            'question_type' => 'nullable|string',
+            'questions' => 'nullable|string',
+            'points' => 'required|integer|min:1|max:100',
+            'passing_score' => 'nullable|integer|min:0|max:100',
+            'status' => 'required|in:active,inactive,draft',
+            'order' => 'nullable|integer|min:0',
+            'quiz_duration' => 'nullable|integer|min:1',
+            'max_attempts' => 'nullable|integer|min:1',
+            'allowed_file_types' => 'nullable|array',
+            'allowed_file_types.*' => 'in:document,image,video,audio',
+            'max_file_size' => 'nullable|integer|min:1|max:100',
+            'is_homework' => 'nullable|boolean',
+            'due_date' => 'nullable|date',
         ]);
-        
+
         // إضافة المعلم الحالي كمنشئ
         $validated['created_by'] = $user->id;
 
         // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR / تسرب بين المدارس)
-        if (!empty($validated['classroom_id'])) {
+        if (! empty($validated['classroom_id'])) {
             abort_unless(
                 $user->teachingClassrooms()->whereKey($validated['classroom_id'])->exists(),
                 403,
-                'هذا الفصل ليس ضمن فصولك'
+                'هذا الفصل ليس ضمن فصولك',
             );
         }
 
         // تحويل الأسئلة من JSON string إلى array للحفظ
-        if (!empty($validated['questions'])) {
+        if (! empty($validated['questions'])) {
             $decoded = json_decode($validated['questions'], true);
             $validated['questions'] = $decoded ?? null;
         } else {
@@ -678,7 +693,7 @@ class TeacherController extends Controller
 
         // إنشاء النشاط
         $activity = Activity::create($validated);
-        
+
         // إرسال إشعار للطلاب في الفصل
         if ($activity->classroom_id) {
             $classroom = Classroom::with('students')->find($activity->classroom_id);
@@ -687,33 +702,33 @@ class TeacherController extends Controller
                     $student->id,
                     $activity->title,
                     $activity->type === 'quiz' ? 'اختبار جديد' : ($activity->type === 'project' ? 'مشروع جديد' : 'تمرين جديد'),
-                    null
+                    null,
                 );
             }
         }
-        
+
         return redirect()->route('teacher.activities')
             ->with('success', 'تم إنشاء النشاط بنجاح');
     }
-    
+
     /**
      * عرض صفحة تعديل نشاط
      */
     public function editActivity($id)
     {
         $user = Auth::user();
-        
+
         $activity = Activity::where('id', $id)
             ->where('created_by', $user->id)
             ->firstOrFail();
-        
+
         // الفصول التي يدرسها المعلم
         $classrooms = $user->teachingClassrooms()->get();
-        
+
         // الدروس المتاحة — مقيّدة بالقيم المفعّلة لمدرسة المعلم
         $visibleValueIds = \App\Models\Value::visibleForSchool($user->school_id)->pluck('id');
         $lessons = \App\Models\Lesson::with('concept.value')
-            ->whereHas('concept', fn($q) => $q->whereIn('value_id', $visibleValueIds))
+            ->whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))
             ->orderBy('order')
             ->get();
 
@@ -734,42 +749,41 @@ class TeacherController extends Controller
         return view('teacher.preview-activity', compact('activity'));
     }
 
-
     public function updateActivity(Request $request, $id)
     {
         $user = Auth::user();
-        
+
         $activity = Activity::where('id', $id)
             ->where('created_by', $user->id)
             ->firstOrFail();
-        
+
         $validated = $request->validate([
-            'lesson_id'           => 'required|exists:lessons,id',
-            'classroom_id'        => 'nullable|exists:classrooms,id',
-            'title'               => 'required|string|max:255',
-            'description'         => 'nullable|string',
-            'type'                => 'required|in:quiz,exercise,project,creative,upload,practical,discussion,image_order',
-            'question_type'       => 'nullable|string',
-            'questions'           => 'nullable|string',
-            'points'              => 'required|integer|min:1|max:100',
-            'passing_score'       => 'nullable|integer|min:0|max:100',
-            'status'              => 'required|in:active,inactive,draft',
-            'order'               => 'nullable|integer|min:0',
-            'quiz_duration'       => 'nullable|integer|min:1',
-            'max_attempts'        => 'nullable|integer|min:1',
-            'allowed_file_types'  => 'nullable|array',
-            'allowed_file_types.*'=> 'in:document,image,video,audio',
-            'max_file_size'       => 'nullable|integer|min:1|max:100',
-            'is_homework'         => 'nullable|boolean',
-            'due_date'            => 'nullable|date',
+            'lesson_id' => 'required|exists:lessons,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:quiz,exercise,project,creative,upload,practical,discussion,image_order',
+            'question_type' => 'nullable|string',
+            'questions' => 'nullable|string',
+            'points' => 'required|integer|min:1|max:100',
+            'passing_score' => 'nullable|integer|min:0|max:100',
+            'status' => 'required|in:active,inactive,draft',
+            'order' => 'nullable|integer|min:0',
+            'quiz_duration' => 'nullable|integer|min:1',
+            'max_attempts' => 'nullable|integer|min:1',
+            'allowed_file_types' => 'nullable|array',
+            'allowed_file_types.*' => 'in:document,image,video,audio',
+            'max_file_size' => 'nullable|integer|min:1|max:100',
+            'is_homework' => 'nullable|boolean',
+            'due_date' => 'nullable|date',
         ]);
-        
+
         // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR)
-        if (!empty($validated['classroom_id'])) {
+        if (! empty($validated['classroom_id'])) {
             abort_unless(
                 $user->teachingClassrooms()->whereKey($validated['classroom_id'])->exists(),
                 403,
-                'هذا الفصل ليس ضمن فصولك'
+                'هذا الفصل ليس ضمن فصولك',
             );
         }
 
@@ -781,40 +795,40 @@ class TeacherController extends Controller
             // لم يُرسل الحقل → لا تمس البيانات الموجودة
             unset($validated['questions']);
         }
-        
+
         // تحويل أنواع الملفات المسموحة إلى JSON
         if (isset($validated['allowed_file_types'])) {
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
-        
+
         // تحديث النشاط
         $activity->update($validated);
-        
+
         return redirect()->route('teacher.activities')
             ->with('success', 'تم تحديث النشاط بنجاح');
     }
-    
+
     /**
      * حذف نشاط
      */
     public function deleteActivity($id)
     {
         $user = Auth::user();
-        
+
         $activity = Activity::where('id', $id)
             ->where('created_by', $user->id)
             ->firstOrFail();
-        
+
         // حذف المرفق
         if ($activity->attachment && \Storage::disk('public')->exists($activity->attachment)) {
             \Storage::disk('public')->delete($activity->attachment);
         }
-        
+
         $activity->delete();
-        
+
         return response()->json([
             'success' => true,
-            'message' => 'تم حذف النشاط بنجاح'
+            'message' => 'تم حذف النشاط بنجاح',
         ]);
     }
 
@@ -825,18 +839,18 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
         $student = User::findOrFail($studentId);
-        
+
         // التحقق من الصلاحية
         $hasAccess = DB::table('classroom_student')
             ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
             ->where('classrooms.teacher_id', $user->id)
             ->where('classroom_student.student_id', $student->id)
             ->exists();
-        
-        if (!$hasAccess) {
+
+        if (! $hasAccess) {
             abort(403, 'ليس لديك صلاحية الوصول لهذا الطالب');
         }
-        
+
         // جمع البيانات
         $stats = [
             'level' => $student->level,
@@ -844,15 +858,15 @@ class TeacherController extends Controller
             'total_coins' => $student->coins()->sum('coins'),
             'total_badges' => $student->badges()->count(),
         ];
-        
+
         $recentActivities = ActivitySubmission::where('student_id', $student->id)
             ->with(['activity'])
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
-        
+
         $badges = $student->badges;
-        
+
         $valueStats = DB::table('activity_submissions')
             ->join('activities', 'activity_submissions.activity_id', '=', 'activities.id')
             ->join('lessons', 'activities.lesson_id', '=', 'lessons.id')
@@ -863,13 +877,13 @@ class TeacherController extends Controller
             ->select(
                 'values.name as value_name',
                 DB::raw('COUNT(*) as activities_count'),
-                DB::raw('AVG(activity_submissions.score) as avg_score')
+                DB::raw('AVG(activity_submissions.score) as avg_score'),
             )
             ->groupBy('values.id', 'values.name')
             ->get();
-        
+
         $pdf = \PDF::loadView('reports.student-progress', compact('student', 'stats', 'recentActivities', 'badges', 'valueStats'));
-        
+
         return $pdf->download('تقرير_' . $student->name . '_' . now()->format('Y-m-d') . '.pdf');
     }
 
@@ -883,9 +897,9 @@ class TeacherController extends Controller
             ->where('teacher_id', $user->id)
             ->with(['teacher', 'students'])
             ->firstOrFail();
-        
+
         $studentIds = $classroom->students->pluck('id');
-        
+
         // إحصائيات الفصل
         $classStats = [
             'average_performance' => ActivitySubmission::whereIn('student_id', $studentIds)
@@ -899,42 +913,43 @@ class TeacherController extends Controller
                 ->count(),
             'completion_rate' => 0,
         ];
-        
+
         if ($classStats['completed_activities'] + $classStats['pending_activities'] > 0) {
-            $classStats['completion_rate'] = ($classStats['completed_activities'] / 
+            $classStats['completion_rate'] = ($classStats['completed_activities'] /
                 ($classStats['completed_activities'] + $classStats['pending_activities'])) * 100;
         }
-        
+
         // معلومات الطلاب
         $students = User::whereIn('id', $studentIds)
             ->get()
-            ->map(function($student) {
+            ->map(function ($student) {
                 $student->completed_activities = ActivitySubmission::where('student_id', $student->id)
                     ->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
                     ->count();
-                
+
                 $student->average_score = ActivitySubmission::where('student_id', $student->id)
                     ->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
                     ->avg('score') ?? 0;
-                
+
                 $student->total_points = $student->points()->sum('points');
                 $student->total_badges = $student->badges()->count();
-                
+
                 return $student;
             })
             ->sortByDesc('total_points');
-        
+
         // الأنشطة
         $activities = Activity::where('classroom_id', $classroom->id)
             ->withCount('submissions')
             ->with('submissions')
             ->get()
-            ->map(function($activity) {
+            ->map(function ($activity) {
                 $completedSubmissions = $activity->submissions->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES);
                 $activity->average_score = $completedSubmissions->avg('score');
+
                 return $activity;
             });
-        
+
         return view('teacher.classroom-report', compact('classroom', 'classStats', 'students', 'activities'));
     }
 
@@ -944,16 +959,16 @@ class TeacherController extends Controller
     public function teams()
     {
         $user = Auth::user();
-        
+
         // الفرق التي فصولها تابعة للمعلم
         $teacherClassroomIds = $user->teachingClassrooms()->pluck('classrooms.id');
-        
+
         $teams = Team::whereIn('classroom_id', $teacherClassroomIds)
             ->withCount('members')
             ->with(['leader', 'classroom'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
-        
+
         return view('teacher.teams', compact('teams'));
     }
 
@@ -963,27 +978,27 @@ class TeacherController extends Controller
     public function createTeam()
     {
         $user = Auth::user();
-        
+
         // الفصول التي يدرسها المعلم
         $classrooms = Classroom::where('teacher_id', $user->id)->get();
-        
+
         // الطلاب المتاحين (ليسوا في فرق أخرى)
         $students = User::where('role', 'student')
             ->where('school_id', $user->school_id)
-            ->whereIn('id', function($query) use ($user) {
+            ->whereIn('id', function ($query) use ($user) {
                 $query->select('student_id')
                     ->from('classroom_student')
-                    ->whereIn('classroom_id', function($subQuery) use ($user) {
+                    ->whereIn('classroom_id', function ($subQuery) use ($user) {
                         $subQuery->select('id')
                             ->from('classrooms')
                             ->where('teacher_id', $user->id);
                     });
             })
-            ->whereNotIn('id', function($q) {
+            ->whereNotIn('id', function ($q) {
                 $q->select('student_id')->from('team_members');
             })
             ->get();
-        
+
         return view('teacher.create-team', compact('classrooms', 'students'));
     }
 
@@ -993,7 +1008,7 @@ class TeacherController extends Controller
     public function storeTeam(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'classroom_id' => 'required|exists:classrooms,id',
@@ -1002,12 +1017,12 @@ class TeacherController extends Controller
             'member_ids.*' => 'exists:users,id',
             'description' => 'nullable|string|max:500',
         ]);
-        
+
         // التحقق من أن الفصل للمعلم
         $classroom = Classroom::where('id', $validated['classroom_id'])
             ->where('teacher_id', $user->id)
             ->firstOrFail();
-        
+
         DB::beginTransaction();
         try {
             // إنشاء الفريق
@@ -1018,13 +1033,13 @@ class TeacherController extends Controller
                 'description' => $validated['description'],
                 'status' => 'active',
             ]);
-            
+
             // إضافة الأعضاء
             $memberIds = array_unique(array_merge(
-                [$validated['leader_id']], 
-                $validated['member_ids']
+                [$validated['leader_id']],
+                $validated['member_ids'],
             ));
-            
+
             foreach ($memberIds as $studentId) {
                 DB::table('team_members')->insert([
                     'team_id' => $team->id,
@@ -1035,13 +1050,14 @@ class TeacherController extends Controller
                     'updated_at' => now(),
                 ]);
             }
-            
+
             DB::commit();
-            
+
             return redirect()->route('teacher.teams')->with('success', 'تم إنشاء الفريق بنجاح');
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()->with('error', 'حدث خطأ أثناء إنشاء الفريق')->withInput();
         }
     }
@@ -1052,22 +1068,22 @@ class TeacherController extends Controller
     public function showTeam($id)
     {
         $user = Auth::user();
-        
+
         $team = Team::where('id', $id)
             ->whereIn('classroom_id', $user->teachingClassrooms()->pluck('classrooms.id'))
             ->with(['classroom', 'members', 'activities'])
             ->firstOrFail();
-        
+
         // الحصول على القائد
-        $leader = $team->members->filter(function($member) {
+        $leader = $team->members->filter(function ($member) {
             return $member->pivot->role === 'leader';
         })->first();
-        
+
         // الأعضاء العاديين
-        $members = $team->members->filter(function($member) {
+        $members = $team->members->filter(function ($member) {
             return $member->pivot->role === 'member';
         });
-        
+
         return view('teacher.show-team', compact('team', 'leader', 'members'));
     }
 
@@ -1100,20 +1116,20 @@ class TeacherController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'name'         => 'required|string|max:255',
-            'description'  => 'nullable|string|max:500',
-            'leader_id'    => 'required|exists:users,id',
-            'member_ids'   => 'required|array|min:1',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'leader_id' => 'required|exists:users,id',
+            'member_ids' => 'required|array|min:1',
             'member_ids.*' => 'exists:users,id',
-            'status'       => 'nullable|in:active,inactive',
+            'status' => 'nullable|in:active,inactive',
         ]);
 
         DB::beginTransaction();
         try {
             $team->update([
-                'name'        => $validated['name'],
+                'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
-                'status'      => $validated['status'] ?? 'active',
+                'status' => $validated['status'] ?? 'active',
             ]);
 
             // إعادة بناء الأعضاء
@@ -1121,27 +1137,29 @@ class TeacherController extends Controller
 
             $memberIds = array_unique(array_merge(
                 [$validated['leader_id']],
-                $validated['member_ids']
+                $validated['member_ids'],
             ));
 
             foreach ($memberIds as $studentId) {
                 DB::table('team_members')->insert([
-                    'team_id'    => $team->id,
+                    'team_id' => $team->id,
                     'student_id' => $studentId,
-                    'role'       => $studentId == $validated['leader_id'] ? 'leader' : 'member',
-                    'joined_at'  => now(),
+                    'role' => $studentId == $validated['leader_id'] ? 'leader' : 'member',
+                    'joined_at' => now(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
             }
 
             DB::commit();
+
             return redirect()->route('teacher.teams.show', $team->id)
                 ->with('success', 'تم تحديث الفريق بنجاح');
 
         } catch (\Throwable $e) {
             DB::rollBack();
             \Log::error('Team update failed: ' . $e->getMessage());
+
             return back()->with('error', 'حدث خطأ أثناء تحديث الفريق')->withInput();
         }
     }
@@ -1160,25 +1178,25 @@ class TeacherController extends Controller
     public function deleteTeam($id)
     {
         $user = Auth::user();
-        
+
         $team = Team::where('id', $id)
             ->whereIn('classroom_id', $user->teachingClassrooms()->pluck('classrooms.id'))
             ->firstOrFail();
-        
+
         // التحقق من الصلاحية
         $hasAccess = Classroom::where('id', $team->classroom_id)
             ->where('teacher_id', $user->id)
             ->exists();
-        
-        if (!$hasAccess) {
+
+        if (! $hasAccess) {
             return response()->json(['error' => 'ليس لديك صلاحية'], 403);
         }
-        
+
         $team->delete();
-        
+
         return response()->json([
             'success' => true,
-            'message' => 'تم حذف الفريق بنجاح'
+            'message' => 'تم حذف الفريق بنجاح',
         ]);
     }
 
@@ -1188,32 +1206,32 @@ class TeacherController extends Controller
     public function assignTeamActivity(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'team_id' => 'required|exists:teams,id',
             'activity_id' => 'required|exists:activities,id',
         ]);
-        
+
         // التحقق من صلاحية النشاط
         $activity = Activity::where('id', $validated['activity_id'])
             ->where('created_by', $user->id)
             ->where('is_team_activity', true)
             ->firstOrFail();
-        
+
         // التحقق من الفريق
         $team = Team::where('id', $validated['team_id'])
             ->whereIn('classroom_id', $user->teachingClassrooms()->pluck('classrooms.id'))
             ->firstOrFail();
-        
+
         // التحقق من عدم تكرار التعيين
         $exists = TeamActivity::where('team_id', $team->id)
             ->where('activity_id', $activity->id)
             ->exists();
-        
+
         if ($exists) {
             return response()->json(['error' => 'النشاط معين مسبقاً لهذا الفريق'], 400);
         }
-        
+
         // إنشاء التعيين (assigned_by مطلوب NOT NULL، و'assigned' قيمة enum صحيحة)
         TeamActivity::create([
             'team_id' => $team->id,
@@ -1221,7 +1239,7 @@ class TeacherController extends Controller
             'assigned_by' => $user->id,
             'status' => 'assigned',
         ]);
-        
+
         // إرسال إشعارات لأعضاء الفريق
         foreach ($team->members as $member) {
             NotificationService::create(
@@ -1229,13 +1247,13 @@ class TeacherController extends Controller
                 'team_activity_assigned',
                 '🤝 نشاط فريق جديد',
                 "تم تعيين نشاط '{$activity->title}' لفريقك {$team->name}",
-                "/student/teams/{$team->id}"
+                "/student/teams/{$team->id}",
             );
         }
-        
+
         return response()->json([
             'success' => true,
-            'message' => 'تم تعيين النشاط للفريق بنجاح'
+            'message' => 'تم تعيين النشاط للفريق بنجاح',
         ]);
     }
 
@@ -1245,12 +1263,12 @@ class TeacherController extends Controller
     public function gradeTeamActivity(Request $request, $id)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'total_score' => 'required|integer|min:0|max:100',
             'teacher_feedback' => 'nullable|string|max:1000',
         ]);
-        
+
         $teamActivity = TeamActivity::with(['team.members', 'activity'])
             ->findOrFail($id);
 
@@ -1271,23 +1289,27 @@ class TeacherController extends Controller
             'teacher_feedback' => $validated['teacher_feedback'],
             'submitted_at' => $teamActivity->submitted_at ?? now(),
         ]);
-        
+
         // منح نقاط لكل عضو في الفريق
         $pointsPerMember = floor($validated['total_score'] / 2); // نصف الدرجة كنقاط
         $coinsPerMember = floor($validated['total_score'] / 4); // ربع الدرجة كعملات
-        
-        $gamification = new GamificationService();
-        
+
+        $gamification = new GamificationService;
+
         // كل عضو فريق محاط بـ try-catch — فشل عضو واحد لا يكسر تقييم البقية (P1-D)
         $activityTitle = optional($teamActivity->activity)->title ?? 'نشاط';
         foreach ($teamActivity->team->members as $member) {
             try {
                 $gamification->addXP($member->id, $pointsPerMember, 'team_activity_completed', "إكمال نشاط فريق: {$activityTitle}");
-            } catch (\Throwable $e) { \Log::warning("team XP failed for member {$member->id}: " . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning("team XP failed for member {$member->id}: " . $e->getMessage());
+            }
 
             try {
                 $gamification->addCoins($member->id, $coinsPerMember, 'team_activity_reward', "مكافأة نشاط فريق: {$activityTitle}");
-            } catch (\Throwable $e) { \Log::warning("team coins failed for member {$member->id}: " . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning("team coins failed for member {$member->id}: " . $e->getMessage());
+            }
 
             try {
                 NotificationService::create(
@@ -1295,14 +1317,16 @@ class TeacherController extends Controller
                     'team_activity_graded',
                     '⭐ تم تقييم نشاط الفريق',
                     "حصل فريقك على {$validated['total_score']} نقطة في نشاط '{$activityTitle}'",
-                    "/student/teams/{$teamActivity->team_id}"
+                    "/student/teams/{$teamActivity->team_id}",
                 );
-            } catch (\Throwable $e) { \Log::warning("team notification failed for member {$member->id}: " . $e->getMessage()); }
+            } catch (\Throwable $e) {
+                \Log::warning("team notification failed for member {$member->id}: " . $e->getMessage());
+            }
         }
-        
+
         return response()->json([
             'success' => true,
-            'message' => 'تم تقييم النشاط وتوزيع المكافآت على الأعضاء'
+            'message' => 'تم تقييم النشاط وتوزيع المكافآت على الأعضاء',
         ]);
     }
 
@@ -1312,17 +1336,17 @@ class TeacherController extends Controller
     public function messages()
     {
         $user = Auth::user();
-        
+
         // جلب قائمة أولياء الأمور الذين لديهم أطفال في فصول المعلم + أبناؤهم (لتعبئة قائمة الطالب)
         $teachingIds = $user->teachingClassrooms()->pluck('id');
         $parents = User::where('role', 'parent')
             ->where('school_id', $user->school_id)
-            ->whereHas('children.classrooms', function($q) use ($teachingIds) {
+            ->whereHas('children.classrooms', function ($q) use ($teachingIds) {
                 $q->whereIn('classroom_id', $teachingIds);
             })
-            ->with(['children' => function($q) use ($teachingIds) {
-                $q->whereHas('classrooms', fn($c) => $c->whereIn('classroom_id', $teachingIds))
-                  ->select('users.id', 'users.name');
+            ->with(['children' => function ($q) use ($teachingIds) {
+                $q->whereHas('classrooms', fn ($c) => $c->whereIn('classroom_id', $teachingIds))
+                    ->select('users.id', 'users.name');
             }])
             ->select('id', 'name', 'email')
             ->get();
@@ -1347,17 +1371,17 @@ class TeacherController extends Controller
     public function getConversation(Request $request)
     {
         $user = Auth::user();
-        
-        $messages = \App\Models\ParentTeacherMessage::where(function($q) use ($user, $request) {
+
+        $messages = \App\Models\ParentTeacherMessage::where(function ($q) use ($user, $request) {
             $q->where('teacher_id', $user->id)
-              ->where('parent_id', $request->parent_id);
+                ->where('parent_id', $request->parent_id);
         })
-        ->when($request->student_id, function($q) use ($request) {
-            $q->where('student_id', $request->student_id);
-        })
-        ->with(['parent:id,name', 'student:id,name'])
-        ->orderBy('created_at', 'asc')
-        ->get();
+            ->when($request->student_id, function ($q) use ($request) {
+                $q->where('student_id', $request->student_id);
+            })
+            ->with(['parent:id,name', 'student:id,name'])
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         // تحديد الرسائل كمقروءة
         \App\Models\ParentTeacherMessage::where('teacher_id', $user->id)
@@ -1386,12 +1410,12 @@ class TeacherController extends Controller
         $parentValid = User::where('id', $request->parent_id)
             ->where('role', 'parent')
             ->where('school_id', $user->school_id)
-            ->whereHas('children.classrooms', function($q) use ($user) {
+            ->whereHas('children.classrooms', function ($q) use ($user) {
                 $q->whereIn('classroom_id', $user->teachingClassrooms()->pluck('id'));
             })
             ->exists();
 
-        if (!$parentValid) {
+        if (! $parentValid) {
             return response()->json(['error' => 'ولي الأمر غير صالح'], 403);
         }
 
@@ -1410,12 +1434,12 @@ class TeacherController extends Controller
             '💬 رسالة جديدة من المعلم',
             "لديك رسالة جديدة من {$user->name}",
             [],
-            route('parent.messages')
+            route('parent.messages'),
         );
 
         return response()->json([
             'success' => true,
-            'message' => $message->load(['parent:id,name', 'student:id,name'])
+            'message' => $message->load(['parent:id,name', 'student:id,name']),
         ]);
     }
 
@@ -1425,7 +1449,7 @@ class TeacherController extends Controller
     public function ratings()
     {
         $user = Auth::user();
-        
+
         // جلب التقييمات مع تفاصيل الطلاب
         $ratings = \App\Models\TeacherRating::where('teacher_id', $user->id)
             ->with(['student:id,name'])
@@ -1435,7 +1459,7 @@ class TeacherController extends Controller
         // حساب المتوسط
         $averageRating = \App\Models\TeacherRating::where('teacher_id', $user->id)
             ->avg('rating');
-        
+
         // عدد التقييمات لكل نجمة
         $ratingDistribution = \App\Models\TeacherRating::where('teacher_id', $user->id)
             ->select('rating', DB::raw('count(*) as count'))
@@ -1452,14 +1476,14 @@ class TeacherController extends Controller
     public function analytics()
     {
         $user = Auth::user();
-        
+
         // جلب IDs الطلاب في فصول المعلم
         $studentIds = DB::table('classroom_student')
             ->whereIn('classroom_id', $user->teachingClassrooms()->pluck('id'))
             ->distinct()
             ->pluck('student_id')
             ->toArray();
-        
+
         // إحصائيات الأنشطة
         $activityStats = ActivitySubmission::whereIn('student_id', $studentIds)
             ->selectRaw("
@@ -1469,7 +1493,7 @@ class TeacherController extends Controller
                 AVG(CASE WHEN score IS NOT NULL THEN score END) as avg_score
             ")
             ->first();
-        
+
         // بيانات التسليمات - آخر 30 يوم
         $submissionsData = [];
         for ($i = 29; $i >= 0; $i--) {
@@ -1478,40 +1502,40 @@ class TeacherController extends Controller
                 'date' => $date->format('d/m'),
                 'count' => ActivitySubmission::whereIn('student_id', $studentIds)
                     ->whereDate('created_at', $date->format('Y-m-d'))
-                    ->count()
+                    ->count(),
             ];
         }
-        
+
         // أفضل 10 طلاب (حسب النقاط)
         $topStudents = User::whereIn('id', $studentIds)
             ->withSum('points as total_points', 'points')
             ->orderBy('total_points', 'desc')
             ->limit(10)
             ->get();
-        
+
         // توزيع الدرجات
         $gradeDistribution = ActivitySubmission::whereIn('student_id', $studentIds)
             ->whereNotNull('score')
-            ->selectRaw("
+            ->selectRaw('
                 SUM(CASE WHEN score >= 90 THEN 1 ELSE 0 END) as excellent,
                 SUM(CASE WHEN score >= 80 AND score < 90 THEN 1 ELSE 0 END) as very_good,
                 SUM(CASE WHEN score >= 70 AND score < 80 THEN 1 ELSE 0 END) as good,
                 SUM(CASE WHEN score >= 60 AND score < 70 THEN 1 ELSE 0 END) as acceptable,
                 SUM(CASE WHEN score < 60 THEN 1 ELSE 0 END) as weak
-            ")
+            ')
             ->first();
-        
+
         // الأنشطة الأكثر تفاعلاً — متوسط الدرجة يستبعد الـ rejected و النصوص الفارغة
         $topActivities = Activity::where('created_by', $user->id)
             ->withCount(['submissions as submissions_count'])
             ->withAvg(['submissions as avg_score' => function ($q) {
                 $q->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
-                  ->whereNotNull('score');
+                    ->whereNotNull('score');
             }], 'score')
             ->orderBy('submissions_count', 'desc')
             ->limit(5)
             ->get();
-        
+
         // معدل التفاعل الأسبوعي - آخر 8 أسابيع
         $weeklyEngagement = [];
         for ($i = 7; $i >= 0; $i--) {
@@ -1522,110 +1546,110 @@ class TeacherController extends Controller
                 'count' => ActivitySubmission::whereIn('student_id', $studentIds)
                     ->whereBetween('created_at', [$startDate, $endDate])
                     ->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
-                    ->count()
+                    ->count(),
             ];
         }
-        
+
         return view('teacher.analytics', compact(
             'activityStats',
             'submissionsData',
             'topStudents',
             'gradeDistribution',
             'topActivities',
-            'weeklyEngagement'
+            'weeklyEngagement',
         ));
     }
 
     /**
- * إضافة نشاط إلى بنك الأنشطة (بدون موافقة)
- */
-public function addActivityToBank(Request $request)
-{
-    $user = Auth::user();
-    
-    $validated = $request->validate([
-        'lesson_id' => 'nullable|exists:lessons,id',
-        'classroom_id' => 'nullable|exists:classrooms,id',
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'type' => 'required|in:quiz,exercise,project,creative,image_order,upload,practical,discussion',
-        'questions' => 'nullable|string',
-        'points' => 'required|integer|min:1|max:100',
-        'bonus_points' => 'nullable|integer|min:0|max:50',
-        'is_creative' => 'boolean',
-        'passing_score' => 'nullable|integer|min:0|max:100',
-        'status' => 'required|in:active,inactive,draft',
-    ]);
-    
-    // إضافة المعلم الحالي كمنشئ
-    $validated['created_by'] = $user->id;
-    $validated['is_activity_bank'] = true;
-    $validated['approval_status'] = 'pending';
-    
-    // إذا كان نشاط إبداعي، يجب أن يكون لكل الفصل
-    if ($validated['is_creative'] ?? false) {
-        if (!($validated['classroom_id'] ?? null)) {
-            return redirect()->back()->with('error', 'يجب تحديد الفصل للنشاط الإبداعي')->withInput();
+     * إضافة نشاط إلى بنك الأنشطة (بدون موافقة)
+     */
+    public function addActivityToBank(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'lesson_id' => 'nullable|exists:lessons,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:quiz,exercise,project,creative,image_order,upload,practical,discussion',
+            'questions' => 'nullable|string',
+            'points' => 'required|integer|min:1|max:100',
+            'bonus_points' => 'nullable|integer|min:0|max:50',
+            'is_creative' => 'boolean',
+            'passing_score' => 'nullable|integer|min:0|max:100',
+            'status' => 'required|in:active,inactive,draft',
+        ]);
+
+        // إضافة المعلم الحالي كمنشئ
+        $validated['created_by'] = $user->id;
+        $validated['is_activity_bank'] = true;
+        $validated['approval_status'] = 'pending';
+
+        // إذا كان نشاط إبداعي، يجب أن يكون لكل الفصل
+        if ($validated['is_creative'] ?? false) {
+            if (! ($validated['classroom_id'] ?? null)) {
+                return redirect()->back()->with('error', 'يجب تحديد الفصل للنشاط الإبداعي')->withInput();
+            }
+            $validated['bonus_points'] = $validated['bonus_points'] ?? 10;
         }
-        $validated['bonus_points'] = $validated['bonus_points'] ?? 10;
+
+        // تحويل الأسئلة من JSON string إلى array للحفظ
+        if (! empty($validated['questions'])) {
+            $decoded = json_decode($validated['questions'], true);
+            $validated['questions'] = $decoded ?? null;
+        } else {
+            unset($validated['questions']);
+        }
+
+        // إنشاء النشاط
+        $activity = Activity::create($validated);
+
+        // تحديث نقاط المعلم
+        TeacherPoint::updateTeacherPoints($user->id);
+
+        return redirect()->route('teacher.activity-bank.index')->with('success', 'تم إضافة النشاط إلى بنك الأنشطة بنجاح. سيتم مراجعته من قبل الإدارة.');
     }
-    
-    // تحويل الأسئلة من JSON string إلى array للحفظ
-    if (!empty($validated['questions'])) {
-        $decoded = json_decode($validated['questions'], true);
-        $validated['questions'] = $decoded ?? null;
-    } else {
-        unset($validated['questions']);
-    }
-    
-    // إنشاء النشاط
-    $activity = Activity::create($validated);
-    
-    // تحديث نقاط المعلم
-    TeacherPoint::updateTeacherPoints($user->id);
-    
-    return redirect()->route('teacher.activity-bank.index')->with('success', 'تم إضافة النشاط إلى بنك الأنشطة بنجاح. سيتم مراجعته من قبل الإدارة.');
-}
 
     /**
- * إضافة سؤال إلى بنك الأسئلة (يحتاج موافقة)
- */
-public function addQuestionToBank(Request $request)
-{
-    $user = Auth::user();
-    
-    $validated = $request->validate([
-        'lesson_id' => 'nullable|exists:lessons,id',
-        'title' => 'required|string|max:255',
-        'question_text' => 'required|string',
-        'question_type' => 'required|in:multiple_choice,true_false,short_answer,essay',
-        'options' => 'nullable|array',
-        'options.*.text' => 'nullable|string',
-        'options.*.is_correct' => 'nullable',
-        'correct_answer' => 'nullable|string',
-        'explanation' => 'nullable|string',
-        'points' => 'required|integer|min:1|max:50',
-        'difficulty' => 'required|in:easy,medium,hard',
-    ]);
-    
-    // إضافة المعلم الحالي كمنشئ
-    $validated['created_by'] = $user->id;
-    $validated['status'] = 'pending';
-    
-    // تحويل الخيارات إلى JSON إذا كانت موجودة
-    if (isset($validated['options']) && is_array($validated['options'])) {
-        // Filter out empty options
-        $options = array_filter($validated['options'], function($opt) {
-            return !empty($opt['text']);
-        });
-        $validated['options'] = json_encode(array_values($options));
+     * إضافة سؤال إلى بنك الأسئلة (يحتاج موافقة)
+     */
+    public function addQuestionToBank(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'lesson_id' => 'nullable|exists:lessons,id',
+            'title' => 'required|string|max:255',
+            'question_text' => 'required|string',
+            'question_type' => 'required|in:multiple_choice,true_false,short_answer,essay',
+            'options' => 'nullable|array',
+            'options.*.text' => 'nullable|string',
+            'options.*.is_correct' => 'nullable',
+            'correct_answer' => 'nullable|string',
+            'explanation' => 'nullable|string',
+            'points' => 'required|integer|min:1|max:50',
+            'difficulty' => 'required|in:easy,medium,hard',
+        ]);
+
+        // إضافة المعلم الحالي كمنشئ
+        $validated['created_by'] = $user->id;
+        $validated['status'] = 'pending';
+
+        // تحويل الخيارات إلى JSON إذا كانت موجودة
+        if (isset($validated['options']) && is_array($validated['options'])) {
+            // Filter out empty options
+            $options = array_filter($validated['options'], function ($opt) {
+                return ! empty($opt['text']);
+            });
+            $validated['options'] = json_encode(array_values($options));
+        }
+
+        // إنشاء السؤال
+        $question = QuestionBank::create($validated);
+
+        return redirect()->route('teacher.question-bank.index')->with('success', 'تم إضافة السؤال إلى بنك الأسئلة بنجاح. سيتم مراجعته من قبل الإدارة.');
     }
-    
-    // إنشاء السؤال
-    $question = QuestionBank::create($validated);
-    
-    return redirect()->route('teacher.question-bank.index')->with('success', 'تم إضافة السؤال إلى بنك الأسئلة بنجاح. سيتم مراجعته من قبل الإدارة.');
-}
 
     /**
      * لوحة صدارة المعلمين (محلي ودولي)
@@ -1633,38 +1657,38 @@ public function addQuestionToBank(Request $request)
     public function teacherLeaderboard(Request $request)
     {
         $scope = $request->get('scope', 'local'); // local أو global
-        
+
         $query = TeacherPoint::with('teacher.school')
-            ->whereHas('teacher', function($q) {
+            ->whereHas('teacher', function ($q) {
                 $q->where('role', 'teacher');
             });
-        
+
         if ($scope === 'local') {
             // محلي: حسب المدرسة
             $user = Auth::user();
             if ($user->school_id) {
-                $query->whereHas('teacher', function($q) use ($user) {
+                $query->whereHas('teacher', function ($q) use ($user) {
                     $q->where('school_id', $user->school_id);
                 });
             }
         }
         // global: جميع المعلمين
-        
+
         $leaders = $query->orderBy('points', 'desc')
             ->paginate(50);
-        
+
         // ترتيب المعلم الحالي
         $currentTeacher = null;
         $currentTeacherRank = null;
         if ($scope === 'local' && Auth::user()->school_id) {
             $currentTeacher = TeacherPoint::where('teacher_id', Auth::id())->first();
             if ($currentTeacher) {
-                $currentTeacherRank = TeacherPoint::whereHas('teacher', function($q) {
+                $currentTeacherRank = TeacherPoint::whereHas('teacher', function ($q) {
                     $q->where('role', 'teacher')
-                      ->where('school_id', Auth::user()->school_id);
+                        ->where('school_id', Auth::user()->school_id);
                 })
-                ->where('points', '>', $currentTeacher->points)
-                ->count() + 1;
+                    ->where('points', '>', $currentTeacher->points)
+                    ->count() + 1;
             }
         } elseif ($scope === 'global') {
             $currentTeacher = TeacherPoint::where('teacher_id', Auth::id())->first();
@@ -1673,7 +1697,7 @@ public function addQuestionToBank(Request $request)
                     ->count() + 1;
             }
         }
-        
+
         return view('teacher.leaderboard', compact('leaders', 'scope', 'currentTeacher', 'currentTeacherRank'));
     }
 
@@ -1704,11 +1728,11 @@ public function addQuestionToBank(Request $request)
             // كل طلاب المدرسة (وليس فصول المعلم فقط)
             $query->where('school_id', $user->school_id);
         } elseif ($scope === 'city' && $user->school && $user->school->city) {
-            $query->whereHas('school', function($q) use ($user) {
+            $query->whereHas('school', function ($q) use ($user) {
                 $q->where('city', $user->school->city);
             });
         } elseif ($scope === 'country' && $user->school && $user->school->country) {
-            $query->whereHas('school', function($q) use ($user) {
+            $query->whereHas('school', function ($q) use ($user) {
                 $q->where('country', $user->school->country);
             });
         } else {
@@ -1739,13 +1763,13 @@ public function addQuestionToBank(Request $request)
 
         // الأنشطة في بنك الأنشطة
         $activities = Activity::where('is_activity_bank', true)
-            ->where(function($q) use ($user) {
+            ->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id) // أنشطة المعلم
-                  ->orWhere(function($subQ) {
-                      $subQ->where('approval_status', 'approved')
-                           ->whereNotNull('created_by');
-                  })
-                  ->orWhereNull('created_by'); // الأنشطة العامة
+                    ->orWhere(function ($subQ) {
+                        $subQ->where('approval_status', 'approved')
+                            ->whereNotNull('created_by');
+                    })
+                    ->orWhereNull('created_by'); // الأنشطة العامة
             })
             ->with(['creator', 'lesson.concept.value', 'classroom', 'approver'])
             ->orderBy('created_at', 'desc')
@@ -1753,11 +1777,11 @@ public function addQuestionToBank(Request $request)
 
         // إحصائيات الأنشطة
         $stats = [
-            'total'            => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->count(),
-            'pending'          => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->where('approval_status', 'pending')->count(),
-            'approved'         => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->where('approval_status', 'approved')->count(),
-            'rejected'         => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->where('approval_status', 'rejected')->count(),
-            'shared_activities'=> Activity::where('is_activity_bank', true)->where('approval_status', 'approved')->whereNotNull('created_by')->where('created_by', '!=', $user->id)->count(),
+            'total' => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->count(),
+            'pending' => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->where('approval_status', 'pending')->count(),
+            'approved' => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->where('approval_status', 'approved')->count(),
+            'rejected' => Activity::where('is_activity_bank', true)->where('created_by', $user->id)->where('approval_status', 'rejected')->count(),
+            'shared_activities' => Activity::where('is_activity_bank', true)->where('approval_status', 'approved')->whereNotNull('created_by')->where('created_by', '!=', $user->id)->count(),
         ];
 
         // الأسئلة من بنك الأسئلة (للـ Tab الثاني)
@@ -1767,8 +1791,8 @@ public function addQuestionToBank(Request $request)
             ->paginate(20);
 
         $questionStats = [
-            'total'    => QuestionBank::where('created_by', $user->id)->count(),
-            'pending'  => QuestionBank::where('created_by', $user->id)->where('status', 'pending')->count(),
+            'total' => QuestionBank::where('created_by', $user->id)->count(),
+            'pending' => QuestionBank::where('created_by', $user->id)->where('status', 'pending')->count(),
             'approved' => QuestionBank::where('created_by', $user->id)->where('status', 'approved')->count(),
             'rejected' => QuestionBank::where('created_by', $user->id)->where('status', 'rejected')->count(),
         ];
@@ -1783,10 +1807,10 @@ public function addQuestionToBank(Request $request)
     {
         $user = Auth::user();
         $visibleValueIds = \App\Models\Value::visibleForSchool($user->school_id)->pluck('id');
-        $lessons = \App\Models\Lesson::whereHas('concept', fn($q) => $q->whereIn('value_id', $visibleValueIds))->get();
+        $lessons = \App\Models\Lesson::whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))->get();
+
         return view('teacher.create-question', compact('lessons'));
     }
-
 
     /**
      * بنك الأسئلة
@@ -1794,13 +1818,13 @@ public function addQuestionToBank(Request $request)
     public function questionBank()
     {
         $user = Auth::user();
-        
+
         // الأسئلة في بنك الأسئلة
         $questions = QuestionBank::where('created_by', $user->id)
             ->with(['creator', 'lesson.concept.value', 'approver'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        
+
         // إحصائيات
         $stats = [
             'total' => QuestionBank::where('created_by', $user->id)->count(),
@@ -1808,7 +1832,7 @@ public function addQuestionToBank(Request $request)
             'approved' => QuestionBank::where('created_by', $user->id)->where('status', 'approved')->count(),
             'rejected' => QuestionBank::where('created_by', $user->id)->where('status', 'rejected')->count(),
         ];
-        
+
         return view('teacher.question-bank', compact('questions', 'stats'));
     }
 
@@ -1820,7 +1844,7 @@ public function addQuestionToBank(Request $request)
     public function featureActivity(Request $request, $activityId)
     {
         $validated = $request->validate([
-            'reason' => 'required|string|max:500'
+            'reason' => 'required|string|max:500',
         ]);
 
         $activity = Activity::findOrFail($activityId);
@@ -1834,7 +1858,7 @@ public function addQuestionToBank(Request $request)
             'is_featured' => true,
             'featured_by' => Auth::id(),
             'featured_at' => now(),
-            'featured_reason' => $validated['reason']
+            'featured_reason' => $validated['reason'],
         ]);
 
         return back()->with('success', 'تم تمييز النشاط بنجاح وسيظهر للسوبر أدمن');
@@ -1855,7 +1879,7 @@ public function addQuestionToBank(Request $request)
             'is_featured' => false,
             'featured_by' => null,
             'featured_at' => null,
-            'featured_reason' => null
+            'featured_reason' => null,
         ]);
 
         return back()->with('success', 'تم إلغاء تمييز النشاط');
@@ -1869,19 +1893,19 @@ public function addQuestionToBank(Request $request)
     public function practiceExercises()
     {
         $user = Auth::user();
-        
+
         $exercises = \App\Models\PracticeExercise::where('teacher_id', $user->id)
             ->withCount('attempts')
             ->with('classroom')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
-        
+
         $stats = [
             'total' => \App\Models\PracticeExercise::where('teacher_id', $user->id)->count(),
             'active' => \App\Models\PracticeExercise::where('teacher_id', $user->id)->where('is_active', true)->count(),
-            'total_attempts' => \App\Models\PracticeAttempt::whereHas('exercise', fn($q) => $q->where('teacher_id', $user->id))->count(),
+            'total_attempts' => \App\Models\PracticeAttempt::whereHas('exercise', fn ($q) => $q->where('teacher_id', $user->id))->count(),
         ];
-        
+
         return view('teacher.practice-exercises', compact('exercises', 'stats'));
     }
 
@@ -1891,13 +1915,13 @@ public function addQuestionToBank(Request $request)
     public function createExercise()
     {
         $user = Auth::user();
-        
+
         $classrooms = Classroom::where('teacher_id', $user->id)->get();
         $questions = QuestionBank::where('created_by', $user->id)
             ->orWhere('status', 'approved')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return view('teacher.create-exercise', compact('classrooms', 'questions'));
     }
 
@@ -1907,7 +1931,7 @@ public function addQuestionToBank(Request $request)
     public function storeExercise(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -1921,7 +1945,7 @@ public function addQuestionToBank(Request $request)
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after:starts_at',
         ]);
-        
+
         \App\Models\PracticeExercise::create([
             'teacher_id' => $user->id,
             'classroom_id' => $validated['classroom_id'] ?? null,
@@ -1936,7 +1960,7 @@ public function addQuestionToBank(Request $request)
             'starts_at' => $validated['starts_at'] ?? null,
             'ends_at' => $validated['ends_at'] ?? null,
         ]);
-        
+
         return redirect()->route('teacher.exercises')->with('success', 'تم إنشاء التمرين بنجاح ✅');
     }
 
@@ -1946,14 +1970,14 @@ public function addQuestionToBank(Request $request)
     public function editExercise($id)
     {
         $user = Auth::user();
-        
+
         $exercise = \App\Models\PracticeExercise::where('teacher_id', $user->id)->findOrFail($id);
         $classrooms = Classroom::where('teacher_id', $user->id)->get();
         $questions = QuestionBank::where('created_by', $user->id)
             ->orWhere('status', 'approved')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return view('teacher.create-exercise', compact('exercise', 'classrooms', 'questions'));
     }
 
@@ -1963,9 +1987,9 @@ public function addQuestionToBank(Request $request)
     public function updateExercise(Request $request, $id)
     {
         $user = Auth::user();
-        
+
         $exercise = \App\Models\PracticeExercise::where('teacher_id', $user->id)->findOrFail($id);
-        
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -1980,7 +2004,7 @@ public function addQuestionToBank(Request $request)
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
         ]);
-        
+
         $exercise->update([
             'classroom_id' => $validated['classroom_id'] ?? null,
             'title' => $validated['title'],
@@ -1994,7 +2018,7 @@ public function addQuestionToBank(Request $request)
             'starts_at' => $validated['starts_at'] ?? null,
             'ends_at' => $validated['ends_at'] ?? null,
         ]);
-        
+
         return redirect()->route('teacher.exercises')->with('success', 'تم تحديث التمرين بنجاح ✅');
     }
 
@@ -2006,7 +2030,7 @@ public function addQuestionToBank(Request $request)
         $user = Auth::user();
         $exercise = \App\Models\PracticeExercise::where('teacher_id', $user->id)->findOrFail($id);
         $exercise->delete();
-        
+
         return response()->json(['success' => true, 'message' => 'تم حذف التمرين بنجاح']);
     }
 
@@ -2016,27 +2040,27 @@ public function addQuestionToBank(Request $request)
     public function exerciseResults($id)
     {
         $user = Auth::user();
-        
+
         $exercise = \App\Models\PracticeExercise::where('teacher_id', $user->id)
             ->withCount('attempts')
             ->findOrFail($id);
-        
+
         $attempts = \App\Models\PracticeAttempt::where('exercise_id', $id)
             ->with('student')
             ->whereNotNull('completed_at')
             ->orderBy('score', 'desc')
             ->get();
-        
+
         $stats = [
             'total_attempts' => $attempts->count(),
             'avg_score' => round($attempts->avg('score') ?? 0, 1),
             'avg_time' => round($attempts->avg('time_taken') ?? 0),
             'highest_score' => $attempts->max('score') ?? 0,
-            'pass_rate' => $attempts->count() > 0 
-                ? round($attempts->where('score', '>=', 60)->count() / $attempts->count() * 100) 
+            'pass_rate' => $attempts->count() > 0
+                ? round($attempts->where('score', '>=', 60)->count() / $attempts->count() * 100)
                 : 0,
         ];
-        
+
         return view('teacher.exercise-results', compact('exercise', 'attempts', 'stats'));
     }
 
@@ -2092,40 +2116,40 @@ public function addQuestionToBank(Request $request)
             ->get()->keyBy('parent_id');
 
         $rows = $parents->map(function ($p) use ($praiseByParent, $giftsByParent, $messagesByParent) {
-            $praise   = $praiseByParent->get($p->id);
-            $gifts    = $giftsByParent->get($p->id);
+            $praise = $praiseByParent->get($p->id);
+            $gifts = $giftsByParent->get($p->id);
             $messages = $messagesByParent->get($p->id);
 
             $lastDates = collect([
                 optional($praise)->last_at,
                 optional($gifts)->last_at,
                 optional($messages)->last_at,
-            ])->filter()->map(fn($d) => \Carbon\Carbon::parse($d));
+            ])->filter()->map(fn ($d) => \Carbon\Carbon::parse($d));
 
-            $praiseCnt   = (int) optional($praise)->cnt;
-            $giftsCnt    = (int) optional($gifts)->cnt;
+            $praiseCnt = (int) optional($praise)->cnt;
+            $giftsCnt = (int) optional($gifts)->cnt;
             $messagesCnt = (int) optional($messages)->cnt;
 
             return [
-                'id'              => $p->id,
-                'name'            => $p->name,
-                'avatar'          => $p->avatar,
-                'email'           => $p->email,
-                'praises_count'   => $praiseCnt,
-                'gifts_count'     => $giftsCnt,
-                'gifts_points'    => (int) optional($gifts)->pts,
-                'messages_count'  => $messagesCnt,
+                'id' => $p->id,
+                'name' => $p->name,
+                'avatar' => $p->avatar,
+                'email' => $p->email,
+                'praises_count' => $praiseCnt,
+                'gifts_count' => $giftsCnt,
+                'gifts_points' => (int) optional($gifts)->pts,
+                'messages_count' => $messagesCnt,
                 'last_engagement' => $lastDates->isNotEmpty() ? $lastDates->max() : null,
                 'engagement_score' => $praiseCnt * 2 + $giftsCnt * 3 + $messagesCnt,
             ];
         })->sortByDesc('engagement_score')->values();
 
         $totals = [
-            'parents_count'      => $rows->count(),
-            'active_parents'     => $rows->where('engagement_score', '>', 0)->count(),
-            'total_praises'      => $rows->sum('praises_count'),
-            'total_gifts'        => $rows->sum('gifts_count'),
-            'total_messages'     => $rows->sum('messages_count'),
+            'parents_count' => $rows->count(),
+            'active_parents' => $rows->where('engagement_score', '>', 0)->count(),
+            'total_praises' => $rows->sum('praises_count'),
+            'total_gifts' => $rows->sum('gifts_count'),
+            'total_messages' => $rows->sum('messages_count'),
         ];
 
         return view('teacher.parent-engagement', compact('rows', 'totals'));
@@ -2139,7 +2163,7 @@ public function addQuestionToBank(Request $request)
         $user = Auth::user();
         $survey = \App\Models\Survey::findOrFail($surveyId);
 
-        if (!$survey->isAssessment()) {
+        if (! $survey->isAssessment()) {
             return back()->with('error', 'هذا الاستبيان ليس من نوع التقييم القبلي/البعدي');
         }
 
@@ -2177,7 +2201,7 @@ public function addQuestionToBank(Request $request)
         $surveys = \App\Models\Survey::where('survey_type', 'pre_post_assessment')
             ->where(function ($q) use ($user) {
                 $q->whereNull('school_id')
-                  ->orWhere('school_id', $user->school_id);
+                    ->orWhere('school_id', $user->school_id);
             })
             ->where('assessment_phase', 'post')
             ->with(['lesson.concept.value', 'linkedSurvey'])

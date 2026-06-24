@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use App\Models\RegistrationRequest;
-use App\Models\User;
-use App\Models\Classroom;
-use App\Models\ActivitySubmission;
-use App\Models\School;
-use App\Models\SchoolStatisticsCache;
-use App\Mail\RegistrationApprovedMail;
-use App\Mail\RegistrationRejectedMail;
+use App\Exports\ActivitiesExport;
 use App\Exports\BulkUsersTemplateExport;
+use App\Exports\ParentsExport;
 use App\Exports\StudentsExport;
 use App\Exports\TeachersExport;
-use App\Exports\ParentsExport;
-use App\Exports\ActivitiesExport;
 use App\Imports\BulkUsersImport;
+use App\Mail\RegistrationApprovedMail;
+use App\Mail\RegistrationRejectedMail;
+use App\Models\ActivitySubmission;
+use App\Models\Classroom;
+use App\Models\RegistrationRequest;
+use App\Models\School;
+use App\Models\SchoolStatisticsCache;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SchoolAdminController extends Controller
@@ -33,11 +33,11 @@ class SchoolAdminController extends Controller
     {
         $user = Auth::user();
         $school = $user->school;
-        
-        if (!$school) {
+
+        if (! $school) {
             abort(403, 'لا يوجد مدرسة مرتبطة بحسابك');
         }
-        
+
         // طلبات التسجيل المعلقة مع Eager Loading
         $pendingRequests = RegistrationRequest::where('school_id', $school->id)
             ->where('status', 'pending')
@@ -45,14 +45,14 @@ class SchoolAdminController extends Controller
             ->latest()
             ->take(5)
             ->get();
-        
+
         // إحصائيات المدرسة - استعلامات محسّنة
         $userCounts = $school->users()
-            ->selectRaw("role, status, COUNT(*) as count")
+            ->selectRaw('role, status, COUNT(*) as count')
             ->groupBy('role', 'status')
             ->get()
             ->groupBy('role');
-        
+
         $stats = [
             'teachers' => $userCounts->get('teacher', collect())->where('status', 'active')->sum('count'),
             'students' => $userCounts->get('student', collect())->where('status', 'active')->sum('count'),
@@ -63,13 +63,13 @@ class SchoolAdminController extends Controller
                 ->join('users', 'points.user_id', '=', 'users.id')
                 ->where('users.school_id', $school->id)
                 ->sum('points.points'),
-            'completed_activities' => ActivitySubmission::whereHas('student', function($q) use ($school) {
+            'completed_activities' => ActivitySubmission::whereHas('student', function ($q) use ($school) {
                 $q->where('school_id', $school->id);
             })->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)->count(),
             'inactive_teachers' => $userCounts->get('teacher', collect())->where('status', 'inactive')->sum('count'),
             'inactive_students' => $userCounts->get('student', collect())->where('status', 'inactive')->sum('count'),
         ];
-        
+
         // أفضل 5 طلاب في المدرسة - مع تحديد الحقول المطلوبة فقط
         $topStudents = User::where('school_id', $school->id)
             ->where('role', 'student')
@@ -78,7 +78,7 @@ class SchoolAdminController extends Controller
             ->orderByDesc('total_points')
             ->limit(5)
             ->get();
-        
+
         // أحدث الفصول - مع تحديد الحقول
         $recentClassrooms = $school->classrooms()
             ->with(['teacher:id,name'])
@@ -87,7 +87,7 @@ class SchoolAdminController extends Controller
             ->latest()
             ->take(5)
             ->get();
-        
+
         // إحصائيات الأنشطة لآخر 30 يوم - استعلام محسّن
         $dailyActivities = DB::table('activity_submissions')
             ->join('users', 'activity_submissions.student_id', '=', 'users.id')
@@ -97,7 +97,7 @@ class SchoolAdminController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get();
-        
+
         // أحدث المعلمين
         $recentTeachers = $school->users()
             ->where('role', 'teacher')
@@ -105,7 +105,7 @@ class SchoolAdminController extends Controller
             ->latest()
             ->take(5)
             ->get();
-        
+
         // الطلاب النشطين حالياً (الأون لاين) - آخر 5 دقائق
         $onlineThreshold = now()->subMinutes(5)->timestamp;
         $onlineStudentIds = DB::table('sessions')
@@ -117,7 +117,7 @@ class SchoolAdminController extends Controller
             ->where('users.status', 'active')
             ->distinct()
             ->pluck('users.id');
-        
+
         // استعلام واحد يجمع بيانات جلسات اليوم لكل الطلاب المتصلين
         // (سابقًا كان N+1: استعلامان لكل طالب)
         $todayStart = now()->startOfDay()->timestamp;
@@ -133,7 +133,7 @@ class SchoolAdminController extends Controller
             ->select(['id', 'name', 'email', 'avatar'])
             ->withSum('points as total_points', 'points')
             ->get()
-            ->map(function($student) use ($sessionsAgg, $onlineThreshold) {
+            ->map(function ($student) use ($sessionsAgg, $onlineThreshold) {
                 $agg = $sessionsAgg->get($student->id);
 
                 if ($agg && $agg->last_activity >= $onlineThreshold) {
@@ -143,25 +143,25 @@ class SchoolAdminController extends Controller
                     $student->session_time = $hours > 0 ? "{$hours} ساعة و {$minutes} دقيقة" : "{$minutes} دقيقة";
 
                     $minutesAgo = floor((now()->timestamp - $agg->last_activity) / 60);
-                    $student->online_since = $minutesAgo <= 1 ? "الآن" : "منذ {$minutesAgo} دقيقة";
+                    $student->online_since = $minutesAgo <= 1 ? 'الآن' : "منذ {$minutesAgo} دقيقة";
                 } else {
-                    $student->session_time = "0 دقيقة";
-                    $student->online_since = "غير متصل";
+                    $student->session_time = '0 دقيقة';
+                    $student->online_since = 'غير متصل';
                 }
 
                 return $student;
             });
-        
+
         return view('school-admin.dashboard', compact(
-            'user', 
-            'school', 
-            'pendingRequests', 
-            'stats', 
+            'user',
+            'school',
+            'pendingRequests',
+            'stats',
             'topStudents',
             'recentClassrooms',
             'dailyActivities',
             'recentTeachers',
-            'onlineStudents'
+            'onlineStudents',
         ));
     }
 
@@ -171,13 +171,13 @@ class SchoolAdminController extends Controller
     public function registrationLinks()
     {
         $school = Auth::user()->school;
-        
+
         // توليد tokens إذا لم تكن موجودة
-        if (!$school->teacher_token || !$school->student_token || !$school->parent_token) {
+        if (! $school->teacher_token || ! $school->student_token || ! $school->parent_token) {
             $school->generateRegistrationTokens();
             $school->refresh();
         }
-        
+
         return view('school-admin.registration-links', compact('school'));
     }
 
@@ -188,14 +188,14 @@ class SchoolAdminController extends Controller
     {
         $school = Auth::user()->school;
         $role = $request->input('role');
-        
+
         if (in_array($role, ['teacher', 'student', 'parent'])) {
             $tokenField = $role . '_token';
             $school->update([
-                $tokenField => \Illuminate\Support\Str::random(32)
+                $tokenField => \Illuminate\Support\Str::random(32),
             ]);
         }
-        
+
         return redirect()->back()->with('success', 'تم تجديد الرابط بنجاح');
     }
 
@@ -206,141 +206,143 @@ class SchoolAdminController extends Controller
     {
         $school = Auth::user()->school;
         $role = $request->input('role');
-        
+
         if (in_array($role, ['teacher', 'student', 'parent'])) {
             $enableField = 'enable_' . $role . '_registration';
             $school->update([
-                $enableField => !$school->$enableField
+                $enableField => ! $school->$enableField,
             ]);
         }
-        
+
         return redirect()->back()->with('success', 'تم تحديث الإعدادات بنجاح');
     }
-    
+
     // ==================== إدارة المعلمين ====================
-    
+
     public function teachers()
     {
         $school = Auth::user()->school;
         $teachers = $school->users()
             ->where('role', 'teacher')
-            ->with(['teachingClassrooms' => function($query) {
+            ->with(['teachingClassrooms' => function ($query) {
                 $query->withCount('students');
             }])
             ->withCount('teachingClassrooms')
             ->latest()
             ->paginate(20);
-        
+
         return view('school-admin.teachers.index', compact('teachers', 'school'));
     }
-    
+
     public function createTeacher()
     {
         $school = Auth::user()->school;
+
         return view('school-admin.teachers.create', compact('school'));
     }
-    
+
     public function storeTeacher(Request $request)
     {
         $school = Auth::user()->school;
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|min:8|confirmed',
         ]);
-        
+
         $validated['school_id'] = $school->id;
         $validated['role'] = 'teacher';
         $validated['status'] = 'active';
         $validated['password'] = Hash::make($validated['password']);
         $validated['qr_code'] = 'TCH-' . strtoupper(uniqid());
-        
+
         User::create($validated);
-        
+
         return redirect()->route('school-admin.teachers')->with('success', 'تم إضافة المعلم بنجاح');
     }
-    
+
     public function editTeacher($id)
     {
         $school = Auth::user()->school;
         $teacher = User::where('school_id', $school->id)
             ->where('role', 'teacher')
             ->findOrFail($id);
-        
+
         return view('school-admin.teachers.edit', compact('teacher', 'school'));
     }
-    
+
     public function updateTeacher(Request $request, $id)
     {
         $school = Auth::user()->school;
         $teacher = User::where('school_id', $school->id)
             ->where('role', 'teacher')
             ->findOrFail($id);
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'phone' => 'nullable|string|max:20',
             'status' => 'required|in:active,inactive',
         ]);
-        
+
         if ($request->filled('password')) {
             $request->validate(['password' => 'min:8|confirmed']);
             $validated['password'] = Hash::make($request->password);
         }
-        
+
         $teacher->update($validated);
-        
+
         return redirect()->route('school-admin.teachers')->with('success', 'تم تحديث بيانات المعلم');
     }
-    
+
     public function deleteTeacher($id)
     {
         $school = Auth::user()->school;
         $teacher = User::where('school_id', $school->id)
             ->where('role', 'teacher')
             ->findOrFail($id);
-        
+
         $teacher->delete();
-        
+
         return redirect()->route('school-admin.teachers')->with('success', 'تم حذف المعلم');
     }
-    
+
     // ==================== إدارة الطلاب ====================
-    
+
     public function students()
     {
         $school = Auth::user()->school;
         $students = $school->users()
             ->where('role', 'student')
-            ->with(['classrooms' => function($query) {
+            ->with(['classrooms' => function ($query) {
                 $query->select('classrooms.id', 'name', 'grade_level', 'academic_year', 'teacher_id')
-                      ->with('teacher:id,name');
-            }, 'parents' => function($query) {
+                    ->with('teacher:id,name');
+            }, 'parents' => function ($query) {
                 $query->select('users.id', 'name', 'phone', 'email')
-                      ->withPivot('relationship');
+                    ->withPivot('relationship');
             }])
             ->withSum('points as total_points', 'points')
             ->withCount('activitySubmissions')
             ->latest()
             ->paginate(20);
-        
+
         return view('school-admin.students.index', compact('students', 'school'));
     }
-    
+
     public function createStudent()
     {
         $school = Auth::user()->school;
         $classrooms = $school->classrooms()->where('status', 'active')->get();
+
         return view('school-admin.students.create', compact('school', 'classrooms'));
     }
-    
+
     public function storeStudent(Request $request)
     {
         $school = Auth::user()->school;
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -348,15 +350,15 @@ class SchoolAdminController extends Controller
             'birth_date' => 'nullable|date|before:today',
             'classrooms' => 'nullable|array',
         ]);
-        
+
         $validated['school_id'] = $school->id;
         $validated['role'] = 'student';
         $validated['status'] = 'active';
         $validated['password'] = Hash::make($validated['password']);
         $validated['qr_code'] = 'STU-' . strtoupper(uniqid());
-        
+
         $student = User::create($validated);
-        
+
         // إضافة الطالب للفصول — محصورة بفصول مدرسة الطالب فقط (منع IDOR/تسرب بين المدارس)
         if ($request->has('classrooms')) {
             $validClassroomIds = Classroom::where('school_id', $student->school_id)
@@ -364,13 +366,13 @@ class SchoolAdminController extends Controller
                 ->pluck('id')->all();
             $student->classrooms()->attach($validClassroomIds, [
                 'enrollment_date' => now(),
-                'status' => 'active'
+                'status' => 'active',
             ]);
         }
 
         return redirect()->route('school-admin.students')->with('success', 'تم إضافة الطالب بنجاح');
     }
-    
+
     public function editStudent($id)
     {
         $school = Auth::user()->school;
@@ -410,14 +412,14 @@ class SchoolAdminController extends Controller
 
         return view('school-admin.students.show', compact('student', 'school', 'recentSubmissions'));
     }
-    
+
     public function updateStudent(Request $request, $id)
     {
         $school = Auth::user()->school;
         $student = User::where('school_id', $school->id)
             ->where('role', 'student')
             ->findOrFail($id);
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
@@ -425,14 +427,14 @@ class SchoolAdminController extends Controller
             'birth_date' => 'nullable|date|before:today',
             'classrooms' => 'nullable|array',
         ]);
-        
+
         if ($request->filled('password')) {
             $request->validate(['password' => 'min:8|confirmed']);
             $validated['password'] = Hash::make($request->password);
         }
-        
+
         $student->update($validated);
-        
+
         // تحديث الفصول — محصورة بفصول مدرسة الطالب فقط (منع IDOR)
         if ($request->has('classrooms')) {
             $validClassroomIds = Classroom::where('school_id', $student->school_id)
@@ -443,52 +445,53 @@ class SchoolAdminController extends Controller
 
         return redirect()->route('school-admin.students')->with('success', 'تم تحديث بيانات الطالب');
     }
-    
+
     public function deleteStudent($id)
     {
         $school = Auth::user()->school;
         $student = User::where('school_id', $school->id)
             ->where('role', 'student')
             ->findOrFail($id);
-        
+
         $student->delete();
-        
+
         return redirect()->route('school-admin.students')->with('success', 'تم حذف الطالب');
     }
-    
+
     // ==================== إدارة أولياء الأمور ====================
-    
+
     public function parents()
     {
         $school = Auth::user()->school;
         $parents = $school->users()
             ->where('role', 'parent')
-            ->with(['children' => function($query) {
+            ->with(['children' => function ($query) {
                 $query->select('users.id', 'name', 'email')
-                      ->withPivot('relationship')
-                      ->with(['classrooms' => function($q) {
-                          $q->select('classrooms.id', 'name', 'grade_level')
+                    ->withPivot('relationship')
+                    ->with(['classrooms' => function ($q) {
+                        $q->select('classrooms.id', 'name', 'grade_level')
                             ->with('teacher:id,name');
-                      }]);
+                    }]);
             }])
             ->withCount('children')
             ->latest()
             ->paginate(20);
-        
+
         return view('school-admin.parents.index', compact('parents', 'school'));
     }
-    
+
     public function createParent()
     {
         $school = Auth::user()->school;
         $students = $school->users()->where('role', 'student')->where('status', 'active')->get();
+
         return view('school-admin.parents.create', compact('school', 'students'));
     }
-    
+
     public function storeParent(Request $request)
     {
         $school = Auth::user()->school;
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -497,15 +500,15 @@ class SchoolAdminController extends Controller
             'children' => 'nullable|array',
             'relationship' => 'nullable|string|max:50',
         ]);
-        
+
         $validated['school_id'] = $school->id;
         $validated['role'] = 'parent';
         $validated['status'] = 'active';
         $validated['password'] = Hash::make($validated['password']);
         $validated['qr_code'] = 'PAR-' . strtoupper(uniqid());
-        
+
         $parent = User::create($validated);
-        
+
         // ربط الأبناء — محصور بطلاب نفس المدرسة فقط (منع IDOR/تسرب)
         if ($request->has('children')) {
             $validChildIds = User::where('school_id', $parent->school_id)
@@ -514,14 +517,14 @@ class SchoolAdminController extends Controller
                 ->pluck('id')->all();
             foreach ($validChildIds as $studentId) {
                 $parent->children()->attach($studentId, [
-                    'relationship' => $request->relationship ?? 'parent'
+                    'relationship' => $request->relationship ?? 'parent',
                 ]);
             }
         }
 
         return redirect()->route('school-admin.parents')->with('success', 'تم إضافة ولي الأمر بنجاح');
     }
-    
+
     public function editParent($id)
     {
         $school = Auth::user()->school;
@@ -530,17 +533,17 @@ class SchoolAdminController extends Controller
             ->with('children')
             ->findOrFail($id);
         $students = $school->users()->where('role', 'student')->where('status', 'active')->get();
-        
+
         return view('school-admin.parents.edit', compact('parent', 'school', 'students'));
     }
-    
+
     public function updateParent(Request $request, $id)
     {
         $school = Auth::user()->school;
         $parent = User::where('school_id', $school->id)
             ->where('role', 'parent')
             ->findOrFail($id);
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
@@ -548,14 +551,14 @@ class SchoolAdminController extends Controller
             'status' => 'required|in:active,inactive',
             'children' => 'nullable|array',
         ]);
-        
+
         if ($request->filled('password')) {
             $request->validate(['password' => 'min:8|confirmed']);
             $validated['password'] = Hash::make($request->password);
         }
-        
+
         $parent->update($validated);
-        
+
         // تحديث الأبناء — محصور بطلاب نفس المدرسة فقط (منع IDOR/تسرب)
         if ($request->has('children')) {
             $validChildIds = User::where('school_id', $parent->school_id)
@@ -567,21 +570,21 @@ class SchoolAdminController extends Controller
 
         return redirect()->route('school-admin.parents')->with('success', 'تم تحديث بيانات ولي الأمر');
     }
-    
+
     public function deleteParent($id)
     {
         $school = Auth::user()->school;
         $parent = User::where('school_id', $school->id)
             ->where('role', 'parent')
             ->findOrFail($id);
-        
+
         $parent->delete();
-        
+
         return redirect()->route('school-admin.parents')->with('success', 'تم حذف ولي الأمر');
     }
-    
+
     // ==================== إدارة الفصول ====================
-    
+
     public function classrooms()
     {
         $school = Auth::user()->school;
@@ -590,10 +593,10 @@ class SchoolAdminController extends Controller
             ->withCount('students')
             ->latest()
             ->paginate(20);
-        
+
         return view('school-admin.classrooms.index', compact('classrooms', 'school'));
     }
-    
+
     public function createClassroom()
     {
         $school = Auth::user()->school;
@@ -608,11 +611,11 @@ class SchoolAdminController extends Controller
 
         return view('school-admin.classrooms.create', compact('school', 'teachers', 'students', 'educationLevels'));
     }
-    
+
     public function storeClassroom(Request $request)
     {
         $school = Auth::user()->school;
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'teacher_id' => 'required|exists:users,id',
@@ -623,33 +626,33 @@ class SchoolAdminController extends Controller
             'students' => 'nullable|array',
             'students.*' => 'exists:users,id',
         ]);
-        
+
         // التحقق من أن المعلم ينتمي لنفس المدرسة وأنه معلم فعلاً
         $teacher = User::where('id', $validated['teacher_id'])
             ->where('school_id', $school->id)
             ->where('role', 'teacher')
             ->where('status', 'active')
             ->first();
-            
-        if (!$teacher) {
+
+        if (! $teacher) {
             return back()->withErrors(['teacher_id' => 'المعلم المحدد غير صالح'])->withInput();
         }
-        
+
         $validated['school_id'] = $school->id;
         $validated['status'] = 'active';
-        
+
         // التحقق من أن عدد الطلاب لا يتجاوز السعة
-        if ($request->has('students') && !empty($validated['capacity'])) {
+        if ($request->has('students') && ! empty($validated['capacity'])) {
             $studentsCount = count($request->students);
             if ($studentsCount > $validated['capacity']) {
                 return back()->withErrors([
-                    'students' => "عدد الطلاب المحددين ({$studentsCount}) يتجاوز سعة الفصل ({$validated['capacity']}). يرجى تقليل عدد الطلاب أو زيادة السعة."
+                    'students' => "عدد الطلاب المحددين ({$studentsCount}) يتجاوز سعة الفصل ({$validated['capacity']}). يرجى تقليل عدد الطلاب أو زيادة السعة.",
                 ])->withInput();
             }
         }
-        
+
         $classroom = Classroom::create($validated);
-        
+
         // إضافة الطلاب المحددين — محصورة بطلاب نفس المدرسة فقط (منع IDOR/تسرب بين المدارس)
         if ($request->has('students')) {
             $validStudentIds = User::where('school_id', $classroom->school_id)
@@ -661,22 +664,22 @@ class SchoolAdminController extends Controller
 
         return redirect()->route('school-admin.classrooms')->with('success', 'تم إنشاء الفصل بنجاح');
     }
-    
+
     public function editClassroom($id)
     {
         $school = Auth::user()->school;
         $classroom = Classroom::where('school_id', $school->id)->findOrFail($id);
         $teachers = $school->users()->where('role', 'teacher')->where('status', 'active')->get();
         $students = $school->users()->where('role', 'student')->where('status', 'active')->get();
-        
+
         return view('school-admin.classrooms.edit', compact('classroom', 'school', 'teachers', 'students'));
     }
-    
+
     public function updateClassroom(Request $request, $id)
     {
         $school = Auth::user()->school;
         $classroom = Classroom::where('school_id', $school->id)->findOrFail($id);
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'teacher_id' => 'required|exists:users,id',
@@ -688,24 +691,24 @@ class SchoolAdminController extends Controller
             'students' => 'nullable|array',
             'students.*' => 'exists:users,id',
         ]);
-        
+
         // التحقق من أن عدد الطلاب لا يتجاوز السعة
         $capacity = $validated['capacity'] ?? $classroom->capacity;
-        if ($request->has('students') && !empty($capacity)) {
+        if ($request->has('students') && ! empty($capacity)) {
             $studentsCount = count($request->students);
             if ($studentsCount > $capacity) {
                 return back()->withErrors([
-                    'students' => "عدد الطلاب المحددين ({$studentsCount}) يتجاوز سعة الفصل ({$capacity}). يرجى تقليل عدد الطلاب أو زيادة السعة."
+                    'students' => "عدد الطلاب المحددين ({$studentsCount}) يتجاوز سعة الفصل ({$capacity}). يرجى تقليل عدد الطلاب أو زيادة السعة.",
                 ])->withInput();
             }
         }
-        
+
         // التحقق أن المعلم من نفس المدرسة (منع إسناد معلم من مدرسة أخرى — IDOR)
         $validTeacher = User::where('id', $validated['teacher_id'])
             ->where('school_id', $school->id)
             ->where('role', 'teacher')
             ->exists();
-        if (!$validTeacher) {
+        if (! $validTeacher) {
             return back()->withErrors(['teacher_id' => 'المعلم المحدد ليس من مدرستك'])->withInput();
         }
 
@@ -725,29 +728,29 @@ class SchoolAdminController extends Controller
 
         return redirect()->route('school-admin.classrooms')->with('success', 'تم تحديث الفصل بنجاح');
     }
-    
+
     public function deleteClassroom($id)
     {
         $school = Auth::user()->school;
         $classroom = Classroom::where('school_id', $school->id)->findOrFail($id);
-        
+
         $classroom->delete();
-        
+
         return redirect()->route('school-admin.classrooms')->with('success', 'تم حذف الفصل');
     }
-    
+
     // ==================== طلبات التسجيل ====================
-    
+
     public function registrationRequests()
     {
         $school = Auth::user()->school;
         $requests = RegistrationRequest::where('school_id', $school->id)
             ->latest()
             ->paginate(20);
-        
+
         return view('school-admin.requests.index', compact('requests', 'school'));
     }
-    
+
     public function approveRequest($id)
     {
         $school = Auth::user()->school;
@@ -782,12 +785,13 @@ class SchoolAdminController extends Controller
             });
         } catch (\Throwable $e) {
             \Log::error('فشل قبول طلب التسجيل', ['request_id' => $id, 'error' => $e->getMessage()]);
+
             return back()->with('error', 'حدث خطأ أثناء قبول الطلب. يرجى المحاولة مجددًا.');
         }
 
         // إرسال إيميل الموافقة — مع تحقق صيغة الإيميل
         $emailSent = false;
-        if (!empty($request->email) && filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
+        if (! empty($request->email) && filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
             try {
                 Mail::to($request->email)->send(new RegistrationApprovedMail($request, $temporaryPassword));
                 $emailSent = true;
@@ -804,104 +808,106 @@ class SchoolAdminController extends Controller
         $msg = 'تم قبول الطلب وإنشاء الحساب' . ($emailSent
             ? ' وإرسال كلمة المرور المؤقتة للمستخدم.'
             : '. تنبيه: لم يتم إرسال البريد، يرجى تزويد المستخدم بكلمة المرور يدويًا: ' . $temporaryPassword);
+
         return back()->with('success', $msg);
     }
-    
+
     public function rejectRequest(Request $request, $id)
     {
         $school = Auth::user()->school;
         $registrationRequest = RegistrationRequest::where('school_id', $school->id)->findOrFail($id);
-        
+
         $validated = $request->validate([
             'rejected_reason' => 'nullable|string|max:500',
         ]);
-        
+
         $registrationRequest->update([
             'status' => 'rejected',
             'approved_by' => Auth::id(),
             'approved_at' => now(),
             'rejected_reason' => $validated['rejected_reason'] ?? null,
         ]);
-        
+
         // إرسال إيميل الرفض
         try {
             Mail::to($registrationRequest->email)->send(new RegistrationRejectedMail($registrationRequest));
         } catch (\Exception $e) {
             \Log::error('Failed to send rejection email: ' . $e->getMessage());
         }
-        
+
         return back()->with('success', 'تم رفض الطلب وإخطار المستخدم');
     }
-    
+
     // ==================== Excel Import/Export ====================
-    
+
     /**
      * تحميل Excel template للمستخدمين
      */
     public function downloadTemplate(Request $request)
     {
         $role = $request->input('role', 'students'); // students, teachers, parents
-        
+
         $filename = 'template_' . $role . '_' . date('Y-m-d') . '.xlsx';
-        
+
         return Excel::download(new BulkUsersTemplateExport($role), $filename);
     }
-    
+
     /**
      * رفع Excel وتسجيل المستخدمين
      */
     public function importUsers(Request $request)
     {
         $school = Auth::user()->school;
-        
+
         $validated = $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:5120', // 5MB max
             'role' => 'required|in:students,teachers,parents',
         ]);
-        
+
         try {
             $import = new BulkUsersImport($school->id, $validated['role']);
             Excel::import($import, $request->file('file'));
-            
+
             $successCount = $import->getSuccessCount();
             $errors = $import->getErrors();
-            
+
             $message = "تم تسجيل {$successCount} {$validated['role']} بنجاح";
-            
-            if (!empty($errors)) {
+
+            if (! empty($errors)) {
                 $errorCount = count($errors);
                 $message .= " مع {$errorCount} خطأ";
-                
+
                 // إضافة تفاصيل الأخطاء
                 $errorDetails = [];
                 foreach ($errors as $error) {
                     $errorDetails[] = "الصف {$error['row']}: {$error['message']}";
                 }
-                
+
                 return redirect()->back()
                     ->with('success', $message)
                     ->with('import_errors', $errorDetails);
             }
-            
+
             return redirect()->back()->with('success', $message);
-            
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('School admin import failed', ['error' => $e->getMessage()]);
+
             return redirect()->back()
                 ->with('error', 'حدث خطأ أثناء الاستيراد');
         }
     }
-    
+
     /**
      * عرض صفحة إدارة Excel (استيراد وتصدير)
      */
     public function excelManagement()
     {
         $school = Auth::user()->school;
-        
+
         return view('school-admin.excel-management', compact('school'));
     }
-    
+
     /**
      * تصدير البيانات إلى Excel
      */
@@ -909,9 +915,9 @@ class SchoolAdminController extends Controller
     {
         $school = Auth::user()->school;
         $type = $request->input('type'); // students, teachers, parents, activities
-        
+
         $filename = $type . '_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
+
         switch ($type) {
             case 'students':
                 return Excel::download(new StudentsExport($school->id), $filename);
@@ -956,17 +962,17 @@ class SchoolAdminController extends Controller
         $platformTotal = $allSchoolsRanked->count();
         // التعامل الصحيح مع false عند عدم وجود المدرسة في الترتيب
         // مقارنة بعد التحويل لـ int — يمنع عدم تطابق نوع المعرّف (string DB مقابل int) الذي يُنتج rank=null
-        $platformIdx = $allSchoolsRanked->search(fn($s) => (int) $s->id === (int) $school->id);
+        $platformIdx = $allSchoolsRanked->search(fn ($s) => (int) $s->id === (int) $school->id);
         $platformRank = $platformIdx === false ? null : $platformIdx + 1;
 
         $sameCountry = $allSchoolsRanked->where('country', $school->country);
         $countryTotal = $sameCountry->count();
-        $countryIdx = $sameCountry->values()->search(fn($s) => (int) $s->id === (int) $school->id);
+        $countryIdx = $sameCountry->values()->search(fn ($s) => (int) $s->id === (int) $school->id);
         $countryRank = $countryIdx === false ? null : $countryIdx + 1;
 
         $sameCity = $allSchoolsRanked->where('city', $school->city);
         $cityTotal = $sameCity->count();
-        $cityIdx = $sameCity->values()->search(fn($s) => (int) $s->id === (int) $school->id);
+        $cityIdx = $sameCity->values()->search(fn ($s) => (int) $s->id === (int) $school->id);
         $cityRank = $cityIdx === false ? null : $cityIdx + 1;
 
         // جلب السجل السابق للمقارنة
@@ -976,7 +982,7 @@ class SchoolAdminController extends Controller
 
         $schoolTrend = 'same';
         $schoolRankChange = 0;
-        if ($previousSchoolCache && !is_null($platformRank)) {
+        if ($previousSchoolCache && ! is_null($platformRank)) {
             if ($previousSchoolCache->platform_rank && $platformRank < $previousSchoolCache->platform_rank) {
                 $schoolTrend = 'up';
                 $schoolRankChange = $previousSchoolCache->platform_rank - $platformRank;
@@ -988,7 +994,7 @@ class SchoolAdminController extends Controller
 
         // Badges للمدرسة
         $schoolBadges = [];
-        if ($platformTotal > 0 && !is_null($platformRank) && $platformRank <= max(1, ceil($platformTotal * 0.01))) {
+        if ($platformTotal > 0 && ! is_null($platformRank) && $platformRank <= max(1, ceil($platformTotal * 0.01))) {
             $schoolBadges[] = ['icon' => '🥇', 'label' => 'ضمن أفضل 1% على المنصة', 'color' => '#f59e0b'];
         }
         if ($cityTotal > 0 && $cityRank === 1) {
@@ -1000,8 +1006,8 @@ class SchoolAdminController extends Controller
 
         // حفظ/تحديث الكاش للمدرسة — فقط مرة واحدة كل 24 ساعة
         // (سابقًا كان يُحدّث في كل page load → trend دائمًا 'same' لأن previous = current)
-        $shouldUpdateSnapshot = !$previousSchoolCache
-            || !$previousSchoolCache->calculated_at
+        $shouldUpdateSnapshot = ! $previousSchoolCache
+            || ! $previousSchoolCache->calculated_at
             || $previousSchoolCache->calculated_at->diffInHours(now()) >= 24;
 
         if ($shouldUpdateSnapshot) {
@@ -1025,7 +1031,7 @@ class SchoolAdminController extends Controller
                     'city' => $school->city,
                     'badges' => $schoolBadges,
                     'calculated_at' => $now,
-                ]
+                ],
             );
         }
 
@@ -1092,10 +1098,10 @@ class SchoolAdminController extends Controller
         // Get school's teachers ranked with their city/country context
         $cityTeachers = collect();
         $countryTeachers = collect();
-        
+
         $schoolCityIds = DB::table('schools')->where('city', $school->city)->pluck('id');
         $schoolCountryIds = DB::table('schools')->where('country', $school->country)->pluck('id');
-        
+
         $cityTeachers = $allTeachersRanked->whereIn('school_id', $schoolCityIds->toArray())->values();
         $countryTeachers = $allTeachersRanked->whereIn('school_id', $schoolCountryIds->toArray())->values();
 
@@ -1119,7 +1125,7 @@ class SchoolAdminController extends Controller
 
         // Platform-level student ranking
         $allStudentsCount = User::where('role', 'student')->where('status', 'active')->count();
-        
+
         // City students
         $cityStudents = User::whereIn('school_id', $schoolCityIds)
             ->where('role', 'student')
@@ -1161,11 +1167,11 @@ class SchoolAdminController extends Controller
             $classroomIds = DB::table('classrooms')
                 ->where('grade_level', $grade)
                 ->pluck('id');
-            
+
             $studentIds = DB::table('classroom_student')
                 ->whereIn('classroom_id', $classroomIds)
                 ->pluck('student_id');
-            
+
             $gradeStudents = User::whereIn('id', $studentIds)
                 ->where('role', 'student')
                 ->where('status', 'active')
@@ -1189,12 +1195,15 @@ class SchoolAdminController extends Controller
         ];
 
         return view('school-admin.statistics', compact(
-            'school', 'schoolStats', 'teacherStats', 'studentStats'
+            'school',
+            'schoolStats',
+            'teacherStats',
+            'studentStats',
         ));
     }
 
     // ==================== إعدادات المدرسة ====================
-    
+
     /**
      * عرض صفحة إعدادات المدرسة
      */
@@ -1202,10 +1211,10 @@ class SchoolAdminController extends Controller
     {
         $school = Auth::user()->school;
         $user = Auth::user();
-        
+
         return view('school-admin.settings', compact('school', 'user'));
     }
-    
+
     /**
      * تحديث إعدادات المدرسة
      */
@@ -1213,9 +1222,9 @@ class SchoolAdminController extends Controller
     {
         $school = Auth::user()->school;
         $user = Auth::user();
-        
+
         $section = $request->input('section', 'school');
-        
+
         if ($section === 'school') {
             $validated = $request->validate([
                 'school_name' => 'required|string|max:255',
@@ -1224,7 +1233,7 @@ class SchoolAdminController extends Controller
                 'school_email' => 'nullable|email|max:255',
                 'school_address' => 'nullable|string|max:500',
             ]);
-            
+
             $school->update([
                 'name' => $validated['school_name'],
                 'description' => $validated['school_description'] ?? $school->description,
@@ -1232,38 +1241,38 @@ class SchoolAdminController extends Controller
                 'email' => $validated['school_email'] ?? $school->email,
                 'address' => $validated['school_address'] ?? $school->address,
             ]);
-            
+
             return redirect()->route('school-admin.settings')->with('success', 'تم تحديث بيانات المدرسة بنجاح! ✅');
         }
-        
+
         if ($section === 'account') {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $user->id,
                 'phone' => 'nullable|string|max:20',
             ]);
-            
+
             if ($request->filled('current_password')) {
                 $request->validate([
                     'current_password' => 'required',
                     'new_password' => 'required|min:8|confirmed',
                 ]);
-                
-                if (!Hash::check($request->current_password, $user->password)) {
+
+                if (! Hash::check($request->current_password, $user->password)) {
                     return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
                 }
-                
+
                 $user->password = Hash::make($request->new_password);
             }
-            
+
             $user->name = $validated['name'];
             $user->email = $validated['email'];
             $user->phone = $validated['phone'] ?? $user->phone;
             $user->save();
-            
+
             return redirect()->route('school-admin.settings')->with('success', 'تم تحديث بيانات الحساب بنجاح! ✅');
         }
-        
+
         return redirect()->route('school-admin.settings')->with('error', 'قسم غير معروف');
     }
 
@@ -1319,7 +1328,7 @@ class SchoolAdminController extends Controller
                 optional($praise)->last_at,
                 optional($gifts)->last_at,
                 optional($messages)->last_at,
-            ])->filter()->map(fn($d) => \Carbon\Carbon::parse($d));
+            ])->filter()->map(fn ($d) => \Carbon\Carbon::parse($d));
 
             $praiseCnt = (int) optional($praise)->cnt;
             $giftsCnt = (int) optional($gifts)->cnt;
@@ -1340,10 +1349,10 @@ class SchoolAdminController extends Controller
         })->sortByDesc('engagement_score')->values();
 
         $totals = [
-            'parents_count'  => $rows->count(),
+            'parents_count' => $rows->count(),
             'active_parents' => $rows->where('engagement_score', '>', 0)->count(),
-            'total_praises'  => $rows->sum('praises_count'),
-            'total_gifts'    => $rows->sum('gifts_count'),
+            'total_praises' => $rows->sum('praises_count'),
+            'total_gifts' => $rows->sum('gifts_count'),
             'total_messages' => $rows->sum('messages_count'),
         ];
 
@@ -1358,7 +1367,7 @@ class SchoolAdminController extends Controller
         $user = Auth::user();
         $survey = \App\Models\Survey::findOrFail($surveyId);
 
-        if (!$survey->isAssessment()) {
+        if (! $survey->isAssessment()) {
             return back()->with('error', 'هذا الاستبيان ليس من نوع التقييم القبلي/البعدي');
         }
 
@@ -1387,7 +1396,7 @@ class SchoolAdminController extends Controller
         $surveys = \App\Models\Survey::where('survey_type', 'pre_post_assessment')
             ->where(function ($q) use ($user) {
                 $q->whereNull('school_id')
-                  ->orWhere('school_id', $user->school_id);
+                    ->orWhere('school_id', $user->school_id);
             })
             ->where('assessment_phase', 'post')
             ->with(['lesson.concept.value', 'linkedSurvey'])
@@ -1397,4 +1406,3 @@ class SchoolAdminController extends Controller
         return view('school-admin.surveys.comparisons-list', compact('surveys'));
     }
 }
-

@@ -6,21 +6,22 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
         apiPrefix: 'api',
-        commands: __DIR__.'/../routes/console.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // الثقة بالبروكسي (Hostinger/Cloudflare يفصل HTTPS عند الـ edge)
         // لازم لتفعيل HSTS و تمرير $request->isSecure() الصحيح
-        $middleware->trustProxies(at: '*', headers:
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR
+        $middleware->trustProxies(
+            at: '*',
+            headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR
             | \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST
             | \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT
             | \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO
-            | \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB
+            | \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB,
         );
 
         // استبدال CSRF middleware الافتراضي بالمخصص
@@ -46,9 +47,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Middleware Aliases
         $middleware->alias([
-            'role'          => \App\Http\Middleware\CheckRole::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
             'school.access' => \App\Http\Middleware\CheckSchoolAccess::class,
-            'force-2fa'     => \App\Http\Middleware\Force2FAForAdmins::class,
+            'force-2fa' => \App\Http\Middleware\Force2FAForAdmins::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

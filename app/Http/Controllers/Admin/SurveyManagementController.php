@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\School;
 use App\Models\Survey;
 use App\Models\SurveyQuestion;
 use App\Models\SurveyResponse;
-use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,9 +29,9 @@ class SurveyManagementController extends Controller
         // البحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -124,6 +124,7 @@ class SurveyManagementController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Survey creation failed', ['error' => $e->getMessage()]);
+
             return back()->with('error', 'حدث خطأ أثناء إنشاء الاستبيان');
         }
     }
@@ -138,7 +139,7 @@ class SurveyManagementController extends Controller
         // إحصائيات الإجابات
         $responseStats = [
             'total' => $survey->responses->count(),
-            'by_role' => $survey->responses->groupBy(function($response) {
+            'by_role' => $survey->responses->groupBy(function ($response) {
                 return $response->user->role ?? 'unknown';
             })->map->count(),
         ];
@@ -224,6 +225,7 @@ class SurveyManagementController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Survey update failed', ['error' => $e->getMessage()]);
+
             return back()->with('error', 'حدث خطأ أثناء تحديث الاستبيان');
         }
     }
@@ -288,10 +290,10 @@ class SurveyManagementController extends Controller
 
         // تصدير CSV
         $filename = 'survey_' . $survey->id . '_responses_' . now()->format('Y-m-d') . '.csv';
-        
-        $callback = function() use ($headers, $rows) {
+
+        $callback = function () use ($headers, $rows) {
             $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM for UTF-8
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM for UTF-8
             fputcsv($file, $headers);
             foreach ($rows as $row) {
                 fputcsv($file, $row);
@@ -305,4 +307,3 @@ class SurveyManagementController extends Controller
         ]);
     }
 }
-

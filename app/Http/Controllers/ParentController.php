@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivitySubmission;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
-use App\Models\ActivitySubmission;
-use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 
 class ParentController extends Controller
 {
@@ -19,7 +19,7 @@ class ParentController extends Controller
     {
         $user = Auth::user();
         $school = $user->school;
-        
+
         // جلب الأبناء مع جميع البيانات - استعلام واحد محسّن
         $children = $user->children()
             ->with(['school', 'classrooms', 'badges', 'streak'])
@@ -27,16 +27,16 @@ class ParentController extends Controller
             ->withSum('coins as total_coins', 'coins')
             ->withCount([
                 'activitySubmissions',
-                'activitySubmissions as completed_activities_count' => function($q) {
+                'activitySubmissions as completed_activities_count' => function ($q) {
                     $q->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES);
                 },
-                'activitySubmissions as pending_activities_count' => function($q) {
+                'activitySubmissions as pending_activities_count' => function ($q) {
                     $q->where('status', 'pending');
-                }
+                },
             ])
             ->withAvg('activitySubmissions as average_score', 'score')
             ->get();
-        
+
         // آخر 5 أنشطة لكل ابن - استعلام واحد مع Eager Loading
         $childrenIds = $children->pluck('id');
         $recentActivitiesByChild = ActivitySubmission::whereIn('student_id', $childrenIds)
@@ -44,26 +44,26 @@ class ParentController extends Controller
             ->latest()
             ->get()
             ->groupBy('student_id')
-            ->map(function($activities) {
+            ->map(function ($activities) {
                 return $activities->take(5);
             });
-        
+
         // إلحاق الأنشطة بكل ابن
         foreach ($children as $child) {
             $child->completed_activities = $child->completed_activities_count ?? 0;
             $child->pending_activities = $child->pending_activities_count ?? 0;
             $child->recent_activities = $recentActivitiesByChild->get($child->id, collect());
         }
-        
+
         // إحصائيات عامة لجميع الأبناء
         $stats = [
             'total_children' => $children->count(),
             'total_points' => $children->sum('total_points'),
             'total_coins' => $children->sum('total_coins'),
-            'total_badges' => $children->sum(fn($child) => $child->badges->count()),
+            'total_badges' => $children->sum(fn ($child) => $child->badges->count()),
             'total_completed' => $children->sum('completed_activities'),
         ];
-        
+
         return view('parent.dashboard', compact('user', 'school', 'children', 'stats'));
     }
 
@@ -73,7 +73,7 @@ class ParentController extends Controller
     public function childDetail($id)
     {
         $user = Auth::user();
-        
+
         // التأكد من أن الابن تابع لهذا الولي
         $child = $user->children()
             ->with(['school', 'classrooms', 'badges', 'streak'])
@@ -106,8 +106,8 @@ class ParentController extends Controller
 
         // المعلمون
         $teachers = User::where('role', 'teacher')
-            ->whereHas('classrooms', function($query) use ($child) {
-                $query->whereHas('students', function($q) use ($child) {
+            ->whereHas('classrooms', function ($query) use ($child) {
+                $query->whereHas('students', function ($q) use ($child) {
                     $q->where('user_id', $child->id);
                 });
             })
@@ -124,7 +124,7 @@ class ParentController extends Controller
             'badges',
             'streak',
             'teachers',
-            'chartData'
+            'chartData',
         ));
     }
 
@@ -139,18 +139,18 @@ class ParentController extends Controller
         for ($i = 29; $i >= 0; $i--) {
             $date = now()->subDays($i)->toDateString();
             $labels[] = now()->subDays($i)->format('d/m');
-            
+
             $points = ActivitySubmission::where('student_id', $studentId)
                 ->whereDate('created_at', $date)
                 ->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
                 ->count() * 10; // افتراض 10 نقاط لكل نشاط
-                
+
             $data[] = $points;
         }
 
         return [
             'labels' => $labels,
-            'data' => $data
+            'data' => $data,
         ];
     }
 
@@ -160,11 +160,11 @@ class ParentController extends Controller
     public function messages()
     {
         $user = Auth::user();
-        
+
         // جلب قائمة المعلمين الذين لديهم أطفال الولي
         $teachers = User::where('role', 'teacher')
             ->where('school_id', $user->school_id)
-            ->whereHas('teachingClassrooms.students', function($q) use ($user) {
+            ->whereHas('teachingClassrooms.students', function ($q) use ($user) {
                 $q->whereIn('users.id', $user->children()->pluck('users.id'));
             })
             ->select('id', 'name', 'email')
@@ -190,15 +190,15 @@ class ParentController extends Controller
     public function getConversation(Request $request)
     {
         $user = Auth::user();
-        
+
         $messages = \App\Models\ParentTeacherMessage::where('parent_id', $user->id)
-        ->where('teacher_id', $request->teacher_id)
-        ->when($request->student_id, function($q) use ($request) {
-            $q->where('student_id', $request->student_id);
-        })
-        ->with(['teacher:id,name', 'student:id,name'])
-        ->orderBy('created_at', 'asc')
-        ->get();
+            ->where('teacher_id', $request->teacher_id)
+            ->when($request->student_id, function ($q) use ($request) {
+                $q->where('student_id', $request->student_id);
+            })
+            ->with(['teacher:id,name', 'student:id,name'])
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         // تحديد الرسائل كمقروءة
         \App\Models\ParentTeacherMessage::where('parent_id', $user->id)
@@ -230,12 +230,12 @@ class ParentController extends Controller
                 ->where('school_id', $user->school_id)
                 ->exists();
 
-            if (!$teacherValid) {
+            if (! $teacherValid) {
                 return response()->json(['success' => false, 'error' => 'المعلم غير صالح'], 403);
             }
 
             // التحقق أن الطالب (إن حُدّد) من أبناء ولي الأمر — منع ربط رسالة بطالب ليس ابنه
-            if ($request->student_id && !$user->children()->where('users.id', $request->student_id)->exists()) {
+            if ($request->student_id && ! $user->children()->where('users.id', $request->student_id)->exists()) {
                 return response()->json(['success' => false, 'error' => 'غير مصرح لك بهذا الطالب'], 403);
             }
 
@@ -255,7 +255,7 @@ class ParentController extends Controller
                     '💬 رسالة جديدة من ولي أمر',
                     "لديك رسالة جديدة من {$user->name}",
                     [],
-                    route('teacher.messages')
+                    route('teacher.messages'),
                 );
             } catch (\Exception $e) {
                 Log::error('Parent message notification failed: ' . $e->getMessage());
@@ -263,18 +263,19 @@ class ParentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $message->load(['teacher:id,name', 'student:id,name'])
+                'message' => $message->load(['teacher:id,name', 'student:id,name']),
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->errors()
+                'error' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Parent sendMessage error: ' . $e->getMessage() . ' | Line: ' . $e->getLine() . ' | File: ' . $e->getFile());
+
             return response()->json([
                 'success' => false,
-                'error' => 'حدث خطأ أثناء إرسال الرسالة'
+                'error' => 'حدث خطأ أثناء إرسال الرسالة',
             ], 500);
         }
     }
@@ -291,7 +292,7 @@ class ParentController extends Controller
             'points' => $points,
             'reason' => $reason,
             'reference_type' => $referenceType,
-            'reference_id' => $referenceId
+            'reference_id' => $referenceId,
         ]);
     }
 
@@ -313,7 +314,7 @@ class ParentController extends Controller
 
             // التحقق من أن الطفل تابع لولي الأمر
             $child = $parent->children()->where('users.id', $childId)->first();
-            if (!$child) {
+            if (! $child) {
                 return response()->json(['success' => false, 'error' => 'غير مصرح لك'], 403);
             }
 
@@ -348,7 +349,7 @@ class ParentController extends Controller
                         'points' => 5,
                         'reason' => 'تشجيع من ولي الأمر: ' . mb_substr($message, 0, 100),
                         'reference_type' => 'parent_praise',
-                        'reference_id' => null
+                        'reference_id' => null,
                     ]);
                 }
 
@@ -358,7 +359,7 @@ class ParentController extends Controller
             if ($rateLimitHit) {
                 return response()->json([
                     'success' => false,
-                    'error'   => 'وصلت الحد اليومي لرسائل التشجيع (5 رسائل). جرّب مرة أخرى غداً.'
+                    'error' => 'وصلت الحد اليومي لرسائل التشجيع (5 رسائل). جرّب مرة أخرى غداً.',
                 ], 429);
             }
 
@@ -383,14 +384,15 @@ class ParentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'تم إرسال التشجيع بنجاح! حصل ' . $child->name . ' على 5 نقاط ✨'
+                'message' => 'تم إرسال التشجيع بنجاح! حصل ' . $child->name . ' على 5 نقاط ✨',
             ]);
 
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('praiseChild fatal: ' . $e->getMessage() . ' at line ' . $e->getLine() . ' in ' . $e->getFile());
+
             return response()->json([
-                'success' => false, 
-                'error' => 'حدث خطأ'
+                'success' => false,
+                'error' => 'حدث خطأ',
             ], 500);
         }
     }
@@ -402,13 +404,13 @@ class ParentController extends Controller
     {
         $validated = $request->validate([
             'gift_type' => 'required|string',
-            'gift_message' => 'nullable|string|max:500'
+            'gift_message' => 'nullable|string|max:500',
         ]);
 
         // التحقق من ملكية الطالب عبر علاقة parent_student pivot (وليس عمود parent_id الذي لا يوجد)
         $child = Auth::user()->children()->where('users.id', $childId)->first();
 
-        if (!$child) {
+        if (! $child) {
             return back()->with('error', 'غير مصرح لك بإرسال هدية لهذا الطالب');
         }
 
@@ -428,7 +430,7 @@ class ParentController extends Controller
                 'student_id' => $childId,
                 'gift_type' => $validated['gift_type'],
                 'gift_message' => $validated['gift_message'],
-                'points_cost' => 10
+                'points_cost' => 10,
             ]);
 
             $this->givePoints(Auth::id(), 10, 'إرسال هدية للطالب', 'parent_gift', $gift->id);
@@ -438,15 +440,17 @@ class ParentController extends Controller
                 'points' => 10,
                 'reason' => 'هدية من ولي الأمر',
                 'reference_type' => 'parent_gift',
-                'reference_id' => $gift->id
+                'reference_id' => $gift->id,
             ]);
 
             \DB::commit();
+
             return back()->with('success', 'تم إرسال الهدية بنجاح وحصلت على 10 نقاط');
 
         } catch (\Exception $e) {
             \DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Parent sendGift failed', ['error' => $e->getMessage()]);
+
             return back()->with('error', 'حدث خطأ');
         }
     }
@@ -488,12 +492,13 @@ class ParentController extends Controller
                 }
 
                 // ===== فرع الرفض: لا نقاط، فقط تسجيل الحالة والسبب (Issue حرج) =====
-                if (!empty($validated['reject'])) {
+                if (! empty($validated['reject'])) {
                     $submission->update([
                         'status' => 'rejected',
                         'parent_approved' => false,
                         'rejection_reason' => $validated['rejection_reason'] ?? null,
                     ]);
+
                     return back()->with('success', 'تم رفض النشاط. يمكن للطالب إعادة المحاولة.');
                 }
 
@@ -524,8 +529,8 @@ class ParentController extends Controller
             }, 3);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('approveFamilyActivity failed', ['error' => $e->getMessage()]);
+
             return back()->with('error', 'حدث خطأ');
         }
     }
 }
-

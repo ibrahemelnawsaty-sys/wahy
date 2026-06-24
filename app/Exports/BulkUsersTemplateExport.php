@@ -4,18 +4,18 @@ namespace App\Exports;
 
 use App\Exports\Concerns\SanitizesCsvOutput;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, WithStyles, WithColumnWidths, WithEvents
+class BulkUsersTemplateExport implements FromArray, WithColumnWidths, WithEvents, WithHeadings, WithStyles, WithTitle
 {
     use SanitizesCsvOutput;
 
@@ -30,7 +30,7 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
     {
         // إرجاع أمثلة على البيانات
         $examples = [];
-        
+
         if ($this->role === 'students') {
             $examples = [
                 [
@@ -67,7 +67,7 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
                 ],
             ];
         }
-        
+
         return array_map([$this, 'sanitizeRow'], $examples);
     }
 
@@ -96,7 +96,7 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
                 'children',
             ];
         }
-        
+
         return [];
     }
 
@@ -107,7 +107,7 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
             'teachers' => 'المعلمين',
             'parents' => 'أولياء الأمور',
         ];
-        
+
         return $titles[$this->role] ?? 'بيانات';
     }
 
@@ -142,17 +142,17 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
                 'D' => 40, // اسم الطالب
             ];
         }
-        
+
         return [];
     }
-    
+
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 $lastColumn = $this->role === 'students' ? 'E' : ($this->role === 'teachers' ? 'D' : 'D');
-                
+
                 // إضافة العنوان العربي في الصف الأول
                 $arabicHeadings = [];
                 if ($this->role === 'students') {
@@ -162,16 +162,16 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
                 } elseif ($this->role === 'parents') {
                     $arabicHeadings = ['الاسم', 'البريد الإلكتروني', 'الهاتف', 'اسم الطالب (أو أكثر، مفصولة بفاصلة)'];
                 }
-                
+
                 // إدراج صف جديد في البداية للعناوين العربية
                 $sheet->insertNewRowBefore(1, 1);
-                
+
                 // كتابة العنوان العربي في الصف 1
                 foreach ($arabicHeadings as $index => $heading) {
                     $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index + 1);
                     $sheet->setCellValue($column . '1', $heading);
                 }
-                
+
                 // تنسيق العنوان العربي
                 $sheet->getStyle('A1:' . $lastColumn . '1')->applyFromArray([
                     'font' => [
@@ -193,7 +193,7 @@ class BulkUsersTemplateExport implements FromArray, WithHeadings, WithTitle, Wit
                         ],
                     ],
                 ]);
-                
+
                 // جعل العنوان ثابت
                 $sheet->freezePane('A3');
             },

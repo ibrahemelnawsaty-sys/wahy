@@ -8,9 +8,9 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
@@ -53,7 +53,7 @@ class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function map($teacher): array
     {
         $classrooms = $teacher->teachingClassrooms;
-        $studentsCount = $classrooms->sum(function($classroom) {
+        $studentsCount = $classrooms->sum(function ($classroom) {
             return $classroom->students()->count();
         });
 

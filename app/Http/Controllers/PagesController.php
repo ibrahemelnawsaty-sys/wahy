@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LandingContent;
 use App\Models\PageBuilder;
 use App\Models\Survey;
-use App\Models\LandingContent;
-use Illuminate\Http\Request;
 
 /**
  * PagesController
@@ -36,9 +35,10 @@ class PagesController extends Controller
     public function register()
     {
         // احترام مفتاح enable_registration (الافتراضي مفعّل)
-        if (!setting('enable_registration', true)) {
+        if (! setting('enable_registration', true)) {
             abort(403, 'التسجيل مغلق حالياً');
         }
+
         return view('register');
     }
 
@@ -48,6 +48,7 @@ class PagesController extends Controller
     public function showSurvey($id)
     {
         $survey = Survey::with('questions')->findOrFail($id);
+
         return view('survey.show', compact('survey'));
     }
 
@@ -72,7 +73,7 @@ class PagesController extends Controller
     {
         $page = PageBuilder::getBySlug($slug);
 
-        if (!$page) {
+        if (! $page) {
             abort(404);
         }
 
@@ -108,9 +109,11 @@ class PagesController extends Controller
     {
         try {
             LandingContent::createSnapshot();
+
             return response()->json(['success' => true, 'message' => 'تم حفظ النسخة']);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Landing snapshot failed', ['error' => $e->getMessage()]);
+
             return response()->json(['success' => false, 'message' => 'حدث خطأ غير متوقع'], 500);
         }
     }

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\School;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -17,31 +17,31 @@ class TeacherManagementController extends Controller
     public function index(Request $request)
     {
         $query = User::where('role', 'teacher')->with('school');
-        
+
         // فلترة حسب المدرسة
         if ($request->filled('school_id')) {
             $query->where('school_id', $request->school_id);
         }
-        
+
         // فلترة حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // بحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('qr_code', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('qr_code', 'like', "%{$search}%");
             });
         }
-        
+
         $teachers = $query->latest()->paginate(20);
         $schools = School::where('status', 'active')->get();
-        
+
         return view('admin.teachers.index', compact('teachers', 'schools'));
     }
 
@@ -51,6 +51,7 @@ class TeacherManagementController extends Controller
     public function create()
     {
         $schools = School::where('status', 'active')->get();
+
         return view('admin.teachers.create', compact('schools'));
     }
 
@@ -86,12 +87,12 @@ class TeacherManagementController extends Controller
             $validated['role'] = 'teacher';
 
             // توليد QR Code
-            if (!$request->filled('qr_code')) {
+            if (! $request->filled('qr_code')) {
                 $validated['qr_code'] = $this->generateQRCode();
             }
 
             $validated['password'] = Hash::make($validated['password']);
-            
+
             User::create($validated);
 
             return redirect()
@@ -99,6 +100,7 @@ class TeacherManagementController extends Controller
                 ->with('success', 'تم إضافة المعلم بنجاح! ✅');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Teacher creation failed', ['error' => $e->getMessage()]);
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -117,6 +119,7 @@ class TeacherManagementController extends Controller
         }
 
         $schools = School::where('status', 'active')->get();
+
         return view('admin.teachers.edit', compact('teacher', 'schools'));
     }
 
@@ -196,4 +199,3 @@ class TeacherManagementController extends Controller
         return $qrCode;
     }
 }
-

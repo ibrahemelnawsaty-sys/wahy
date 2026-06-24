@@ -8,9 +8,9 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ValuesExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
@@ -19,15 +19,15 @@ class ValuesExport implements FromCollection, WithHeadings, WithMapping, WithSty
     public function collection()
     {
         return Value::withCount([
-                'concepts',
-                'concepts as total_lessons' => function($q) {
-                    $q->join('lessons', 'concepts.id', '=', 'lessons.concept_id');
-                },
-                'concepts as total_activities' => function($q) {
-                    $q->join('lessons', 'concepts.id', '=', 'lessons.concept_id')
-                        ->join('activities', 'lessons.id', '=', 'activities.lesson_id');
-                },
-            ])
+            'concepts',
+            'concepts as total_lessons' => function ($q) {
+                $q->join('lessons', 'concepts.id', '=', 'lessons.concept_id');
+            },
+            'concepts as total_activities' => function ($q) {
+                $q->join('lessons', 'concepts.id', '=', 'lessons.concept_id')
+                    ->join('activities', 'lessons.id', '=', 'activities.lesson_id');
+            },
+        ])
             ->get();
     }
 
@@ -79,7 +79,7 @@ class ValuesExport implements FromCollection, WithHeadings, WithMapping, WithSty
 
         $sheet->freezePane('A2');
 
-        foreach(range('A','H') as $col) {
+        foreach (range('A', 'H') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

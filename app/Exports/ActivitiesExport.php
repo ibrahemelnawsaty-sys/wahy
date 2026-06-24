@@ -26,7 +26,7 @@ class ActivitiesExport implements FromCollection, WithHeadings, WithMapping, Wit
         $query = Activity::with(['lesson.concept.value', 'creator', 'submissions']);
 
         if ($this->schoolId) {
-            $query->whereHas('creator', function($q) {
+            $query->whereHas('creator', function ($q) {
                 $q->where('school_id', $this->schoolId);
             });
         }

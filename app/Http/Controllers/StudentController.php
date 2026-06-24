@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
+use App\Models\ActivitySubmission;
+use App\Models\ActivityUserStreak;
+use App\Models\Badge;
+use App\Models\Coin;
+use App\Models\Lesson;
+use App\Models\Point;
+use App\Models\Setting;
+use App\Models\User;
+use App\Models\Value;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\Value;
-use App\Models\ActivitySubmission;
-use App\Models\Badge;
-use App\Models\Activity;
-use App\Models\Lesson;
-use App\Models\Coin;
-use App\Models\User;
-use App\Models\Point;
-use App\Models\ActivityUserStreak;
-use App\Models\Setting;
-use App\Models\ParentPoint;
 
 class StudentController extends Controller
 {
@@ -33,17 +32,17 @@ class StudentController extends Controller
 
         // استخدام helper للإحصائيات
         $stats = $this->getStudentStats($user);
-        
+
         // Streak اليومي
         $streak = $user->streak;
-        
+
         // الشارات المكتسبة - مع تحديد الحقول
         $badges = $user->badges()
             ->select(['badges.id', 'badges.name', 'badges.icon', 'badges.description'])
             ->latest('earned_at')
             ->take(6)
             ->get();
-        
+
         // آخر الأنشطة المنجزة - تحسين Eager Loading
         $recentActivities = ActivitySubmission::where('student_id', $user->id)
             ->with(['activity:id,title,lesson_id', 'activity.lesson:id,title'])
@@ -51,17 +50,17 @@ class StudentController extends Controller
             ->latest()
             ->take(5)
             ->get();
-        
+
         // الواجبات المنزلية القادمة (لم يتم تسليمها بعد)
         $classroomIds = $user->classrooms()->pluck('classrooms.id')->toArray();
-        
+
         $upcomingHomework = Activity::where('is_homework', true)
             ->where('status', 'active')
-            ->where(function($query) use ($classroomIds) {
+            ->where(function ($query) use ($classroomIds) {
                 $query->whereIn('classroom_id', $classroomIds)
-                      ->orWhereNull('classroom_id');
+                    ->orWhereNull('classroom_id');
             })
-            ->whereDoesntHave('submissions', function($q) use ($user) {
+            ->whereDoesntHave('submissions', function ($q) use ($user) {
                 $q->where('student_id', $user->id);
             })
             ->whereNotNull('due_date')
@@ -69,7 +68,7 @@ class StudentController extends Controller
             ->orderBy('due_date', 'asc')
             ->take(3)
             ->get();
-        
+
         // إضافة حالة (عادي / قريب / متأخر)
         foreach ($upcomingHomework as $homework) {
             $hoursLeft = now()->diffInHours($homework->due_date);
@@ -81,24 +80,24 @@ class StudentController extends Controller
                 $homework->urgency = 'normal'; // عادي
             }
         }
-        
+
         // الدرس الحالي (آخر درس بدأ فيه)
-        $currentLesson = Lesson::whereHas('activities', function($query) use ($user) {
-                $query->whereHas('submissions', function($q) use ($user) {
-                    $q->where('student_id', $user->id)
-                      ->where('status', '!=', 'completed');
-                });
-            })
+        $currentLesson = Lesson::whereHas('activities', function ($query) use ($user) {
+            $query->whereHas('submissions', function ($q) use ($user) {
+                $q->where('student_id', $user->id)
+                    ->where('status', '!=', 'completed');
+            });
+        })
             ->with(['concept.value'])
             ->first();
-        
+
         // إذا لم يكن هناك درس جاري، نجيب أول درس متاح
-        if (!$currentLesson) {
+        if (! $currentLesson) {
             $currentLesson = Lesson::where('status', 'active')
                 ->with(['concept.value'])
                 ->first();
         }
-        
+
         // حساب تقدم الدرس الحالي (نعتبر أي تسليم إنجازاً للنشاط)
         if ($currentLesson) {
             $activityIds = $currentLesson->activities()->pluck('id')->toArray();
@@ -109,13 +108,13 @@ class StudentController extends Controller
                 ->count();
             $currentLesson->progress = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
         }
-        
+
         // جلب القيم المفعّلة لمدرسة الطالب (Issue 11/105)
         $values = Value::visibleForSchool($user->school_id)
             ->with(['concepts.lessons.activities'])
             ->orderBy('order')
             ->get();
-        
+
         // تعريف موحّد للإكمال: completed/approved فقط (لا pending) — متّسق مع الإحصائيات والإتقان
         $doneStatuses = ActivitySubmission::DONE_STATUSES;
 
@@ -131,19 +130,19 @@ class StudentController extends Controller
             ->whereIn('status', $doneStatuses)
             ->pluck('activity_id')
             ->toArray();
-        
+
         // حساب التقدم لكل قيمة
         // Issue #59-#60: كل القيم المرئية مفتوحة — لا قفل تتابعي. كل قيمة عرضها مستقل
         // فيتجنب حالة "نشاط مكتمل لكن القيمة تظهر مقفلة".
         foreach ($values as $index => $value) {
             // حساب إجمالي الدروس في القيمة
-            $totalLessons = $value->concepts->sum(function($concept) {
+            $totalLessons = $value->concepts->sum(function ($concept) {
                 return $concept->lessons->where('status', 'active')->count();
             });
 
             // حساب الدروس المكتملة في القيمة — strict comparison لمنع type juggling
-            $completedLessons = $value->concepts->sum(function($concept) use ($completedLessonIds) {
-                return $concept->lessons->where('status', 'active')->filter(function($lesson) use ($completedLessonIds) {
+            $completedLessons = $value->concepts->sum(function ($concept) use ($completedLessonIds) {
+                return $concept->lessons->where('status', 'active')->filter(function ($lesson) use ($completedLessonIds) {
                     return in_array($lesson->id, $completedLessonIds, true);
                 })->count();
             });
@@ -154,12 +153,12 @@ class StudentController extends Controller
             // تحديد حالة القيمة
             $value->is_completed = $totalLessons > 0 && $value->progress_percent >= 100;
             $value->is_unlocked = true; // كل القيم المرئية متاحة
-            
+
             // حساب حالة كل مفهوم
             foreach ($value->concepts as $concept) {
                 $conceptTotalLessons = $concept->lessons->where('status', 'active')->count();
-                
-                $conceptCompletedLessons = $concept->lessons->where('status', 'active')->filter(function($lesson) use ($completedLessonIds) {
+
+                $conceptCompletedLessons = $concept->lessons->where('status', 'active')->filter(function ($lesson) use ($completedLessonIds) {
                     return in_array($lesson->id, $completedLessonIds, true);
                 })->count();
 
@@ -176,10 +175,10 @@ class StudentController extends Controller
                 }
             }
         }
-        
+
         // ترتيب القيم: القيمة "قيد التقدم" أولاً، ثم المكتملة، ثم المقفلة
-        $values = $values->sortBy(function($value) {
-            if ($value->is_unlocked && !$value->is_completed) {
+        $values = $values->sortBy(function ($value) {
+            if ($value->is_unlocked && ! $value->is_completed) {
                 return 0; // القيمة قيد التقدم - الأولوية الأولى
             } elseif ($value->is_completed) {
                 return 1; // القيمة المكتملة - الأولوية الثانية
@@ -187,10 +186,10 @@ class StudentController extends Controller
                 return 2; // القيمة المقفلة - الأولوية الثالثة
             }
         })->values();
-        
+
         // استخدام نفس الـ view مع المتغير الصحيح
         $totalPoints = $stats['total_points'] ?? 0;
-        
+
         return view('student.dashboard', compact(
             'user',
             'school',
@@ -201,10 +200,10 @@ class StudentController extends Controller
             'upcomingHomework',
             'currentLesson',
             'values',
-            'totalPoints'
+            'totalPoints',
         ));
     }
-    
+
     /**
      * صفحة خريطة التعلم
      */
@@ -214,16 +213,16 @@ class StudentController extends Controller
 
         // جلب القيم المرئية لمدرسة الطالب فقط (Issue #105)
         $values = Value::visibleForSchool($user->school_id)
-            ->with(['concepts' => function($query) {
+            ->with(['concepts' => function ($query) {
                 $query->orderBy('order')
-                    ->with(['lessons' => function($l) {
+                    ->with(['lessons' => function ($l) {
                         $l->where('status', 'active')
-                          ->orderBy('order');
+                            ->orderBy('order');
                     }]);
             }])
             ->orderBy('order')
             ->get();
-        
+
         // حساب حالة كل درس (completed, current, locked)
         $completedLessonIds = ActivitySubmission::where('student_id', $user->id)
             ->where('activity_submissions.status', 'completed')
@@ -254,7 +253,7 @@ class StudentController extends Controller
                         $lesson->is_completed = false;
 
                         // أول درس غير مكتمل = الدرس الحالي
-                        if (!$foundCurrent) {
+                        if (! $foundCurrent) {
                             $lesson->is_current = true;
                             $lesson->is_locked = false;
                             $currentLessonId = $lesson->id;
@@ -268,27 +267,27 @@ class StudentController extends Controller
                 }
             }
         }
-        
+
         // إحصائيات التقدم
         $totalLessons = count($allLessons);
         $completedLessons = count($completedLessonIds);
         $progressPercent = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
-        
+
         // الحصول على stats للـ layout
         $user->load('streak');
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
-        
+
         return view('student.path', compact(
             'values',
             'totalLessons',
             'completedLessons',
             'progressPercent',
             'stats',
-            'streak'
+            'streak',
         ));
     }
-    
+
     /**
      * Helper method للحصول على إحصائيات الطالب
      */
@@ -313,7 +312,7 @@ class StudentController extends Controller
                 SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as completed_today
             ", [now()->toDateString()])
             ->first();
-        
+
         // ❗ استخدام subqueries منفصلة لتجنّب cartesian product بين points و coins
         // الذي كان يُضاعف القيم (سبب الفرق بين 690 في الواجهة و 345 في الترتيب)
         $totalPoints = (int) DB::table('points')
@@ -324,43 +323,44 @@ class StudentController extends Controller
             ->sum('coins');
         $totals = (object) [
             'total_points' => $totalPoints,
-            'total_coins'  => $totalCoins,
+            'total_coins' => $totalCoins,
         ];
-        
+
         // Get streak with null check - ensure user always has a streak record
         try {
-            if (!$user->relationLoaded('streak')) {
+            if (! $user->relationLoaded('streak')) {
                 $user->load('streak');
             }
-            
-            if (!$user->streak) {
+
+            if (! $user->streak) {
                 $user->streak = \App\Models\Streak::create([
                     'user_id' => $user->id,
                     'current_streak' => 0,
                     'longest_streak' => 0,
-                    'last_activity_date' => null
+                    'last_activity_date' => null,
                 ]);
             }
-            
+
             $currentStreak = $user->streak->current_streak ?? 0;
         } catch (\Exception $e) {
             Log::error('Streak error for user ' . $user->id . ': ' . $e->getMessage());
             $currentStreak = 0;
         }
-        
+
         $result = [
-            'total_points' => (int)($totals->total_points ?? 0),
-            'total_coins' => (int)($totals->total_coins ?? 0),
+            'total_points' => (int) ($totals->total_points ?? 0),
+            'total_coins' => (int) ($totals->total_coins ?? 0),
             'total_badges' => $user->badges()->count(),
             'total_crowns' => $user->crowns()->count(),
-            'current_streak' => (int)$currentStreak,
-            'completed_activities' => (int)($submissionStats->completed_count ?? 0),
-            'pending_activities' => (int)($submissionStats->pending_count ?? 0),
+            'current_streak' => (int) $currentStreak,
+            'completed_activities' => (int) ($submissionStats->completed_count ?? 0),
+            'pending_activities' => (int) ($submissionStats->pending_count ?? 0),
             'average_score' => round($submissionStats->avg_score ?? 0, 1),
-            'completed_today' => (int)($submissionStats->completed_today ?? 0),
+            'completed_today' => (int) ($submissionStats->completed_today ?? 0),
         ];
 
         $this->studentStatsCache[$user->id] = $result;
+
         return $result;
     }
 
@@ -403,6 +403,7 @@ class StudentController extends Controller
                 $mastered[] = $value->id;
             }
         }
+
         return $mastered;
     }
 
@@ -416,7 +417,7 @@ class StudentController extends Controller
             foreach ($this->masteredValueIds($user) as $vid) {
                 \App\Models\Crown::firstOrCreate(
                     ['user_id' => $user->id, 'value_id' => $vid],
-                    ['earned_at' => now()]
+                    ['earned_at' => now()],
                 );
             }
         } catch (\Throwable $e) {
@@ -431,7 +432,7 @@ class StudentController extends Controller
      */
     private function ensureDefaultPvpChallenge(): void
     {
-        if (!\Illuminate\Support\Facades\Schema::hasTable('pvp_challenges')) {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('pvp_challenges')) {
             return;
         }
         try {
@@ -444,12 +445,12 @@ class StudentController extends Controller
                 return; // لا توجد أسئلة معتمدة كافية بعد
             }
             \App\Models\PvpChallenge::create([
-                'title'      => 'تحدي القيم — السرعة والدقة',
-                'value_id'   => null, // تحدٍّ عام لكل المدارس
-                'questions'  => $approvedIds,
+                'title' => 'تحدي القيم — السرعة والدقة',
+                'value_id' => null, // تحدٍّ عام لكل المدارس
+                'questions' => $approvedIds,
                 'time_limit' => 30,
                 'difficulty' => 'medium',
-                'is_active'  => true,
+                'is_active' => true,
                 'created_by' => null,
             ]);
         } catch (\Throwable $e) {
@@ -485,21 +486,23 @@ class StudentController extends Controller
 
             if ($submission) {
                 $activity->status = $submission->status;
-                $activity->score  = $submission->score;
+                $activity->score = $submission->score;
+
                 return $activity;
             }
 
             // P2-F: قفل تتابعي للأنشطة — افتراضي معطّل
             $sequentialActivityLock = optional(Setting::where('key', 'sequential_activity_lock')->whereNull('user_id')->first())->value === '1';
 
-            if (!$sequentialActivityLock) {
+            if (! $sequentialActivityLock) {
                 $activity->status = 'available';
+
                 return $activity;
             }
 
             // النشاط السابق مباشرة عبر الترتيب — بدون query جديد
             $previousOrder = $activity->order - 1;
-            while ($previousOrder >= 0 && !$activitiesByOrder->has($previousOrder)) {
+            while ($previousOrder >= 0 && ! $activitiesByOrder->has($previousOrder)) {
                 $previousOrder--;
             }
             $previousActivity = $previousOrder >= 0 ? $activitiesByOrder->get($previousOrder) : null;
@@ -513,26 +516,26 @@ class StudentController extends Controller
 
             return $activity;
         });
-        
+
         // حساب التقدم
         $totalActivities = $activities->count();
         $completedActivities = $activities->whereIn('status', ['completed', 'pending', 'approved', 'needs_review'])->count();
         $completionPercent = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
-        
+
         // النشاط التالي
         $nextActivity = $activities->whereIn('status', ['available', 'completed', 'pending'])->first();
-        
+
         // الحصول على stats للـ layout
         $user->load('streak');
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
-        
+
         // بيانات streak الدرس
         $lessonStreak = null;
         if ($lesson->hasStreakEnabled()) {
             $lessonStreak = $user->getOrCreateLessonStreak($lesson->id);
         }
-        
+
         return view('student.lesson-view', compact(
             'lesson',
             'activities',
@@ -542,12 +545,12 @@ class StudentController extends Controller
             'nextActivity',
             'stats',
             'streak',
-            'lessonStreak'
+            'lessonStreak',
         ));
     }
-    
+
     // practice() method moved to bottom with exercise system
-    
+
     /**
      * صفحة الترتيب
      */
@@ -555,7 +558,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $period = request('period', 'week');
-        
+
         // تحديد فلتر الفترة الزمنية
         $dateFrom = null;
         if ($period === 'week') {
@@ -564,7 +567,7 @@ class StudentController extends Controller
             $dateFrom = now()->startOfMonth();
         }
         // 'all' = no date filter
-        
+
         // جلب الطلاب النشطين فقط — توحيد مع LeaderboardController
         // مع subquery لجمع النقاط في استعلام واحد بدلًا من N+1
         $studentsQuery = User::where('role', 'student')
@@ -583,12 +586,14 @@ class StudentController extends Controller
             ->get()
             ->map(function ($student) {
                 $student->total_xp = (int) ($student->total_xp ?? 0);
+
                 return $student;
             });
-        
+
         // إضافة الترتيب الفعلي قبل أي slicing لتفادي اختلال الأرقام
         $allStudents = $allStudents->values()->map(function ($student, $i) {
             $student->actual_rank = $i + 1;
+
             return $student;
         });
 
@@ -606,7 +611,7 @@ class StudentController extends Controller
         $leaderboardStartRank = $topThree->count() + 1;
 
         // ترتيب الطالب الحالي — التعامل الصحيح مع false (غير موجود)
-        $myRankIndex = $allStudents->search(function($student) use ($user) {
+        $myRankIndex = $allStudents->search(function ($student) use ($user) {
             return $student->id === $user->id;
         });
         $myRank = $myRankIndex === false ? null : $myRankIndex + 1;
@@ -617,7 +622,7 @@ class StudentController extends Controller
             $myPeriodXp = (int) $allStudents[$myRankIndex]->total_xp;
         } else {
             $myPeriodXp = (int) Point::where('user_id', $user->id)
-                ->when($dateFrom, fn($q) => $q->where('created_at', '>=', $dateFrom))
+                ->when($dateFrom, fn ($q) => $q->where('created_at', '>=', $dateFrom))
                 ->sum('points');
         }
 
@@ -627,7 +632,7 @@ class StudentController extends Controller
 
         return view('student.leaderboard', compact('topThree', 'leaderboard', 'leaderboardStartRank', 'myRank', 'myPeriodXp', 'stats', 'streak', 'period'));
     }
-    
+
     /**
      * صفحة الملف الشخصي
      */
@@ -635,36 +640,36 @@ class StudentController extends Controller
     {
         try {
             $student = Auth::user();
-            
+
             // Ensure streak exists before anything else
             $streak = \App\Models\Streak::firstOrCreate(
                 ['user_id' => $student->id],
                 [
                     'current_streak' => 0,
                     'longest_streak' => 0,
-                    'last_activity_date' => null
-                ]
+                    'last_activity_date' => null,
+                ],
             );
-            
+
             // Load relationships
             $student->load('streak', 'badges');
-            
+
             // Get stats
             $stats = $this->getStudentStats($student);
-            
+
             // Calculate level (every 100 XP = 1 level)
             $level = floor($stats['total_points'] / 100) + 1;
-            
+
             // Get all badges earned
-            $badges = Badge::whereHas('users', function($query) use ($student) {
+            $badges = Badge::whereHas('users', function ($query) use ($student) {
                 $query->where('user_id', $student->id);
             })->get();
-            
+
             return view('student.profile-view', compact('student', 'stats', 'level', 'badges', 'streak'));
-            
+
         } catch (\Exception $e) {
             Log::error('Profile error: ' . $e->getMessage() . ' | Line: ' . $e->getLine());
-            
+
             // Return safe defaults
             $student = Auth::user();
             $stats = [
@@ -680,11 +685,11 @@ class StudentController extends Controller
             $level = 1;
             $badges = collect([]);
             $streak = null;
-            
+
             return view('student.profile-view', compact('student', 'stats', 'level', 'badges', 'streak'));
         }
     }
-    
+
     /**
      * عرض المتجر
      */
@@ -693,23 +698,23 @@ class StudentController extends Controller
         $user = Auth::user();
         $user->load('streak');
         $streak = $user->streak;
-        
+
         // Get student stats
         $stats = $this->getStudentStats($user);
-        
+
         // Get shop items from database
         $shopItems = \App\Models\ShopItem::where('status', 'active')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('available_until')
-                      ->orWhere('available_until', '>', now());
+                    ->orWhere('available_until', '>', now());
             })
             ->orderBy('order')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return view('student.shop-view', compact('stats', 'shopItems', 'streak'));
     }
-    
+
     /**
      * صفحة النشاط الفردي
      */
@@ -725,21 +730,21 @@ class StudentController extends Controller
         $lesson = $activity->lesson;
 
         // ✅ Authorization: تحقق أن النشاط ضمن قيمة مفعّلة لمدرسة الطالب
-        if (!$this->isActivityAccessibleByStudent($activity, $user)) {
+        if (! $this->isActivityAccessibleByStudent($activity, $user)) {
             abort(403, 'هذا النشاط غير متاح لك');
         }
-        
+
         // Check if already submitted
         $submission = ActivitySubmission::where('student_id', $user->id)
             ->where('activity_id', $id)
             ->first();
-        
+
         // Find next activity in same lesson
         $nextActivity = Activity::where('lesson_id', $lesson->id)
             ->where('id', '>', $id)
             ->orderBy('id')
             ->first();
-        
+
         return view('student.activity-view', compact('activity', 'lesson', 'nextActivity', 'stats', 'streak', 'submission'));
     }
 
@@ -750,26 +755,27 @@ class StudentController extends Controller
     private function isActivityAccessibleByStudent(Activity $activity, $student): bool
     {
         $lesson = $activity->lesson;
-        if (!$lesson) {
+        if (! $lesson) {
             return true; // نشاط منفصل بدون درس → نسمح به (نشاط مخصص للفصل)
         }
 
         $concept = $lesson->concept ?? null;
-        if (!$concept) {
+        if (! $concept) {
             return true;
         }
 
         $valueId = $concept->value_id;
-        if (!$valueId) {
+        if (! $valueId) {
             return true;
         }
 
         $schoolId = $student->school_id;
-        if (!$schoolId) {
+        if (! $schoolId) {
             return true; // مستخدم بدون مدرسة (admin اختبار) → نسمح
         }
 
         $visibleIds = \App\Models\Value::visibleForSchool($schoolId)->pluck('id')->toArray();
+
         return in_array($valueId, $visibleIds, true);
     }
 
@@ -783,20 +789,20 @@ class StudentController extends Controller
             $activity = Activity::findOrFail($id);
 
             // ✅ Authorization: تحقق أن النشاط ضمن قيمة مفعّلة لمدرسة الطالب
-            if (!$this->isActivityAccessibleByStudent($activity, $student)) {
+            if (! $this->isActivityAccessibleByStudent($activity, $student)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'هذا النشاط غير متاح لك'
+                    'message' => 'هذا النشاط غير متاح لك',
                 ], 403);
             }
 
             // التحقق + دعم رفع الملفات (Issue 55)
             $rules = [
                 'answer' => 'required',
-                'xp'     => 'nullable|integer',
+                'xp' => 'nullable|integer',
             ];
             if ($request->hasFile('answer_file')) {
-                $allowed = is_array($activity->allowed_file_types) && !empty($activity->allowed_file_types)
+                $allowed = is_array($activity->allowed_file_types) && ! empty($activity->allowed_file_types)
                     ? implode(',', $activity->allowed_file_types)
                     : 'pdf,jpg,jpeg,png,gif,docx,doc,mp3,mp4';
                 $maxKb = max(1, (int) ($activity->max_file_size ?? 10)) * 1024;
@@ -811,7 +817,7 @@ class StudentController extends Controller
             if ($request->hasFile('answer_file')) {
                 $uploadedPath = $request->file('answer_file')->store(
                     'activity-submissions/' . $student->id,
-                    'public'
+                    'public',
                 );
             }
 
@@ -847,59 +853,70 @@ class StudentController extends Controller
                         // يُسمح بإعادة الإرسال فقط إذا كان السابق مرفوضًا/يحتاج تعديل
                         if (in_array($existing->status, ['needs_review', 'rejected'], true)) {
                             $existing->update([
-                                'answer'       => $answerToStore,
-                                'status'       => $status,
-                                'score'        => $score,
+                                'answer' => $answerToStore,
+                                'status' => $status,
+                                'score' => $score,
                                 'submitted_at' => now(),
-                                'feedback'     => null,
+                                'feedback' => null,
                                 'teacher_feedback' => null,
                             ]);
+
                             return ['duplicate' => false, 'submission' => $existing];
                         }
+
                         return ['duplicate' => true, 'submission' => null];
                     }
 
                     $submission = ActivitySubmission::create([
-                        'student_id'   => $student->id,
-                        'activity_id'  => $id,
-                        'answer'       => $answerToStore,
-                        'status'       => $status,
-                        'score'        => $score,
+                        'student_id' => $student->id,
+                        'activity_id' => $id,
+                        'answer' => $answerToStore,
+                        'status' => $status,
+                        'score' => $score,
                         'submitted_at' => now(),
                     ]);
+
                     return ['duplicate' => false, 'submission' => $submission];
                 }, 3);
             } catch (\Throwable $e) {
                 if ($uploadedPath) {
-                    try { \Illuminate\Support\Facades\Storage::disk('public')->delete($uploadedPath); } catch (\Throwable $ignore) {}
+                    try {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($uploadedPath);
+                    } catch (\Throwable $ignore) {
+                    }
                 }
                 throw $e;
             }
 
             if ($submissionResult['duplicate']) {
                 if ($uploadedPath) {
-                    try { \Illuminate\Support\Facades\Storage::disk('public')->delete($uploadedPath); } catch (\Throwable $ignore) {}
+                    try {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($uploadedPath);
+                    } catch (\Throwable $ignore) {
+                    }
                 }
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'تم إرسال هذا النشاط مسبقاً'
+                    'message' => 'تم إرسال هذا النشاط مسبقاً',
                 ]);
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
             Log::error('Activity submission failed [activity_id=' . $id . ']: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء حفظ الإجابة'
+                'message' => 'حدث خطأ أثناء حفظ الإجابة',
             ], 500);
         }
-        
+
         // === كل الكود التالي ثانوي — التسليم تم حفظه بنجاح ===
         // نلف الكل في try-catch واحد لضمان رجوع success دائماً
         $streakBonus = 0;
         $streakMessage = null;
-        
+
         // حساب النقاط الفعلية بناءً على الدرجة:
         //  - الدرجة معروفة (تصحيح آلي) → النقاط = (درجة% × نقاط النشاط)
         //  - الدرجة null (مراجعة يدوية) → 0 نقطة الآن، تُمنح بعد التصحيح من المعلم
@@ -909,7 +926,7 @@ class StudentController extends Controller
         } else {
             $xp = 0;
         }
-        
+
         try {
             // Add XP
             try {
@@ -922,7 +939,7 @@ class StudentController extends Controller
             } catch (\Throwable $e) {
                 Log::error('Point creation failed: ' . $e->getMessage());
             }
-            
+
             // مجموع نقاط الطالب يُحسب ديناميكياً من جدول points عبر علاقة hasMany — لا حاجة لعمود مكرر
 
             // توزيع النقاط
@@ -931,7 +948,7 @@ class StudentController extends Controller
             } catch (\Throwable $e) {
                 Log::error('Distribute points failed: ' . $e->getMessage());
             }
-            
+
             // Add coins
             try {
                 $scoreText = $score !== null ? ' | الدرجة: ' . $score . '% | ' . $xp . '/' . $activityPoints . ' نقطة' : ' | ' . $xp . ' نقطة';
@@ -939,20 +956,20 @@ class StudentController extends Controller
                     'user_id' => $student->id,
                     'coins' => max(1, floor($xp / 2)),
                     'reason' => 'إكمال نشاط: ' . $activity->title . $scoreText,
-                    'transaction_type' => 'earn'
+                    'transaction_type' => 'earn',
                 ]);
             } catch (\Throwable $e) {
                 Log::error('Coin creation failed: ' . $e->getMessage());
             }
-            
+
             // === نظام Streak الأنشطة (عام) ===
             try {
                 $streakEnabled = $this->getStreakSetting('streak_enabled', $student) === '1';
 
                 if ($streakEnabled) {
-                    $minDays = (int)$this->getStreakSetting('streak_min_days', $student, 3);
-                    $maxDays = (int)$this->getStreakSetting('streak_max_days', $student, 7);
-                    $bonusPoints = (int)$this->getStreakSetting('streak_bonus_points', $student, 50);
+                    $minDays = (int) $this->getStreakSetting('streak_min_days', $student, 3);
+                    $maxDays = (int) $this->getStreakSetting('streak_max_days', $student, 7);
+                    $bonusPoints = (int) $this->getStreakSetting('streak_bonus_points', $student, 50);
 
                     $activityStreak = ActivityUserStreak::getOrCreate($student->id);
                     $newDayRecorded = $activityStreak->recordActivityDay();
@@ -983,7 +1000,7 @@ class StudentController extends Controller
                 if ($activity->lesson_id) {
                     $lessonStreak = \App\Models\LessonUserStreak::firstOrCreate(
                         ['user_id' => $student->id, 'lesson_id' => $activity->lesson_id],
-                        ['completed_days' => 0, 'activity_dates' => [], 'bonus_claimed' => false]
+                        ['completed_days' => 0, 'activity_dates' => [], 'bonus_claimed' => false],
                     );
                     $lessonStreak->recordActivityDay();
                 }
@@ -999,7 +1016,7 @@ class StudentController extends Controller
                         $activity->title,
                         $score,
                         $xp,
-                        max(1, (int) floor($xp / 2))
+                        max(1, (int) floor($xp / 2)),
                     );
                 }
             } catch (\Throwable $e) {
@@ -1015,7 +1032,7 @@ class StudentController extends Controller
                             'child_activity',
                             '📚 ابنك أكمل نشاطًا',
                             "أكمل {$student->name} نشاط: {$activity->title} - النتيجة: {$score}%",
-                            ['student_id' => $student->id, 'activity_id' => $activity->id, 'score' => $score]
+                            ['student_id' => $student->id, 'activity_id' => $activity->id, 'score' => $score],
                         );
                     }
                 }
@@ -1035,15 +1052,15 @@ class StudentController extends Controller
             // Master catch — التسليم محفوظ، المكافآت فشلت
             Log::error('Post-submission processing failed [activity_id=' . $id . ']: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
         }
-        
+
         return response()->json([
-            'success'        => true,
-            'xp_earned'      => $xp,
+            'success' => true,
+            'xp_earned' => $xp,
             'activity_points' => $activityPoints,
-            'streak_bonus'   => $streakBonus,
+            'streak_bonus' => $streakBonus,
             'streak_message' => $streakMessage,
-            'total_xp'       => $xp + $streakBonus,
-            'score'          => $score ?? null,
+            'total_xp' => $xp + $streakBonus,
+            'score' => $score ?? null,
         ]);
     }
 
@@ -1053,32 +1070,34 @@ class StudentController extends Controller
     private function calculateScore($activity, $answer): ?int
     {
         // للـ quiz فقط: نقارن إجابات الطالب بالإجابات الصحيحة
-        if ($activity->type === 'quiz' && !empty($activity->questions)) {
+        if ($activity->type === 'quiz' && ! empty($activity->questions)) {
             $answers = json_decode($answer, true);
-            if (!is_array($answers) || empty($answers)) {
+            if (! is_array($answers) || empty($answers)) {
                 return 0;
             }
 
             $correct = 0;
-            $total   = 0;
+            $total = 0;
 
             foreach ($activity->questions as $i => $q) {
                 // Skip image_order questions within a quiz — they don't have correct_answer
                 if (isset($q['type']) && $q['type'] === 'image_order') {
                     continue;
                 }
-                
+
                 $correctAnswer = $q['correct_answer'] ?? null;
-                if ($correctAnswer === null) continue;
-                
+                if ($correctAnswer === null) {
+                    continue;
+                }
+
                 $total++;
 
-                if (isset($answers[$i]) && (int)$answers[$i] === (int)$correctAnswer) {
+                if (isset($answers[$i]) && (int) $answers[$i] === (int) $correctAnswer) {
                     $correct++;
                 }
             }
 
-            return $total > 0 ? (int)round(($correct / $total) * 100) : null;
+            return $total > 0 ? (int) round(($correct / $total) * 100) : null;
         }
 
         // للـ image_order: نبقيه pending للمراجعة اليدوية
@@ -1087,26 +1106,31 @@ class StudentController extends Controller
         }
 
         // للـ exercise بخيارات: نحسب أيضاً
-        if ($activity->type === 'exercise' && !empty($activity->questions)) {
+        if ($activity->type === 'exercise' && ! empty($activity->questions)) {
             $answers = json_decode($answer, true);
-            if (!is_array($answers)) return null;
+            if (! is_array($answers)) {
+                return null;
+            }
 
             $correct = 0;
-            $scored  = 0;
+            $scored = 0;
             foreach ($activity->questions as $i => $q) {
-                if (!isset($q['correct_answer'])) continue;
+                if (! isset($q['correct_answer'])) {
+                    continue;
+                }
                 $scored++;
-                if (isset($answers[$i]) && (int)$answers[$i] === (int)$q['correct_answer']) {
+                if (isset($answers[$i]) && (int) $answers[$i] === (int) $q['correct_answer']) {
                     $correct++;
                 }
             }
-            return $scored > 0 ? (int)round(($correct / $scored) * 100) : null;
+
+            return $scored > 0 ? (int) round(($correct / $scored) * 100) : null;
         }
 
         // upload, practical, discussion → بانتظار مراجعة المعلم (null)
         return null;
     }
-    
+
     /**
      * جلب إعداد streak من المعلم أو الإعدادات العامة
      */
@@ -1115,23 +1139,23 @@ class StudentController extends Controller
         // أولاً: محاولة جلب من معلم الطالب
         $classroom = $student->classrooms()->with('teacher')->first();
         $teacherId = $classroom?->teacher?->id;
-        
+
         if ($teacherId) {
             $setting = Setting::where('key', $key)->where('user_id', $teacherId)->first();
             if ($setting) {
                 return $setting->value;
             }
         }
-        
+
         // ثانياً: الإعدادات العامة
         $globalSetting = Setting::where('key', $key)->whereNull('user_id')->first();
         if ($globalSetting) {
             return $globalSetting->value;
         }
-        
+
         return $default;
     }
-    
+
     /**
      * توزيع النقاط على المعلم وولي الأمر والمدرسة (delegate إلى service).
      * حافظنا على الـ signature لتوافق كل المواقع التي تنادي $this->distributePoints().
@@ -1141,7 +1165,7 @@ class StudentController extends Controller
         app(\App\Services\Activity\PointsDistributionService::class)
             ->distribute($student, $points, $source, $description);
     }
-    
+
     /**
      * استبدال مكافأة من المتجر
      */
@@ -1149,9 +1173,9 @@ class StudentController extends Controller
     {
         $request->validate([
             'reward_id' => 'required|integer',
-            'cost' => 'required|integer|min:1'
+            'cost' => 'required|integer|min:1',
         ]);
-        
+
         $student = Auth::user();
         $cost = (int) $request->cost;
 
@@ -1178,6 +1202,7 @@ class StudentController extends Controller
                 ]);
 
                 $newBalance = $currentCoins - $cost;
+
                 return [
                     'success' => true,
                     'new_balance' => $newBalance,
@@ -1192,14 +1217,14 @@ class StudentController extends Controller
 
         return response()->json($result);
     }
-    
+
     /**
      * تحديث البروفايل
      */
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
-        
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -1207,75 +1232,76 @@ class StudentController extends Controller
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
         ]);
-        
+
         try {
             // Update name and email
             $user->name = $request->name;
             $user->email = $request->email;
-            
+
             // Handle avatar upload
             if ($request->hasFile('avatar')) {
                 // Delete old avatar if exists
                 if ($user->avatar && \Storage::exists('public/' . $user->avatar)) {
                     \Storage::delete('public/' . $user->avatar);
                 }
-                
+
                 // Store new avatar
                 $avatarPath = $request->file('avatar')->store('avatars', 'public');
                 $user->avatar = $avatarPath;
             }
-            
+
             // Handle password change
             if ($request->filled('current_password')) {
-                if (!\Hash::check($request->current_password, $user->password)) {
+                if (! \Hash::check($request->current_password, $user->password)) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'كلمة المرور الحالية غير صحيحة'
+                        'message' => 'كلمة المرور الحالية غير صحيحة',
                     ]);
                 }
-                
+
                 $user->password = \Hash::make($request->new_password);
             }
-            
+
             $user->save();
-            
+
             return response()->json([
                 'success' => true,
-                'message' => 'تم تحديث البيانات بنجاح'
+                'message' => 'تم تحديث البيانات بنجاح',
             ]);
-            
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Student profile update failed', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء التحديث'
+                'message' => 'حدث خطأ أثناء التحديث',
             ]);
         }
     }
-    
+
     /**
      * سجل العملات والنقاط
      */
     public function coinsHistory()
     {
         $user = Auth::user();
-        
+
         $history = Coin::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->limit(50)
             ->get()
-            ->map(function($coin) {
+            ->map(function ($coin) {
                 return [
                     'amount' => $coin->coins,
                     'source' => $coin->transaction_type,
                     'description' => $coin->reason ?? 'نقاط',
-                    'date' => $coin->created_at->locale('ar')->diffForHumans()
+                    'date' => $coin->created_at->locale('ar')->diffForHumans(),
                 ];
             });
-        
+
         return response()->json([
             'success' => true,
-            'history' => $history
+            'history' => $history,
         ]);
     }
 
@@ -1290,7 +1316,7 @@ class StudentController extends Controller
         $item = \App\Models\ShopItem::findOrFail($itemId);
 
         // فحوص أولية خفيفة قبل المعاملة
-        if (!$item->isAvailable()) {
+        if (! $item->isAvailable()) {
             return response()->json(['success' => false, 'message' => 'هذا العنصر غير متاح حالياً']);
         }
         if ($user->hasPurchased($itemId)) {
@@ -1315,7 +1341,7 @@ class StudentController extends Controller
 
                 // فحص المخزون داخل المعاملة (atomic decrementStock تحقق منه)
                 $stockOk = $item->decrementStock();
-                if (!$stockOk) {
+                if (! $stockOk) {
                     return ['success' => false, 'message' => 'نفد المخزون. حاول شراء عنصر آخر.'];
                 }
 
@@ -1323,18 +1349,18 @@ class StudentController extends Controller
                     'user_id' => $user->id,
                     'coins' => -$item->price,
                     'source' => 'shop_purchase',
-                    'description' => 'شراء ' . $item->name
+                    'description' => 'شراء ' . $item->name,
                 ]);
 
                 $user->purchases()->attach($itemId, [
                     'price_paid' => $item->price,
-                    'is_active' => true
+                    'is_active' => true,
                 ]);
 
                 return [
                     'success' => true,
                     'message' => 'تم الشراء بنجاح! 🎉',
-                    'remaining_coins' => $totalCoins - $item->price
+                    'remaining_coins' => $totalCoins - $item->price,
                 ];
             }, 3);
 
@@ -1345,9 +1371,10 @@ class StudentController extends Controller
                 'item_id' => $itemId,
                 'file' => $e->getFile() . ':' . $e->getLine(),
             ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء الشراء. يرجى المحاولة مرة أخرى.'
+                'message' => 'حدث خطأ أثناء الشراء. يرجى المحاولة مرة أخرى.',
             ], 500);
         }
     }
@@ -1358,20 +1385,20 @@ class StudentController extends Controller
     public function rateTeachers()
     {
         $user = Auth::user();
-        
+
         // جلب المعلمين الذين يدرسون الطالب
         $teachers = User::where('role', 'teacher')
             ->where('school_id', $user->school_id)
-            ->whereHas('teachingClassrooms.students', function($q) use ($user) {
+            ->whereHas('teachingClassrooms.students', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
             })
-            ->with(['ratings' => function($q) use ($user) {
+            ->with(['ratings' => function ($q) use ($user) {
                 $q->where('student_id', $user->id);
             }])
             ->withAvg('ratings', 'rating')
             ->withCount('ratings')
             ->get();
-        
+
         // الحصول على stats للـ layout
         $user->load('streak');
         $stats = $this->getStudentStats($user);
@@ -1397,12 +1424,12 @@ class StudentController extends Controller
         $teacherValid = User::where('id', $request->teacher_id)
             ->where('role', 'teacher')
             ->where('school_id', $user->school_id)
-            ->whereHas('teachingClassrooms.students', function($q) use ($user) {
+            ->whereHas('teachingClassrooms.students', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
             })
             ->exists();
 
-        if (!$teacherValid) {
+        if (! $teacherValid) {
             return response()->json(['error' => 'المعلم غير صالح'], 403);
         }
 
@@ -1415,7 +1442,7 @@ class StudentController extends Controller
             [
                 'rating' => $request->rating,
                 'comment' => $request->comment,
-            ]
+            ],
         );
 
         // إشعار للمعلم
@@ -1425,12 +1452,12 @@ class StudentController extends Controller
             '⭐ تقييم جديد',
             "تلقيت تقييم {$request->rating} نجوم من طالب",
             ['rating' => $request->rating, 'student' => $user->name],
-            route('teacher.ratings')
+            route('teacher.ratings'),
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'تم إرسال التقييم بنجاح'
+            'message' => 'تم إرسال التقييم بنجاح',
         ]);
     }
 
@@ -1440,10 +1467,10 @@ class StudentController extends Controller
     public function analytics()
     {
         $user = Auth::user();
-        
+
         // بيانات التقدم خلال آخر 30 يوم
         $progressData = $this->getProgressChartData($user->id, 30);
-        
+
         // بيانات الأنشطة حسب الحالة
         $activityStatusData = ActivitySubmission::where('student_id', $user->id)
             ->selectRaw("
@@ -1452,7 +1479,7 @@ class StudentController extends Controller
                 SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress
             ")
             ->first();
-        
+
         // بيانات النقاط حسب القيمة
         $pointsByValue = DB::table('points')
             ->join('activities', 'points.activity_id', '=', 'activities.id')
@@ -1463,7 +1490,7 @@ class StudentController extends Controller
             ->select('values.name', DB::raw('SUM(points.points) as total'))
             ->groupBy('values.id', 'values.name')
             ->get();
-        
+
         // بيانات الأنشطة اليومية - آخر 7 أيام
         $weeklyActivityData = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -1474,10 +1501,10 @@ class StudentController extends Controller
             $weeklyActivityData[] = [
                 'date' => $date,
                 'label' => now()->subDays($i)->locale('ar')->dayName,
-                'count' => $count
+                'count' => $count,
             ];
         }
-        
+
         // معدل الدرجات - آخر 10 أنشطة
         $recentScores = ActivitySubmission::where('student_id', $user->id)
             ->where('status', 'completed')
@@ -1487,12 +1514,12 @@ class StudentController extends Controller
             ->pluck('score')
             ->reverse()
             ->values();
-        
+
         // الحصول على stats للـ layout
         $user->load('streak');
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
-        
+
         return view('student.analytics', compact(
             'progressData',
             'activityStatusData',
@@ -1500,7 +1527,7 @@ class StudentController extends Controller
             'weeklyActivityData',
             'recentScores',
             'stats',
-            'streak'
+            'streak',
         ));
     }
 
@@ -1532,15 +1559,15 @@ class StudentController extends Controller
 
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            $key  = $date->format('Y-m-d');
-            $labels[]         = $date->format('d/m');
-            $pointsData[]     = (int) ($pointsByDate[$key] ?? 0);
+            $key = $date->format('Y-m-d');
+            $labels[] = $date->format('d/m');
+            $pointsData[] = (int) ($pointsByDate[$key] ?? 0);
             $activitiesData[] = (int) ($activitiesByDate[$key] ?? 0);
         }
 
         return [
-            'labels'     => $labels,
-            'points'     => $pointsData,
+            'labels' => $labels,
+            'points' => $pointsData,
             'activities' => $activitiesData,
         ];
     }
@@ -1576,12 +1603,18 @@ class StudentController extends Controller
 
         // القيم المتقنة المعروضة كتيجان — تُقرأ من نفس جدول crowns لمنع التناقض مع صفحة التيجان
         $masteredValues = $user->crowns()->with('value')->get()
-            ->map(fn($crown) => $crown->value)
+            ->map(fn ($crown) => $crown->value)
             ->filter();
-        
+
         return view('student.badges', compact(
-            'badges', 'totalBadges', 'rareBadges', 'crowns', 
-            'recentBadges', 'masteredValues', 'stats', 'streak'
+            'badges',
+            'totalBadges',
+            'rareBadges',
+            'crowns',
+            'recentBadges',
+            'masteredValues',
+            'stats',
+            'streak',
         ));
     }
 
@@ -1592,27 +1625,27 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $user->load('streak');
-        
+
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
-        
+
         // جلب الدرس الحالي
-        $currentLesson = Lesson::whereHas('activities', function($query) use ($user) {
-                $query->whereHas('submissions', function($q) use ($user) {
-                    $q->where('student_id', $user->id)
-                      ->where('status', '!=', 'completed');
-                });
-            })
+        $currentLesson = Lesson::whereHas('activities', function ($query) use ($user) {
+            $query->whereHas('submissions', function ($q) use ($user) {
+                $q->where('student_id', $user->id)
+                    ->where('status', '!=', 'completed');
+            });
+        })
             ->with(['concept.value'])
             ->first();
-        
+
         // إذا لم يكن هناك درس جاري، نجيب أول درس متاح
-        if (!$currentLesson) {
+        if (! $currentLesson) {
             $currentLesson = Lesson::where('status', 'active')
                 ->with(['concept.value'])
                 ->first();
         }
-        
+
         // حساب تقدم الدرس الحالي (نعتبر أي تسليم إنجازاً للنشاط)
         if ($currentLesson) {
             $activityIds = $currentLesson->activities()->pluck('id')->toArray();
@@ -1623,7 +1656,7 @@ class StudentController extends Controller
                 ->count();
             $currentLesson->progress = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
         }
-        
+
         return view('student.learn', compact('currentLesson', 'stats', 'streak'));
     }
 
@@ -1634,7 +1667,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $user->load('streak');
-        
+
         // التاج يُمنح عند إتقان القيمة — مزامنة قبل العرض
         $this->syncCrowns($user);
 
@@ -1666,11 +1699,12 @@ class StudentController extends Controller
                 foreach ($concept->lessons as $lesson) {
                     if (($lesson->status ?? 'active') !== 'active') {
                         $lesson->is_completed = false;
+
                         continue;
                     }
                     $actIds = $lesson->activities->where('status', 'active')->pluck('id')->all();
-                    $lesson->is_completed = !empty($actIds) && count(array_diff($actIds, $completedActivityIds)) === 0;
-                    if (!empty($actIds)) {
+                    $lesson->is_completed = ! empty($actIds) && count(array_diff($actIds, $completedActivityIds)) === 0;
+                    if (! empty($actIds)) {
                         $valTotal++;
                         if ($lesson->is_completed) {
                             $valDone++;
@@ -1684,8 +1718,13 @@ class StudentController extends Controller
         }
 
         return view('student.values-tree', compact(
-            'totalPoints', 'completedLessons', 'badges', 'crowns',
-            'values', 'stats', 'streak'
+            'totalPoints',
+            'completedLessons',
+            'badges',
+            'crowns',
+            'values',
+            'stats',
+            'streak',
         ));
     }
 
@@ -1706,16 +1745,20 @@ class StudentController extends Controller
         // جميع التيجان المكتسبة
         $crowns = $user->crowns()->with('value')->orderBy('earned_at', 'desc')->get();
         $totalCrowns = $crowns->count();
-        
+
         // القيم المتاحة للتتويج — فقط المرئية للمدرسة (#105)
         $availableCrowns = Value::visibleForSchool($user->school_id)
-            ->whereDoesntHave('crowns', function($q) use ($user) {
+            ->whereDoesntHave('crowns', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
             ->get();
-        
+
         return view('student.crowns', compact(
-            'crowns', 'totalCrowns', 'availableCrowns', 'stats', 'streak'
+            'crowns',
+            'totalCrowns',
+            'availableCrowns',
+            'stats',
+            'streak',
         ));
     }
 
@@ -1726,27 +1769,32 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $user->load('streak');
-        
+
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
-        
+
         // المدح المستلم من ولي الأمر
         $praises = $user->praisesReceived()
             ->with('parent')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         // الهدايا المستلمة من ولي الأمر
         $gifts = $user->giftsReceived()
             ->with('parent')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         $totalPraises = $praises->count();
         $totalGifts = $gifts->count();
-        
+
         return view('student.gifts', compact(
-            'praises', 'gifts', 'totalPraises', 'totalGifts', 'stats', 'streak'
+            'praises',
+            'gifts',
+            'totalPraises',
+            'totalGifts',
+            'stats',
+            'streak',
         ));
     }
 
@@ -1757,18 +1805,18 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $user->load('streak', 'teams');
-        
+
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
-        
+
         // الفرق التي ينتمي إليها الطالب
         $teams = $user->teams()
             ->with(['members', 'creator'])
             ->orderByPivot('joined_at', 'desc')
             ->get();
-        
+
         $totalTeams = $teams->count();
-        
+
         // حساب إنجازات كل فريق
         foreach ($teams as $team) {
             $memberIds = $team->members->pluck('id')->toArray();
@@ -1777,9 +1825,12 @@ class StudentController extends Controller
                 ->where('status', 'completed')
                 ->count();
         }
-        
+
         return view('student.teams', compact(
-            'teams', 'totalTeams', 'stats', 'streak'
+            'teams',
+            'totalTeams',
+            'stats',
+            'streak',
         ));
     }
 
@@ -1795,14 +1846,14 @@ class StudentController extends Controller
 
         // التمارين المتاحة من المعلمين
         $exercises = \App\Models\PracticeExercise::where('is_active', true)
-            ->where(function($q) use ($classroomIds) {
+            ->where(function ($q) use ($classroomIds) {
                 $q->whereIn('classroom_id', $classroomIds)
-                  ->orWhereNull('classroom_id');
+                    ->orWhereNull('classroom_id');
             })
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('starts_at')->orWhere('starts_at', '<=', now());
             })
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('ends_at')->orWhere('ends_at', '>=', now());
             })
             ->with('teacher')
@@ -1883,14 +1934,21 @@ class StudentController extends Controller
         // helper مرن لـ true_false: يقبل "true/false" و "صح/خطأ" و "1/0" و "نعم/لا"
         $boolish = function ($v) {
             $s = mb_strtolower(trim((string) $v));
-            if (in_array($s, ['1', 'true', 'yes', 'صح', 'صحيح', 'نعم'], true)) return true;
-            if (in_array($s, ['0', 'false', 'no', 'خطأ', 'خاطئ', 'لا'], true)) return false;
+            if (in_array($s, ['1', 'true', 'yes', 'صح', 'صحيح', 'نعم'], true)) {
+                return true;
+            }
+            if (in_array($s, ['0', 'false', 'no', 'خطأ', 'خاطئ', 'لا'], true)) {
+                return false;
+            }
+
             return null;
         };
 
         foreach ($answers as $qId => $answer) {
             $question = $questions->get($qId);
-            if (!$question) continue;
+            if (! $question) {
+                continue;
+            }
 
             $isCorrect = false;
             if ($question->question_type === 'multiple_choice') {
@@ -1910,7 +1968,9 @@ class StudentController extends Controller
                 $isCorrect = mb_strtolower(trim($answer)) === mb_strtolower(trim($question->correct_answer ?? ''));
             }
 
-            if ($isCorrect) $correctCount++;
+            if ($isCorrect) {
+                $correctCount++;
+            }
             $gradedAnswers[$qId] = ['answer' => $answer, 'correct' => $isCorrect];
         }
 
@@ -1976,12 +2036,12 @@ class StudentController extends Controller
         $student = Auth::user();
 
         // حماية ضد بيئة لم تُنشأ فيها جداول PvP بعد — تفادي خطأ 500
-        if (!\Illuminate\Support\Facades\Schema::hasTable('pvp_challenges')
-            || !\Illuminate\Support\Facades\Schema::hasTable('pvp_matches')) {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('pvp_challenges')
+            || ! \Illuminate\Support\Facades\Schema::hasTable('pvp_matches')) {
             return view('student.pvp-lobby', [
                 'challenges' => collect(),
-                'myMatches'  => collect(),
-                'stats'      => ['total_matches' => 0, 'wins' => 0],
+                'myMatches' => collect(),
+                'stats' => ['total_matches' => 0, 'wins' => 0],
             ]);
         }
 
@@ -1997,17 +2057,17 @@ class StudentController extends Controller
             ->get();
 
         // مبارياتي الأخيرة
-        $myMatches = \App\Models\PvpMatch::where(function($q) use ($student) {
+        $myMatches = \App\Models\PvpMatch::where(function ($q) use ($student) {
             $q->where('player1_id', $student->id)->orWhere('player2_id', $student->id);
         })
-        ->where('status', 'completed')
-        ->with(['player1', 'player2', 'winner', 'challenge'])
-        ->latest()
-        ->limit(10)
-        ->get();
+            ->where('status', 'completed')
+            ->with(['player1', 'player2', 'winner', 'challenge'])
+            ->latest()
+            ->limit(10)
+            ->get();
 
         $stats = [
-            'total_matches' => \App\Models\PvpMatch::where(function($q) use ($student) {
+            'total_matches' => \App\Models\PvpMatch::where(function ($q) use ($student) {
                 $q->where('player1_id', $student->id)->orWhere('player2_id', $student->id);
             })->where('status', 'completed')->count(),
             'wins' => \App\Models\PvpMatch::where('winner_id', $student->id)->count(),
@@ -2106,7 +2166,9 @@ class StudentController extends Controller
 
         $isPlayer1 = $match->player1_id === $student->id;
         $isPlayer2 = $match->player2_id === $student->id;
-        if (!$isPlayer1 && !$isPlayer2) abort(403);
+        if (! $isPlayer1 && ! $isPlayer2) {
+            abort(403);
+        }
 
         $answers = $request->input('answers', []);
         $timeTaken = (int) $request->input('time_taken', 0);
@@ -2118,13 +2180,20 @@ class StudentController extends Controller
         $score = 0;
         foreach ($answers as $qId => $answer) {
             $question = $questions->get($qId);
-            if (!$question) continue;
+            if (! $question) {
+                continue;
+            }
 
             // helper مرن لـ true_false: يقبل "true/false" و "صح/خطأ"
             $pvpBoolish = function ($v) {
                 $s = mb_strtolower(trim((string) $v));
-                if (in_array($s, ['1', 'true', 'yes', 'صح', 'صحيح', 'نعم'], true)) return true;
-                if (in_array($s, ['0', 'false', 'no', 'خطأ', 'خاطئ', 'لا'], true)) return false;
+                if (in_array($s, ['1', 'true', 'yes', 'صح', 'صحيح', 'نعم'], true)) {
+                    return true;
+                }
+                if (in_array($s, ['0', 'false', 'no', 'خطأ', 'خاطئ', 'لا'], true)) {
+                    return false;
+                }
+
                 return null;
             };
 
@@ -2145,7 +2214,9 @@ class StudentController extends Controller
                 $isCorrect = mb_strtolower(trim($answer)) === mb_strtolower(trim($question->correct_answer ?? ''));
             }
 
-            if ($isCorrect) $score++;
+            if ($isCorrect) {
+                $score++;
+            }
         }
 
         $scorePercent = count($questionIds) > 0 ? round(($score / count($questionIds)) * 100) : 0;
@@ -2176,27 +2247,27 @@ class StudentController extends Controller
 
             // منح نقاط/عملات للفائز — idempotent: مرة واحدة فقط بعد التحول إلى completed
             $rewardCacheKey = "pvp:reward:match:{$match->id}";
-            if ($match->winner_id && $wasNotCompleted && !\Illuminate\Support\Facades\Cache::has($rewardCacheKey)) {
+            if ($match->winner_id && $wasNotCompleted && ! \Illuminate\Support\Facades\Cache::has($rewardCacheKey)) {
                 \Illuminate\Support\Facades\Cache::put($rewardCacheKey, true, now()->addDays(7));
                 try {
                     \Illuminate\Support\Facades\DB::transaction(function () use ($match) {
                         // نقاط الفائز — استخدام أعمدة موجودة فقط (description بدلًا من reference_*)
                         \App\Models\Point::create([
-                            'user_id'     => $match->winner_id,
-                            'points'      => 20,
-                            'reason'      => 'فوز في تحدي PvP',
-                            'source'      => 'pvp_match',
+                            'user_id' => $match->winner_id,
+                            'points' => 20,
+                            'reason' => 'فوز في تحدي PvP',
+                            'source' => 'pvp_match',
                             'description' => 'مباراة #' . $match->id,
                         ]);
 
                         // عملات الفائز
                         \App\Models\Coin::create([
-                            'user_id'          => $match->winner_id,
-                            'coins'            => 10,
-                            'reason'           => 'فوز في تحدي PvP',
+                            'user_id' => $match->winner_id,
+                            'coins' => 10,
+                            'reason' => 'فوز في تحدي PvP',
                             'transaction_type' => 'earn',
-                            'source'           => 'pvp_match',
-                            'description'     => 'مباراة #' . $match->id,
+                            'source' => 'pvp_match',
+                            'description' => 'مباراة #' . $match->id,
                         ]);
                     }, 3);
 
@@ -2206,8 +2277,8 @@ class StudentController extends Controller
                             $match->winner_id,
                             'pvp_win',
                             '🏆 مبروك! فزت بتحدي PvP',
-                            "حصلت على 20 نقطة و 10 عملات",
-                            ['match_id' => $match->id]
+                            'حصلت على 20 نقطة و 10 عملات',
+                            ['match_id' => $match->id],
                         );
                     } catch (\Throwable $e) {
                         \Log::warning('PvP win notification failed', ['error' => $e->getMessage()]);
@@ -2215,8 +2286,8 @@ class StudentController extends Controller
                 } catch (\Throwable $e) {
                     \Log::error('PvP winner reward failed', [
                         'winner_id' => $match->winner_id,
-                        'match_id'  => $match->id,
-                        'error'     => $e->getMessage(),
+                        'match_id' => $match->id,
+                        'error' => $e->getMessage(),
                     ]);
                 }
             }
@@ -2244,4 +2315,3 @@ class StudentController extends Controller
         return view('student.pvp-result', compact('match', 'student'));
     }
 }
-

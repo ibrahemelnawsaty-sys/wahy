@@ -3,12 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Models\ActivitySubmission;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
-use App\Models\ActivitySubmission;
-use App\Models\Coin;
-use App\Models\Point;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +19,7 @@ class MessagesController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         // الحصول على المحادثات الخاصة بالمستخدم
         $conversations = Conversation::where('user1_id', $user->id)
             ->orWhere('user2_id', $user->id)
@@ -43,7 +41,7 @@ class MessagesController extends Controller
         }
 
         // توجيه كل دور لصفحته الخاصة
-        $viewPath = match($user->role) {
+        $viewPath = match ($user->role) {
             'super_admin' => 'messages.admin.index',
             'school_admin' => 'messages.school-admin.index',
             'teacher' => 'messages.teacher.index',
@@ -70,6 +68,7 @@ class MessagesController extends Controller
         if ($user->role === 'school_admin') {
             // مدير المدرسة يستطيع مراسلة من في مدرسته فقط
             $schoolId = $user->school_id;
+
             return $query->where('school_id', $schoolId)
                 ->whereIn('role', ['teacher', 'parent', 'student'])
                 ->orderBy('name')
@@ -89,7 +88,7 @@ class MessagesController extends Controller
                 ->pluck('id')
                 ->unique();
 
-            $parentIds = User::whereIn('id', function($query) use ($studentIds) {
+            $parentIds = User::whereIn('id', function ($query) use ($studentIds) {
                 $query->select('parent_id')
                     ->from('parent_student')
                     ->whereIn('student_id', $studentIds);
@@ -109,7 +108,7 @@ class MessagesController extends Controller
             // 1. مدرسي أبنائه
             // 2. مدراء مدرسة أبنائه
             $children = $user->children; // العلاقة children يجب أن تكون موجودة في User model
-            
+
             $teacherIds = collect();
             foreach ($children as $child) {
                 // جلب جميع الفصول النشطة للطفل
@@ -138,7 +137,7 @@ class MessagesController extends Controller
                 ->wherePivot('status', 'active')
                 ->with('teacher')
                 ->get();
-            
+
             $teacherIds = collect();
             foreach ($classrooms as $classroom) {
                 if ($classroom->teacher_id && $classroom->teacher) {
@@ -167,7 +166,7 @@ class MessagesController extends Controller
         $otherUser = User::findOrFail($userId);
 
         // التحقق من صلاحية المراسلة
-        if (!$this->canMessage($currentUser, $otherUser)) {
+        if (! $this->canMessage($currentUser, $otherUser)) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -188,7 +187,7 @@ class MessagesController extends Controller
             'conversation' => $conversation,
             'messages' => $messages,
             'otherUser' => ['id' => $otherUser->id, 'name' => $otherUser->name, 'avatar' => $otherUser->avatar, 'avatar_url' => $otherUser->avatar_url, 'role' => $otherUser->role],
-            'currentUser' => $currentUser
+            'currentUser' => $currentUser,
         ]);
     }
 
@@ -201,7 +200,7 @@ class MessagesController extends Controller
         $otherUser = User::findOrFail($userId);
 
         // التحقق من صلاحية المراسلة
-        if (!$this->canMessage($currentUser, $otherUser)) {
+        if (! $this->canMessage($currentUser, $otherUser)) {
             abort(403, 'ليس لديك صلاحية لمراسلة هذا المستخدم');
         }
 
@@ -245,7 +244,7 @@ class MessagesController extends Controller
             $receiver = User::findOrFail($request->receiver_id);
 
             // التحقق من صلاحية المراسلة
-            if (!$this->canMessage($sender, $receiver)) {
+            if (! $this->canMessage($sender, $receiver)) {
                 return response()->json(['error' => 'ليس لديك صلاحية لمراسلة هذا المستخدم'], 403);
             }
 
@@ -267,18 +266,19 @@ class MessagesController extends Controller
                 'success' => true,
                 'message' => $message->load('sender:id,name,avatar,role'),
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'error' => 'يرجى التأكد من صحة البيانات المدخلة',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Message send failed', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'error' => 'حدث خطأ أثناء إرسال الرسالة'
+                'error' => 'حدث خطأ أثناء إرسال الرسالة',
             ], 500);
         }
     }
@@ -305,6 +305,7 @@ class MessagesController extends Controller
 
         // التحقق من الصلاحيات حسب الدور
         $availableUsers = $this->getAvailableUsers($user1);
+
         return $availableUsers->contains('id', $user2->id);
     }
 
@@ -314,7 +315,7 @@ class MessagesController extends Controller
     public function unreadCount()
     {
         $userId = Auth::id();
-        
+
         $count = Message::where('receiver_id', $userId)
             ->where('is_read', false)
             ->count();
@@ -331,7 +332,7 @@ class MessagesController extends Controller
         $otherUser = User::findOrFail($userId);
 
         // التحقق من صلاحية المراسلة
-        if (!$this->canMessage($currentUser, $otherUser)) {
+        if (! $this->canMessage($currentUser, $otherUser)) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -354,7 +355,7 @@ class MessagesController extends Controller
 
         return response()->json([
             'messages' => $newMessages,
-            'hasNew' => $newMessages->isNotEmpty()
+            'hasNew' => $newMessages->isNotEmpty(),
         ]);
     }
 
@@ -364,7 +365,7 @@ class MessagesController extends Controller
     public function checkAllNewMessages()
     {
         $userId = Auth::id();
-        
+
         // جلب المحادثات التي لديها رسائل جديدة
         $newMessagesCount = Message::where('receiver_id', $userId)
             ->where('is_read', false)
@@ -388,15 +389,15 @@ class MessagesController extends Controller
                     'sender' => $message->sender,
                     'message' => $message->message,
                     'count' => $item->count,
-                    'created_at' => $message->created_at
+                    'created_at' => $message->created_at,
                 ];
             }
         }
 
         return response()->json([
-            'hasNew' => !empty($notifications),
+            'hasNew' => ! empty($notifications),
             'total' => count($notifications),
-            'notifications' => $notifications
+            'notifications' => $notifications,
         ]);
     }
 
@@ -413,44 +414,44 @@ class MessagesController extends Controller
                 SUM(CASE WHEN status = 'completed' AND DATE(created_at) = DATE('now') THEN 1 ELSE 0 END) as completed_today
             ")
             ->first();
-        
+
         $totals = DB::table('users')
             ->where('users.id', $user->id)
             ->leftJoin('points', 'users.id', '=', 'points.user_id')
             ->leftJoin('coins', 'users.id', '=', 'coins.user_id')
             ->selectRaw('COALESCE(SUM(points.points), 0) as total_points, COALESCE(SUM(coins.coins), 0) as total_coins')
             ->first();
-        
+
         // Get streak with null check
         try {
-            if (!$user->relationLoaded('streak')) {
+            if (! $user->relationLoaded('streak')) {
                 $user->load('streak');
             }
-            
-            if (!$user->streak) {
+
+            if (! $user->streak) {
                 $user->streak = \App\Models\Streak::create([
                     'user_id' => $user->id,
                     'current_streak' => 0,
                     'longest_streak' => 0,
-                    'last_activity_date' => null
+                    'last_activity_date' => null,
                 ]);
             }
-            
+
             $currentStreak = $user->streak->current_streak ?? 0;
         } catch (\Exception $e) {
             \Log::error('Streak error for user ' . $user->id . ': ' . $e->getMessage());
             $currentStreak = 0;
         }
-        
+
         return [
-            'total_points' => (int)($totals->total_points ?? 0),
-            'total_coins' => (int)($totals->total_coins ?? 0),
+            'total_points' => (int) ($totals->total_points ?? 0),
+            'total_coins' => (int) ($totals->total_coins ?? 0),
             'total_badges' => $user->badges()->count(),
-            'current_streak' => (int)$currentStreak,
-            'completed_activities' => (int)($submissionStats->completed_count ?? 0),
-            'pending_activities' => (int)($submissionStats->pending_count ?? 0),
+            'current_streak' => (int) $currentStreak,
+            'completed_activities' => (int) ($submissionStats->completed_count ?? 0),
+            'pending_activities' => (int) ($submissionStats->pending_count ?? 0),
             'average_score' => round($submissionStats->avg_score ?? 0, 1),
-            'completed_today' => (int)($submissionStats->completed_today ?? 0),
+            'completed_today' => (int) ($submissionStats->completed_today ?? 0),
         ];
     }
 
@@ -471,4 +472,3 @@ class MessagesController extends Controller
         ]);
     }
 }
-

@@ -2,24 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ActivitiesExport;
+use App\Exports\StudentsExport;
+use App\Imports\StudentsImport;
+use App\Models\PageBuilder;
+use App\Models\QuestionBank;
+use App\Models\School;
+use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\School;
-use App\Models\User;
-use App\Models\Value;
-use App\Models\QuestionBank;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Spatie\Activitylog\Models\Activity as ActivityLog;
-use App\Exports\StudentsExport;
-use App\Exports\ActivitiesExport;
-use App\Imports\StudentsImport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Models\Setting;
-use App\Models\PageBuilder;
+use Spatie\Activitylog\Models\Activity as ActivityLog;
 
 class SuperAdminController extends Controller
 {
@@ -29,6 +24,7 @@ class SuperAdminController extends Controller
     public function backups()
     {
         $backups = $this->getBackupsList();
+
         return view('super-admin.backups', compact('backups'));
     }
 
@@ -46,14 +42,14 @@ class SuperAdminController extends Controller
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Backup creation failed', [
                 'error' => $e->getMessage(),
-                'type'  => $request->input('type', 'full'),
+                'type' => $request->input('type', 'full'),
             ]);
 
             return redirect()->route('admin.backups')
                 ->with('error', 'حدث خطأ أثناء إنشاء النسخة الاحتياطية');
         }
     }
-    
+
     /**
      * إنشاء dump لقاعدة بيانات MySQL
      */
@@ -63,9 +59,9 @@ class SuperAdminController extends Controller
         $database = config('database.connections.mysql.database');
         $username = config('database.connections.mysql.username');
         $password = config('database.connections.mysql.password');
-        
+
         $dumpFile = storage_path('app/temp-dump-' . $timestamp . '.sql');
-        
+
         // استخدام mysqldump إذا كان متاحاً
         $command = sprintf(
             'mysqldump --host=%s --user=%s --password=%s %s > %s',
@@ -73,28 +69,28 @@ class SuperAdminController extends Controller
             escapeshellarg($username),
             escapeshellarg($password),
             escapeshellarg($database),
-            escapeshellarg($dumpFile)
+            escapeshellarg($dumpFile),
         );
-        
+
         // محاولة التشغيل
         exec($command, $output, $returnVar);
-        
+
         // إذا فشل mysqldump، استخدم PHP dump
-        if ($returnVar !== 0 || !file_exists($dumpFile)) {
+        if ($returnVar !== 0 || ! file_exists($dumpFile)) {
             $this->createPHPMySQLDump($dumpFile);
         }
-        
+
         if (file_exists($dumpFile)) {
             $zip->addFile($dumpFile, 'database/mysql-dump.sql');
             // حذف الملف المؤقت بعد الإضافة
-            register_shutdown_function(function() use ($dumpFile) {
+            register_shutdown_function(function () use ($dumpFile) {
                 if (file_exists($dumpFile)) {
                     @unlink($dumpFile);
                 }
             });
         }
     }
-    
+
     /**
      * إنشاء MySQL dump باستخدام PHP
      */
@@ -102,53 +98,53 @@ class SuperAdminController extends Controller
     {
         $tables = DB::select('SHOW TABLES');
         $dump = "-- MySQL Backup\n";
-        $dump .= "-- Date: " . date('Y-m-d H:i:s') . "\n\n";
+        $dump .= '-- Date: ' . date('Y-m-d H:i:s') . "\n\n";
         $dump .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
-        
+
         foreach ($tables as $table) {
-            $tableName = array_values((array)$table)[0];
-            
+            $tableName = array_values((array) $table)[0];
+
             // Structure
             $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`")[0];
             $dump .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
             $dump .= $createTable->{'Create Table'} . ";\n\n";
-            
+
             // Data
             $rows = DB::table($tableName)->get();
             if ($rows->count() > 0) {
                 $dump .= "INSERT INTO `{$tableName}` VALUES\n";
                 $values = [];
                 foreach ($rows as $row) {
-                    $rowData = array_map(function($value) {
+                    $rowData = array_map(function ($value) {
                         return is_null($value) ? 'NULL' : "'" . addslashes($value) . "'";
-                    }, (array)$row);
+                    }, (array) $row);
                     $values[] = '(' . implode(',', $rowData) . ')';
                 }
                 $dump .= implode(",\n", $values) . ";\n\n";
             }
         }
-        
+
         $dump .= "SET FOREIGN_KEY_CHECKS=1;\n";
-        
+
         file_put_contents($outputFile, $dump);
     }
-    
+
     /**
      * إضافة ملفات إلى ZIP بشكل متكرر
      */
     private function addFilesToZip($zip, $path, $zipPath = '')
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return;
         }
-        
+
         $files = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($path),
-            \RecursiveIteratorIterator::LEAVES_ONLY
+            \RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
         foreach ($files as $file) {
-            if (!$file->isDir()) {
+            if (! $file->isDir()) {
                 $filePath = $file->getRealPath();
                 $relativePath = $zipPath . '/' . substr($filePath, strlen($path) + 1);
                 $zip->addFile($filePath, $relativePath);
@@ -163,7 +159,7 @@ class SuperAdminController extends Controller
     {
         // حماية ضد Path Traversal: basename فقط + allowlist
         $safeName = basename($filename);
-        if (!preg_match('/^[A-Za-z0-9_\-\.]+\.zip$/', $safeName)) {
+        if (! preg_match('/^[A-Za-z0-9_\-\.]+\.zip$/', $safeName)) {
             return redirect()->route('admin.backups')
                 ->with('error', 'اسم الملف غير صالح');
         }
@@ -171,12 +167,12 @@ class SuperAdminController extends Controller
         $backupDir = realpath(storage_path('app/Laravel'));
         $path = realpath($backupDir . DIRECTORY_SEPARATOR . $safeName);
 
-        if (!$path || !$backupDir || strpos($path, $backupDir . DIRECTORY_SEPARATOR) !== 0) {
+        if (! $path || ! $backupDir || strpos($path, $backupDir . DIRECTORY_SEPARATOR) !== 0) {
             return redirect()->route('admin.backups')
                 ->with('error', 'الملف غير موجود');
         }
 
-        if (!file_exists($path) || !is_file($path)) {
+        if (! file_exists($path) || ! is_file($path)) {
             return redirect()->route('admin.backups')
                 ->with('error', 'الملف غير موجود');
         }
@@ -191,7 +187,7 @@ class SuperAdminController extends Controller
     {
         // حماية ضد Path Traversal
         $safeName = basename($filename);
-        if (!preg_match('/^[A-Za-z0-9_\-\.]+\.zip$/', $safeName)) {
+        if (! preg_match('/^[A-Za-z0-9_\-\.]+\.zip$/', $safeName)) {
             return redirect()->route('admin.backups')
                 ->with('error', 'اسم الملف غير صالح');
         }
@@ -199,7 +195,7 @@ class SuperAdminController extends Controller
         try {
             $deleted = app(\App\Services\Backup\BackupService::class)->delete($safeName);
 
-            if (!$deleted) {
+            if (! $deleted) {
                 return redirect()->route('admin.backups')
                     ->with('error', 'النسخة الاحتياطية غير موجودة أو فشل الحذف: ' . $safeName);
             }
@@ -208,6 +204,7 @@ class SuperAdminController extends Controller
                 ->with('success', 'تم حذف النسخة الاحتياطية بنجاح: ' . $safeName);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Backup deletion failed', ['error' => $e->getMessage()]);
+
             return redirect()->route('admin.backups')
                 ->with('error', 'حدث خطأ أثناء حذف النسخة');
         }
@@ -219,7 +216,7 @@ class SuperAdminController extends Controller
     public function restoreBackup(Request $request)
     {
         $request->validate([
-            'backup_file' => 'required|file|mimes:zip'
+            'backup_file' => 'required|file|mimes:zip',
         ]);
 
         try {
@@ -227,7 +224,7 @@ class SuperAdminController extends Controller
             $extractPath = storage_path('app/backup-restore');
 
             // إنشاء مجلد مؤقت للاستخراج
-            if (!file_exists($extractPath)) {
+            if (! file_exists($extractPath)) {
                 mkdir($extractPath, 0755, true);
             }
 
@@ -235,7 +232,7 @@ class SuperAdminController extends Controller
             $zip = new \ZipArchive;
             if ($zip->open($file->path()) === true) {
                 $safeExtractRoot = realpath($extractPath);
-                if (!$safeExtractRoot) {
+                if (! $safeExtractRoot) {
                     $zip->close();
                     throw new \Exception('فشل تحضير مجلد الاستخراج');
                 }
@@ -268,20 +265,20 @@ class SuperAdminController extends Controller
                 $zip->close();
 
                 $dbDriver = config('database.default');
-                
+
                 if ($dbDriver === 'sqlite') {
                     // استرداد SQLite
                     $dbBackupPath = $extractPath . '/database/database.sqlite';
-                    if (!file_exists($dbBackupPath)) {
+                    if (! file_exists($dbBackupPath)) {
                         $dbBackupPath = $extractPath . '/database.sqlite';
                     }
-                    
+
                     if (file_exists($dbBackupPath)) {
                         $database = database_path('database.sqlite');
-                        
+
                         // نسخ احتياطي للقاعدة الحالية
                         copy($database, $database . '.backup.' . date('Y-m-d_H-i-s'));
-                        
+
                         // استرداد القاعدة الجديدة
                         copy($dbBackupPath, $database);
                     }
@@ -290,24 +287,24 @@ class SuperAdminController extends Controller
                     $sqlBackupPath = $extractPath . '/database/mysql-dump.sql';
                     if (file_exists($sqlBackupPath)) {
                         // نسخ احتياطي للقاعدة الحالية أولاً
-                        $backupZip = new \ZipArchive();
+                        $backupZip = new \ZipArchive;
                         $preRestoreBackup = storage_path('app/Laravel/pre-restore-backup-' . date('Y-m-d_H-i-s') . '.zip');
                         if ($backupZip->open($preRestoreBackup, \ZipArchive::CREATE) === true) {
                             $this->createMySQLDump($backupZip, date('Y-m-d_H-i-s'));
                             $backupZip->close();
                         }
-                        
+
                         // استرداد من SQL
                         $this->restoreMySQLDump($sqlBackupPath);
                     }
                 }
-                
+
                 // استرداد الملفات
                 $storageBackupPath = $extractPath . '/storage';
                 if (file_exists($storageBackupPath)) {
                     $this->copyDirectory($storageBackupPath, storage_path('app/public'));
                 }
-                
+
                 $uploadsBackupPath = $extractPath . '/uploads';
                 if (file_exists($uploadsBackupPath)) {
                     $this->copyDirectory($uploadsBackupPath, public_path('uploads'));
@@ -323,11 +320,12 @@ class SuperAdminController extends Controller
             }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Backup restore failed', ['error' => $e->getMessage()]);
+
             return redirect()->route('admin.backups')
                 ->with('error', 'حدث خطأ أثناء الاسترداد');
         }
     }
-    
+
     /**
      * استرداد MySQL من ملف SQL
      */
@@ -336,7 +334,7 @@ class SuperAdminController extends Controller
         // الطريقة الصحيحة: تمرير ملف الـ dump إلى أداة mysql عبر stdin.
         // explode(';') السابق كان يكسر أي استعلام يحتوي على ';' داخل نص → خطر تلف بيانات.
         $conn = config('database.default');
-        $db   = config("database.connections.{$conn}");
+        $db = config("database.connections.{$conn}");
 
         $host = $db['host'] ?? '127.0.0.1';
         $port = (string) ($db['port'] ?? '3306');
@@ -349,7 +347,7 @@ class SuperAdminController extends Controller
             escapeshellarg($host),
             escapeshellarg($port),
             escapeshellarg($user),
-            escapeshellarg($name)
+            escapeshellarg($name),
         );
 
         $descriptor = [
@@ -362,7 +360,7 @@ class SuperAdminController extends Controller
         $env = array_merge($_ENV ?? [], ['MYSQL_PWD' => $pass]);
 
         $process = @proc_open($cmd, $descriptor, $pipes, base_path(), $env);
-        if (!is_resource($process)) {
+        if (! is_resource($process)) {
             throw new \RuntimeException('تعذّر تشغيل أداة mysql للاسترداد — تأكد من توفرها على الخادم.');
         }
 
@@ -383,16 +381,16 @@ class SuperAdminController extends Controller
     {
         try {
             $backupPath = storage_path('app/Laravel');
-            
-            if (!file_exists($backupPath)) {
+
+            if (! file_exists($backupPath)) {
                 return redirect()->route('admin.backups')
                     ->with('info', 'لا توجد نسخ احتياطية للتنظيف');
             }
-            
+
             $files = scandir($backupPath);
             $deleted = 0;
             $thirtyDaysAgo = time() - (30 * 24 * 60 * 60); // 30 يوم
-            
+
             foreach ($files as $file) {
                 if ($file !== '.' && $file !== '..') {
                     $fullPath = $backupPath . '/' . $file;
@@ -408,6 +406,7 @@ class SuperAdminController extends Controller
                 ->with('success', "تم تنظيف النسخ القديمة بنجاح. تم حذف {$deleted} ملف");
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Backup cleanup failed', ['error' => $e->getMessage()]);
+
             return redirect()->route('admin.backups')
                 ->with('error', 'حدث خطأ أثناء التنظيف');
         }
@@ -419,8 +418,8 @@ class SuperAdminController extends Controller
     private function getBackupsList()
     {
         $backupPath = storage_path('app/Laravel');
-        
-        if (!file_exists($backupPath)) {
+
+        if (! file_exists($backupPath)) {
             return [];
         }
 
@@ -440,7 +439,7 @@ class SuperAdminController extends Controller
         }
 
         // ترتيب حسب الأحدث
-        usort($backups, function($a, $b) {
+        usort($backups, function ($a, $b) {
             return $b['timestamp'] - $a['timestamp'];
         });
 
@@ -466,7 +465,7 @@ class SuperAdminController extends Controller
      */
     private function deleteDirectory($dir)
     {
-        if (!file_exists($dir)) {
+        if (! file_exists($dir)) {
             return;
         }
 
@@ -478,21 +477,21 @@ class SuperAdminController extends Controller
 
         rmdir($dir);
     }
-    
+
     /**
      * نسخ مجلد بشكل تكراري
      */
     private function copyDirectory($source, $destination)
     {
-        if (!file_exists($destination)) {
+        if (! file_exists($destination)) {
             mkdir($destination, 0755, true);
         }
-        
+
         $files = array_diff(scandir($source), ['.', '..']);
         foreach ($files as $file) {
             $sourcePath = $source . '/' . $file;
             $destPath = $destination . '/' . $file;
-            
+
             if (is_dir($sourcePath)) {
                 $this->copyDirectory($sourcePath, $destPath);
             } else {
@@ -539,10 +538,10 @@ class SuperAdminController extends Controller
             ->distinct()
             ->pluck('subject_type')
             ->filter()
-            ->map(function($model) {
+            ->map(function ($model) {
                 return [
                     'value' => $model,
-                    'label' => class_basename($model)
+                    'label' => class_basename($model),
                 ];
             });
 
@@ -565,6 +564,7 @@ class SuperAdminController extends Controller
                 ->with('success', "تم حذف {$deleted} سجل أقدم من {$days} يوم");
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Activity logs cleanup failed', ['error' => $e->getMessage()]);
+
             return redirect()->route('super-admin.activity-logs')
                 ->with('error', 'حدث خطأ أثناء الحذف');
         }
@@ -593,7 +593,7 @@ class SuperAdminController extends Controller
     {
         $schoolId = $request->input('school_id');
         $filename = 'students_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
+
         return Excel::download(new StudentsExport($schoolId), $filename);
     }
 
@@ -604,7 +604,7 @@ class SuperAdminController extends Controller
     {
         $schoolId = $request->input('school_id');
         $filename = 'activities_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
+
         return Excel::download(new ActivitiesExport($schoolId), $filename);
     }
 
@@ -615,7 +615,7 @@ class SuperAdminController extends Controller
     {
         $schoolId = $request->input('school_id');
         $filename = 'teachers_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
+
         return Excel::download(new \App\Exports\TeachersExport($schoolId), $filename);
     }
 
@@ -626,7 +626,7 @@ class SuperAdminController extends Controller
     {
         $schoolId = $request->input('school_id');
         $filename = 'parents_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
+
         return Excel::download(new \App\Exports\ParentsExport($schoolId), $filename);
     }
 
@@ -636,8 +636,8 @@ class SuperAdminController extends Controller
     public function exportSchools()
     {
         $filename = 'schools_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
-        return Excel::download(new \App\Exports\SchoolsExport(), $filename);
+
+        return Excel::download(new \App\Exports\SchoolsExport, $filename);
     }
 
     /**
@@ -672,6 +672,7 @@ class SuperAdminController extends Controller
                 ->with('success', $message);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Student import failed', ['error' => $e->getMessage()]);
+
             return redirect()->route('admin.excel-management')
                 ->with('error', 'حدث خطأ أثناء الاستيراد');
         }
@@ -685,7 +686,7 @@ class SuperAdminController extends Controller
         $headers = ['الاسم', 'البريد الإلكتروني', 'كلمة المرور', 'الهاتف', 'تاريخ الميلاد'];
         $sample = ['أحمد محمد', 'student@example.com', '123456', '0501234567', '2010-05-15'];
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
         // Headers
@@ -700,14 +701,14 @@ class SuperAdminController extends Controller
         $sheet->getStyle('A1:E1')->getFont()->getColor()->setRGB('FFFFFF');
 
         // Auto width
-        foreach(range('A','E') as $col) {
+        foreach (range('A', 'E') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $filename = 'students_template.xlsx';
         $temp_file = tempnam(sys_get_temp_dir(), $filename);
-        
+
         $writer->save($temp_file);
 
         return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
@@ -720,14 +721,14 @@ class SuperAdminController extends Controller
     {
         $query = QuestionBank::with(['creator', 'lesson.concept.value', 'approver'])
             ->orderBy('created_at', 'desc');
-        
+
         // Filter by status if provided
         if ($request->has('status') && $request->status) {
             $query->where('status', $request->status);
         }
-        
+
         $questions = $query->paginate(50);
-        
+
         // إحصائيات
         $stats = [
             'total' => QuestionBank::count(),
@@ -735,7 +736,7 @@ class SuperAdminController extends Controller
             'approved' => QuestionBank::where('status', 'approved')->count(),
             'rejected' => QuestionBank::where('status', 'rejected')->count(),
         ];
-        
+
         return view('super-admin.question-bank', compact('questions', 'stats'));
     }
 
@@ -746,14 +747,14 @@ class SuperAdminController extends Controller
     {
         $user = Auth::user();
         $question = QuestionBank::findOrFail($id);
-        
+
         $question->approve($user->id);
-        
+
         // تحديث نقاط المعلم
         if ($question->created_by) {
             \App\Models\TeacherPoint::updateTeacherPoints($question->created_by);
         }
-        
+
         // إرسال إشعار للمعلم
         if ($question->created_by) {
             \App\Services\NotificationService::create(
@@ -761,13 +762,13 @@ class SuperAdminController extends Controller
                 'question_approved',
                 '✅ تمت الموافقة على سؤالك',
                 "تمت الموافقة على سؤالك: {$question->title}",
-                route('teacher.question-bank.index')
+                route('teacher.question-bank.index'),
             );
         }
-        
+
         return response()->json([
             'success' => true,
-            'message' => 'تمت الموافقة على السؤال بنجاح'
+            'message' => 'تمت الموافقة على السؤال بنجاح',
         ]);
     }
 
@@ -777,26 +778,26 @@ class SuperAdminController extends Controller
     public function rejectQuestion(Request $request, $id)
     {
         $request->validate([
-            'reason' => 'nullable|string|max:500'
+            'reason' => 'nullable|string|max:500',
         ]);
-        
+
         $user = Auth::user();
         $question = QuestionBank::findOrFail($id);
-        
+
         $question->reject($user->id, $request->reason);
-        
+
         // إرسال إشعار للمعلم
         \App\Services\NotificationService::create(
             $question->created_by,
             'question_rejected',
             '❌ تم رفض سؤالك',
-            "تم رفض سؤالك: {$question->title}" . ($request->reason ? ". السبب: {$request->reason}" : ""),
-            route('teacher.question-bank.index')
+            "تم رفض سؤالك: {$question->title}" . ($request->reason ? ". السبب: {$request->reason}" : ''),
+            route('teacher.question-bank.index'),
         );
-        
+
         return response()->json([
             'success' => true,
-            'message' => 'تم رفض السؤال بنجاح'
+            'message' => 'تم رفض السؤال بنجاح',
         ]);
     }
 
@@ -822,8 +823,8 @@ class SuperAdminController extends Controller
 
         // تنظيف الخيارات
         $options = null;
-        if ($validated['question_type'] === 'multiple_choice' && !empty($validated['options'])) {
-            $options = collect($validated['options'])->filter(fn($o) => !empty($o['text']))->values()->toArray();
+        if ($validated['question_type'] === 'multiple_choice' && ! empty($validated['options'])) {
+            $options = collect($validated['options'])->filter(fn ($o) => ! empty($o['text']))->values()->toArray();
         }
 
         $question = QuestionBank::create([
@@ -883,22 +884,22 @@ class SuperAdminController extends Controller
     public function storePvpChallenge(Request $request)
     {
         $validated = $request->validate([
-            'title'        => 'required|string|max:255',
-            'value_id'     => 'nullable|integer|exists:values,id',
-            'time_limit'   => 'required|integer|min:30|max:1800',
-            'difficulty'   => 'nullable|in:easy,medium,hard',
+            'title' => 'required|string|max:255',
+            'value_id' => 'nullable|integer|exists:values,id',
+            'time_limit' => 'required|integer|min:30|max:1800',
+            'difficulty' => 'nullable|in:easy,medium,hard',
             'question_ids' => 'required|array|min:1|max:50',
             'question_ids.*' => 'integer|exists:question_bank,id',
-            'is_active'    => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $challenge = \App\Models\PvpChallenge::create([
-            'title'      => $validated['title'],
-            'value_id'   => $validated['value_id'] ?? null,
+            'title' => $validated['title'],
+            'value_id' => $validated['value_id'] ?? null,
             'time_limit' => (int) $validated['time_limit'],
             'difficulty' => $validated['difficulty'] ?? 'medium',
-            'questions'  => array_map('intval', $validated['question_ids']),
-            'is_active'  => (bool) ($validated['is_active'] ?? true),
+            'questions' => array_map('intval', $validated['question_ids']),
+            'is_active' => (bool) ($validated['is_active'] ?? true),
             'created_by' => Auth::id(),
         ]);
 
@@ -912,7 +913,7 @@ class SuperAdminController extends Controller
     public function togglePvpChallenge($id)
     {
         $challenge = \App\Models\PvpChallenge::findOrFail($id);
-        $challenge->update(['is_active' => !$challenge->is_active]);
+        $challenge->update(['is_active' => ! $challenge->is_active]);
 
         return back()->with('success', $challenge->is_active ? 'تم تفعيل التحدي' : 'تم تعطيل التحدي');
     }
@@ -948,8 +949,8 @@ class SuperAdminController extends Controller
 
         // جلب صفحة الـ Landing أو إنشاء واحدة افتراضية
         $landingPage = PageBuilder::where('slug', 'home')->first();
-        
-        if (!$landingPage) {
+
+        if (! $landingPage) {
             $landingPage = PageBuilder::create([
                 'page_name' => 'الصفحة الرئيسية',
                 'slug' => 'home',
@@ -984,7 +985,7 @@ class SuperAdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم حفظ إعدادات الثيم بنجاح!'
+            'message' => 'تم حفظ إعدادات الثيم بنجاح!',
         ]);
     }
 
@@ -998,9 +999,9 @@ class SuperAdminController extends Controller
         ]);
 
         $landingPage = PageBuilder::where('slug', 'home')->first();
-        
-        if (!$landingPage) {
-            $landingPage = new PageBuilder();
+
+        if (! $landingPage) {
+            $landingPage = new PageBuilder;
             $landingPage->page_name = 'الصفحة الرئيسية';
             $landingPage->slug = 'home';
             $landingPage->is_active = true;
@@ -1011,7 +1012,7 @@ class SuperAdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم حفظ محتوى الصفحة بنجاح!'
+            'message' => 'تم حفظ محتوى الصفحة بنجاح!',
         ]);
     }
 
@@ -1047,7 +1048,7 @@ class SuperAdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم إضافة العنصر بنجاح!',
-            'block' => $newBlock
+            'block' => $newBlock,
         ]);
     }
 
@@ -1064,11 +1065,11 @@ class SuperAdminController extends Controller
         $blocks = $landingPage->json_data ?? [];
 
         $blockIndex = array_search($id, array_column($blocks, 'id'));
-        
+
         if ($blockIndex === false) {
             return response()->json([
                 'success' => false,
-                'message' => 'العنصر غير موجود'
+                'message' => 'العنصر غير موجود',
             ], 404);
         }
 
@@ -1079,7 +1080,7 @@ class SuperAdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم تحديث العنصر بنجاح!',
-            'block' => $blocks[$blockIndex]
+            'block' => $blocks[$blockIndex],
         ]);
     }
 
@@ -1092,11 +1093,11 @@ class SuperAdminController extends Controller
         $blocks = $landingPage->json_data ?? [];
 
         $blockIndex = array_search($id, array_column($blocks, 'id'));
-        
+
         if ($blockIndex === false) {
             return response()->json([
                 'success' => false,
-                'message' => 'العنصر غير موجود'
+                'message' => 'العنصر غير موجود',
             ], 404);
         }
 
@@ -1106,7 +1107,7 @@ class SuperAdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم حذف العنصر بنجاح!'
+            'message' => 'تم حذف العنصر بنجاح!',
         ]);
     }
 
@@ -1137,7 +1138,7 @@ class SuperAdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم إعادة ترتيب العناصر بنجاح!'
+            'message' => 'تم إعادة ترتيب العناصر بنجاح!',
         ]);
     }
 
@@ -1147,17 +1148,17 @@ class SuperAdminController extends Controller
     public function importCurrentLanding()
     {
         $landingPage = PageBuilder::where('slug', 'home')->firstOrFail();
-        
+
         // تحويل محتوى landing.blade.php إلى blocks
         $blocks = $this->parseLandingPageToBlocks();
-        
+
         $landingPage->json_data = $blocks;
         $landingPage->save();
 
         return response()->json([
             'success' => true,
             'message' => 'تم استيراد المحتوى من الصفحة الحالية بنجاح!',
-            'blocks' => $blocks
+            'blocks' => $blocks,
         ]);
     }
 
@@ -1167,7 +1168,7 @@ class SuperAdminController extends Controller
     private function parseLandingPageToBlocks()
     {
         $blocks = [];
-        
+
         // Hero Section
         $blocks[] = [
             'id' => 'block_hero_' . time(),
@@ -1178,8 +1179,8 @@ class SuperAdminController extends Controller
                 'buttonText' => 'ابدأ الآن',
                 'buttonLink' => '/register',
                 'secondaryButtonText' => 'اعرف المزيد',
-                'secondaryButtonLink' => '#features'
-            ]
+                'secondaryButtonLink' => '#features',
+            ],
         ];
 
         // Stats
@@ -1190,9 +1191,9 @@ class SuperAdminController extends Controller
                 'items' => [
                     ['label' => 'مدرسة', 'value' => '500+'],
                     ['label' => 'طالب', 'value' => '50k+'],
-                    ['label' => 'معلم', 'value' => '2k+']
-                ]
-            ]
+                    ['label' => 'معلم', 'value' => '2k+'],
+                ],
+            ],
         ];
 
         // Heading
@@ -1201,16 +1202,16 @@ class SuperAdminController extends Controller
             'type' => 'heading',
             'content' => [
                 'text' => 'لماذا قيمّ؟',
-                'level' => 'h2'
-            ]
+                'level' => 'h2',
+            ],
         ];
 
         $blocks[] = [
             'id' => 'block_paragraph_features_' . time(),
             'type' => 'paragraph',
             'content' => [
-                'text' => 'نظام متكامل بمميزات فريدة'
-            ]
+                'text' => 'نظام متكامل بمميزات فريدة',
+            ],
         ];
 
         // Features
@@ -1221,22 +1222,22 @@ class SuperAdminController extends Controller
                 'items' => [
                     [
                         'title' => 'QR فريد لكل مستخدم',
-                        'description' => 'كل طالب ومعلم لديه رمز QR خاص للدخول السريع وتسجيل الحضور والأنشطة'
+                        'description' => 'كل طالب ومعلم لديه رمز QR خاص للدخول السريع وتسجيل الحضور والأنشطة',
                     ],
                     [
                         'title' => 'لوحة صدارة ذكية',
-                        'description' => 'نظام تنافسي محفز يعرض أفضل الطلاب والفرق بناءً على الإنجازات والنقاط'
+                        'description' => 'نظام تنافسي محفز يعرض أفضل الطلاب والفرق بناءً على الإنجازات والنقاط',
                     ],
                     [
                         'title' => 'اقتراح أنشطة بالذكاء الاصطناعي',
-                        'description' => 'نظام ذكي يقترح أنشطة مخصصة لكل طالب حسب مستواه واهتماماته'
+                        'description' => 'نظام ذكي يقترح أنشطة مخصصة لكل طالب حسب مستواه واهتماماته',
                     ],
                     [
                         'title' => 'متابعة وتقييم المعلمين',
-                        'description' => 'أدوات شاملة لمتابعة أداء الطلاب وتقييمهم بطرق متنوعة ومرنة'
-                    ]
-                ]
-            ]
+                        'description' => 'أدوات شاملة لمتابعة أداء الطلاب وتقييمهم بطرق متنوعة ومرنة',
+                    ],
+                ],
+            ],
         ];
 
         // Heading - القيم
@@ -1245,16 +1246,16 @@ class SuperAdminController extends Controller
             'type' => 'heading',
             'content' => [
                 'text' => 'كيف نبني القيم؟',
-                'level' => 'h2'
-            ]
+                'level' => 'h2',
+            ],
         ];
 
         $blocks[] = [
             'id' => 'block_paragraph_values_' . time(),
             'type' => 'paragraph',
             'content' => [
-                'text' => 'منهجية متكاملة من القيمة إلى التطبيق العملي'
-            ]
+                'text' => 'منهجية متكاملة من القيمة إلى التطبيق العملي',
+            ],
         ];
 
         // CTA
@@ -1265,8 +1266,8 @@ class SuperAdminController extends Controller
                 'title' => 'جاهز للانضمام؟',
                 'description' => 'ابدأ رحلتك اليوم',
                 'buttonText' => 'ابدأ مجاناً',
-                'buttonLink' => '/register'
-            ]
+                'buttonLink' => '/register',
+            ],
         ];
 
         return $blocks;
@@ -1321,7 +1322,7 @@ class SuperAdminController extends Controller
             'is_featured' => false,
             'featured_by' => null,
             'featured_at' => null,
-            'featured_reason' => null
+            'featured_reason' => null,
         ]);
 
         return back()->with('success', 'تم إلغاء تمييز النشاط بنجاح');
@@ -1335,6 +1336,7 @@ class SuperAdminController extends Controller
     public function onlineUsers()
     {
         $data = $this->getOnlineUsersData();
+
         return view('admin.online-users', $data);
     }
 
@@ -1344,6 +1346,7 @@ class SuperAdminController extends Controller
     public function onlineUsersApi()
     {
         $data = $this->getOnlineUsersData();
+
         return response()->json($data);
     }
 
@@ -1378,6 +1381,7 @@ class SuperAdminController extends Controller
                 $user->online_since = $minutesAgo <= 1 ? 'الآن' : "منذ {$minutesAgo} دقيقة";
                 $user->role_ar = User::getRoleNameAr($user->role);
                 $user->role_icon = User::getRoleIcon($user->role);
+
                 return $user;
             });
 
@@ -1413,7 +1417,7 @@ class SuperAdminController extends Controller
     public function educationLevels()
     {
         $levels = \App\Models\EducationLevel::ordered()
-            ->with(['academicYears' => fn($q) => $q->ordered()])
+            ->with(['academicYears' => fn ($q) => $q->ordered()])
             ->withCount('schools')
             ->get();
 
@@ -1558,5 +1562,3 @@ class SuperAdminController extends Controller
         ]);
     }
 }
-
-
