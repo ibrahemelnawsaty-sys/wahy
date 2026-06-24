@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Storage;
 class SubmitActivityAction
 {
     /**
-     * @param  array<string, mixed> $payload  ['answer' => ..., 'file' => UploadedFile|null]
+     * @param  array<string, mixed>  $payload  ['answer' => ..., 'file' => UploadedFile|null]
      */
     public function execute(User $student, Activity $activity, array $payload): array
     {
@@ -40,7 +40,7 @@ class SubmitActivityAction
         if (isset($payload['file']) && $payload['file'] instanceof UploadedFile) {
             $uploadedPath = $payload['file']->store(
                 'activity-submissions/' . $student->id,
-                'public'
+                'public',
             );
         }
 
@@ -67,18 +67,18 @@ class SubmitActivityAction
 
                 if ($exists) {
                     return [
-                        'success'   => false,
+                        'success' => false,
                         'duplicate' => true,
-                        'message'   => 'تم إرسال هذا النشاط مسبقاً',
+                        'message' => 'تم إرسال هذا النشاط مسبقاً',
                     ];
                 }
 
                 $submission = ActivitySubmission::create([
-                    'student_id'   => $student->id,
-                    'activity_id'  => $activity->id,
-                    'answer'       => $answerToStore,
-                    'status'       => $status,
-                    'score'        => $score,
+                    'student_id' => $student->id,
+                    'activity_id' => $activity->id,
+                    'answer' => $answerToStore,
+                    'status' => $status,
+                    'score' => $score,
                     'submitted_at' => now(),
                 ]);
 
@@ -104,18 +104,21 @@ class SubmitActivityAction
                 }
 
                 return [
-                    'success'         => true,
-                    'submission'      => $submission,
-                    'xp_earned'       => $xp,
+                    'success' => true,
+                    'submission' => $submission,
+                    'xp_earned' => $xp,
                     'activity_points' => $activityPoints,
-                    'score'           => $score,
-                    'duplicate'       => false,
+                    'score' => $score,
+                    'duplicate' => false,
                 ];
             }, 3);
         } catch (\Throwable $e) {
             // تنظيف الملف المرفوع لو فشلت المعاملة
             if ($uploadedPath) {
-                try { Storage::disk('public')->delete($uploadedPath); } catch (\Throwable $ignore) {}
+                try {
+                    Storage::disk('public')->delete($uploadedPath);
+                } catch (\Throwable $ignore) {
+                }
             }
             throw $e;
         }
@@ -127,8 +130,8 @@ class SubmitActivityAction
     {
         if ($uploadedPath) {
             return json_encode([
-                'note'     => is_array($rawAnswer) ? null : $rawAnswer,
-                'file'     => $uploadedPath,
+                'note' => is_array($rawAnswer) ? null : $rawAnswer,
+                'file' => $uploadedPath,
                 'file_url' => Storage::url($uploadedPath),
             ], JSON_UNESCAPED_UNICODE);
         }

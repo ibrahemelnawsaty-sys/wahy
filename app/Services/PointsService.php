@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Enums\UserRole;
-use App\Models\User;
-use App\Models\School;
-use App\Models\Point;
-use App\Models\TeacherPoint;
 use App\Models\ParentPoint;
+use App\Models\Point;
+use App\Models\School;
 use App\Models\SchoolPoint;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class PointsService
 {
@@ -18,12 +16,12 @@ class PointsService
      * نسبة نقاط المعلم من نقاط الطالب
      */
     const TEACHER_PERCENTAGE = 0.1; // 10%
-    
+
     /**
      * نسبة نقاط ولي الأمر من نقاط الطالب
      */
     const PARENT_PERCENTAGE = 0.05; // 5%
-    
+
     /**
      * نسبة نقاط المدرسة من نقاط الطالب
      */
@@ -33,13 +31,13 @@ class PointsService
      * إضافة نقاط للطالب مع توزيع النقاط
      */
     public static function awardStudentPoints(
-        int $studentId, 
-        int $points, 
-        string $source, 
-        ?string $description = null
+        int $studentId,
+        int $points,
+        string $source,
+        ?string $description = null,
     ): array {
         $student = User::find($studentId);
-        if (!$student || $student->role !== 'student') {
+        if (! $student || $student->role !== 'student') {
             return ['success' => false, 'message' => 'الطالب غير موجود'];
         }
 
@@ -94,12 +92,14 @@ class PointsService
             ->select('classrooms.teacher_id')
             ->first();
 
-        if (!$classroom || !$classroom->teacher_id) {
+        if (! $classroom || ! $classroom->teacher_id) {
             return null;
         }
 
         $teacherPoints = (int) floor($points * self::TEACHER_PERCENTAGE);
-        if ($teacherPoints < 1) $teacherPoints = 1;
+        if ($teacherPoints < 1) {
+            $teacherPoints = 1;
+        }
 
         // إنشاء سجل نقاط
         $record = DB::table('teacher_points')->insertGetId([
@@ -118,7 +118,7 @@ class PointsService
         return [
             'id' => $classroom->teacher_id,
             'points' => $teacherPoints,
-            'reason' => "من نشاط الطالب: {$description}"
+            'reason' => "من نشاط الطالب: {$description}",
         ];
     }
 
@@ -132,12 +132,14 @@ class PointsService
             ->where('student_id', $studentId)
             ->first();
 
-        if (!$parentRelation) {
+        if (! $parentRelation) {
             return null;
         }
 
         $parentPoints = (int) floor($points * self::PARENT_PERCENTAGE);
-        if ($parentPoints < 1) $parentPoints = 1;
+        if ($parentPoints < 1) {
+            $parentPoints = 1;
+        }
 
         // إنشاء سجل نقاط
         ParentPoint::create([
@@ -153,7 +155,7 @@ class PointsService
         return [
             'id' => $parentRelation->parent_id,
             'points' => $parentPoints,
-            'reason' => "من نشاط الطفل"
+            'reason' => 'من نشاط الطفل',
         ];
     }
 
@@ -163,12 +165,14 @@ class PointsService
     private static function calculateSchoolPoints(int $studentId, int $points, string $source, ?string $description): ?array
     {
         $student = User::find($studentId);
-        if (!$student || !$student->school_id) {
+        if (! $student || ! $student->school_id) {
             return null;
         }
 
         $schoolPoints = (int) floor($points * self::SCHOOL_PERCENTAGE);
-        if ($schoolPoints < 1) $schoolPoints = 1;
+        if ($schoolPoints < 1) {
+            $schoolPoints = 1;
+        }
 
         // إنشاء سجل نقاط
         SchoolPoint::addPoints(
@@ -176,13 +180,13 @@ class PointsService
             $schoolPoints,
             'student_activity',
             "من نشاط الطالب: {$description}",
-            $studentId
+            $studentId,
         );
 
         return [
             'id' => $student->school_id,
             'points' => $schoolPoints,
-            'reason' => "من نشاط الطالب"
+            'reason' => 'من نشاط الطالب',
         ];
     }
 
@@ -200,7 +204,9 @@ class PointsService
                     ->selectRaw('COALESCE(SUM(points), 0) as total_points')
                     ->groupBy('teacher_id'),
                 'tp_sum',
-                'tp_sum.teacher_id', '=', 'users.id'
+                'tp_sum.teacher_id',
+                '=',
+                'users.id',
             )
             ->select('users.id', 'users.name', 'users.avatar', 'users.school_id')
             ->selectRaw('COALESCE(tp_sum.total_points, 0) as total_points');
@@ -214,6 +220,7 @@ class PointsService
             ->get();
 
         $rank = 1;
+
         return $teachers->map(function ($teacher) use (&$rank) {
             return [
                 'rank' => $rank++,
@@ -240,7 +247,9 @@ class PointsService
                     ->selectRaw('COALESCE(SUM(points), 0) as total_points')
                     ->groupBy('parent_id'),
                 'pp_sum',
-                'pp_sum.parent_id', '=', 'users.id'
+                'pp_sum.parent_id',
+                '=',
+                'users.id',
             )
             ->select('users.id', 'users.name', 'users.avatar', 'users.school_id')
             ->selectRaw('COALESCE(pp_sum.total_points, 0) as total_points');
@@ -254,6 +263,7 @@ class PointsService
             ->get();
 
         $rank = 1;
+
         return $parents->map(function ($parent) use (&$rank) {
             $childrenCount = DB::table('parent_student')
                 ->where('parent_id', $parent->id)
@@ -282,6 +292,7 @@ class PointsService
             ->get();
 
         $rank = 1;
+
         return $schools->map(function ($school) use (&$rank) {
             // إحصائيات المدرسة
             $studentsCount = User::where('school_id', $school->id)
@@ -331,6 +342,7 @@ class PointsService
             ->get();
 
         $rank = 1;
+
         return $students->map(function ($student) use (&$rank) {
             return [
                 'rank' => $rank++,

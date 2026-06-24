@@ -3,20 +3,20 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, LogsActivity, HasApiTokens, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable;
 
     /**
      * Activity Log Options
@@ -27,7 +27,7 @@ class User extends Authenticatable
             ->logOnly(['name', 'email', 'role', 'school_id', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "المستخدم {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "المستخدم {$eventName}");
     }
 
     /**
@@ -38,7 +38,7 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::saving(function (self $user) {
-            if (!$user->exists) {
+            if (! $user->exists) {
                 return; // creation handled by explicit controllers; allow.
             }
 
@@ -116,7 +116,7 @@ class User extends Authenticatable
     }
 
     // ==================== Query Scopes للأداء ====================
-    
+
     /**
      * Scope للمستخدمين النشطين
      */
@@ -139,6 +139,7 @@ class User extends Authenticatable
     public function hasRoleEnum(\App\Enums\UserRole|string $role): bool
     {
         $value = $role instanceof \App\Enums\UserRole ? $role->value : $role;
+
         return $this->role === $value;
     }
 
@@ -430,7 +431,7 @@ class User extends Authenticatable
     {
         return LessonUserStreak::firstOrCreate(
             ['user_id' => $this->id, 'lesson_id' => $lessonId],
-            ['completed_days' => 0, 'activity_dates' => []]
+            ['completed_days' => 0, 'activity_dates' => []],
         );
     }
 
@@ -468,15 +469,16 @@ class User extends Authenticatable
      */
     public function getAgeAttribute(): ?int
     {
-        if (!$this->birth_date) {
+        if (! $this->birth_date) {
             return null;
         }
+
         return $this->birth_date->age;
     }
 
     /**
      * الحصول على رابط صورة الملف الشخصي
-     * 
+     *
      * الـ public disk root = storage/app/public/data
      * الـ store() يحفظ مثلاً: avatars/file.jpg (نسبي للـ disk root)
      * الملف الفعلي: storage/app/public/data/avatars/file.jpg
@@ -524,7 +526,7 @@ class User extends Authenticatable
 
         return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
     }
-    
+
     /**
      * الحصول على الدور النشط (الحالي)
      */
@@ -534,16 +536,16 @@ class User extends Authenticatable
         if (session()->has('active_role_' . $this->id)) {
             return session('active_role_' . $this->id);
         }
-        
+
         // إذا كان هناك دور نشط محفوظ في الـ database
         if (isset($this->attributes['active_role']) && $this->attributes['active_role']) {
             return $this->attributes['active_role'];
         }
-        
+
         // الدور الافتراضي
         return $this->attributes['role'];
     }
-    
+
     /**
      * الحصول على الدور الحالي (مع دعم تبديل الأدوار)
      */
@@ -551,21 +553,21 @@ class User extends Authenticatable
     {
         return session('active_role_' . $this->id, $this->attributes['active_role'] ?? $this->attributes['role']);
     }
-    
+
     /**
      * الحصول على جميع الأدوار المتاحة للمستخدم
      */
     public function getAllRoles(): array
     {
         $roles = [$this->role];
-        
+
         if ($this->secondary_roles && is_array($this->secondary_roles)) {
             $roles = array_merge($roles, $this->secondary_roles);
         }
-        
+
         return array_unique($roles);
     }
-    
+
     /**
      * التحقق من وجود أدوار متعددة
      */
@@ -573,27 +575,27 @@ class User extends Authenticatable
     {
         return count($this->getAllRoles()) > 1;
     }
-    
+
     /**
      * تبديل الدور النشط
      */
     public function switchRole(string $role): bool
     {
         $availableRoles = $this->getAllRoles();
-        
-        if (!in_array($role, $availableRoles)) {
+
+        if (! in_array($role, $availableRoles)) {
             return false;
         }
-        
+
         // حفظ في الـ session
         session(['active_role_' . $this->id => $role]);
-        
+
         // حفظ في الـ database أيضاً (اختياري)
         $this->update(['active_role' => $role]);
-        
+
         return true;
     }
-    
+
     /**
      * الحصول على اسم الدور بالعربي
      */
@@ -606,10 +608,10 @@ class User extends Authenticatable
             'parent' => 'ولي أمر',
             'student' => 'طالب',
         ];
-        
+
         return $roleNames[$role] ?? $role;
     }
-    
+
     /**
      * الحصول على أيقونة الدور
      */
@@ -622,10 +624,10 @@ class User extends Authenticatable
             'parent' => 'fas fa-users',
             'student' => 'fas fa-user-graduate',
         ];
-        
+
         return $roleIcons[$role] ?? 'fas fa-user';
     }
-    
+
     /**
      * الحصول على رابط الداشبورد حسب الدور
      */
@@ -638,7 +640,7 @@ class User extends Authenticatable
             'parent' => '/parent/dashboard',
             'student' => '/student/dashboard',
         ];
-        
+
         return $routes[$role] ?? '/dashboard';
     }
 
