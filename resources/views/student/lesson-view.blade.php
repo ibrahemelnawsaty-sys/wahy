@@ -1,0 +1,599 @@
+@extends('layouts.student-app')
+
+@section('title', $lesson->title ?? 'الدرس')
+
+@push('styles')
+<style>
+    /* Lesson View - خلفية أهدأ بصرياً (Issues #87, #99)
+       الافتراضي = أزرق/بنفسجي متناسق مع باقي صفحات الطالب (ليس الأسود القاسي).
+       الوضع الفاتح يستخدم html[data-theme="light"] (متوافق مع الـ toggle العالمي). */
+    body {
+        background: linear-gradient(135deg, #4c51bf 0%, #5b21b6 50%, #6d28d9 100%);
+    }
+    html[data-theme="light"] body {
+        background: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 50%, #fce7f3 100%);
+        color: #1e293b;
+    }
+    html[data-theme="light"] .rich-content { color: #1e293b; }
+    html[data-theme="light"] .content-text { color: #334155; }
+    html[data-theme="light"] .lesson-header { background: rgba(255,255,255,0.7); }
+    html[data-theme="light"] .lesson-back-btn { color: #334155; background: rgba(0,0,0,0.06); }
+    html[data-theme="light"] .section-type-badge { color: #475569; background: rgba(0,0,0,0.04); }
+    
+    .lesson-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--spacing-lg) var(--spacing-md);
+        padding-bottom: 120px;
+    }
+    
+    /* Minimal Header */
+    .lesson-header {
+        background: var(--glass-bg-light);
+        backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .lesson-back-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 10px 20px;
+        border-radius: var(--radius-full);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .lesson-back-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(5px);
+    }
+    
+    .lesson-progress-bar {
+        flex: 1;
+        max-width: 400px;
+        margin: 0 var(--spacing-lg);
+    }
+    
+    .progress-bar-track {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-full);
+        height: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .progress-bar-fill {
+        background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+        height: 100%;
+        border-radius: var(--radius-full);
+        transition: width var(--transition-slow);
+    }
+    
+    .progress-text {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        text-align: center;
+        margin-top: 6px;
+    }
+    
+    /* Main Content Card */
+    .lesson-content-card {
+        background: var(--glass-bg-heavy);
+        backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-2xl);
+        padding: var(--spacing-2xl);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .lesson-title-section {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+        padding-bottom: var(--spacing-xl);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .lesson-icon-large {
+        font-size: 64px;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .lesson-title-main {
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .lesson-meta-info {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-lg);
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    /* Content Section */
+    .content-section {
+        margin-bottom: var(--spacing-2xl);
+    }
+    
+    .section-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: white;
+        padding: 6px 16px;
+        border-radius: var(--radius-full);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .content-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+        line-height: 1.8;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    /* تنسيق محتوى محرر النصوص الغني داخل الدرس (Issue #20)
+       اللون الأبيض يُطبَّق فقط على .rich-content نفسه ليرث عبر الأبناء بدون
+       تجاوز ألوان المحرر (<font color>, <span style="color:...">). */
+    .rich-content { color: rgba(255, 255, 255, 0.9); }
+    .rich-content p { margin-bottom: 12px; }
+    .rich-content img { max-width: 100%; border-radius: 10px; margin: 12px 0; height: auto; }
+    .rich-content a { color: #60a5fa; text-decoration: underline; }
+    .rich-content ul, .rich-content ol { padding-right: 24px; margin-bottom: 12px; }
+    .rich-content li { margin-bottom: 6px; }
+    .rich-content b, .rich-content strong { font-weight: 700; }
+    .rich-content h1, .rich-content h2, .rich-content h3 { margin-bottom: 10px; }
+    /* عرض الصور المُدرَجة بحجم مناسب */
+    .rich-content figure, .rich-content figure img { max-width: 100%; }
+    
+    /* Video/Media Container */
+    .media-container {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        margin: var(--spacing-lg) 0;
+        aspect-ratio: 16/9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .media-placeholder {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .media-placeholder-icon {
+        font-size: 64px;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    /* Activities List */
+    .activities-section {
+        margin-top: var(--spacing-2xl);
+    }
+    
+    .section-header {
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: var(--spacing-lg);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .activity-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .activity-card:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(-8px);
+        border-color: var(--color-primary);
+    }
+    
+    .activity-card.completed {
+        border-color: var(--color-success);
+        background: rgba(34, 197, 94, 0.1);
+    }
+    
+    .activity-info {
+        flex: 1;
+    }
+    
+    .activity-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 6px;
+    }
+    
+    .activity-meta {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        gap: var(--spacing-md);
+    }
+    
+    .activity-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: var(--radius-full);
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .activity-status.completed {
+        background: linear-gradient(135deg, var(--color-success), #16A34A);
+        color: white;
+    }
+    
+    .activity-status.pending {
+        background: linear-gradient(135deg, var(--color-warning), #D97706);
+        color: white;
+    }
+    
+    .activity-status.locked {
+        background: rgba(203, 213, 224, 0.2);
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .activity-status.available {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+        color: white;
+    }
+    
+    /* Floating Action Button */
+    .floating-cta {
+        position: fixed;
+        bottom: calc(80px + var(--spacing-lg));
+        right: var(--spacing-lg);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-success));
+        color: white;
+        padding: 16px 32px;
+        border-radius: var(--radius-full);
+        font-weight: 700;
+        font-size: 16px;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: none;
+    }
+    
+    .floating-cta:hover {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 12px 32px rgba(16, 185, 129, 0.6);
+    }
+    
+    .floating-cta:active {
+        transform: translateY(-2px) scale(1.02);
+    }
+    
+    /* XP Reward Badge */
+    .xp-badge {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #7C3AED;
+        padding: 8px 16px;
+        border-radius: var(--radius-full);
+        font-weight: 700;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    }
+    
+    @media (max-width: 767px) {
+        .lesson-header {
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        
+        .lesson-progress-bar {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+        }
+        
+        .floating-cta {
+            right: 50%;
+            transform: translateX(50%);
+            bottom: calc(80px + var(--spacing-md));
+        }
+        
+        .floating-cta:hover {
+            transform: translateX(50%) translateY(-4px) scale(1.05);
+        }
+    }
+</style>
+@endpush
+
+@section('content')
+<div class="container-wrapper" style="padding-top: 100px; padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">
+<div class="lesson-container fade-in">
+
+    <!-- Streak Progress Card -->
+    @if($lesson->hasStreakEnabled() && isset($lessonStreak))
+    <div class="streak-progress-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 2px solid #f59e0b;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 36px;">🔥</span>
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #92400e; margin: 0;">مكافأة الالتزام</h3>
+                    <p style="font-size: 13px; color: #b45309; margin: 4px 0 0 0;">
+                        @if($lessonStreak->bonus_claimed)
+                            ✅ حصلت على المكافأة!
+                        @else
+                            أكمل أنشطة في <strong>{{ $lesson->streak_min_days }}</strong> أيام للحصول على <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة إضافية
+                        @endif
+                    </p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; min-width: 120px;">
+                <div style="font-size: 32px; font-weight: 700; color: #92400e;">
+                    {{ $lessonStreak->completed_days }} / {{ $lesson->streak_min_days }}
+                </div>
+                <div style="font-size: 12px; color: #b45309;">يوم مكتمل</div>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div style="margin-top: 15px;">
+            <div style="background: rgba(255,255,255,0.5); border-radius: 10px; height: 12px; overflow: hidden;">
+                <div style="background: linear-gradient(90deg, #f59e0b, #d97706); height: 100%; border-radius: 10px; transition: width 0.5s; width: {{ $lessonStreak->getProgressPercentage() }}%;"></div>
+            </div>
+            @if(!$lessonStreak->bonus_claimed)
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #92400e;">
+                <span>{{ $lessonStreak->completed_days > 0 ? 'استمر!' : 'ابدأ اليوم!' }}</span>
+                <span>{{ max(0, $lesson->streak_min_days - $lessonStreak->completed_days) }} أيام متبقية</span>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
+    <!-- Minimal Header with Progress -->
+    <div class="lesson-header">
+        <button class="lesson-back-btn" onclick="window.location.href='{{ route('student.path') }}'">
+            <span>←</span>
+            <span>رجوع</span>
+        </button>
+        
+        <div class="lesson-progress-bar">
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" style="width: {{ $completionPercent }}%"></div>
+            </div>
+            <div class="progress-text">{{ $completedActivities }} من {{ $totalActivities }} أنشطة</div>
+        </div>
+        
+        <div class="xp-badge">
+            <span>⭐</span>
+            <span>{{ $lesson->points ?? 10 }} XP</span>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="lesson-content-card scale-in">
+        <!-- Title Section -->
+        <div class="lesson-title-section">
+            <div class="lesson-icon-large">📖</div>
+            <h1 class="lesson-title-main">{{ $lesson->title }}</h1>
+            <div class="lesson-meta-info">
+                <div class="meta-item">
+                    <span>⏱️</span>
+                    <span>{{ $lesson->duration ?? 10 }} دقيقة</span>
+                </div>
+                <div class="meta-item">
+                    <span>📚</span>
+                    <span>{{ $lesson->type ?? 'نظري' }}</span>
+                </div>
+                <div class="meta-item">
+                    <span>🎯</span>
+                    <span>{{ $totalActivities }} أنشطة</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        @if($lesson->content)
+        <div class="content-section">
+            <span class="section-type-badge">
+                <span>📝</span>
+                <span>محتوى الدرس</span>
+            </span>
+            <div class="content-text rich-content">
+                {!! safe_html($lesson->content) !!}
+            </div>
+        </div>
+        @endif
+
+        <!-- Video Section -->
+        @if(!empty($lesson->video_url))
+        @php
+            $videoUrl = $lesson->video_url;
+            // Convert YouTube URLs to embed format
+            if (preg_match('/youtu\.be\/([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
+                $videoUrl = 'https://www.youtube-nocookie.com/embed/' . $matches[1];
+            } elseif (preg_match('/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
+                $videoUrl = 'https://www.youtube-nocookie.com/embed/' . $matches[1];
+            } elseif (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
+                $videoUrl = 'https://www.youtube-nocookie.com/embed/' . $matches[1];
+            }
+        @endphp
+        <div class="content-section">
+            <span class="section-type-badge">
+                <span>🎥</span>
+                <span>فيديو تعليمي</span>
+            </span>
+            <div class="media-container">
+                <iframe 
+                    src="{{ $videoUrl }}" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                    style="width: 100%; height: 100%;">
+                </iframe>
+            </div>
+        </div>
+        @endif
+
+        <!-- Video File (uploaded) Section -->
+        @if(!empty($lesson->video_file))
+        <div class="content-section">
+            <span class="section-type-badge">
+                <span>🎥</span>
+                <span>فيديو تعليمي</span>
+            </span>
+            <div class="media-container">
+                <video controls style="width: 100%; height: 100%;">
+                    <source src="{{ asset('storage/' . ltrim($lesson->video_file, '/')) }}">
+                    متصفحك لا يدعم تشغيل الفيديو.
+                </video>
+            </div>
+        </div>
+        @endif
+
+        <!-- Audio Section -->
+        @if(!empty($lesson->audio_url))
+        <div class="content-section">
+            <span class="section-type-badge">
+                <span>🎧</span>
+                <span>مقطع صوتي</span>
+            </span>
+            <audio controls style="width: 100%; margin-top: var(--spacing-md);">
+                <source src="{{ $lesson->audio_url }}" type="audio/mpeg">
+                متصفحك لا يدعم تشغيل الملفات الصوتية.
+            </audio>
+        </div>
+        @endif
+
+        <!-- Audio File (uploaded) Section -->
+        @if(!empty($lesson->audio_file))
+        <div class="content-section">
+            <span class="section-type-badge">
+                <span>🎧</span>
+                <span>مقطع صوتي</span>
+            </span>
+            <audio controls style="width: 100%; margin-top: var(--spacing-md);">
+                <source src="{{ asset('storage/' . ltrim($lesson->audio_file, '/')) }}">
+                متصفحك لا يدعم تشغيل الملفات الصوتية.
+            </audio>
+        </div>
+        @endif
+    </div>
+
+    <!-- Activities Section -->
+    @if($activities->count() > 0)
+    <div class="activities-section slide-up">
+        <h2 class="section-header">
+            <span style="font-size: 32px;">🎯</span>
+            <span>الأنشطة والتمارين</span>
+        </h2>
+
+        @foreach($activities as $index => $activity)
+        <div class="activity-card {{ $activity->status ?? 'available' }}" 
+             onclick="{{ in_array($activity->status ?? '', ['completed', 'available', 'pending', 'approved', 'needs_review']) ? "window.location.href='" . route('student.activity', $activity->id) . "'" : '' }}">
+            <div class="activity-info">
+                <div class="activity-title">
+                    {{ $index + 1 }}. {{ $activity->title }}
+                </div>
+                <div class="activity-meta">
+                    <span>{{ $activity->type ?? 'تمرين' }}</span>
+                    <span>•</span>
+                    <span>{{ $activity->points ?? 5 }} XP</span>
+                </div>
+            </div>
+            
+            <div class="activity-status {{ $activity->status ?? 'available' }}">
+                @if(in_array($activity->status ?? '', ['completed', 'approved'], true))
+                    <span>✓</span>
+                    <span>مكتمل</span>
+                @elseif(in_array($activity->status ?? '', ['pending', 'needs_review'], true))
+                    <span>⏳</span>
+                    <span>قيد المراجعة</span>
+                @elseif(($activity->status ?? '') == 'locked')
+                    <span>🔒</span>
+                    <span>مقفل</span>
+                @else
+                    <span>▶</span>
+                    <span>ابدأ</span>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
+    @if($activities->isEmpty())
+    <div class="lesson-content-card" style="text-align: center; padding: 60px 40px;">
+        <div style="font-size: 64px; margin-bottom: 20px;">🎯</div>
+        <h3 style="font-size: 24px; font-weight: 700; color: white; margin-bottom: 12px;">لا توجد أنشطة حالياً</h3>
+        <p style="font-size: 16px; color: rgba(255,255,255,0.7);">سيتم إضافة الأنشطة قريباً</p>
+    </div>
+    @endif
+</div>
+
+<!-- Floating CTA -->
+@if($nextActivity)
+<button class="floating-cta" onclick="window.location.href='{{ route('student.activity', $nextActivity->id) }}'">
+    <span>{{ $nextActivity->status == 'completed' ? 'مراجعة النشاط' : 'ابدأ النشاط' }}</span>
+    <span style="font-size: 20px;">→</span>
+</button>
+@endif
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // Auto-scroll to first incomplete activity
+    const firstIncomplete = document.querySelector('.activity-card.available');
+    if (firstIncomplete) {
+        setTimeout(() => {
+            firstIncomplete.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+    }
+</script>
+@endpush

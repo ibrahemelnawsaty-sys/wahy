@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Requirements Specification - نظام قِيَم التعليمي</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
+        }
+
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .meta-item strong {
+            color: var(--dark);
+        }
+
+        /* Navigation */
+        .nav-container {
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+            margin-bottom: 2rem;
+        }
+
+        .nav {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+        }
+
+        .nav h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.7rem 1rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            transform: translateX(-5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Content Sections */
+        .section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .section-icon {
+            font-size: 2rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .section h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            flex: 1;
+        }
+
+        .section h3 {
+            font-size: 1.4rem;
+            color: var(--secondary);
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section h4 {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin: 1rem 0 0.5rem;
+        }
+
+        /* Priority Badges */
+        .priority {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .priority-high {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .priority-medium {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .priority-low {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        /* Status Badges */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-complete {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .status-progress {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+            padding-right: 0.5rem;
+        }
+
+        li::marker {
+            color: var(--primary);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        tbody tr {
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: scale(1.01);
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-right: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .info-card strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-card h5 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .nav-container {
+                display: none;
+            }
+            .section {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            .header-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .section {
+                padding: 1.5rem;
+            }
+            .nav-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">📋</div>
+            <h1>System Requirements Specification (SRS)</h1>
+            <p style="font-size: 1.2rem; color: #64748b; margin-top: 0.5rem;">نظام قِيَم التعليمي - الوثيقة الرسمية لمتطلبات النظام</p>
+            <div class="header-meta">
+                <div class="meta-item">
+                    <strong>📅 التاريخ:</strong> يناير 22, 2026
+                </div>
+                <div class="meta-item">
+                    <strong>📌 الإصدار:</strong> 2.0.0
+                </div>
+                <div class="meta-item">
+                    <strong>🔒 التصنيف:</strong> سري
+                </div>
+                <div class="meta-item">
+                    <strong>✅ الحالة:</strong> مكتمل ومعتمد
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-container">
+            <nav class="nav">
+                <h3>🗺️ فهرس المحتويات</h3>
+                <div class="nav-links">
+                    <a href="#project-overview" class="nav-link">📖 نظرة عامة على المشروع</a>
+                    <a href="#auth-system" class="nav-link">🔐 نظام المصادقة</a>
+                    <a href="#super-admin" class="nav-link">👑 نظام Super Admin</a>
+                    <a href="#school-admin" class="nav-link">🏫 نظام School Admin</a>
+                    <a href="#teacher" class="nav-link">👨‍🏫 نظام المعلم</a>
+                    <a href="#student" class="nav-link">👨‍🎓 نظام الطالب</a>
+                    <a href="#parent" class="nav-link">👪 نظام ولي الأمر</a>
+                    <a href="#teams" class="nav-link">👥 نظام الفرق</a>
+                    <a href="#non-functional" class="nav-link">⚙️ المتطلبات غير الوظيفية</a>
+                    <a href="#database" class="nav-link">🗄️ قاعدة البيانات</a>
+                    <a href="#technologies" class="nav-link">🛠️ التقنيات المستخدمة</a>
+                    <a href="#phases" class="nav-link">🚀 مراحل التطوير</a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Section 1: Project Overview -->
+        <section id="project-overview" class="section">
+            <div class="section-header">
+                <span class="section-icon">📖</span>
+                <h2>1. نظرة عامة على المشروع</h2>
+            </div>
+
+            <h3>1.1 الهدف من المشروع</h3>
+            <p><strong>قِيَم</strong> هو نظام تعليمي متكامل يهدف إلى تعليم القيم الإسلامية والأخلاقية للطلاب من خلال منصة تفاعلية تجمع بين:</p>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>📚 المحتوى التعليمي الهرمي</h5>
+                    <p>قيم → مفاهيم → معانٍ → دروس → أنشطة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🎮 نظام Gamification</h5>
+                    <p>نقاط، عملات، شارات، تيجان، Streaks</p>
+                </div>
+                <div class="feature-card">
+                    <h5>👥 إدارة متعددة المستويات</h5>
+                    <p>Super Admin, School Admin, Teacher, Student, Parent</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📊 تقارير وتحليلات شاملة</h5>
+                    <p>متابعة التقدم والأداء والإحصائيات</p>
+                </div>
+            </div>
+
+            <h3>1.2 نطاق المشروع</h3>
+            <div class="info-card">
+                <strong>الفئات المستهدفة:</strong>
+                <ul>
+                    <li><strong>المدارس:</strong> إدارة المحتوى والمستخدمين والفصول</li>
+                    <li><strong>المعلمون:</strong> متابعة تقدم الطلاب ومراجعة الأنشطة</li>
+                    <li><strong>الطلاب:</strong> التعلم التفاعلي وإنجاز الأنشطة</li>
+                    <li><strong>أولياء الأمور:</strong> متابعة أداء الأبناء</li>
+                </ul>
+            </div>
+
+            <h3>1.3 الجمهور المستهدف</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">50K+</div>
+                    <div class="stat-label">طالب</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1000+</div>
+                    <div class="stat-label">مدرسة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">أدوار مستخدمين</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">تجربة تفاعلية</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Authentication System -->
+        <section id="auth-system" class="section">
+            <div class="section-header">
+                <span class="section-icon">🔐</span>
+                <h2>2. المتطلبات الوظيفية</h2>
+            </div>
+
+            <h3>2.1 نظام المصادقة والأمان (FR-AUTH)</h3>
+
+            <h4>FR-AUTH-001: تسجيل الدخول</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li><strong>البريد الإلكتروني + كلمة المرور</strong></li>
+                <li>التحقق من صلاحية الحساب (Active/Inactive)</li>
+                <li>التحقق من دور المستخدم (Role-based Access)</li>
+                <li>إعادة التوجيه حسب الدور</li>
+            </ul>
+
+            <h4>FR-AUTH-002: المصادقة الثنائية (2FA)</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>توليد رمز OTP (6 أرقام) صالح لمدة 10 دقائق</li>
+                <li>إرسال الرمز عبر البريد الإلكتروني</li>
+                <li>التحقق من الرمز قبل تسجيل الدخول</li>
+                <li>إمكانية تفعيل/تعطيل 2FA من إعدادات الحساب</li>
+            </ul>
+
+            <h4>FR-AUTH-003: كلمات المرور المؤقتة</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>توليد كلمة مرور عشوائية (8-12 حرف)</li>
+                <li>إرسالها عبر البريد الإلكتروني</li>
+                <li>إجبار المستخدم على تغييرها عند أول تسجيل دخول</li>
+            </ul>
+
+            <h4>FR-AUTH-004: استعادة كلمة المرور</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>إرسال رابط استعادة كلمة المرور عبر البريد</li>
+                <li>صلاحية الرابط لمدة ساعة واحدة</li>
+                <li>تشفير الرابط بـ Token آمن</li>
+                <li>تحديث كلمة المرور بعد التحقق</li>
+            </ul>
+
+            <div class="info-card">
+                <strong>📌 ملاحظة أمنية:</strong>
+                جميع كلمات المرور محمية باستخدام bcrypt hashing، ولا يتم تخزينها بشكل نصي أبداً.
+            </div>
+        </section>
+
+        <!-- Section 2.2: Super Admin System -->
+        <section id="super-admin" class="section">
+            <div class="section-header">
+                <span class="section-icon">👑</span>
+                <h2>2.2 نظام Super Admin (FR-SUPER)</h2>
+            </div>
+
+            <h4>FR-SUPER-001: لوحة التحكم الرئيسية</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="info-card">
+                <strong>الإحصائيات المطلوبة:</strong>
+                <ul>
+                    <li>إجمالي المستخدمين (حسب الدور)</li>
+                    <li>إجمالي المدارس (نشطة / معطلة)</li>
+                    <li>إجمالي المحتوى (قيم، مفاهيم، دروس، أنشطة)</li>
+                    <li>آخر 10 مستخدمين مسجلين</li>
+                    <li>آخر 10 مدارس مضافة</li>
+                    <li>نشاط اليوم (تسجيلات دخول، تسليمات)</li>
+                </ul>
+            </div>
+
+            <h4>FR-SUPER-002: إدارة المستخدمين</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>✅ عرض جميع المستخدمين</h5>
+                    <p>مع فلترة حسب الدور</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ إنشاء مستخدم جديد</h5>
+                    <p>لأي دور</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ تعديل بيانات المستخدم</h5>
+                    <p>CRUD كامل</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ تعطيل/تفعيل الحساب</h5>
+                    <p>إدارة الحالة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ حذف المستخدم</h5>
+                    <p>Soft Delete</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ إعادة تعيين كلمة المرور</h5>
+                    <p>كلمات مرور مؤقتة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ تفعيل/تعطيل 2FA</h5>
+                    <p>للمستخدم</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ Activity Log</h5>
+                    <p>عرض سجل الأنشطة</p>
+                </div>
+            </div>
+
+            <h4>FR-SUPER-003: إدارة المدارس</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ CRUD كامل للمدارس</li>
+                <li>✅ إدارة فروع المدرسة</li>
+                <li>✅ توليد روابط تسجيل فريدة (Teacher, Student, Parent)</li>
+                <li>✅ توليد QR Codes قابلة للطباعة</li>
+                <li>✅ عرض إحصائيات المدرسة</li>
+                <li>✅ تصدير قائمة بالمعلمين والطلاب (Excel)</li>
+            </ul>
+
+            <h4>FR-SUPER-004: إدارة المحتوى التعليمي</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="info-card">
+                <strong>الهيكل الهرمي:</strong>
+                <pre>
+Value (القيمة)
+  ├── Concept (المفهوم)
+  │     ├── Meaning (المعنى)
+  │     │     ├── Lesson (الدرس)
+  │     │     │     ├── Activity (النشاط)</pre>
+            </div>
+            <ul>
+                <li>✅ CRUD كامل لكل مستوى</li>
+                <li>✅ ترتيب العناصر (order field)</li>
+                <li>✅ رفع صور وملفات لكل عنصر</li>
+                <li>✅ تفعيل/تعطيل العناصر</li>
+                <li>✅ نسخ المحتوى لمدارس أخرى</li>
+            </ul>
+
+            <h4>FR-SUPER-005: Theme Customization</h4>
+            <span class="priority priority-medium">⭐⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>اختيار الثيم (فاتح / داكن / مخصص)</li>
+                <li>تخصيص الألوان (Primary, Secondary, Text, Background)</li>
+                <li>اختيار الخط (IBM Plex, Cairo, Tajawal, Almarai)</li>
+                <li>رفع اللوجو والفافيكون</li>
+                <li>رفع صورة خلفية الصفحة الرئيسية</li>
+            </ul>
+
+            <h4>FR-SUPER-006: Page Builder</h4>
+            <span class="priority priority-medium">⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>إنشاء صفحات ديناميكية بدون برمجة</li>
+                <li>Drag & Drop للمكونات</li>
+                <li>المكونات المتاحة: Hero Section, Heading, Paragraph, Button, Image, Cards Grid, Video, Spacer</li>
+                <li>معاينة الصفحة قبل النشر</li>
+                <li>إعدادات SEO (Meta Title, Description, OG Image)</li>
+            </ul>
+
+            <h4>FR-SUPER-007: التقارير والتحليلات</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>تقرير أداء الطلاب (حسب المدرسة/الفصل)</li>
+                <li>تقرير تقدم الطلاب في القيم</li>
+                <li>تقرير تفاعل المعلمين</li>
+                <li>تقرير الأنشطة الأكثر إنجازاً</li>
+                <li>تقرير المدارس الأكثر نشاطاً</li>
+                <li>تصدير التقارير (Excel, PDF)</li>
+            </ul>
+        </section>
+
+        <!-- Section 2.3: School Admin System -->
+        <section id="school-admin" class="section">
+            <div class="section-header">
+                <span class="section-icon">🏫</span>
+                <h2>2.3 نظام School Admin (FR-SCHOOL)</h2>
+            </div>
+
+            <h4>FR-SCHOOL-001: لوحة التحكم</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">👥</div>
+                    <div class="stat-label">المعلمين/الطلاب/أولياء الأمور</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">🏛️</div>
+                    <div class="stat-label">إجمالي الفصول</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">📝</div>
+                    <div class="stat-label">طلبات التسجيل المعلقة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">📊</div>
+                    <div class="stat-label">نشاط اليوم</div>
+                </div>
+            </div>
+
+            <h4>FR-SCHOOL-002: إدارة المعلمين</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ CRUD كامل للمعلمين</li>
+                <li>✅ تعيين الفصول للمعلم</li>
+                <li>✅ تفعيل/تعطيل الحساب</li>
+                <li>✅ إرسال كلمة مرور مؤقتة</li>
+                <li>✅ عرض تقييمات المعلم من الطلاب</li>
+            </ul>
+
+            <h4>FR-SCHOOL-003: إدارة الطلاب</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ CRUD كامل للطلاب</li>
+                <li>✅ نقل الطالب بين الفصول</li>
+                <li>✅ تعيين ولي أمر للطالب</li>
+                <li>✅ عرض تقدم الطالب</li>
+                <li>✅ عرض إحصائيات Gamification</li>
+            </ul>
+
+            <h4>FR-SCHOOL-004: إدارة أولياء الأمور</h4>
+            <span class="priority priority-high">⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ CRUD كامل لأولياء الأمور</li>
+                <li>✅ ربط ولي أمر بعدة أطفال</li>
+                <li>✅ إرسال إشعارات لولي الأمر</li>
+            </ul>
+
+            <h4>FR-SCHOOL-005: إدارة الفصول</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ CRUD كامل للفصول</li>
+                <li>✅ تعيين معلم للفصل</li>
+                <li>✅ إضافة/إزالة طلاب من الفصل</li>
+                <li>✅ عرض إحصائيات الفصل</li>
+            </ul>
+
+            <h4>FR-SCHOOL-006: إدارة طلبات التسجيل</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ عرض طلبات التسجيل (معلم/طالب/ولي أمر)</li>
+                <li>✅ قبول/رفض الطلب</li>
+                <li>✅ إرسال إشعار بريدي بالقرار</li>
+                <li>✅ توليد كلمة مرور مؤقتة عند القبول</li>
+            </ul>
+
+            <h4>FR-SCHOOL-007: روابط التسجيل الذاتي</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>✅ رابط فريد لكل دور</h5>
+                    <p>Teacher, Student, Parent</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ QR Code قابل للطباعة</h5>
+                    <p>تسهيل التسجيل</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ Token آمن ومشفر</h5>
+                    <p>256-bit encryption</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ إمكانية إعادة توليد الرابط</h5>
+                    <p>لأسباب أمنية</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2.4: Teacher System -->
+        <section id="teacher" class="section">
+            <div class="section-header">
+                <span class="section-icon">👨‍🏫</span>
+                <h2>2.4 نظام المعلم (FR-TEACHER)</h2>
+            </div>
+
+            <h4>FR-TEACHER-001: لوحة التحكم</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>عدد الفصول الخاصة بالمعلم</li>
+                <li>إجمالي الطلاب</li>
+                <li>الأنشطة المعلقة (تحتاج مراجعة)</li>
+                <li>متوسط تقييم المعلم</li>
+                <li>أكثر 5 طلاب نشاطاً</li>
+            </ul>
+
+            <h4>FR-TEACHER-002: إدارة الفصول</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ عرض الفصول المسندة للمعلم</li>
+                <li>✅ عرض طلاب كل فصل</li>
+                <li>✅ عرض إحصائيات الفصل</li>
+                <li>✅ تصدير قائمة الطلاب (Excel)</li>
+            </ul>
+
+            <h4>FR-TEACHER-003: مراجعة الأنشطة</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ عرض الأنشطة المعلقة</li>
+                <li>✅ عرض تفاصيل التسليم (نص، ملفات)</li>
+                <li>✅ إعطاء درجة (0-100)</li>
+                <li>✅ كتابة ملاحظات للطالب</li>
+                <li>✅ قبول/رفض التسليم</li>
+                <li>✅ إشعار الطالب بالنتيجة</li>
+            </ul>
+
+            <h4>FR-TEACHER-004: التقارير</h4>
+            <span class="priority priority-medium">⭐⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>تقرير تقدم الطالب في القيم</li>
+                <li>تقرير أداء الفصل</li>
+                <li>تقرير الأنشطة الأكثر صعوبة</li>
+                <li>مقارنة أداء الفصول</li>
+            </ul>
+
+            <h4>FR-TEACHER-005: إدارة الأنشطة</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ إنشاء نشاط جديد (createActivity, storeActivity)</li>
+                <li>✅ تعديل نشاط (editActivity, updateActivity)</li>
+                <li>✅ حذف نشاط (destroyActivity)</li>
+                <li>✅ تحديد نوع النشاط (Quiz, File Upload, Practical, Team)</li>
+                <li>✅ إرفاق ملفات مع النشاط</li>
+                <li>✅ تعيين نشاط لفصول محددة</li>
+                <li>✅ تحديد تاريخ استحقاق</li>
+                <li>✅ بنك الأنشطة وبنك الأسئلة</li>
+            </ul>
+        </section>
+
+        <!-- Section 2.5: Student System -->
+        <section id="student" class="section">
+            <div class="section-header">
+                <span class="section-icon">👨‍🎓</span>
+                <h2>2.5 نظام الطالب (FR-STUDENT)</h2>
+            </div>
+
+            <h4>FR-STUDENT-001: لوحة التحكم</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>🗺️ خريطة التعلم</h5>
+                    <p>Values Tree الهرمية</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📊 التقدم الحالي</h5>
+                    <p>نسبة الإنجاز المئوية</p>
+                </div>
+                <div class="feature-card">
+                    <h5>💰 النقاط والعملات</h5>
+                    <p>Points & Coins</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🏆 الشارات المكتسبة</h5>
+                    <p>Badges & Achievements</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔥 Streak الحالي</h5>
+                    <p>الأيام المتتالية</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📈 الترتيب</h5>
+                    <p>Leaderboard Position</p>
+                </div>
+            </div>
+
+            <h4>FR-STUDENT-002: خريطة التعلم (Learning Path)</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ عرض القيم بشكل هرمي</li>
+                <li>✅ فتح القيم بالتسلسل (القيمة التالية مقفلة حتى إنهاء الحالية)</li>
+                <li>✅ عرض التقدم لكل قيمة (%)</li>
+                <li>✅ أيقونات توضح الحالة (مقفل 🔒، قيد التنفيذ 📖، مكتمل ✅)</li>
+                <li>✅ عداد الدروس والأنشطة المنجزة</li>
+            </ul>
+
+            <h4>FR-STUDENT-003: عرض الدروس والأنشطة</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ عرض الدرس بشكل تفاعلي</li>
+                <li>✅ دعم النصوص والصور والفيديوهات</li>
+                <li>✅ عرض الأنشطة المرتبطة بالدرس</li>
+                <li>✅ تحديد حالة النشاط (لم يبدأ، قيد التنفيذ، مكتمل)</li>
+            </ul>
+
+            <h4>FR-STUDENT-004: تسليم الأنشطة</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>✅ نشاط نصي</h5>
+                    <p>إجابة كتابية</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ رفع ملف</h5>
+                    <p>File Upload</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ اختبار (Quiz)</h5>
+                    <p>متعدد الخيارات</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ نشاط جماعي</h5>
+                    <p>Team Activity</p>
+                </div>
+            </div>
+
+            <h4>FR-STUDENT-005: نظام Gamification</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية جداً</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>⭐ Points (النقاط)</h5>
+                    <p>10 نقاط لكل نشاط<br>50 نقطة لكل قيمة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>💰 Coins (العملات)</h5>
+                    <p>5 عملات لكل نشاط<br>25 عملة لكل قيمة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🏆 Badges (الشارات)</h5>
+                    <p>شارة لكل قيمة مكتملة<br>شارات خاصة (تفوق، مثابرة، تعاون)</p>
+                </div>
+                <div class="feature-card">
+                    <h5>👑 Crowns (التيجان)</h5>
+                    <p>تاج لكل مستوى<br>(Bronze, Silver, Gold, Platinum)</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔥 Streaks (الأيام المتتالية)</h5>
+                    <p>عداد الأيام المتتالية<br>مكافآت للـ Streaks الطويلة</p>
+                </div>
+            </div>
+
+            <h4>FR-STUDENT-006: Leaderboard</h4>
+            <span class="priority priority-medium">⭐⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ ترتيب الطلاب حسب النقاط</li>
+                <li>✅ فلترة حسب (الفصل، المدرسة، عالمي)</li>
+                <li>✅ عرض أفضل 10 طلاب</li>
+                <li>✅ إبراز موقع الطالب الحالي</li>
+            </ul>
+
+            <h4>FR-STUDENT-007: المتجر (Shop)</h4>
+            <span class="priority priority-low">⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>✅ عرض العناصر</h5>
+                    <p>عرض جميع العناصر القابلة للشراء</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ شراء العناصر</h5>
+                    <p>بالعملات المكتسبة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ استبدال المكافآت</h5>
+                    <p>redeemReward</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✅ أنواع متعددة</h5>
+                    <p>Avatar, Theme, Badge, Power Up</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2.6: Parent System -->
+        <section id="parent" class="section">
+            <div class="section-header">
+                <span class="section-icon">👪</span>
+                <h2>2.6 نظام ولي الأمر (FR-PARENT)</h2>
+            </div>
+
+            <h4>FR-PARENT-001: لوحة التحكم</h4>
+            <span class="priority priority-medium">⭐⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>قائمة الأبناء</li>
+                <li>تقدم كل ابن (%)</li>
+                <li>آخر الأنشطة المنجزة</li>
+                <li>الشارات الجديدة</li>
+                <li>إشعارات من المعلمين</li>
+            </ul>
+
+            <h4>FR-PARENT-002: متابعة الأبناء</h4>
+            <span class="priority priority-high">⭐⭐⭐ عالية</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ عرض تقدم كل ابن</li>
+                <li>✅ عرض النقاط والعملات</li>
+                <li>✅ عرض الشارات المكتسبة</li>
+                <li>✅ عرض آخر الأنشطة</li>
+                <li>✅ عرض تفاصيل الابن (childDetails)</li>
+                <li>✅ إرسال الهدايا والثناء (ParentGift, ParentPraise)</li>
+            </ul>
+
+            <h4>FR-PARENT-003: التواصل مع المعلمين</h4>
+            <span class="priority priority-medium">⭐⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ إرسال رسالة للمعلم (ParentTeacherMessage)</li>
+                <li>✅ عرض الرسائل المستلمة</li>
+                <li>✅ عرض المحادثات (getConversation)</li>
+                <li>✅ إشعارات بالرسائل الجديدة</li>
+            </ul>
+
+            <h4>FR-PARENT-004: التقارير</h4>
+            <span class="priority priority-low">⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ تقرير أداء الابن</li>
+                <li>✅ عرض الإنجازات والتقدم</li>
+                <li>✅ عرض الشارات والتيجان</li>
+            </ul>
+        </section>
+
+        <!-- Section 2.7: Teams System -->
+        <section id="teams" class="section">
+            <div class="section-header">
+                <span class="section-icon">👥</span>
+                <h2>2.7 نظام الفرق (Teams)</h2>
+            </div>
+
+            <div class="info-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-right-color: #10b981;">
+                <strong>✅ هذا النظام مكتمل ويعمل بشكل كامل</strong>
+            </div>
+
+            <h4>FR-TEAM-001: إدارة الفرق (Teacher)</h4>
+            <span class="priority priority-medium">⭐⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ إنشاء فريق جديد (createTeam, storeTeam)</li>
+                <li>✅ تسمية الفريق ووصفه</li>
+                <li>✅ إضافة/إزالة أعضاء (team_members)</li>
+                <li>✅ تعيين قائد للفريق (leader_id)</li>
+                <li>✅ تعيين أنشطة جماعية (assignTeamActivity)</li>
+                <li>✅ حذف الفريق (deleteTeam)</li>
+            </ul>
+
+            <h4>FR-TEAM-002: مشاركة الطلاب (Student)</h4>
+            <span class="priority priority-medium">⭐⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ عرض فريق الطالب (student.teams)</li>
+                <li>✅ عرض أعضاء الفريق</li>
+                <li>✅ المشاركة في الأنشطة الجماعية (TeamActivity)</li>
+                <li>✅ عرض نقاط الفريق</li>
+            </ul>
+
+            <h4>FR-TEAM-003: تقييم الفرق (Teacher)</h4>
+            <span class="priority priority-medium">⭐ متوسطة</span>
+            <span class="status status-complete">✅ مكتمل</span>
+            <ul>
+                <li>✅ تقييم أنشطة الفريق (gradeTeamActivity)</li>
+                <li>✅ منح نقاط للفريق</li>
+                <li>✅ عرض إحصائيات الفريق</li>
+            </ul>
+        </section>
+
+        <!-- Section 3: Non-Functional Requirements -->
+        <section id="non-functional" class="section">
+            <div class="section-header">
+                <span class="section-icon">⚙️</span>
+                <h2>3. المتطلبات غير الوظيفية</h2>
+            </div>
+
+            <h3>3.1 الأداء (Performance)</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>⚡ NFR-PERF-001</h5>
+                    <p>زمن تحميل الصفحة أقل من 2 ثانية</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🚀 NFR-PERF-002</h5>
+                    <p>استجابة API أقل من 500ms</p>
+                </div>
+                <div class="feature-card">
+                    <h5>👥 NFR-PERF-003</h5>
+                    <p>دعم 1000 مستخدم متزامن</p>
+                </div>
+                <div class="feature-card">
+                    <h5>💾 NFR-PERF-004</h5>
+                    <p>استخدام Caching (Redis)</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📊 NFR-PERF-005</h5>
+                    <p>Database Indexing محسّن</p>
+                </div>
+                <div class="feature-card">
+                    <h5>⚡ NFR-PERF-006</h5>
+                    <p>Eager Loading لتجنب N+1</p>
+                </div>
+            </div>
+
+            <h3>3.2 الأمان (Security)</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>🔒 NFR-SEC-001</h5>
+                    <p>HTTPS إجباري في Production</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🛡️ NFR-SEC-002</h5>
+                    <p>CSRF Protection</p>
+                </div>
+                <div class="feature-card">
+                    <h5>💉 NFR-SEC-003</h5>
+                    <p>SQL Injection Prevention</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🧹 NFR-SEC-004</h5>
+                    <p>XSS Protection</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔐 NFR-SEC-005</h5>
+                    <p>Password Hashing (bcrypt)</p>
+                </div>
+                <div class="feature-card">
+                    <h5>⏱️ NFR-SEC-006</h5>
+                    <p>Rate Limiting على APIs</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🍪 NFR-SEC-007</h5>
+                    <p>Session Security</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📝 NFR-SEC-008</h5>
+                    <p>Activity Logging</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📤 NFR-SEC-009</h5>
+                    <p>File Upload Validation</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔑 NFR-SEC-010</h5>
+                    <p>Two-Factor Authentication</p>
+                </div>
+            </div>
+
+            <h3>3.3 الموثوقية (Reliability)</h3>
+            <ul>
+                <li><strong>NFR-REL-001:</strong> Uptime 99.5% (سنوياً)</li>
+                <li><strong>NFR-REL-002:</strong> نظام Backup يومي</li>
+                <li><strong>NFR-REL-003:</strong> استرجاع النظام في أقل من 4 ساعات</li>
+                <li><strong>NFR-REL-004:</strong> Error Logging شامل</li>
+                <li><strong>NFR-REL-005:</strong> Transaction Handling للعمليات الحرجة</li>
+            </ul>
+
+            <h3>3.4 قابلية الاستخدام (Usability)</h3>
+            <ul>
+                <li><strong>NFR-USA-001:</strong> واجهة عربية كاملة (RTL)</li>
+                <li><strong>NFR-USA-002:</strong> Responsive Design</li>
+                <li><strong>NFR-USA-003:</strong> تصميم Glassmorphism فاخر</li>
+                <li><strong>NFR-USA-004:</strong> خط Cairo للعربية</li>
+                <li><strong>NFR-USA-005:</strong> رسائل خطأ واضحة</li>
+                <li><strong>NFR-USA-006:</strong> تنبيهات فورية</li>
+                <li><strong>NFR-USA-007:</strong> Accessibility (WCAG 2.1)</li>
+            </ul>
+
+            <h3>3.5 قابلية التوسع (Scalability)</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">50K+</div>
+                    <div class="stat-label">دعم طلاب</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1000+</div>
+                    <div class="stat-label">دعم مدارس</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">⚖️</div>
+                    <div class="stat-label">Load Balancing</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">🚀</div>
+                    <div class="stat-label">CDN Support</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Database Schema -->
+        <section id="database" class="section">
+            <div class="section-header">
+                <span class="section-icon">🗄️</span>
+                <h2>4. قاعدة البيانات</h2>
+            </div>
+
+            <h3>4.1 الجداول الرئيسية</h3>
+
+            <h4>جدول users</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الحقل</th>
+                        <th>النوع</th>
+                        <th>الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>id</td>
+                        <td>bigint</td>
+                        <td>المفتاح الأساسي</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>varchar(255)</td>
+                        <td>اسم المستخدم</td>
+                    </tr>
+                    <tr>
+                        <td>email</td>
+                        <td>varchar(255)</td>
+                        <td>البريد الإلكتروني (فريد)</td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>varchar(255)</td>
+                        <td>كلمة المرور المشفرة</td>
+                    </tr>
+                    <tr>
+                        <td>role</td>
+                        <td>enum</td>
+                        <td>super_admin, school_admin, teacher, student, parent</td>
+                    </tr>
+                    <tr>
+                        <td>school_id</td>
+                        <td>bigint</td>
+                        <td>مفتاح خارجي → schools.id</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>enum</td>
+                        <td>active, inactive, suspended</td>
+                    </tr>
+                    <tr>
+                        <td>two_factor_enabled</td>
+                        <td>boolean</td>
+                        <td>تفعيل المصادقة الثنائية</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>جدول schools</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الحقل</th>
+                        <th>النوع</th>
+                        <th>الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>id</td>
+                        <td>bigint</td>
+                        <td>المفتاح الأساسي</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>varchar(255)</td>
+                        <td>اسم المدرسة</td>
+                    </tr>
+                    <tr>
+                        <td>email</td>
+                        <td>varchar(255)</td>
+                        <td>البريد الإلكتروني</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>enum</td>
+                        <td>active, inactive</td>
+                    </tr>
+                    <tr>
+                        <td>teacher_registration_token</td>
+                        <td>varchar(255)</td>
+                        <td>رابط تسجيل المعلمين</td>
+                    </tr>
+                    <tr>
+                        <td>student_registration_token</td>
+                        <td>varchar(255)</td>
+                        <td>رابط تسجيل الطلاب</td>
+                    </tr>
+                    <tr>
+                        <td>parent_registration_token</td>
+                        <td>varchar(255)</td>
+                        <td>رابط تسجيل أولياء الأمور</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>الهيكل الهرمي للمحتوى التعليمي</h4>
+            <div class="info-card">
+                <pre>
+values (القيم)
+  ├── concepts (المفاهيم)
+  │     ├── meanings (المعاني)
+  │     │     ├── lessons (الدروس)
+  │     │     │     ├── activities (الأنشطة)</pre>
+            </div>
+
+            <h4>نظام Gamification</h4>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>⭐ points</h5>
+                    <p>تتبع النقاط المكتسبة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>💰 coins</h5>
+                    <p>تتبع العملات المكتسبة</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🏆 badges</h5>
+                    <p>تعريف الشارات</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔥 streaks</h5>
+                    <p>تتبع الأيام المتتالية</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Technologies -->
+        <section id="technologies" class="section">
+            <div class="section-header">
+                <span class="section-icon">🛠️</span>
+                <h2>5. التقنيات المستخدمة</h2>
+            </div>
+
+            <h3>5.1 Backend</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>🐘 Framework</h5>
+                    <p>Laravel 12.x</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔧 PHP</h5>
+                    <p>8.2+</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🗄️ Database</h5>
+                    <p>SQLite / MySQL 8.0+</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔐 Authentication</h5>
+                    <p>Laravel Sanctum</p>
+                </div>
+                <div class="feature-card">
+                    <h5>👥 Permissions</h5>
+                    <p>Spatie Laravel Permission</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📝 Activity Log</h5>
+                    <p>Spatie Activity Log</p>
+                </div>
+            </div>
+
+            <h3>5.2 Frontend</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>📄 Template Engine</h5>
+                    <p>Blade</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🎨 CSS Framework</h5>
+                    <p>Bootstrap 5</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🎭 Icons</h5>
+                    <p>Bootstrap Icons + Heroicons</p>
+                </div>
+                <div class="feature-card">
+                    <h5>⚡ JavaScript</h5>
+                    <p>Vanilla JS + Alpine.js</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📊 Charts</h5>
+                    <p>Chart.js</p>
+                </div>
+                <div class="feature-card">
+                    <h5>✏️ Rich Text Editor</h5>
+                    <p>Summernote / TinyMCE</p>
+                </div>
+            </div>
+
+            <h3>5.3 الأدوات والمكتبات</h3>
+            <ul>
+                <li><strong>Excel:</strong> Maatwebsite Excel</li>
+                <li><strong>PDF:</strong> DomPDF</li>
+                <li><strong>QR Code:</strong> SimpleSoftwareIO/simple-qrcode</li>
+                <li><strong>File Upload:</strong> Laravel Storage</li>
+                <li><strong>Queue:</strong> Laravel Queue</li>
+                <li><strong>Notifications:</strong> Laravel Notifications</li>
+                <li><strong>Mail:</strong> Laravel Mail + Mailgun/SendGrid</li>
+            </ul>
+        </section>
+
+        <!-- Section 6: Development Phases -->
+        <section id="phases" class="section">
+            <div class="section-header">
+                <span class="section-icon">🚀</span>
+                <h2>6. مراحل التطوير</h2>
+            </div>
+
+            <h3>المرحلة 1: الأساس</h3>
+            <span class="status status-complete">✅ تم إنجازها</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%;">100%</div>
+            </div>
+            <ul>
+                <li>✅ نظام المصادقة والأمان</li>
+                <li>✅ أنظمة الأدوار الخمسة</li>
+                <li>✅ المحتوى التعليمي الهرمي</li>
+                <li>✅ نظام Gamification الأساسي</li>
+                <li>✅ لوحة التحكم للـ Super Admin</li>
+            </ul>
+
+            <h3>المرحلة 2: التحسينات</h3>
+            <span class="status status-complete">✅ مكتملة</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 98%;">98%</div>
+            </div>
+            <ul>
+                <li>✅ تحسين الأداء (Indexes, Caching)</li>
+                <li>✅ تحسين الأمان (2FA, Rate Limiting)</li>
+                <li>✅ إدارة الأنشطة للمعلمين (مكتمل)</li>
+                <li>✅ نظام الفرق (Teams) - مكتمل</li>
+                <li>✅ نظام المتجر (Shop) - مكتمل</li>
+                <li>✅ نظام الرسائل (Messaging) - مكتمل</li>
+            </ul>
+
+            <h3>المرحلة 3: التوسع</h3>
+            <span class="status status-progress">⚠️ قيد التخطيط</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 10%;">10%</div>
+            </div>
+            <ul>
+                <li>⚠️ تطبيق Mobile (React Native / Flutter)</li>
+                <li>⚠️ نظام الإشعارات الفورية (Push Notifications)</li>
+                <li>⚠️ نظام Chat للفرق (متقدم)</li>
+                <li>❌ نظام Video Conferencing</li>
+                <li>❌ AI Recommendations</li>
+                <li>❌ Advanced Analytics (ML)</li>
+            </ul>
+        </section>
+
+        <!-- Success Criteria -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-icon">📋</span>
+                <h2>7. معايير النجاح</h2>
+            </div>
+
+            <h3>معايير التقنية</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>✅ الوظائف الأساسية</h5>
+                    <p>تعمل بدون أخطاء</p>
+                </div>
+                <div class="feature-card">
+                    <h5>⚡ زمن الاستجابة</h5>
+                    <p>API أقل من 500ms</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📊 نسبة الأخطاء</h5>
+                    <p>أقل من 1%</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🧪 Test Coverage</h5>
+                    <p>أكثر من 70%</p>
+                </div>
+            </div>
+
+            <h3>معايير الأمان</h3>
+            <ul>
+                <li>✅ اجتياز اختبار OWASP Top 10</li>
+                <li>✅ جميع المدخلات منظفة ومعقمة</li>
+                <li>✅ جميع كلمات المرور محمية (Hashed)</li>
+                <li>✅ جميع الجلسات آمنة</li>
+                <li>✅ Activity Log شامل</li>
+            </ul>
+
+            <h3>معايير الأداء</h3>
+            <ul>
+                <li>✅ تحميل الصفحة أقل من 2 ثانية</li>
+                <li>✅ دعم 1000 مستخدم متزامن</li>
+                <li>✅ Database Queries محسّنة (لا N+1)</li>
+                <li>✅ استخدام Caching فعال</li>
+            </ul>
+        </section>
+
+        <!-- Recommendations -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-icon">💡</span>
+                <h2>8. التوصيات</h2>
+            </div>
+
+            <h3>الإنجازات الحالية</h3>
+            <div class="info-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-right-color: #10b981;">
+                <strong>✅ 1. نظام إدارة الأنشطة للمعلمين:</strong>
+                <ul>
+                    <li>المعلم يستطيع إنشاء وتعديل وحذف الأنشطة</li>
+                    <li>واجهة CRUD كاملة مع بنك الأسئلة</li>
+                </ul>
+            </div>
+
+            <div class="info-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-right-color: #10b981;">
+                <strong>✅ 2. نظام الفرق (Teams):</strong>
+                <ul>
+                    <li>Controllers و Views و Routes مكتملة</li>
+                    <li>إنشاء وإدارة الفرق وتعيين الأنشطة</li>
+                </ul>
+            </div>
+
+            <div class="info-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-right-color: #10b981;">
+                <strong>✅ 3. نظام المتجر (Shop):</strong>
+                <ul>
+                    <li>واجهة كاملة للشراء والاستبدال</li>
+                    <li>إدارة المنتجات من لوحة التحكم</li>
+                </ul>
+            </div>
+
+            <h3>التحسينات المستقبلية</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>🎯 تطبيق موبايل</h5>
+                    <p>React Native / Flutter</p>
+                </div>
+                <div class="feature-card">
+                    <h5>👥 تحسين Chat الفرق</h5>
+                    <p>Real-time Messaging</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📊 تحليلات متقدمة</h5>
+                    <p>Advanced Analytics</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-icon">📞</span>
+                <h2>جهات الاتصال</h2>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>الدور</th>
+                        <th>الاسم</th>
+                        <th>البريد الإلكتروني</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>مدير المشروع</strong></td>
+                        <td>-</td>
+                        <td>ibrahemelnawsaty@gmail.com</td>
+                    </tr>
+                    <tr>
+                        <td><strong>مطور رئيسي</strong></td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><strong>مصمم UX/UI</strong></td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 2px solid rgba(102, 126, 234, 0.2);">
+                <p style="font-size: 0.9rem; color: #64748b;">
+                    <strong>تاريخ آخر تحديث:</strong> يناير 22, 2026 | 
+                    <strong>رقم الإصدار:</strong> 2.0.0 | 
+                    <strong>الحالة:</strong> مكتمل ومعتمد ✅
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" onclick="scrollToTop()">↑</button>
+
+    <script>
+        // Scroll to Top Functionality
+        const scrollTopBtn = document.querySelector('.scroll-top');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Smooth Scroll for Navigation Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate Progress Bars on Scroll
+        const observerOptions = {
+            threshold: 0.5
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.width = entry.target.getAttribute('style').match(/width:\s*(\d+%)/)[1];
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.progress-fill').forEach(bar => {
+            observer.observe(bar);
+        });
+
+        // Print Functionality
+        function printDocument() {
+            window.print();
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+P for print
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printDocument();
+            }
+            // Home key to scroll to top
+            if (e.key === 'Home') {
+                e.preventDefault();
+                scrollToTop();
+            }
+        });
+    </script>
+</body>
+</html>

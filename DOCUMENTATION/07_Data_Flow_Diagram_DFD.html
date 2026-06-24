@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخطط تدفق البيانات - منصة قيمّ | Data Flow Diagram</title>
+    <meta name="description" content="مخططات تدفق البيانات الكاملة لمنصة قيمّ - من Level 0 إلى Level 2 مع ERD">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f1f5f9;
+        }
+        
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
+        }
+        
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: flow 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes flow {
+            0%, 100% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Navigation */
+        .nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+        
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links a:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Content Card */
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(white, white), linear-gradient(135deg, var(--primary), var(--secondary));
+            background-clip: padding-box, border-box;
+            background-origin: padding-box, border-box;
+        }
+        
+        .section-header .icon {
+            font-size: 2.5rem;
+        }
+        
+        /* DFD Diagrams */
+        .dfd-diagram {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dfd-diagram pre {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            color: #38f9d7;
+            line-height: 1.4;
+            font-size: 0.75rem;
+            white-space: pre;
+            margin: 0;
+        }
+        
+        /* Entity Table */
+        .entity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .entity-table thead {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .entity-table th,
+        .entity-table td {
+            padding: 1rem 1.5rem;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .entity-table th {
+            font-weight: 700;
+        }
+        
+        .entity-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        /* Process Cards */
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .process-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-right: 5px solid var(--info);
+        }
+        
+        .process-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .process-card .process-number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--info);
+            margin-bottom: 0.5rem;
+        }
+        
+        .process-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            color: var(--dark);
+        }
+        
+        .process-card p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        
+        /* Data Store Cards */
+        .datastore-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .datastore-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .datastore-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+        
+        .datastore-card .store-id {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .datastore-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .datastore-card p {
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .datastore-card .type {
+            display: inline-block;
+            background: var(--light);
+            padding: 0.25rem 0.75rem;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            color: var(--dark);
+        }
+        
+        /* Scenario Box */
+        .scenario-box {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-right: 5px solid var(--success);
+        }
+        
+        .scenario-box h3 {
+            color: var(--success);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .scenario-box pre {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            line-height: 1.6;
+            color: var(--dark);
+        }
+        
+        /* Security Flow */
+        .security-flow {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid var(--danger);
+        }
+        
+        .security-flow h3 {
+            color: var(--danger);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Success Criteria */
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .criteria-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid var(--success);
+        }
+        
+        .criteria-card h4 {
+            color: var(--success);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .criteria-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .criteria-card li {
+            padding: 0.5rem 0;
+            padding-right: 1.5rem;
+            position: relative;
+            color: var(--dark);
+        }
+        
+        .criteria-card li::before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            color: var(--success);
+            font-weight: 700;
+        }
+        
+        /* ERD Diagram */
+        .erd-diagram {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .erd-diagram pre {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            color: #f472b6;
+            line-height: 1.4;
+            font-size: 0.75rem;
+            white-space: pre;
+            margin: 0;
+        }
+        
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content-card {
+                padding: 1.5rem;
+            }
+            
+            .dfd-diagram pre,
+            .erd-diagram pre {
+                font-size: 0.65rem;
+            }
+            
+            .process-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .nav,
+            .scroll-top {
+                display: none;
+            }
+            
+            .content-card {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+            
+            .dfd-diagram,
+            .erd-diagram {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+            }
+            
+            .dfd-diagram pre,
+            .erd-diagram pre {
+                color: var(--dark);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">🔄</div>
+            <h1>مخطط تدفق البيانات</h1>
+            <p class="subtitle">Data Flow Diagram (DFD) - تدفق البيانات الكامل لمنصة قيمّ التعليمية</p>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <ul class="nav-links">
+                <li><a href="#overview">📋 نظرة عامة</a></li>
+                <li><a href="#level0">🔍 Level 0</a></li>
+                <li><a href="#level1">📊 Level 1</a></li>
+                <li><a href="#level2">🔬 Level 2</a></li>
+                <li><a href="#datastores">🗃️ Data Stores</a></li>
+                <li><a href="#erd">🔗 ERD</a></li>
+                <li><a href="#scenarios">📈 السيناريوهات</a></li>
+                <li><a href="#security">🔐 الأمان</a></li>
+                <li><a href="#summary">📊 الملخص</a></li>
+            </ul>
+        </nav>
+
+        <!-- Overview -->
+        <div id="overview" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📋</span>
+                نظرة عامة
+            </h2>
+            <p style="font-size: 1.1rem; line-height: 2; color: #475569;">
+                هذا الملف يوضح كيفية تدفق البيانات في منصة قيمّ عبر مستويات مختلفة من التفصيل:
+            </p>
+            <ul style="margin-top: 1rem; padding-right: 2rem; color: #475569;">
+                <li><strong>Level 0 (Context Diagram):</strong> نظرة عامة على النظام ككل</li>
+                <li><strong>Level 1:</strong> العمليات الرئيسية</li>
+                <li><strong>Level 2:</strong> تفاصيل العمليات المعقدة</li>
+                <li><strong>Entity Relationship Diagram (ERD):</strong> علاقات قاعدة البيانات</li>
+            </ul>
+        </div>
+
+        <!-- Level 0: Context Diagram -->
+        <div id="level0" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔍</span>
+                Level 0: Context Diagram (مخطط السياق)
+            </h2>
+            <p style="margin-bottom: 1.5rem; color: #64748b;">
+                يوضح النظام ككل والكيانات الخارجية التي تتفاعل معه.
+            </p>
+            
+            <div class="dfd-diagram">
+                <pre>                                 ┌─────────────────────────┐
+                                 │                         │
+                                 │   Super Admin           │
+                                 │                         │
+                                 └───────────┬─────────────┘
+                                             │
+                    ┌────────────────────────┼────────────────────────┐
+                    │                        │                        │
+         ┌──────────▼──────────┐  ┌─────────▼─────────┐  ┌──────────▼──────────┐
+         │                     │  │                   │  │                     │
+         │  School Admin       │  │   Teacher         │  │   Student           │
+         │                     │  │                   │  │                     │
+         └──────────┬──────────┘  └─────────┬─────────┘  └──────────┬──────────┘
+                    │                       │                       │
+                    │                       │                       │
+                    └───────────────────────┼───────────────────────┘
+                                           │
+                    ┌──────────────────────▼───────────────────────┐
+                    │                                              │
+                    │         ┌────────────────────────┐           │
+                    │         │                        │           │
+                    │         │  منصة قيمّ التعليمية  │           │
+                    │         │   Qiyamm Platform     │           │
+                    │         │                        │           │
+                    │         └────────────────────────┘           │
+                    │                                              │
+                    └──────────────────────┬───────────────────────┘
+                                          │
+                         ┌────────────────┼────────────────┐
+                         │                │                │
+              ┌──────────▼──────────┐  ┌──▼───────┐  ┌───▼──────────┐
+              │                     │  │          │  │              │
+              │   Parent            │  │  Email   │  │  Database    │
+              │                     │  │  Service │  │              │
+              └─────────────────────┘  └──────────┘  └──────────────┘</pre>
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem; color: var(--primary);">الكيانات الخارجية (External Entities)</h3>
+            <table class="entity-table">
+                <thead>
+                    <tr>
+                        <th>التفاعلات</th>
+                        <th>الوصف</th>
+                        <th>الكيان</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>إدارة النظام، المحتوى، المدارس</td>
+                        <td>المسؤول الأعلى</td>
+                        <td><strong>Super Admin</strong></td>
+                    </tr>
+                    <tr>
+                        <td>إدارة المعلمين والطلاب، قبول الطلبات</td>
+                        <td>مدير المدرسة</td>
+                        <td><strong>School Admin</strong></td>
+                    </tr>
+                    <tr>
+                        <td>مراجعة الأنشطة، إدارة الفصول</td>
+                        <td>المعلم</td>
+                        <td><strong>Teacher</strong></td>
+                    </tr>
+                    <tr>
+                        <td>تعلم القيم، تسليم الأنشطة، Gamification</td>
+                        <td>الطالب</td>
+                        <td><strong>Student</strong></td>
+                    </tr>
+                    <tr>
+                        <td>متابعة الأبناء</td>
+                        <td>ولي الأمر</td>
+                        <td><strong>Parent</strong></td>
+                    </tr>
+                    <tr>
+                        <td>إرسال الإشعارات والتنبيهات</td>
+                        <td>خدمة البريد الإلكتروني</td>
+                        <td><strong>Email Service</strong></td>
+                    </tr>
+                    <tr>
+                        <td>تخزين واسترجاع البيانات</td>
+                        <td>قاعدة البيانات</td>
+                        <td><strong>Database</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Level 1: Main Processes -->
+        <div id="level1" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📊</span>
+                Level 1: DFD (العمليات الرئيسية)
+            </h2>
+            
+            <div class="dfd-diagram">
+                <pre>                      ┌───────────────────────────────────────────────┐
+                      │         External Entities                     │
+                      │  [Users, Email Service, File Storage]         │
+                      └───────────┬───────────────────────────────────┘
+                                  │
+          ┌───────────────────────┼───────────────────────┐
+          │                       │                       │
+    ┌─────▼──────┐       ┌────────▼────────┐      ┌─────▼──────┐
+    │            │       │                 │      │            │
+    │  1.0       │       │     2.0         │      │   3.0      │
+    │  المصادقة  │◄──────┤  إدارة         │◄─────┤  إدارة     │
+    │  والتحقق   │       │  المستخدمين    │      │  المدارس   │
+    │            │       │                 │      │            │
+    └─────┬──────┘       └────────┬────────┘      └─────┬──────┘
+          │                       │                     │
+          │                       │                     │
+          ▼                       ▼                     ▼
+    ┌──────────────────────────────────────────────────────────┐
+    │                      D1: Users                           │
+    └──────────────────────────────────────────────────────────┘
+          │                       │                     │
+          │                       │                     │
+    ┌─────▼──────┐       ┌────────▼────────┐      ┌─────▼──────┐
+    │            │       │                 │      │            │
+    │  4.0       │       │     5.0         │      │   6.0      │
+    │  المحتوى   │◄──────┤  الأنشطة       │◄─────┤  التقييم   │
+    │  التعليمي  │       │  والتسليمات   │      │  والدرجات  │
+    │            │       │                 │      │            │
+    └─────┬──────┘       └────────┬────────┘      └─────┬──────┘
+          │                       │                     │
+          ▼                       ▼                     ▼
+    ┌──────────────────────────────────────────────────────────┐
+    │          D2: Content, D3: Activities, D4: Submissions    │
+    └──────────────────────────────────────────────────────────┘
+          │                       │                     │
+          │                       │                     │
+    ┌─────▼──────┐       ┌────────▼────────┐      ┌─────▼──────┐
+    │            │       │                 │      │            │
+    │  7.0       │       │     8.0         │      │   9.0      │
+    │ Gamification│◄─────┤  الإشعارات     │◄─────┤  التقارير  │
+    │            │       │  والرسائل      │      │  والتحليل  │
+    │            │       │                 │      │            │
+    └─────┬──────┘       └────────┬────────┘      └─────┬──────┘
+          │                       │                     │
+          ▼                       ▼                     ▼
+    ┌──────────────────────────────────────────────────────────┐
+    │         D5: Points/Coins/Badges, D6: Notifications       │
+    └──────────────────────────────────────────────────────────┘</pre>
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem; color: var(--primary);">شرح العمليات الرئيسية</h3>
+            <div class="process-grid">
+                <div class="process-card">
+                    <div class="process-number">1.0</div>
+                    <h3>المصادقة والتحقق</h3>
+                    <p>تسجيل الدخول، 2FA، كلمات المرور</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">2.0</div>
+                    <h3>إدارة المستخدمين</h3>
+                    <p>CRUD للمستخدمين، الأدوار، الصلاحيات</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">3.0</div>
+                    <h3>إدارة المدارس</h3>
+                    <p>CRUD للمدارس، الفصول، التسجيل الذاتي</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">4.0</div>
+                    <h3>المحتوى التعليمي</h3>
+                    <p>إدارة القيم، المفاهيم، الدروس، الأنشطة</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">5.0</div>
+                    <h3>الأنشطة والتسليمات</h3>
+                    <p>تسليم الأنشطة من الطلاب</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">6.0</div>
+                    <h3>التقييم والدرجات</h3>
+                    <p>مراجعة الأنشطة وإعطاء الدرجات</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">7.0</div>
+                    <h3>Gamification</h3>
+                    <p>إدارة النقاط، العملات، الشارات</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">8.0</div>
+                    <h3>الإشعارات والرسائل</h3>
+                    <p>إرسال الإشعارات والرسائل</p>
+                </div>
+                <div class="process-card">
+                    <div class="process-number">9.0</div>
+                    <h3>التقارير والتحليل</h3>
+                    <p>إنشاء التقارير والإحصائيات</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 2: Detailed Processes -->
+        <div id="level2" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔬</span>
+                Level 2: تفصيل العمليات المعقدة
+            </h2>
+
+            <h3 style="margin: 2rem 0 1rem; color: var(--primary);">Process 1.0: المصادقة والتحقق</h3>
+            <div class="dfd-diagram">
+                <pre>┌─────────────┐
+│   User      │
+└──────┬──────┘
+       │
+       │ [Email + Password]
+       │
+       ▼
+┌─────────────────────────┐
+│  1.1                    │
+│  التحقق من بيانات       │         ┌──────────────┐
+│  الاعتماد               │◄────────┤  D1: Users   │
+│                         │         └──────────────┘
+└──────────┬──────────────┘
+           │
+           │ [Valid Credentials]
+           │
+           ▼
+┌─────────────────────────┐
+│  1.2                    │
+│  التحقق من 2FA          │
+│  (إذا كان مفعلاً)        │
+└──────────┬──────────────┘
+           │
+           │ [Send 2FA Code]
+           │
+           ▼
+┌─────────────────────────┐
+│  Email Service          │
+└─────────────────────────┘
+           │
+           │ [User enters code]
+           │
+           ▼
+┌─────────────────────────┐
+│  1.3                    │
+│  التحقق من كود 2FA      │
+│                         │
+└──────────┬──────────────┘
+           │
+           │ [Valid Code]
+           │
+           ▼
+┌─────────────────────────┐
+│  1.4                    │
+│  إنشاء جلسة (Session)   │         ┌──────────────┐
+│                         │────────►│  D7: Sessions│
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [Redirect to Dashboard]
+           │
+           ▼
+┌─────────────┐
+│   User      │
+│  Dashboard  │
+└─────────────┘</pre>
+            </div>
+
+            <h3 style="margin: 3rem 0 1rem; color: var(--primary);">Process 5.0: الأنشطة والتسليمات</h3>
+            <div class="dfd-diagram">
+                <pre>┌─────────────┐
+│  Student    │
+└──────┬──────┘
+       │
+       │ [Select Activity]
+       │
+       ▼
+┌─────────────────────────┐
+│  5.1                    │
+│  عرض النشاط             │         ┌──────────────┐
+│                         │◄────────┤D3: Activities│
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [Activity Details]
+           │
+           ▼
+┌─────────────┐
+│  Student    │
+│  (Fill Form)│
+└──────┬──────┘
+       │
+       │ [Answer + File (optional)]
+       │
+       ▼
+┌─────────────────────────┐
+│  5.2                    │
+│  التحقق من الإجابة      │
+│  (Validation)           │
+└──────────┬──────────────┘
+           │
+           │ [Valid Submission]
+           │
+           ▼
+┌─────────────────────────┐
+│  5.3                    │
+│  حفظ التسليم            │         ┌──────────────┐
+│                         │────────►│D4: Submissions│
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [Submission Saved]
+           │
+           ▼
+┌─────────────────────────┐
+│  5.4                    │
+│  رفع الملف (إن وجد)     │         ┌──────────────┐
+│                         │────────►│  File Storage│
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [File Uploaded]
+           │
+           ▼
+┌─────────────────────────┐
+│  5.5                    │
+│  إشعار المعلم           │
+│  (Notification)         │
+└──────────┬──────────────┘
+           │
+           │ [Create Notification]
+           │
+           ├─────────────────┐
+           │                 │
+           ▼                 ▼
+┌─────────────────┐   ┌─────────────────┐
+│D6: Notifications│   │  Email Service  │
+└─────────────────┘   └─────────────────┘
+           │                 │
+           │                 │
+           ▼                 ▼
+┌─────────────┐   ┌─────────────┐
+│  Teacher    │   │  Teacher    │
+│  (Web)      │   │  (Email)    │
+└─────────────┘   └─────────────┘</pre>
+            </div>
+
+            <h3 style="margin: 3rem 0 1rem; color: var(--primary);">Process 6.0: التقييم والدرجات</h3>
+            <div class="dfd-diagram">
+                <pre>┌─────────────┐
+│  Teacher    │
+└──────┬──────┘
+       │
+       │ [View Pending Activities]
+       │
+       ▼
+┌─────────────────────────┐
+│  6.1                    │
+│  عرض التسليمات المعلقة  │         ┌──────────────┐
+│                         │◄────────┤D4: Submissions│
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [Submission Details]
+           │
+           ▼
+┌─────────────┐
+│  Teacher    │
+│  (Review)   │
+└──────┬──────┘
+       │
+       │ [Score + Feedback]
+       │
+       ▼
+┌─────────────────────────┐
+│  6.2                    │
+│  حفظ التقييم            │         ┌──────────────┐
+│                         │────────►│D4: Submissions│
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [Evaluation Saved]
+           │
+           ├─────────────────┬─────────────────┐
+           │                 │                 │
+           ▼                 ▼                 ▼
+┌─────────────────┐  ┌─────────────┐  ┌─────────────┐
+│  6.3            │  │  6.4        │  │  6.5        │
+│  تحديث النقاط   │  │  تحديث      │  │  إشعار      │
+│  والعملات       │  │  التقدم     │  │  الطالب     │
+│                 │  │             │  │             │
+└────────┬────────┘  └──────┬──────┘  └──────┬──────┘
+         │                  │                │
+         ▼                  ▼                ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│D5: Points/   │  │D2: User      │  │D6:           │
+│   Coins      │  │   Progress   │  │ Notifications│
+└──────────────┘  └──────────────┘  └──────┬───────┘
+                                           │
+                                           │
+                                           ▼
+                                  ┌─────────────────┐
+                                  │  Email Service  │
+                                  └─────────┬───────┘
+                                           │
+                                           ▼
+                                  ┌─────────────┐
+                                  │  Student    │
+                                  │  (Notified) │
+                                  └─────────────┘</pre>
+            </div>
+
+            <h3 style="margin: 3rem 0 1rem; color: var(--primary);">Process 7.0: Gamification</h3>
+            <div class="dfd-diagram">
+                <pre>┌─────────────┐
+│  Student    │
+│  completes  │
+│  Activity   │
+└──────┬──────┘
+       │
+       │ [Activity Completed]
+       │
+       ▼
+┌─────────────────────────┐
+│  7.1                    │
+│  حساب المكافآت          │         ┌──────────────┐
+│  (Calculate Rewards)    │◄────────┤ D3: Activity │
+│                         │         │    Rules     │
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [Points: 10, Coins: 5]
+           │
+           ▼
+┌─────────────────────────┐
+│  7.2                    │
+│  إضافة النقاط والعملات  │         ┌──────────────┐
+│                         │────────►│D5: Points/   │
+└──────────┬──────────────┘         │    Coins     │
+           │                        └──────────────┘
+           │
+           ▼
+┌─────────────────────────┐
+│  7.3                    │
+│  التحقق من الشارات      │         ┌──────────────┐
+│  (Check Badge Criteria) │◄────────┤D5: Badges    │
+└──────────┬──────────────┘         └──────────────┘
+           │
+           │ [Criteria Met?]
+           │
+    ┌──────┴──────┐
+    │  YES        │ NO
+    │             │
+    ▼             ▼
+┌─────────────┐ ┌──────────┐
+│  7.4        │ │  End     │
+│  منح شارة   │ └──────────┘
+│             │
+└──────┬──────┘
+       │
+       ▼
+┌──────────────┐
+│D5: User      │
+│   Badges     │
+└──────┬───────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  7.5                    │
+│  تحديث Streak           │         ┌──────────────┐
+│                         │◄───────►│D5: Streaks   │
+└──────────┬──────────────┘         └──────────────┘
+           │
+           ▼
+┌─────────────────────────┐
+│  7.6                    │
+│  تحديث Leaderboard      │         ┌──────────────┐
+│  (Cache)                │────────►│  Cache       │
+└──────────┬──────────────┘         └──────────────┘
+           │
+           ▼
+┌─────────────┐
+│  Student    │
+│  (Updated)  │
+└─────────────┘</pre>
+            </div>
+        </div>
+
+        <!-- Data Stores -->
+        <div id="datastores" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🗃️</span>
+                Data Stores (مخازن البيانات)
+            </h2>
+            
+            <div class="datastore-grid">
+                <div class="datastore-card">
+                    <span class="store-id">D1</span>
+                    <h3>Users</h3>
+                    <p>بيانات المستخدمين</p>
+                    <span class="type">Database Table</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D2</span>
+                    <h3>Content</h3>
+                    <p>المحتوى التعليمي (Values, Concepts, Meanings, Lessons, Activities)</p>
+                    <span class="type">Database Tables</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D3</span>
+                    <h3>Activities</h3>
+                    <p>الأنشطة</p>
+                    <span class="type">Database Table</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D4</span>
+                    <h3>Submissions</h3>
+                    <p>تسليمات الأنشطة</p>
+                    <span class="type">Database Table</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D5</span>
+                    <h3>Gamification</h3>
+                    <p>النقاط، العملات، الشارات، Streaks</p>
+                    <span class="type">Database Tables</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D6</span>
+                    <h3>Notifications</h3>
+                    <p>الإشعارات</p>
+                    <span class="type">Database Table</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D7</span>
+                    <h3>Sessions</h3>
+                    <p>جلسات المستخدمين</p>
+                    <span class="type">Database Table / Cache</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D8</span>
+                    <h3>Settings</h3>
+                    <p>إعدادات النظام</p>
+                    <span class="type">Database Table</span>
+                </div>
+
+                <div class="datastore-card">
+                    <span class="store-id">D9</span>
+                    <h3>Logs</h3>
+                    <p>سجلات النشاط</p>
+                    <span class="type">Database Table / Files</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ERD -->
+        <div id="erd" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔗</span>
+                Entity Relationship Diagram (ERD)
+            </h2>
+            <p style="margin-bottom: 1.5rem; color: #64748b;">
+                مخطط علاقات قاعدة البيانات الرئيسية:
+            </p>
+            
+            <div class="erd-diagram">
+                <pre>┌─────────────────────────┐
+│        users            │
+├─────────────────────────┤
+│ PK  id                  │
+│     name                │
+│     email               │
+│     password            │
+│     role                │
+│ FK  school_id           │
+│     status              │
+│     two_factor_enabled  │
+└──────┬────────┬─────────┘
+       │        │
+       │        └──────────────────────────┐
+       │                                   │
+       │                                   │
+┌──────▼──────────────┐         ┌─────────▼────────────┐
+│   schools           │         │   classrooms         │
+├─────────────────────┤         ├──────────────────────┤
+│ PK  id              │         │ PK  id               │
+│     name            │         │     name             │
+│     email           │         │ FK  school_id        │
+│     phone           │         │ FK  teacher_id       │
+│     address         │         │     grade_level      │
+│     logo            │         └──────────────────────┘
+│     status          │
+│     *_registration_ │
+│     tokens          │
+└─────────────────────┘
+       │
+       │
+┌──────▼──────────────┐
+│ registration_       │
+│ requests            │
+├─────────────────────┤
+│ PK  id              │
+│     name            │
+│     email           │
+│ FK  school_id       │
+│     type            │
+│     status          │
+└─────────────────────┘
+
+
+┌─────────────────────────┐
+│        values           │
+├─────────────────────────┤
+│ PK  id                  │
+│     name                │
+│     description         │
+│     icon                │
+│     order               │
+└──────┬──────────────────┘
+       │
+       │ 1:N
+       │
+┌──────▼──────────────┐
+│   concepts          │
+├─────────────────────┤
+│ PK  id              │
+│ FK  value_id        │
+│     name            │
+│     description     │
+│     order           │
+└──────┬──────────────┘
+       │
+       │ 1:N
+       │
+┌──────▼──────────────┐
+│   meanings          │
+├─────────────────────┤
+│ PK  id              │
+│ FK  concept_id      │
+│     name            │
+│     description     │
+│     order           │
+└──────┬──────────────┘
+       │
+       │ 1:N
+       │
+┌──────▼──────────────┐
+│   lessons           │
+├─────────────────────┤
+│ PK  id              │
+│ FK  meaning_id      │
+│     title           │
+│     content         │
+│     image           │
+│     video_url       │
+│     order           │
+└──────┬──────────────┘
+       │
+       │ 1:N
+       │
+┌──────▼──────────────┐
+│   activities        │
+├─────────────────────┤
+│ PK  id              │
+│ FK  lesson_id       │
+│     title           │
+│     description     │
+│     type            │
+│     content (JSON)  │
+│     max_points      │
+│     order           │
+└──────┬──────────────┘
+       │
+       │ 1:N
+       │
+┌──────▼────────────────────┐
+│   activity_submissions    │
+├───────────────────────────┤
+│ PK  id                    │
+│ FK  activity_id           │
+│ FK  student_id            │
+│     content               │
+│     attachments (JSON)    │
+│     score                 │
+│     feedback              │
+│     status                │
+│ FK  reviewed_by           │
+│     submitted_at          │
+│     reviewed_at           │
+└───────────────────────────┘
+
+
+┌─────────────────────────┐
+│        points           │
+├─────────────────────────┤
+│ PK  id                  │
+│ FK  user_id             │
+│     points              │
+│     reason              │
+│     source_type         │
+│     source_id           │
+└─────────────────────────┘
+
+┌─────────────────────────┐
+│        coins            │
+├─────────────────────────┤
+│ PK  id                  │
+│ FK  user_id             │
+│     coins               │
+│     reason              │
+│     source_type         │
+│     source_id           │
+└─────────────────────────┘
+
+┌─────────────────────────┐
+│        badges           │
+├─────────────────────────┤
+│ PK  id                  │
+│     name                │
+│     description         │
+│     icon                │
+│     condition (JSON)    │
+└──────┬──────────────────┘
+       │
+       │ M:N
+       │
+┌──────▼──────────────┐
+│   user_badges       │
+├─────────────────────┤
+│ PK  id              │
+│ FK  user_id         │
+│ FK  badge_id        │
+│     earned_at       │
+└─────────────────────┘
+
+┌─────────────────────────┐
+│        streaks          │
+├─────────────────────────┤
+│ PK  id                  │
+│ FK  user_id             │
+│     current_streak      │
+│     longest_streak      │
+│     last_activity_date  │
+└─────────────────────────┘</pre>
+            </div>
+
+            <h3 style="margin: 3rem 0 1rem; color: var(--primary);">علاقات الجداول الرئيسية</h3>
+            <table class="entity-table">
+                <thead>
+                    <tr>
+                        <th>النوع</th>
+                        <th>العلاقة</th>
+                        <th>الجدول الثاني</th>
+                        <th>الجدول الأول</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>N:1</td>
+                        <td>school_id → id</td>
+                        <td>schools</td>
+                        <td>users</td>
+                    </tr>
+                    <tr>
+                        <td>N:1</td>
+                        <td>school_id → id</td>
+                        <td>schools</td>
+                        <td>classrooms</td>
+                    </tr>
+                    <tr>
+                        <td>N:1</td>
+                        <td>teacher_id → id</td>
+                        <td>users</td>
+                        <td>classrooms</td>
+                    </tr>
+                    <tr>
+                        <td>1:N</td>
+                        <td>-</td>
+                        <td>concepts</td>
+                        <td>values</td>
+                    </tr>
+                    <tr>
+                        <td>1:N</td>
+                        <td>value_id → id</td>
+                        <td>meanings</td>
+                        <td>concepts</td>
+                    </tr>
+                    <tr>
+                        <td>1:N</td>
+                        <td>concept_id → id</td>
+                        <td>lessons</td>
+                        <td>meanings</td>
+                    </tr>
+                    <tr>
+                        <td>1:N</td>
+                        <td>meaning_id → id</td>
+                        <td>activities</td>
+                        <td>lessons</td>
+                    </tr>
+                    <tr>
+                        <td>1:N</td>
+                        <td>lesson_id → id</td>
+                        <td>activity_submissions</td>
+                        <td>activities</td>
+                    </tr>
+                    <tr>
+                        <td>N:1</td>
+                        <td>student_id → id</td>
+                        <td>users</td>
+                        <td>activity_submissions</td>
+                    </tr>
+                    <tr>
+                        <td>M:N</td>
+                        <td>user_badges (junction)</td>
+                        <td>badges</td>
+                        <td>users</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Scenarios -->
+        <div id="scenarios" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📈</span>
+                تدفق البيانات للسيناريوهات الشائعة
+            </h2>
+
+            <div class="scenario-box">
+                <h3>سيناريو 1: طالب يكمل قيمة بالكامل</h3>
+                <pre>1. Student completes last activity in a value
+   └─► Trigger: ActivitySubmission.reviewed & approved
+       │
+2. Update student progress
+   ├─► Update value_progress table
+   ├─► Mark value as completed
+   │
+3. Award rewards
+   ├─► Add 50 points (completed value)
+   ├─► Add 25 coins
+   ├─► Check badge criteria
+   │   └─► Award badge if criteria met
+   │
+4. Update streak
+   ├─► Check last activity date
+   ├─► Increment/reset streak
+   │
+5. Update leaderboard (cached)
+   ├─► Recalculate student rank
+   ├─► Update Redis cache
+   │
+6. Send notifications
+   ├─► In-app notification
+   ├─► Email to student
+   └─► Email to parent</pre>
+            </div>
+
+            <div class="scenario-box">
+                <h3>سيناريو 2: School Admin يقبل طلب تسجيل طالب</h3>
+                <pre>1. School Admin reviews request
+   └─► GET /school-admin/registration-requests/{id}
+       │
+2. School Admin accepts request
+   ├─► POST /school-admin/registration-requests/{id}/accept
+   ├─► Assign classroom
+   │
+3. Create user account
+   ├─► Create user record (role: student)
+   ├─► Generate temporary password
+   ├─► Hash password (bcrypt)
+   │
+4. Update request status
+   ├─► Set status = 'accepted'
+   ├─► Set accepted_at timestamp
+   │
+5. Send welcome email
+   ├─► Queue email job
+   ├─► Email contains:
+   │   ├─► Login credentials
+   │   ├─► Temporary password
+   │   └─► Instructions
+   │
+6. Notify parent (if linked)
+   └─► Send notification to parent account</pre>
+            </div>
+        </div>
+
+        <!-- Security Flow -->
+        <div id="security" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔐</span>
+                تدفق البيانات الآمن (Secure Data Flow)
+            </h2>
+            
+            <div class="security-flow">
+                <h3>🔒 تدفق البيانات الحساسة</h3>
+                <div class="dfd-diagram">
+                    <pre>User Input
+    │
+    ├─► [1] CSRF Validation
+    │
+    ├─► [2] Input Sanitization
+    │       (Strip HTML, XSS Prevention)
+    │
+    ├─► [3] Validation Rules
+    │       (Laravel Validation)
+    │
+    ├─► [4] Authentication Check
+    │       (Session / Token)
+    │
+    ├─► [5] Authorization Check
+    │       (Roles & Permissions)
+    │
+    ├─► [6] Business Logic
+    │       (Service Layer)
+    │
+    ├─► [7] Data Access Layer
+    │       (Eloquent ORM - SQL Injection Prevention)
+    │
+    ├─► [8] Database
+    │       (Encrypted Fields if sensitive)
+    │
+    └─► [9] Response
+        ├─► Data Escaping (Blade Auto-Escape)
+        ├─► HTTPS (SSL/TLS)
+        └─► HTTPOnly Cookies</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div id="summary" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📊</span>
+                ملخص تدفق البيانات
+            </h2>
+
+            <div class="criteria-grid">
+                <div class="criteria-card">
+                    <h4>✅ تدفق واضح ومنظم</h4>
+                    <ul>
+                        <li>البيانات تمر عبر طبقات محددة</li>
+                        <li>فصل واضح بين العرض والمنطق والبيانات</li>
+                    </ul>
+                </div>
+
+                <div class="criteria-card">
+                    <h4>✅ الأمان في كل مرحلة</h4>
+                    <ul>
+                        <li>CSRF Protection</li>
+                        <li>Input Validation</li>
+                        <li>SQL Injection Prevention</li>
+                        <li>XSS Protection</li>
+                    </ul>
+                </div>
+
+                <div class="criteria-card">
+                    <h4>✅ الأداء</h4>
+                    <ul>
+                        <li>استخدام Cache للبيانات المتكررة</li>
+                        <li>Queue للعمليات الثقيلة</li>
+                        <li>Eager Loading لتجنب N+1</li>
+                    </ul>
+                </div>
+
+                <div class="criteria-card">
+                    <h4>✅ قابلية التوسع</h4>
+                    <ul>
+                        <li>معمارية قابلة للتوزيع</li>
+                        <li>Database Sharding (مستقبلاً)</li>
+                        <li>Microservices (مستقبلاً)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin: 3rem 0 1rem; color: var(--primary);">معايير النجاح</h3>
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1)); padding: 2rem; border-radius: 15px; border: 2px solid var(--success);">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 0.75rem 0; padding-right: 2rem; position: relative; font-weight: 600;">
+                        <span style="position: absolute; right: 0; color: var(--success);">✅</span>
+                        وضوح كامل لرؤية النظام - جميع التدفقات موثقة بوضوح
+                    </li>
+                    <li style="padding: 0.75rem 0; padding-right: 2rem; position: relative; font-weight: 600;">
+                        <span style="position: absolute; right: 0; color: var(--success);">✅</span>
+                        تعريف جميع تدفقات النظام بدون غموض
+                    </li>
+                    <li style="padding: 0.75rem 0; padding-right: 2rem; position: relative; font-weight: 600;">
+                        <span style="position: absolute; right: 0; color: var(--success);">✅</span>
+                        اعتماد IA والـ Architecture كبنية نهائية
+                    </li>
+                    <li style="padding: 0.75rem 0; padding-right: 2rem; position: relative; font-weight: 600;">
+                        <span style="position: absolute; right: 0; color: var(--success);">✅</span>
+                        قبول الواجهات الأولية من الجهات المعنية
+                    </li>
+                </ul>
+            </div>
+
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 2rem; border-radius: 15px; margin-top: 3rem; text-align: center;">
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>تاريخ الإعداد:</strong> ديسمبر 23, 2025
+                </p>
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>أداة الرسم المقترحة:</strong> Draw.io / Lucidchart / Microsoft Visio
+                </p>
+                <p style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">
+                    الحالة: معتمد كوثيقة نهائية ✅
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        ↑
+    </button>
+
+    <script>
+        // Scroll to top button visibility
+        window.addEventListener('scroll', function() {
+            const scrollTop = document.getElementById('scrollTop');
+            if (window.pageYOffset > 300) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+            if (e.key === 'Home') {
+                e.preventDefault();
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        });
+    </script>
+</body>
+</html>

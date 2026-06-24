@@ -1,0 +1,387 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Activity;
+use App\Models\ActivitySubmission;
+use App\Models\Value;
+use App\Models\Concept;
+
+use App\Models\Lesson;
+
+/**
+ * @group Student
+ *
+ * مسارات تطبيق الطالب: لوحة التحكم، الأنشطة، الشارات، لوحة الصدارة.
+ * كل المسارات تتطلب Bearer Token + دور `student`.
+ *
+ * @authenticated
+ */
+class StudentApiController extends Controller
+{
+    /**
+     * إحصائيات لوحة الطالب.
+     *
+     * يُرجع إجمالي النقاط والعملات والشارات + آخر 5 تسليمات.
+     *
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "stats": {
+     *       "total_points": 450,
+     *       "total_coins": 90,
+     *       "badges_count": 3,
+     *       "completed_activities": 12,
+     *       "pending_activities": 2,
+     *       "current_streak": 5
+     *     },
+     *     "recent_activities": [
+     *       {"id": 42, "activity_id": 10, "title": "اختبار الصدق", "status": "approved", "score": 85, "submitted_at": "2026-05-10 14:30"}
+     *     ]
+     *   }
+     * }
+     */
+    public function dashboard(Request $request)
+    {
+        $user = $request->user();
+
+        $stats = [
+            'total_points' => $user->points()->sum('amount'),
+            'total_coins' => $user->coins()->sum('amount'),
+            'badges_count' => $user->badges()->count(),
+            'completed_activities' => $user->activitySubmissions()->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)->count(),
+            'pending_activities' => $user->activitySubmissions()->where('status', 'pending')->count(),
+            'current_streak' => $user->streaks()->latest()->first()?->current_streak ?? 0,
+        ];
+
+        $recentActivities = $user->activitySubmissions()
+            ->with(['activity.lesson.concept.value'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function($submission) {
+                return [
+                    'id' => $submission->id,
+                    'activity_id' => $submission->activity_id,
+                    'title' => $submission->activity->title,
+                    'status' => $submission->status,
+                    'score' => $submission->score,
+                    'submitted_at' => $submission->created_at->format('Y-m-d H:i'),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'stats' => $stats,
+                'recent_activities' => $recentActivities,
+            ]
+        ], 200);
+    }
+
+    /**
+     * شجرة القيم والمفاهيم والدروس.
+     *
+     * يُرجع التركيب الهرمي: Value → Concept → Lesson → Activity
+     * يُستخدم لرسم الـ values tree في الواجهة.
+     *
+     * @response 200 scenario="success" {
+     *   "success": true,
+     *   "data": [
+     *     {
+     *       "id": 1,
+     *       "name": "الصدق",
+     *       "description": "...",
+     *       "concepts": [
+     *         {"id": 5, "name": "الأمانة", "lessons_count": 3}
+     *       ]
+     *     }
+     *   ]
+     * }
+     */
+    public function valuesTree(Request $request)
+    {
+        $values = Value::with(['concepts.meanings.lessons'])->get();
+
+        $tree = $values->map(function($value) {
+            return [
+                'id' => $value->id,
+                'title' => $value->title,
+                'icon' => $value->icon,
+                'color' => $value->color,
+                'concepts_count' => $value->concepts->count(),
+                'concepts' => $value->concepts->map(function($concept) {
+                    return [
+                        'id' => $concept->id,
+                        'title' => $concept->title,
+                        'meanings_count' => $concept->meanings->count(),
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $tree
+        ], 200);
+    }
+
+    /**
+     * Get Available Activities
+     */
+    public function activities(Request $request)
+    {
+        $user = $request->user();
+
+        $query = Activity::with(['lesson.concept.value'])
+            ->where('school_id', $user->school_id)
+            ->where('status', 'active');
+
+        // Filter by classroom if student
+        if ($user->role === 'student') {
+            $classroomIds = $user->classrooms->pluck('id')->toArray();
+            $query->whereIn('classroom_id', $classroomIds);
+        }
+
+        // Filter by type
+        if ($request->has('type') && $request->type) {
+            $query->where('type', $request->type);
+        }
+
+        // Filter by difficulty
+        if ($request->has('difficulty') && $request->difficulty) {
+            $query->where('difficulty', $request->difficulty);
+        }
+
+        $activities = $query->latest()->paginate(20);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'activities' => $activities->map(function($activity) use ($user) {
+                    $submission = $activity->submissions()
+                        ->where('student_id', $user->id)
+                        ->first();
+
+                    return [
+                        'id' => $activity->id,
+                        'title' => $activity->title,
+                        'description' => $activity->description,
+                        'type' => $activity->type,
+                        'difficulty' => $activity->difficulty,
+                        'points' => $activity->points,
+                        'coins' => $activity->coins,
+                        'is_team_activity' => $activity->is_team_activity,
+                        'lesson' => [
+                            'id' => $activity->lesson->id,
+                            'title' => $activity->lesson->title,
+                            'value' => $activity->lesson->concept->value->title ?? null,
+                        ],
+                        'submission' => $submission ? [
+                            'id' => $submission->id,
+                            'status' => $submission->status,
+                            'score' => $submission->score,
+                            'submitted_at' => $submission->created_at->format('Y-m-d H:i'),
+                        ] : null,
+                    ];
+                }),
+                'pagination' => [
+                    'total' => $activities->total(),
+                    'per_page' => $activities->perPage(),
+                    'current_page' => $activities->currentPage(),
+                    'last_page' => $activities->lastPage(),
+                ]
+            ]
+        ], 200);
+    }
+
+    /**
+     * Get Activity Details
+     */
+    public function activityDetails($id, Request $request)
+    {
+        $user = $request->user();
+
+        $activity = Activity::with(['lesson.concept.value', 'creator'])->findOrFail($id);
+
+        // Check access
+        if ($activity->school_id !== $user->school_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصرح لك بالوصول لهذا النشاط'
+            ], 403);
+        }
+
+        $submission = $activity->submissions()
+            ->where('student_id', $user->id)
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $activity->id,
+                'title' => $activity->title,
+                'description' => $activity->description,
+                'type' => $activity->type,
+                'difficulty' => $activity->difficulty,
+                'points' => $activity->points,
+                'coins' => $activity->coins,
+                'instructions' => $activity->instructions,
+                'questions' => $activity->questions,
+                'attachments' => $activity->attachments,
+                'is_team_activity' => $activity->is_team_activity,
+                'due_date' => $activity->due_date,
+                'lesson' => [
+                    'id' => $activity->lesson->id,
+                    'title' => $activity->lesson->title,
+                    'content' => $activity->lesson->content,
+                ],
+                'creator' => [
+                    'name' => $activity->creator->name,
+                ],
+                'submission' => $submission ? [
+                    'id' => $submission->id,
+                    'status' => $submission->status,
+                    'score' => $submission->score,
+                    'feedback' => $submission->feedback,
+                    'submitted_at' => $submission->created_at->format('Y-m-d H:i'),
+                ] : null,
+            ]
+        ], 200);
+    }
+
+    /**
+     * Submit Activity
+     */
+    public function submitActivity($id, Request $request)
+    {
+        $user = $request->user();
+        $activity = Activity::findOrFail($id);
+
+        // Check access
+        if ($activity->school_id !== $user->school_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصرح لك بالوصول لهذا النشاط'
+            ], 403);
+        }
+
+        $request->validate([
+            'answers' => 'required|array',
+            'file' => 'sometimes|file|max:10240', // 10MB
+        ]);
+
+        // Check if already submitted
+        $existing = ActivitySubmission::where('activity_id', $id)
+            ->where('student_id', $user->id)
+            ->first();
+
+        if ($existing && $existing->status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'لقد قمت بتقديم هذا النشاط مسبقاً'
+            ], 400);
+        }
+
+        $data = [
+            'activity_id' => $id,
+            'student_id' => $user->id,
+            'answers' => $request->answers,
+            'status' => 'pending',
+        ];
+
+        if ($request->hasFile('file')) {
+            $path = $request->file('file')->store('submissions', 'public');
+            $data['file_path'] = $path;
+        }
+
+        if ($existing) {
+            $existing->update($data);
+            $submission = $existing;
+        } else {
+            $submission = ActivitySubmission::create($data);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تقديم النشاط بنجاح',
+            'data' => [
+                'id' => $submission->id,
+                'status' => $submission->status,
+            ]
+        ], 200);
+    }
+
+    /**
+     * Get Badges
+     */
+    public function badges(Request $request)
+    {
+        $user = $request->user();
+
+        $userBadges = $user->badges()->get()->map(function($badge) {
+            return [
+                'id' => $badge->id,
+                'name' => $badge->name,
+                'description' => $badge->description,
+                'icon' => $badge->icon,
+                'earned_at' => $badge->pivot->created_at->format('Y-m-d H:i'),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'badges' => $userBadges,
+                'total_count' => $userBadges->count(),
+            ]
+        ], 200);
+    }
+
+    /**
+     * Get Leaderboard
+     */
+    public function leaderboard(Request $request)
+    {
+        $user = $request->user();
+
+        $students = \App\Models\User::where('role', 'student')
+            ->where('school_id', $user->school_id)
+            ->withSum('points', 'amount')
+            ->orderBy('points_sum_amount', 'desc')
+            ->take(50)
+            ->get()
+            ->map(function($student, $index) {
+                return [
+                    'rank' => $index + 1,
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'avatar' => $student->avatar,
+                    'points' => $student->points_sum_amount ?? 0,
+                ];
+            });
+
+        // Find user's rank
+        $allStudents = \App\Models\User::where('role', 'student')
+            ->where('school_id', $user->school_id)
+            ->withSum('points', 'amount')
+            ->orderBy('points_sum_amount', 'desc')
+            ->pluck('id');
+
+        // التعامل الصحيح مع false (المستخدم خارج الترتيب)
+        $userIdx = $allStudents->search($user->id, true);
+        $userRank = $userIdx === false ? null : $userIdx + 1;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'leaderboard' => $students,
+                'user_rank' => $userRank,
+                'user_points' => $user->points()->sum('amount'),
+            ]
+        ], 200);
+    }
+}
+

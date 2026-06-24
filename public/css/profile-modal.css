@@ -1,0 +1,476 @@
+/* ============================================
+   PROFILE MODAL STYLES
+   ============================================ */
+.profile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.profile-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+}
+
+.profile-modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(60px) saturate(180%);
+    border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-modal-header {
+    padding: 28px 32px;
+    border-bottom: 2px solid rgba(16, 185, 129, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-modal-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1A202C;
+    margin: 0;
+}
+
+.profile-modal-close {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: scale(1.1);
+}
+
+.profile-section {
+    padding: 28px 32px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.profile-section:last-of-type {
+    border-bottom: none;
+}
+
+.profile-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A202C;
+    margin: 0 0 20px;
+}
+
+/* Avatar Upload */
+.avatar-upload-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.avatar-preview {
+    flex-shrink: 0;
+}
+
+.avatar-preview-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10B981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+    color: white;
+    overflow: hidden;
+    border: 4px solid rgba(16, 185, 129, 0.2);
+}
+
+.avatar-preview-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-upload-controls {
+    flex: 1;
+    min-width: 200px;
+}
+
+.btn-upload {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    border-radius: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+}
+
+.btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.upload-hint {
+    font-size: 13px;
+    color: #718096;
+    margin-top: 8px;
+}
+
+/* Form Inputs */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4A5568;
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    background: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #10B981;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.form-input::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+/* Modal Footer */
+.profile-modal-footer {
+    padding: 24px 32px;
+    background: rgba(0, 0, 0, 0.02);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.btn-save {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+.btn-save:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+.btn-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-cancel {
+    padding: 14px 32px;
+    background: rgba(0, 0, 0, 0.05);
+    color: #4A5568;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+.btn-cancel:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .profile-modal-header {
+        padding: 20px 24px;
+    }
+    
+    .profile-modal-header h2 {
+        font-size: 20px;
+    }
+    
+    .profile-section {
+        padding: 20px 24px;
+    }
+    
+    .avatar-upload-section {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-modal-footer {
+        flex-direction: column;
+    }
+    
+    .btn-save,
+    .btn-cancel {
+        width: 100%;
+    }
+}
+
+/* ============================================
+   COINS HISTORY MODAL
+   ============================================ */
+.coins-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    padding: 24px 32px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+}
+
+.coins-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.coins-stat-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.coins-stat-info {
+    flex: 1;
+}
+
+.coins-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1A202C;
+    margin-bottom: 4px;
+}
+
+.coins-stat-label {
+    font-size: 12px;
+    color: #718096;
+    font-weight: 500;
+}
+
+/* Points Rules */
+.points-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.points-rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(16, 185, 129, 0.05);
+    border-radius: 12px;
+    border-left: 4px solid #10B981;
+}
+
+.points-rule-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.points-rule-text {
+    font-size: 14px;
+    color: #4A5568;
+    flex: 1;
+}
+
+.points-rule-text strong {
+    color: #10B981;
+    font-weight: 700;
+}
+
+/* Coins History List */
+.coins-history-list {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.coins-history-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 12px;
+    transition: all 0.3s;
+}
+
+.coins-history-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transform: translateX(-4px);
+}
+
+.coins-history-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.coins-history-details {
+    flex: 1;
+}
+
+.coins-history-desc {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1A202C;
+    margin-bottom: 4px;
+}
+
+.coins-history-date {
+    font-size: 12px;
+    color: #718096;
+}
+
+.coins-history-amount {
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    gap: 16px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(16, 185, 129, 0.2);
+    border-top-color: #10B981;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+    font-size: 14px;
+    color: #718096;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+
+.empty-state-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4A5568;
+    margin-bottom: 8px;
+}
+
+.empty-state-hint {
+    font-size: 14px;
+    color: #718096;
+}
+
+/* Responsive for Coins Modal */
+@media (max-width: 768px) {
+    .coins-summary {
+        grid-template-columns: 1fr;
+        padding: 20px 24px;
+    }
+    
+    .coins-stat-card {
+        padding: 14px;
+    }
+    
+    .coins-history-item {
+        padding: 12px;
+    }
+    
+    .coins-history-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+}

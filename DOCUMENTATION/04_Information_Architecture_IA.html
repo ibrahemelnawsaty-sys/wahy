@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الهيكلية المعلوماتية - منصة قيمّ | Information Architecture</title>
+    <meta name="description" content="توثيق شامل للهيكلية المعلوماتية والتنظيم الهرمي لمنصة قيمّ التعليمية">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f1f5f9;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
+        }
+        
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Navigation */
+        .nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+        
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links a:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Content Card */
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(white, white), linear-gradient(135deg, var(--primary), var(--secondary));
+            background-clip: padding-box, border-box;
+            background-origin: padding-box, border-box;
+        }
+        
+        .section-header .icon {
+            font-size: 2.5rem;
+        }
+        
+        /* Principles Grid */
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .principle-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        
+        .principle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            border-color: var(--primary);
+        }
+        
+        .principle-card h3 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .principle-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .principle-card li {
+            padding: 0.5rem 0;
+            padding-right: 1.5rem;
+            position: relative;
+        }
+        
+        .principle-card li::before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        /* Sitemap Tree */
+        .sitemap-tree {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .sitemap-tree pre {
+            white-space: pre;
+            line-height: 1.8;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+        
+        /* Role Structure */
+        .role-structure {
+            margin: 2rem 0;
+        }
+        
+        .role-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 15px 15px 0 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .role-super-admin { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .role-school-admin { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .role-teacher { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .role-student { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .role-parent { background: linear-gradient(135deg, #fa709a, #fee140); }
+        
+        .role-content {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 0 0 15px 15px;
+            border: 2px solid var(--glass-border);
+            border-top: none;
+        }
+        
+        .role-tree {
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            line-height: 1.8;
+            color: var(--dark);
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+        
+        /* Sidebar Menu Box */
+        .sidebar-menu {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 2px solid var(--primary);
+        }
+        
+        .sidebar-menu h4 {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-menu ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            padding: 0.75rem 0;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        /* Content Hierarchy */
+        .hierarchy-example {
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.1), rgba(56, 249, 215, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid var(--success);
+        }
+        
+        .hierarchy-example h4 {
+            color: var(--success);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Navigation Flow */
+        .flow-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border-right: 5px solid var(--info);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .flow-card h4 {
+            color: var(--info);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .flow-steps {
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            line-height: 2;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+        
+        /* Rules */
+        .rules-list {
+            display: grid;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .rule-item {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            border-right: 5px solid var(--warning);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .rule-item h4 {
+            color: var(--warning);
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .rule-item ul {
+            padding-right: 1.5rem;
+        }
+        
+        .rule-item li {
+            margin: 0.5rem 0;
+        }
+        
+        /* Summary Boxes */
+        .summary-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .summary-strengths {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid var(--success);
+        }
+        
+        .summary-improvements {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid var(--warning);
+        }
+        
+        .summary-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .summary-strengths h3 { color: var(--success); }
+        .summary-improvements h3 { color: var(--warning); }
+        
+        .summary-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .summary-box li {
+            padding: 0.75rem 0;
+            padding-right: 2rem;
+            position: relative;
+            font-weight: 600;
+        }
+        
+        .summary-strengths li::before {
+            content: '✅';
+            position: absolute;
+            right: 0;
+            font-size: 1.2rem;
+        }
+        
+        .summary-improvements li::before {
+            content: '⚠️';
+            position: absolute;
+            right: 0;
+            font-size: 1.2rem;
+        }
+        
+        /* Labels Table */
+        .labels-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .labels-table thead {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .labels-table th,
+        .labels-table td {
+            padding: 1rem 1.5rem;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .labels-table th {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .labels-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .labels-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header .subtitle {
+                font-size: 1rem;
+            }
+            
+            .content-card {
+                padding: 1.5rem;
+            }
+            
+            .nav {
+                top: 10px;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+            }
+            
+            .principles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sitemap-tree,
+            .role-tree,
+            .flow-steps {
+                font-size: 0.75rem;
+            }
+            
+            .scroll-top {
+                bottom: 1rem;
+                left: 1rem;
+                width: 45px;
+                height: 45px;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .nav,
+            .scroll-top {
+                display: none;
+            }
+            
+            .content-card {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">🗺️</div>
+            <h1>الهيكلية المعلوماتية (Information Architecture)</h1>
+            <p class="subtitle">التنظيم الشامل والهيكل المعلوماتي لمنصة قيمّ التعليمية</p>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <ul class="nav-links">
+                <li><a href="#overview">📋 نظرة عامة</a></li>
+                <li><a href="#principles">🏗️ المبادئ الأساسية</a></li>
+                <li><a href="#sitemap">🌐 Sitemap الرئيسي</a></li>
+                <li><a href="#roles">👥 هيكل الأدوار</a></li>
+                <li><a href="#content">📚 هيكل المحتوى</a></li>
+                <li><a href="#labels">🏷️ نظام التسميات</a></li>
+                <li><a href="#flows">🔄 تدفقات التنقل</a></li>
+                <li><a href="#rules">📏 قواعد IA</a></li>
+                <li><a href="#summary">✅ الملخص</a></li>
+            </ul>
+        </nav>
+
+        <!-- Overview -->
+        <div id="overview" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📋</span>
+                نظرة عامة
+            </h2>
+            <p style="font-size: 1.1rem; line-height: 2; color: #475569;">
+                هذه الوثيقة تحدد الهيكلية الكاملة لمنصة قيمّ، بما في ذلك التنظيم الهرمي للمعلومات، هيكل التنقل الرئيسي لكل دور، Sitemap شامل، نظام التسميات والأيقونات، وهيكل المحتوى التعليمي الخماسي المستويات.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem;">
+                <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">5</div>
+                    <div style="font-weight: 600; color: #64748b;">أدوار رئيسية</div>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1)); padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">100+</div>
+                    <div style="font-weight: 600; color: #64748b;">صفحة وواجهة</div>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">5</div>
+                    <div style="font-weight: 600; color: #64748b;">مستويات محتوى</div>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1)); padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">3</div>
+                    <div style="font-weight: 600; color: #64748b;">نقرات كحد أقصى</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Principles -->
+        <div id="principles" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🏗️</span>
+                المبادئ الأساسية للـ IA
+            </h2>
+            <div class="principles-grid">
+                <div class="principle-card">
+                    <h3>1️⃣ الوضوح (Clarity)</h3>
+                    <ul>
+                        <li>تسميات واضحة ومفهومة باللغة العربية</li>
+                        <li>تجنب المصطلحات التقنية المعقدة</li>
+                        <li>استخدام أيقونات مساعدة</li>
+                    </ul>
+                </div>
+                <div class="principle-card">
+                    <h3>2️⃣ الاتساق (Consistency)</h3>
+                    <ul>
+                        <li>نفس التسميات في جميع الصفحات</li>
+                        <li>نفس موقع عناصر التنقل</li>
+                        <li>أنماط تفاعل موحدة</li>
+                    </ul>
+                </div>
+                <div class="principle-card">
+                    <h3>3️⃣ الكفاءة (Efficiency)</h3>
+                    <ul>
+                        <li>الوصول للمحتوى المهم بأقل نقرات (3 نقرات كحد أقصى)</li>
+                        <li>إمكانية العودة السريعة</li>
+                        <li>Breadcrumbs واضحة</li>
+                    </ul>
+                </div>
+                <div class="principle-card">
+                    <h3>4️⃣ التوسع (Scalability)</h3>
+                    <ul>
+                        <li>قابلية إضافة أقسام جديدة</li>
+                        <li>دعم عدد كبير من المستخدمين والمحتوى</li>
+                        <li>هيكل مرن للتعديل المستقبلي</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sitemap -->
+        <div id="sitemap" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🌐</span>
+                Sitemap الرئيسي
+            </h2>
+            <div class="sitemap-tree">
+                <pre>منصة قيمّ
+│
+├─── 🌍 الصفحات العامة (Public)
+│    ├─── الصفحة الرئيسية (/)
+│    ├─── من نحن (/about)
+│    ├─── الخدمات (/services)
+│    ├─── تواصل معنا (/contact)
+│    ├─── الصفحات المخصصة (/pages/{slug})
+│    └─── التسجيل الذاتي
+│         ├─── معلم (/register/teacher/{token})
+│         ├─── طالب (/register/student/{token})
+│         └─── ولي أمر (/register/parent/{token})
+│
+├─── 🔐 المصادقة (Authentication)
+│    ├─── تسجيل الدخول (/login)
+│    ├─── التحقق بخطوتين (/two-factor/verify)
+│    ├─── نسيت كلمة المرور (/forgot-password)
+│    ├─── إعادة تعيين كلمة المرور (/reset-password/{token})
+│    └─── تغيير كلمة المرور (/password/change)
+│
+├─── 👑 Super Admin (/admin/*)
+├─── 🏫 School Admin (/school-admin/*)
+├─── 👩‍🏫 Teacher (/teacher/*)
+├─── 👦 Student (/student/*)
+└─── 👨‍👦 Parent (/parent/*)</pre>
+            </div>
+        </div>
+
+        <!-- Roles Structure -->
+        <div id="roles" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">👥</span>
+                هيكل الأدوار التفصيلي
+            </h2>
+
+            <!-- Super Admin -->
+            <div class="role-structure">
+                <div class="role-header role-super-admin">
+                    👑 هيكل Super Admin
+                </div>
+                <div class="role-content">
+                    <div class="role-tree">Super Admin Dashboard
+│
+├─── 🏠 لوحة التحكم (/admin/dashboard)
+│    └─── إحصائيات عامة (المستخدمين، المدارس، القيم)
+│
+├─── 👥 إدارة المستخدمين (/admin/users)
+│    ├─── عرض الكل | إضافة | تعديل | حذف
+│
+├─── 🏫 إدارة المدارس (/admin/schools)
+│    ├─── عرض الكل | إضافة | تعديل
+│    └─── تفاصيل المدرسة (الفروع، روابط التسجيل، QR Codes)
+│
+├─── 👨‍🏫 إدارة المعلمين (/admin/teachers)
+├─── 👦 إدارة الطلاب (/admin/students)
+├─── 👨‍👦 إدارة أولياء الأمور (/admin/parents)
+│
+├─── 📚 المحتوى التعليمي (/admin/content)
+│    ├─── القيم (/admin/values)
+│    ├─── المفاهيم (/admin/concepts)
+│    ├─── المعاني (/admin/meanings)
+│    ├─── الدروس (/admin/lessons)
+│    └─── الأنشطة (/admin/activities)
+│
+├─── 📊 التقارير والتحليلات (/admin/reports)
+│    ├─── تقارير الطلاب | المدارس | الأنشطة
+│    └─── تصدير (Excel/PDF)
+│
+├─── 🎨 إدارة الثيم (/admin/theme)
+│    ├─── اختيار الثيم (فاتح/داكن/مخصص)
+│    ├─── تخصيص الألوان
+│    └─── رفع الملفات (اللوجو، الفافيكون)
+│
+├─── 🏗️ بناء الصفحات (/admin/pages)
+│    ├─── إنشاء صفحة | Drag & Drop Builder
+│    └─── إعدادات SEO ومعاينة
+│
+├─── ⚙️ الإعدادات (/admin/settings)
+│    ├─── معلومات الموقع والاتصال
+│    ├─── روابط التواصل الاجتماعي
+│    └─── وضع الصيانة
+│
+└─── 👤 الملف الشخصي
+     └─── تعديل البيانات | تغيير كلمة المرور | 2FA</div>
+
+                    <div class="sidebar-menu">
+                        <h4>📌 Sidebar Menu</h4>
+                        <ul>
+                            <li>🏠 لوحة التحكم</li>
+                            <li>👥 المستخدمون</li>
+                            <li>🏫 المدارس</li>
+                            <li>👨‍🏫 المعلمون</li>
+                            <li>👦 الطلاب</li>
+                            <li>👨‍👦 أولياء الأمور</li>
+                            <li>📚 المحتوى التعليمي</li>
+                            <li>📊 التقارير</li>
+                            <li>🎨 الثيم</li>
+                            <li>🏗️ الصفحات</li>
+                            <li>⚙️ الإعدادات</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- School Admin -->
+            <div class="role-structure">
+                <div class="role-header role-school-admin">
+                    🏫 هيكل School Admin
+                </div>
+                <div class="role-content">
+                    <div class="role-tree">School Admin Dashboard
+│
+├─── 🏠 لوحة التحكم (/school-admin/dashboard)
+│    └─── إحصائيات المدرسة (المعلمون، الطلاب، الفصول)
+│
+├─── 👨‍🏫 المعلمون (/school-admin/teachers)
+│    ├─── عرض الكل | إضافة | تعديل
+│    └─── تفاصيل (الفصول، التقييمات، النشاط)
+│
+├─── 👦 الطلاب (/school-admin/students)
+│    ├─── عرض الكل | إضافة | تعديل | نقل بين الفصول
+│    └─── تفاصيل (البيانات، التقدم، النقاط، الشارات)
+│
+├─── 👨‍👦 أولياء الأمور (/school-admin/parents)
+│    └─── ربط ولي أمر بطالب
+│
+├─── 🏛️ الفصول (/school-admin/classrooms)
+│    ├─── عرض الكل | إضافة | تعديل
+│    ├─── إضافة/إزالة طلاب
+│    └─── تصدير قائمة الطلاب
+│
+├─── 📋 طلبات التسجيل (/school-admin/registration-requests)
+│    ├─── فلترة (معلم/طالب/ولي أمر)
+│    ├─── قبول الطلب (تعيين الفصل)
+│    └─── رفض الطلب (كتابة السبب)
+│
+├─── 🔗 روابط التسجيل (/school-admin/registration-links)
+│    ├─── عرض الروابط والـ QR Codes
+│    ├─── تحميل وطباعة
+│    └─── إعادة توليد الروابط
+│
+├─── 📊 التقارير (/school-admin/reports)
+│    └─── تصدير (Excel/PDF)
+│
+└─── 🔔 الإشعارات</div>
+
+                    <div class="sidebar-menu">
+                        <h4>📌 Sidebar Menu</h4>
+                        <ul>
+                            <li>🏠 لوحة التحكم</li>
+                            <li>👨‍🏫 المعلمون</li>
+                            <li>👦 الطلاب</li>
+                            <li>👨‍👦 أولياء الأمور</li>
+                            <li>🏛️ الفصول</li>
+                            <li>📋 طلبات التسجيل <span style="color: var(--danger);">(🔴 3)</span></li>
+                            <li>🔗 روابط التسجيل</li>
+                            <li>📊 التقارير</li>
+                            <li>🔔 الإشعارات</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher -->
+            <div class="role-structure">
+                <div class="role-header role-teacher">
+                    👩‍🏫 هيكل Teacher
+                </div>
+                <div class="role-content">
+                    <div class="role-tree">Teacher Dashboard
+│
+├─── 🏠 لوحة التحكم (/teacher/dashboard)
+│    └─── إحصائيات المعلم (الفصول، الطلاب، الأنشطة المعلقة)
+│
+├─── 🏛️ فصولي (/teacher/classrooms)
+│    └─── تفاصيل الفصل (الطلاب، الإحصائيات)
+│
+├─── ✍️ الأنشطة المعلقة (/teacher/pending-activities) ⭐ الأكثر استخداماً
+│    ├─── فلترة حسب الفصل والتاريخ
+│    └─── مراجعة النشاط
+│         ├─── عرض السؤال وإجابة الطالب
+│         ├─── معاينة الملفات المرفقة
+│         ├─── إعطاء الدرجة (0-100)
+│         ├─── كتابة ملاحظات
+│         ├─── قبول/رفض
+│         └─── الانتقال للتالي
+│
+├─── 📚 إدارة الأنشطة (/teacher/activities) ✅ مكتمل
+│    ├─── عرض أنشطتي ✅
+│    ├─── إنشاء نشاط جديد ✅
+│    ├─── تعديل نشاط ✅
+│    ├─── حذف نشاط ✅
+│    └─── بنك الأسئلة ✅
+│
+├─── 👥 إدارة الفرق (/teacher/teams) ✅ مكتمل
+│    ├─── إنشاء فريق جديد ✅
+│    ├─── تعيين أنشطة جماعية ✅
+│    └─── تقييم الفرق ✅
+│
+├─── 💬 الرسائل (/teacher/messages) ✅ مكتمل
+│    └─── التواصل مع أولياء الأمور ✅
+│
+├─── 📊 التقارير (/teacher/reports)
+│    └─── تقرير تقدم الطلاب ومقارنة الفصول
+│
+└─── ⭐ التقييمات (/teacher/ratings)</div>
+
+                    <div class="sidebar-menu">
+                        <h4>📌 Sidebar Menu</h4>
+                        <ul>
+                            <li>🏠 لوحة التحكم</li>
+                            <li>🏛️ فصولي</li>
+                            <li>✍️ الأنشطة المعلقة <span style="color: var(--danger);">(🔴 15)</span></li>
+                            <li>📚 إدارة الأنشطة <span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem;">✅</span></li>
+                            <li>👥 الفرق <span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem;">✅</span></li>
+                            <li>💬 الرسائل <span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem;">✅</span></li>
+                            <li>📊 التقارير</li>
+                            <li>⭐ التقييمات</li>
+                            <li>🔔 الإشعارات</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student -->
+            <div class="role-structure">
+                <div class="role-header role-student">
+                    👦 هيكل Student
+                </div>
+                <div class="role-content">
+                    <div class="role-tree">Student Dashboard
+│
+├─── 🏠 لوحة التحكم (/student/dashboard) ⭐ الأكثر استخداماً
+│    └─── نظرة عامة
+│         ├─── التقدم الإجمالي (%)
+│         ├─── النقاط والعملات الكلية
+│         ├─── Streak الحالي 🔥
+│         ├─── الترتيب في Leaderboard
+│         ├─── آخر الشارات المكتسبة
+│         └─── الأنشطة المعلقة
+│
+├─── 🗺️ خريطة التعلم (/student/learning-path) ⭐ الأكثر استخداماً
+│    ├─── عرض القيم الهرمي
+│    │    ├─── القيمة 1 (مكتملة ✅)
+│    │    ├─── القيمة 2 (قيد التنفيذ 📖 - 60%)
+│    │    └─── القيمة 3 (مقفلة 🔒)
+│    │
+│    └─── تفاصيل القيمة → المفاهيم → المعاني → الدروس → الأنشطة
+│
+├─── ✍️ أنشطتي (/student/activities)
+│    ├─── الأنشطة الحالية | المكتملة | المعلقة (تحت المراجعة)
+│    └─── عرض تفاصيل النشاط
+│         ├─── السؤال والملفات المرفقة
+│         ├─── مربع الإجابة (نص/رفع ملف)
+│         ├─── تسليم النشاط
+│         └─── عرض النتيجة (الدرجة، ملاحظات المعلم، المكافآت)
+│
+├─── 🏆 Gamification
+│    ├─── النقاط (/student/points)
+│    ├─── العملات (/student/coins)
+│    ├─── الشارات (/student/badges)
+│    ├─── التيجان (/student/crowns)
+│    └─── Streak (/student/streak)
+│
+├─── 🏅 Leaderboard (/student/leaderboard)
+│    ├─── فلترة (فصلي | مدرستي | عالمي)
+│    └─── أفضل 10 طلاب وموقعي الحالي
+│
+├─── 🛍️ المتجر (/student/shop) ✅ مكتمل
+│    ├─── عرض المنتجات ✅
+│    ├─── شراء بالعملات ✅
+│    └─── استبدال العناصر ✅
+│
+├─── 👥 فريقي (/student/team) ✅ مكتمل
+│    ├─── عرض فريقي ✅
+│    ├─── أنشطة الفريق ✅
+│    └─── ترتيب الفرق ✅
+│
+└─── 🔔 الإشعارات</div>
+
+                    <div class="sidebar-menu">
+                        <h4>📌 Sidebar Menu (مبسطة للطالب)</h4>
+                        <ul>
+                            <li>🏠 الرئيسية</li>
+                            <li>🗺️ خريطة التعلم ⭐</li>
+                            <li>✍️ أنشطتي <span style="color: var(--danger);">(🔴 3)</span></li>
+                            <li>🏆 إنجازاتي
+                                <ul style="margin-right: 1.5rem; margin-top: 0.5rem;">
+                                    <li style="font-size: 0.9rem;">النقاط (450)</li>
+                                    <li style="font-size: 0.9rem;">العملات (120)</li>
+                                    <li style="font-size: 0.9rem;">الشارات (5)</li>
+                                    <li style="font-size: 0.9rem;">Streak 🔥 (5)</li>
+                                </ul>
+                            </li>
+                            <li>🏅 المتصدرين</li>
+                            <li>🛍️ المتجر <span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem;">✅</span></li>
+                            <li>👥 فريقي <span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem;">✅</span></li>
+                            <li>🔔 الإشعارات</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent -->
+            <div class="role-structure">
+                <div class="role-header role-parent">
+                    👨‍👦 هيكل Parent
+                </div>
+                <div class="role-content">
+                    <div class="role-tree">Parent Dashboard
+│
+├─── 🏠 لوحة التحكم (/parent/dashboard)
+│    └─── نظرة عامة على الأبناء
+│         ├─── قائمة الأبناء (الصورة، الاسم، الصف، التقدم، آخر نشاط)
+│         └─── إحصائيات سريعة (النقاط، الشارات، الإنجازات)
+│
+├─── 👦 متابعة الأبناء (/parent/children)
+│    └─── عرض تفاصيل الابن (/parent/children/{id})
+│         ├─── المعلومات الأساسية (الاسم، الفصل، المدرسة، المعلم)
+│         ├─── التقدم في القيم (المكتملة، الحالية، النسبة)
+│         ├─── الإحصائيات (النقاط، العملات، Streak، الترتيب)
+│         ├─── الشارات المكتسبة
+│         ├─── آخر الأنشطة (النشاط، التاريخ، الدرجة، الملاحظات)
+│         └─── التقارير (أسبوعي، شهري، تحميل PDF 🔴 قيد التطوير)
+│
+├─── 💬 الرسائل (/parent/messages) ✅ مكتمل
+│    ├─── عرض المحادثات ✅
+│    ├─── إرسال رسالة للمعلم ✅
+│    └─── البحث في الرسائل ✅
+│
+├─── 📊 التقارير (/parent/reports)
+│    └─── تحميل التقارير 🔴 قيد التطوير
+│
+└─── 🔔 الإشعارات</div>
+
+                    <div class="sidebar-menu">
+                        <h4>📌 Sidebar Menu</h4>
+                        <ul>
+                            <li>🏠 لوحة التحكم</li>
+                            <li>👦 أبنائي</li>
+                            <li>💬 الرسائل <span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem;">✅</span></li>
+                            <li>📊 التقارير</li>
+                            <li>🔔 الإشعارات</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Hierarchy -->
+        <div id="content" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📚</span>
+                هيكل المحتوى التعليمي
+            </h2>
+
+            <div class="hierarchy-example">
+                <h4>الهيكل الهرمي الخماسي</h4>
+                <div class="role-tree">Value (القيمة)
+│
+├─── Concept 1 (المفهوم)
+│    │
+│    ├─── Meaning 1 (المعنى)
+│    │    │
+│    │    ├─── Lesson 1 (الدرس)
+│    │    │    ├─── Content (المحتوى: Title, Text, Images, Video)
+│    │    │    └─── Activities (الأنشطة)
+│    │    │         ├─── Activity 1
+│    │    │         ├─── Activity 2
+│    │    │         └─── Activity 3
+│    │    │
+│    │    ├─── Lesson 2
+│    │    └─── Lesson 3
+│    │
+│    ├─── Meaning 2
+│    └─── Meaning 3
+│
+├─── Concept 2
+└─── Concept 3</div>
+            </div>
+
+            <div class="hierarchy-example" style="border-color: var(--info);">
+                <h4 style="color: var(--info);">مثال عملي: قيمة "الأمانة"</h4>
+                <div class="role-tree">🌟 الأمانة (Value)
+│
+├─── 📖 مفهوم الأمانة (Concept)
+│    │
+│    ├─── 💡 حفظ الودائع (Meaning)
+│    │    │
+│    │    ├─── 📚 درس: ما هي الأمانة؟ (Lesson)
+│    │    │    ├─── نص توضيحي
+│    │    │    ├─── قصة قصيرة
+│    │    │    ├─── صورة توضيحية
+│    │    │    │
+│    │    │    └─── 📝 الأنشطة
+│    │    │         ├─── نشاط 1: اكتب موقفاً عن الأمانة
+│    │    │         ├─── نشاط 2: رسم معبر
+│    │    │         └─── نشاط 3: اختبار قصير
+│    │    │
+│    │    └─── 📚 درس: نماذج من الأمانة
+│    │         └─── الأنشطة...
+│    │
+│    ├─── 💡 الصدق في القول (Meaning)
+│    └─── 💡 أداء الواجبات (Meaning)
+│
+├─── 📖 تطبيقات الأمانة (Concept)
+└─── 📖 ثمرات الأمانة (Concept)</div>
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem; color: var(--primary);">قواعد التنقل في المحتوى</h3>
+            <div style="display: grid; gap: 1rem;">
+                <div style="background: white; padding: 1.5rem; border-radius: 10px; border-right: 5px solid var(--danger);">
+                    <h4 style="color: var(--danger); margin-bottom: 0.75rem;">1. التسلسل الإجباري</h4>
+                    <ul>
+                        <li>لا يمكن فتح القيمة التالية حتى إكمال الحالية 100%</li>
+                        <li>الدروس تُفتح بالتسلسل داخل كل معنى</li>
+                        <li>الأنشطة يجب إنجازها لإكمال الدرس</li>
+                    </ul>
+                </div>
+                <div style="background: white; padding: 1.5rem; border-radius: 10px; border-right: 5px solid var(--info);">
+                    <h4 style="color: var(--info); margin-bottom: 0.75rem;">2. حساب التقدم</h4>
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; margin-top: 0.5rem;">
+                        تقدم القيمة = (عدد الدروس المكتملة / إجمالي الدروس) × 100<br>
+                        الدرس المكتمل = جميع أنشطته مُقيّمة ومقبولة
+                    </div>
+                </div>
+                <div style="background: white; padding: 1.5rem; border-radius: 10px; border-right: 5px solid var(--success);">
+                    <h4 style="color: var(--success); margin-bottom: 0.75rem;">3. الحالات الممكنة</h4>
+                    <ul>
+                        <li><strong>🔒 مقفل:</strong> لم يصل الطالب بعد</li>
+                        <li><strong>📖 قيد التنفيذ:</strong> بدأ لكن لم ينته</li>
+                        <li><strong>✅ مكتمل:</strong> أنهى جميع الدروس والأنشطة</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Labels System -->
+        <div id="labels" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🏷️</span>
+                نظام التسميات (Labeling System)
+            </h2>
+
+            <h3 style="margin-bottom: 1.5rem; color: var(--primary);">المصطلحات الرسمية</h3>
+            <table class="labels-table">
+                <thead>
+                    <tr>
+                        <th>الاستخدام</th>
+                        <th>العربية</th>
+                        <th>الإنجليزية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>جميع الأدوار</td><td>لوحة التحكم</td><td>Dashboard</td></tr>
+                    <tr><td>المحتوى التعليمي</td><td>القيمة</td><td>Value</td></tr>
+                    <tr><td>المحتوى التعليمي</td><td>المفهوم</td><td>Concept</td></tr>
+                    <tr><td>المحتوى التعليمي</td><td>المعنى</td><td>Meaning</td></tr>
+                    <tr><td>المحتوى التعليمي</td><td>الدرس</td><td>Lesson</td></tr>
+                    <tr><td>المحتوى التعليمي</td><td>النشاط</td><td>Activity</td></tr>
+                    <tr><td>الأنشطة</td><td>التسليم</td><td>Submission</td></tr>
+                    <tr><td>Gamification</td><td>النقاط</td><td>Points</td></tr>
+                    <tr><td>Gamification</td><td>العملات</td><td>Coins</td></tr>
+                    <tr><td>Gamification</td><td>الشارة</td><td>Badge</td></tr>
+                    <tr><td>Gamification</td><td>التاج</td><td>Crown</td></tr>
+                    <tr><td>Gamification</td><td>سلسلة الأيام / الـ Streak</td><td>Streak</td></tr>
+                    <tr><td>Gamification</td><td>لوحة المتصدرين</td><td>Leaderboard</td></tr>
+                    <tr><td>التسجيل الذاتي</td><td>طلب التسجيل</td><td>Registration Request</td></tr>
+                    <tr><td>التسجيل الذاتي</td><td>رابط التسجيل</td><td>Registration Link</td></tr>
+                    <tr><td>التسجيل الذاتي</td><td>رمز الاستجابة السريعة</td><td>QR Code</td></tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin: 2rem 0 1.5rem; color: var(--primary);">الأيقونات الموحدة</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">🏠</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">لوحة التحكم</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">👥</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">المستخدمون</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">🏫</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">المدارس</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">👨‍🏫</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">المعلمون</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">👦</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">الطلاب</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">👨‍👦</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">أولياء الأمور</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">🏛️</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">الفصول</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">🌟</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">القيم</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">📚</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">الدروس</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">✍️</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">الأنشطة</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">🎯</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">النقاط</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">💰</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">العملات</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">🏅</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">الشارات</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">👑</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">التيجان</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">📊</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">التقارير</div>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem;">⚙️</div>
+                    <div style="font-weight: 600; margin-top: 0.5rem;">الإعدادات</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Flows -->
+        <div id="flows" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔄</span>
+                تدفقات التنقل الرئيسية
+            </h2>
+
+            <div class="flow-card">
+                <h4>Flow 1: من تسجيل الدخول إلى Dashboard</h4>
+                <div class="flow-steps">/login
+  ├─ تسجيل الدخول بنجاح
+  ├─ 2FA (إذا كان مفعلاً)
+  └─ إعادة التوجيه حسب الدور:
+      ├─ Super Admin → /admin/dashboard
+      ├─ School Admin → /school-admin/dashboard
+      ├─ Teacher → /teacher/dashboard
+      ├─ Student → /student/dashboard
+      └─ Parent → /parent/dashboard</div>
+            </div>
+
+            <div class="flow-card">
+                <h4>Flow 2: Student - من Dashboard إلى إنجاز نشاط</h4>
+                <div class="flow-steps">/student/dashboard
+  └─ خريطة التعلم
+      └─ /student/learning-path
+          └─ اختيار قيمة
+              └─ اختيار مفهوم
+                  └─ اختيار معنى
+                      └─ اختيار درس
+                          └─ قراءة المحتوى
+                              └─ اختيار نشاط
+                                  └─ /student/activities/{id}
+                                      └─ كتابة الإجابة
+                                          └─ تسليم
+                                              └─ رسالة نجاح + عودة للـ Dashboard</div>
+            </div>
+
+            <div class="flow-card">
+                <h4>Flow 3: Teacher - مراجعة نشاط</h4>
+                <div class="flow-steps">/teacher/dashboard
+  └─ الأنشطة المعلقة (15)
+      └─ /teacher/pending-activities
+          └─ اختيار نشاط
+              └─ /teacher/activities/{id}/review
+                  └─ قراءة الإجابة
+                      └─ إعطاء درجة + ملاحظات
+                          └─ حفظ
+                              └─ النشاط التالي (أو العودة للقائمة)</div>
+            </div>
+
+            <div class="flow-card">
+                <h4>Flow 4: School Admin - قبول طالب</h4>
+                <div class="flow-steps">/school-admin/dashboard
+  └─ طلبات التسجيل (3 جديدة)
+      └─ /school-admin/registration-requests
+          └─ اختيار طلب
+              └─ /school-admin/registration-requests/{id}
+                  └─ مراجعة البيانات
+                      └─ قبول + تعيين الفصل
+                          └─ تأكيد
+                              └─ رسالة نجاح + البريد يُرسل تلقائياً</div>
+            </div>
+        </div>
+
+        <!-- IA Rules -->
+        <div id="rules" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📏</span>
+                قواعد الـ IA
+            </h2>
+
+            <div class="rules-list">
+                <div class="rule-item">
+                    <h4>Rule 1: 3-Click Rule</h4>
+                    <ul>
+                        <li>أي معلومة مهمة يجب الوصول إليها في <strong>3 نقرات كحد أقصى</strong></li>
+                        <li>الأنشطة المعلقة: Dashboard → نقرة واحدة ✅</li>
+                        <li>تسليم نشاط: Dashboard → خريطة التعلم → نشاط → تسليم = 3 نقرات ✅</li>
+                    </ul>
+                </div>
+
+                <div class="rule-item">
+                    <h4>Rule 2: Breadcrumbs</h4>
+                    <ul>
+                        <li>يجب عرض Breadcrumbs في جميع الصفحات (ما عدا Dashboard)</li>
+                        <li>مثال: <code>لوحة التحكم > المحتوى > القيم > تعديل</code></li>
+                    </ul>
+                </div>
+
+                <div class="rule-item">
+                    <h4>Rule 3: العودة للخلف</h4>
+                    <ul>
+                        <li>زر "رجوع" واضح في جميع الصفحات الفرعية</li>
+                        <li>زر "إلغاء" في جميع النماذج</li>
+                    </ul>
+                </div>
+
+                <div class="rule-item">
+                    <h4>Rule 4: الحالة النشطة</h4>
+                    <ul>
+                        <li>تمييز واضح للصفحة الحالية في القائمة الجانبية</li>
+                        <li>تمييز العناصر النشطة (Active State)</li>
+                    </ul>
+                </div>
+
+                <div class="rule-item">
+                    <h4>Rule 5: الإشعارات</h4>
+                    <ul>
+                        <li>عرض عداد الإشعارات في القائمة</li>
+                        <li>مثال: <code>الأنشطة المعلقة (🔴 15)</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div id="summary" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">✅</span>
+                الملخص والتقييم
+            </h2>
+
+            <div class="summary-box">
+                <div class="summary-strengths">
+                    <h3>✅ نقاط القوة</h3>
+                    <ul>
+                        <li>وضوح الهيكل الهرمي للمحتوى</li>
+                        <li>فصل واضح بين أدوار المستخدمين</li>
+                        <li>Dashboards مخصصة لكل دور</li>
+                        <li>التنقل المنطقي والبديهي</li>
+                        <li>استخدام أيقونات مساعدة</li>
+                    </ul>
+                </div>
+
+                <div class="summary-improvements">
+                    <h3>✅ الإنجازات المكتملة</h3>
+                    <ul>
+                        <li>✅ نظام إدارة الأنشطة للمعلمين - مكتمل</li>
+                        <li>✅ نظام الفرق (Teams) - مفعّل</li>
+                        <li>✅ نظام الرسائل للوالدين - مكتمل</li>
+                        <li>✅ المتجر للطلاب - مفعّل</li>
+                        <li>✅ واجهة مراجعة الأنشطة - محسّنة</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 2rem; border-radius: 15px; margin-top: 2rem; text-align: center;">
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>تاريخ الإعداد:</strong> ديسمبر 23, 2025 | <strong>آخر تحديث:</strong> يناير 22, 2026
+                </p>
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>أداة التنفيذ:</strong> Draw.io / Miro / Figma
+                </p>
+                <p style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">
+                    الحالة: معتمد كبنية نهائية ✅
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        ↑
+    </button>
+
+    <script>
+        // Scroll to top button visibility
+        window.addEventListener('scroll', function() {
+            const scrollTop = document.getElementById('scrollTop');
+            if (window.pageYOffset > 300) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + P: Print
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+            // Home key: Scroll to top
+            if (e.key === 'Home') {
+                e.preventDefault();
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        });
+
+        // Print page title
+        window.addEventListener('beforeprint', function() {
+            document.title = 'الهيكلية المعلوماتية - منصة قيمّ';
+        });
+    </script>
+</body>
+</html>

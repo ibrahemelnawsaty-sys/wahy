@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication & Permissions - منصة قيمّ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #8B5CF6;
+            --secondary-color: #7C3AED;
+            --dark-color: #1E293B;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            color: #334155;
+            line-height: 1.8;
+            padding: 2rem 1rem;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .breadcrumb { background: rgba(255,255,255,0.2); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: inline-block; }
+        .breadcrumb a { color: white; text-decoration: none; font-weight: 600; }
+        .page-header { background: white; padding: 3rem; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); margin-bottom: 3rem; text-align: center; }
+        .page-header h1 { font-size: 3rem; font-weight: 900; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
+        .section { background: white; border-radius: 20px; padding: 3rem; margin-bottom: 3rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .section-title { font-size: 2.5rem; font-weight: 900; color: var(--dark-color); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 3px solid var(--primary-color); }
+        .code-block { background: #1E293B; color: #E2E8F0; padding: 2rem; border-radius: 12px; overflow-x: auto; margin-bottom: 2rem; }
+        .code-block pre { font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.6; margin: 0; }
+        .role-card { background: linear-gradient(135deg, #F3E8FF, #E9D5FF); padding: 2rem; border-radius: 16px; margin-bottom: 2rem; border-right: 5px solid var(--primary-color); }
+        .role-card h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--dark-color); }
+        .role-card ul { list-style: none; margin-right: 1.5rem; }
+        .role-card li { padding: 0.5rem 0; }
+        .role-card li::before { content: "✓"; color: var(--primary-color); font-weight: 900; margin-left: 0.8rem; }
+        .footer { text-align: center; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .back-link { display: inline-block; color: var(--secondary-color); text-decoration: none; font-weight: 700; font-size: 1.2rem; padding: 1rem 2rem; border-radius: 12px; background: #F8FAFC; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="breadcrumb"><a href="index.html">← العودة للرئيسية</a></div>
+
+        <div class="page-header">
+            <h1>🔐 Authentication & Permissions</h1>
+            <p class="subtitle">JWT/Sanctum + 5 Roles + RBAC</p>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2 class="section-title"><span>📋</span><span>نظرة عامة</span></h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">نظام مصادقة متكامل مع Laravel Sanctum و JWT، صلاحيات مفصلة لـ 5 أدوار، وأمان عالي.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div style="background: linear-gradient(135deg, #F3E8FF, #E9D5FF); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">🔐</div>
+                    <div style="font-size: 2rem; font-weight: 900;">JWT</div>
+                    <div style="font-weight: 600;">Authentication</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #DBEAFE, #BFDBFE); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">👥</div>
+                    <div style="font-size: 2rem; font-weight: 900;">5</div>
+                    <div style="font-weight: 600;">Roles</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">🛡️</div>
+                    <div style="font-size: 2rem; font-weight: 900;">50+</div>
+                    <div style="font-weight: 600;">Permissions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Flow -->
+        <div class="section">
+            <h2 class="section-title"><span>🔑</span><span>Authentication APIs</span></h2>
+
+            <h3 style="font-size: 1.8rem; margin-bottom: 1.5rem; color: var(--dark-color);">1. Login</h3>
+            <div class="code-block">
+<pre>POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+// Response 200 OK
+{
+  "message": "Login successful",
+  "data": {
+    "user": {
+      "id": 1,
+      "name": "أحمد محمد",
+      "email": "user@example.com",
+      "role": "student",
+      "school_id": 5,
+      "points": 1250,
+      "coins": 500
+    },
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+    "token_type": "Bearer",
+    "expires_in": 3600
+  }
+}</pre>
+            </div>
+
+            <h3 style="font-size: 1.8rem; margin: 2rem 0 1.5rem; color: var(--dark-color);">2. Register</h3>
+            <div class="code-block">
+<pre>POST /api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "محمد علي",
+  "email": "mohamed@example.com",
+  "password": "SecurePass123!",
+  "password_confirmation": "SecurePass123!",
+  "role": "student",
+  "token_code": "SCH-2024-XYZ"
+}
+
+// Response 201 Created
+{
+  "message": "Registration successful. Awaiting admin approval.",
+  "data": {
+    "user": {
+      "id": 2,
+      "name": "محمد علي",
+      "email": "mohamed@example.com",
+      "status": "pending"
+    }
+  }
+}</pre>
+            </div>
+
+            <h3 style="font-size: 1.8rem; margin: 2rem 0 1.5rem; color: var(--dark-color);">3. Logout</h3>
+            <div class="code-block">
+<pre>POST /api/v1/auth/logout
+Authorization: Bearer {token}
+
+// Response 200 OK
+{
+  "message": "Logged out successfully"
+}</pre>
+            </div>
+
+            <h3 style="font-size: 1.8rem; margin: 2rem 0 1.5rem; color: var(--dark-color);">4. Refresh Token</h3>
+            <div class="code-block">
+<pre>POST /api/v1/auth/refresh
+Authorization: Bearer {token}
+
+// Response 200 OK
+{
+  "token": "newTokenHere...",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}</pre>
+            </div>
+
+            <h3 style="font-size: 1.8rem; margin: 2rem 0 1.5rem; color: var(--dark-color);">5. Password Reset</h3>
+            <div class="code-block">
+<pre>// Step 1: Request Reset
+POST /api/v1/auth/password/forgot
+{
+  "email": "user@example.com"
+}
+
+// Step 2: Reset with Token
+POST /api/v1/auth/password/reset
+{
+  "email": "user@example.com",
+  "token": "resetTokenFromEmail",
+  "password": "NewPass123!",
+  "password_confirmation": "NewPass123!"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Roles & Permissions -->
+        <div class="section">
+            <h2 class="section-title"><span>👥</span><span>الأدوار والصلاحيات</span></h2>
+
+            <div class="role-card">
+                <h3>👑 1. Super Admin</h3>
+                <p style="margin-bottom: 1rem; color: #64748B;">الإدارة الكاملة للمنصة</p>
+                <ul>
+                    <li>إدارة المدارس والتوكنات (إنشاء، تعديل، حذف)</li>
+                    <li>إدارة المحتوى التعليمي (القيم، المفاهيم، المعاني، الدروس)</li>
+                    <li>إنشاء وتعديل الأنشطة</li>
+                    <li>عرض التقارير الشاملة لجميع المدارس</li>
+                    <li>إدارة الشارات والإنجازات</li>
+                    <li>الموافقة على طلبات التسجيل</li>
+                    <li>إدارة الإعدادات العامة</li>
+                </ul>
+            </div>
+
+            <div class="role-card" style="background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-right-color: #3B82F6;">
+                <h3>🏫 2. School Admin</h3>
+                <p style="margin-bottom: 1rem; color: #64748B;">إدارة مدرسة واحدة وفروعها</p>
+                <ul>
+                    <li>إدارة الفروع والفصول التابعة للمدرسة</li>
+                    <li>الموافقة على طلبات التسجيل للمدرسة</li>
+                    <li>تعيين المعلمين للفصول</li>
+                    <li>تعيين الطلاب للفصول</li>
+                    <li>عرض تقارير المدرسة والفروع</li>
+                    <li>متابعة أداء المعلمين والطلاب</li>
+                    <li>إدارة الإعدادات الخاصة بالمدرسة</li>
+                </ul>
+            </div>
+
+            <div class="role-card" style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); border-right-color: #10B981;">
+                <h3>👩‍🏫 3. Teacher</h3>
+                <p style="margin-bottom: 1rem; color: #64748B;">متابعة وتصحيح الطلاب</p>
+                <ul>
+                    <li>عرض الفصول والطلاب المعيّنين</li>
+                    <li>تصحيح الأنشطة المقدمة من الطلاب</li>
+                    <li>منح النقاط والتقييمات</li>
+                    <li>إضافة ملاحظات للطلاب</li>
+                    <li>عرض تقارير أداء الفصل</li>
+                    <li>التواصل مع أولياء الأمور</li>
+                    <li>متابعة تقدم الطلاب في المسار التعليمي</li>
+                </ul>
+            </div>
+
+            <div class="role-card" style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-right-color: #F59E0B;">
+                <h3>👨‍🎓 4. Student</h3>
+                <p style="margin-bottom: 1rem; color: #64748B;">التعلم وحل الأنشطة</p>
+                <ul>
+                    <li>عرض المسار التعليمي الخاص به</li>
+                    <li>قراءة الدروس ومشاهدة الفيديوهات</li>
+                    <li>حل الأنشطة وإرسالها للمعلم</li>
+                    <li>عرض النقاط والعملات والشارات</li>
+                    <li>متابعة التقدم في Leaderboard</li>
+                    <li>الانضمام للفرق والمنافسة</li>
+                    <li>عرض الإشعارات والتحديثات</li>
+                </ul>
+            </div>
+
+            <div class="role-card" style="background: linear-gradient(135deg, #FEE2E2, #FECACA); border-right-color: #EF4444;">
+                <h3>👨‍👩‍👧 5. Parent</h3>
+                <p style="margin-bottom: 1rem; color: #64748B;">متابعة الأبناء</p>
+                <ul>
+                    <li>عرض قائمة الأبناء (Children Tabs)</li>
+                    <li>متابعة أداء كل طفل</li>
+                    <li>عرض النقاط والشارات المكتسبة</li>
+                    <li>تحميل التقارير الدورية</li>
+                    <li>التواصل مع المعلمين</li>
+                    <li>عرض الإشعارات المتعلقة بالأبناء</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Middleware Implementation -->
+        <div class="section">
+            <h2 class="section-title"><span>🛡️</span><span>Middleware Implementation</span></h2>
+
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">CheckRole Middleware</h3>
+            <div class="code-block">
+<pre>&lt;?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class CheckRole
+{
+    public function handle(Request $request, Closure $next, ...$roles)
+    {
+        if (!$request->user()) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $userRole = $request->user()->role->name;
+
+        if (!in_array($userRole, $roles)) {
+            return response()->json([
+                'message' => 'Unauthorized. Required role: ' . implode(', ', $roles)
+            ], 403);
+        }
+
+        return $next($request);
+    }
+}
+
+// Usage in routes/api.php
+Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    Route::resource('schools', SchoolController::class);
+    Route::resource('tokens', TokenController::class);
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher,school_admin'])->group(function () {
+    Route::get('submissions/pending', [SubmissionController::class, 'pending']);
+    Route::post('submissions/{id}/correct', [SubmissionController::class, 'correct']);
+});</pre>
+            </div>
+
+            <h3 style="font-size: 1.5rem; margin: 2rem 0 1.5rem;">CheckPermission Middleware</h3>
+            <div class="code-block">
+<pre>&lt;?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class CheckPermission
+{
+    public function handle(Request $request, Closure $next, string $permission)
+    {
+        $user = $request->user();
+
+        if (!$user || !$user->role->hasPermission($permission)) {
+            return response()->json([
+                'message' => 'Forbidden. Required permission: ' . $permission
+            ], 403);
+        }
+
+        return $next($request);
+    }
+}
+
+// Usage
+Route::middleware(['auth:sanctum', 'permission:manage_content'])->group(function () {
+    Route::resource('values', ValueController::class);
+    Route::resource('concepts', ConceptController::class);
+});</pre>
+            </div>
+        </div>
+
+        <!-- Security Features -->
+        <div class="section">
+            <h2 class="section-title"><span>🔒</span><span>Security Features</span></h2>
+
+            <div style="display: grid; gap: 2rem;">
+                <div style="background: linear-gradient(135deg, #F3E8FF, #E9D5FF); padding: 2rem; border-radius: 12px; border-right: 4px solid var(--primary-color);">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">1. Rate Limiting</h3>
+                    <p>تحديد عدد المحاولات لتجنب Brute Force Attacks</p>
+                    <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                        <li>✓ Login: 5 محاولات كل 15 دقيقة</li>
+                        <li>✓ Register: 3 محاولات كل ساعة</li>
+                        <li>✓ APIs: 60 طلب في الدقيقة</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #EFF6FF, #DBEAFE); padding: 2rem; border-radius: 12px; border-right: 4px solid #3B82F6;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">2. CSRF Protection</h3>
+                    <p>حماية ضد Cross-Site Request Forgery</p>
+                    <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                        <li>✓ CSRF Token في جميع POST/PUT/DELETE requests</li>
+                        <li>✓ Laravel Sanctum CSRF Cookie</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); padding: 2rem; border-radius: 12px; border-right: 4px solid #10B981;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">3. Password Hashing</h3>
+                    <p>تشفير كلمات المرور باستخدام Bcrypt</p>
+                    <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                        <li>✓ Bcrypt with cost factor 12</li>
+                        <li>✓ Never store plain passwords</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); padding: 2rem; border-radius: 12px; border-right: 4px solid #F59E0B;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">4. Email Verification</h3>
+                    <p>التحقق من البريد الإلكتروني قبل التفعيل</p>
+                    <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                        <li>✓ Send verification email on register</li>
+                        <li>✓ Restrict access until verified</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #FEE2E2, #FECACA); padding: 2rem; border-radius: 12px; border-right: 4px solid #EF4444;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">5. Two-Factor Authentication (2FA)</h3>
+                    <p>مصادقة ثنائية اختيارية للأمان الإضافي</p>
+                    <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                        <li>✓ OTP via SMS</li>
+                        <li>✓ TOTP (Google Authenticator)</li>
+                        <li>✓ Backup codes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; border-radius: 20px; padding: 3rem; text-align: center; margin-bottom: 3rem;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; font-weight: 900;">✅ نظام المصادقة جاهز 100%</h2>
+            <p style="font-size: 1.2rem;">JWT + 5 Roles + 50+ Permissions + Security Features</p>
+        </div>
+
+        <footer class="footer">
+            <a href="index.html" class="back-link">← العودة للرئيسية</a>
+        </footer>
+    </div>
+</body>
+</html>

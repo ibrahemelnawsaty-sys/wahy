@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخطط هندسة النظام - منصة قيمّ | System Architecture Diagram</title>
+    <meta name="description" content="الهندسة الكاملة لمنصة قيمّ - البنية متعددة الطبقات والأمان والتوسعية">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f1f5f9;
+        }
+        
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
+        }
+        
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Navigation */
+        .nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+        
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links a:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Content Card */
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(white, white), linear-gradient(135deg, var(--primary), var(--secondary));
+            background-clip: padding-box, border-box;
+            background-origin: padding-box, border-box;
+        }
+        
+        .section-header .icon {
+            font-size: 2.5rem;
+        }
+        
+        /* Architecture Diagram */
+        .arch-diagram {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .arch-diagram pre {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            color: #10b981;
+            line-height: 1.4;
+            font-size: 0.75rem;
+            white-space: pre;
+            margin: 0;
+        }
+        
+        /* Pattern Box */
+        .pattern-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid var(--primary);
+        }
+        
+        .pattern-box h3 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .pattern-box p {
+            margin-bottom: 1.5rem;
+            color: #64748b;
+        }
+        
+        .pattern-box ul {
+            padding-right: 1.5rem;
+        }
+        
+        .pattern-box li {
+            margin: 0.75rem 0;
+            color: var(--dark);
+        }
+        
+        /* Security Features Grid */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .security-item {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            border-right: 5px solid var(--danger);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .security-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .security-item h4 {
+            color: var(--danger);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .security-item ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .security-item li {
+            padding: 0.5rem 0;
+            padding-right: 1.5rem;
+            position: relative;
+            color: #64748b;
+        }
+        
+        .security-item li::before {
+            content: '🔒';
+            position: absolute;
+            right: 0;
+        }
+        
+        /* Data Flow Box */
+        .flow-box {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-right: 5px solid var(--info);
+        }
+        
+        .flow-box h3 {
+            color: var(--info);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* File Structure */
+        .file-structure {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+        
+        .file-structure pre {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            color: #38f9d7;
+            line-height: 1.6;
+            font-size: 0.85rem;
+            white-space: pre;
+            margin: 0;
+        }
+        
+        /* Deployment Options */
+        .deployment-options {
+            display: grid;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .deployment-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .deployment-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .deployment-card.shared h3 {
+            color: var(--info);
+        }
+        
+        .deployment-card.vps h3 {
+            color: var(--success);
+        }
+        
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .pros-cons-list h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .pros-cons-list.pros h4 {
+            color: var(--success);
+        }
+        
+        .pros-cons-list.cons h4 {
+            color: var(--warning);
+        }
+        
+        .pros-cons-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .pros-cons-list li {
+            padding: 0.5rem 0;
+        }
+        
+        /* Scalability Stages */
+        .scalability-stages {
+            display: grid;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .stage-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid var(--glass-border);
+        }
+        
+        .stage-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        /* Requirements Table */
+        .requirements-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .requirements-table thead {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .requirements-table th,
+        .requirements-table td {
+            padding: 1rem 1.5rem;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .requirements-table th {
+            font-weight: 700;
+        }
+        
+        .requirements-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        /* Summary Boxes */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .summary-box {
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid;
+        }
+        
+        .summary-box.strengths {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border-color: var(--success);
+        }
+        
+        .summary-box.improvements {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+            border-color: var(--warning);
+        }
+        
+        .summary-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .summary-box.strengths h3 {
+            color: var(--success);
+        }
+        
+        .summary-box.improvements h3 {
+            color: var(--warning);
+        }
+        
+        .summary-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .summary-box li {
+            padding: 0.75rem 0;
+            padding-right: 2rem;
+            position: relative;
+            font-weight: 600;
+        }
+        
+        .summary-box.strengths li::before {
+            content: '✅';
+            position: absolute;
+            right: 0;
+            font-size: 1.2rem;
+        }
+        
+        .summary-box.improvements li::before {
+            content: '🔮';
+            position: absolute;
+            right: 0;
+            font-size: 1.2rem;
+        }
+        
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content-card {
+                padding: 1.5rem;
+            }
+            
+            .arch-diagram pre,
+            .file-structure pre {
+                font-size: 0.65rem;
+            }
+            
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+            
+            .security-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .nav,
+            .scroll-top {
+                display: none;
+            }
+            
+            .content-card {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+            
+            .arch-diagram,
+            .file-structure {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+            }
+            
+            .arch-diagram pre,
+            .file-structure pre {
+                color: var(--dark);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">🏗️</div>
+            <h1>مخطط هندسة النظام</h1>
+            <p class="subtitle">System Architecture Diagram - البنية الكاملة والمتعددة الطبقات لمنصة قيمّ التعليمية</p>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <ul class="nav-links">
+                <li><a href="#overview">📋 نظرة عامة</a></li>
+                <li><a href="#pattern">🏗️ نمط الهندسة</a></li>
+                <li><a href="#architecture">🎨 المخطط الكامل</a></li>
+                <li><a href="#security">🔐 طبقة الأمان</a></li>
+                <li><a href="#dataflow">🔄 تدفق البيانات</a></li>
+                <li><a href="#structure">🗂️ هيكل الملفات</a></li>
+                <li><a href="#deployment">🚀 الاستضافة</a></li>
+                <li><a href="#scalability">📊 التوسع</a></li>
+                <li><a href="#requirements">🔧 المتطلبات</a></li>
+            </ul>
+        </nav>
+
+        <!-- Overview -->
+        <div id="overview" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📋</span>
+                نظرة عامة
+            </h2>
+            <p style="font-size: 1.1rem; line-height: 2; color: #475569;">
+                هذا الملف يوضح الهندسة الكاملة لمنصة قيمّ، بما في ذلك البنية متعددة الطبقات (Multi-Tier Architecture)، المكونات الرئيسية والفرعية، التكامل بين الأنظمة، قنوات الاتصال، والبنية التحتية للاستضافة.
+            </p>
+        </div>
+
+        <!-- Architecture Pattern -->
+        <div id="pattern" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🏗️</span>
+                نمط الهندسة المستخدم
+            </h2>
+            <div class="pattern-box">
+                <h3><strong>Pattern:</strong> MVC (Model-View-Controller) + Layered Architecture</h3>
+                <p><strong>المبررات:</strong></p>
+                <ul>
+                    <li>✅ فصل واضح بين المنطق والعرض والبيانات</li>
+                    <li>✅ سهولة الصيانة والتطوير</li>
+                    <li>✅ قابلية اختبار عالية</li>
+                    <li>✅ Laravel يدعم هذا النمط بشكل أصلي</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Full Architecture Diagram -->
+        <div id="architecture" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🎨</span>
+                مخطط الهندسة الكامل (High-Level Architecture)
+            </h2>
+            <div class="arch-diagram">
+                <pre>┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Client Layer (طبقة العميل)                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│   │  Web Browser │  │  Mobile App  │  │  Tablet App  │  │ Desktop App  │ │
+│   │              │  │  (Future)    │  │  (Future)    │  │  (Future)    │ │
+│   │  Chrome      │  │  iOS/Android │  │  iPad/Tab    │  │  Electron    │ │
+│   │  Firefox     │  │              │  │              │  │              │ │
+│   │  Safari      │  │              │  │              │  │              │ │
+│   │  Edge        │  │              │  │              │  │              │ │
+│   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘ │
+│          │                 │                 │                 │          │
+└──────────┼─────────────────┼─────────────────┼─────────────────┼──────────┘
+           │                 │                 │                 │
+           └─────────────────┴─────────────────┴─────────────────┘
+                                     │
+                              ┌──────▼──────┐
+                              │   HTTPS     │
+                              │   SSL/TLS   │
+                              └──────┬──────┘
+                                     │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         Load Balancer (اختياري)                            │
+│                         [Nginx / AWS ELB]                                   │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+┌──────────────────────────────────▼──────────────────────────────────────────┐
+│                           Web Server Layer (طبقة الويب)                    │
+│                          Nginx / Apache                                     │
+└─────────────────────────────────┬───────────────────────────────────────────┘
+                                  │
+┌─────────────────────────────────▼───────────────────────────────────────────┐
+│                      Application Layer (طبقة التطبيق)                      │
+│                         Laravel 12.x + PHP 8.2+                             │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │ Presentation Layer    → Views (Blade Templates + Assets)        │      │
+│   │ Controller Layer      → Controllers (Auth, Admin, School, etc.) │      │
+│   │ Service Layer         → Business Logic Services                 │      │
+│   │ Data Access Layer     → Eloquent ORM + Repositories             │      │
+│   │ Middleware Layer      → Auth, CSRF, Rate Limiting, Validation   │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+└─────────────────────────────────┬───────────────────────────────────────────┘
+                                  │
+┌─────────────────────────────────▼───────────────────────────────────────────┐
+│                           Data Layer (طبقة البيانات)                       │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │ Primary Database      → MySQL 8.0+ / PostgreSQL                 │      │
+│   │ Cache Layer           → Redis / Memcached (Optional)            │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+└─────────────────────────────────┬───────────────────────────────────────────┘
+                                  │
+┌─────────────────────────────────▼───────────────────────────────────────────┐
+│                      External Services Layer (خدمات خارجية)                │
+│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                    │
+│   │ Email Service│  │ Storage (S3) │  │ Backup       │                    │
+│   │ Queue System │  │ Logging      │  │ Monitoring   │                    │
+│   └──────────────┘  └──────────────┘  └──────────────┘                    │
+└─────────────────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+        </div>
+
+        <!-- Security Layer -->
+        <div id="security" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔐</span>
+                طبقة الأمان (Security Layer)
+            </h2>
+            <div class="security-grid">
+                <div class="security-item">
+                    <h4>1️⃣ Authentication & Authorization</h4>
+                    <ul>
+                        <li>Laravel Sanctum (API Tokens)</li>
+                        <li>Session-Based Auth (Web)</li>
+                        <li>Two-Factor Authentication (2FA)</li>
+                        <li>Spatie Laravel Permission (RBAC)</li>
+                        <li>Password Policies (8 chars min)</li>
+                    </ul>
+                </div>
+
+                <div class="security-item">
+                    <h4>2️⃣ Input Validation</h4>
+                    <ul>
+                        <li>Laravel Validation Rules</li>
+                        <li>CSRF Protection (Middleware)</li>
+                        <li>XSS Protection (Auto-Escaping)</li>
+                        <li>SQL Injection Prevention (ORM)</li>
+                        <li>File Upload Validation</li>
+                    </ul>
+                </div>
+
+                <div class="security-item">
+                    <h4>3️⃣ Rate Limiting</h4>
+                    <ul>
+                        <li>Login: 20 attempts/minute</li>
+                        <li>2FA: 10 attempts/minute</li>
+                        <li>Password Reset: 5 requests/hour</li>
+                        <li>API: 60 requests/minute</li>
+                        <li>Exponential Backoff</li>
+                    </ul>
+                </div>
+
+                <div class="security-item">
+                    <h4>4️⃣ Session Security</h4>
+                    <ul>
+                        <li>HTTPOnly Cookies</li>
+                        <li>Secure Flag (HTTPS)</li>
+                        <li>SameSite=Lax</li>
+                        <li>Session Timeout: 2 hours</li>
+                        <li>Regenerate Session ID on Login</li>
+                    </ul>
+                </div>
+
+                <div class="security-item">
+                    <h4>5️⃣ Encryption & Hashing</h4>
+                    <ul>
+                        <li>Passwords: bcrypt</li>
+                        <li>Sensitive Data: AES-256</li>
+                        <li>2FA Codes: Hashed in DB</li>
+                        <li>Tokens: 256-bit Random Strings</li>
+                    </ul>
+                </div>
+
+                <div class="security-item">
+                    <h4>6️⃣ Activity Logging</h4>
+                    <ul>
+                        <li>Spatie Activity Log</li>
+                        <li>Laravel System Logs</li>
+                        <li>Login Attempts Logging</li>
+                        <li>Failed Auth Alerts</li>
+                        <li>IP & User Agent Tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Flow -->
+        <div id="dataflow" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔄</span>
+                تدفق البيانات (Data Flow)
+            </h2>
+
+            <div class="flow-box">
+                <h3>1️⃣ تدفق تسجيل الدخول (Login Flow)</h3>
+                <div class="arch-diagram">
+                    <pre>User (Browser)
+    │
+    ├─ GET /login
+    │
+    ▼
+[Route] → [AuthController::showLogin()] → [View: login.blade.php]
+                                                    │
+                                                    ▼
+                                            User enters credentials
+                                                    │
+                                                    ├─ POST /login
+                                                    │
+                                                    ▼
+[Route] → [Middleware: CSRF, Throttle] → [AuthController::login()]
+                                                    │
+                                                    ├─ Validate Input
+                                                    │
+                                                    ▼
+                                          [AuthService::attempt()]
+                                                    │
+                                                    ├─ Check User in DB
+                                                    │
+                                                    ▼
+                                          ┌─────────┴─────────┐
+                                          │  Valid?           │
+                                          └─────────┬─────────┘
+                                  ┌─────────────────┴─────────────────┐
+                                  │ NO                                │ YES
+                                  ▼                                   ▼
+                        Return Error                      ┌──────────────────┐
+                        Increment Failed                  │ 2FA Enabled?     │
+                        Attempts                          └──────┬───────────┘
+                                                  ┌──────────────┴──────────────┐
+                                                  │ NO                          │ YES
+                                                  ▼                             ▼
+                                        Login Success             Send 2FA Code via Email
+                                        Create Session            Redirect to /two-factor/verify
+                                        Redirect to Dashboard             │
+                                                                          ▼
+                                                              [Verify 2FA Code]
+                                                                          │
+                                                                          ▼
+                                                                    Login Success</pre>
+                </div>
+            </div>
+
+            <div class="flow-box">
+                <h3>2️⃣ تدفق تسليم نشاط (Activity Submission Flow)</h3>
+                <div class="arch-diagram">
+                    <pre>Student (Browser)
+    │
+    ├─ GET /student/activities/{id}
+    │
+    ▼
+[Route] → [Middleware: Auth, Role:student] → [StudentController::showActivity($id)]
+                                                           │
+                                                           ├─ Load Activity from DB
+                                                           ├─ Check if already submitted
+                                                           │
+                                                           ▼
+                                                  [View: activity.blade.php]
+                                                           │
+                                                           ▼
+                                                  Student fills the form
+                                                  (Text + Optional File)
+                                                           │
+                                                           ├─ POST /student/activities/{id}/submit
+                                                           │
+                                                           ▼
+[Route] → [Middleware: Auth, CSRF] → [StudentController::submitActivity($id)]
+                                                           │
+                                                           ├─ Validate Input
+                                                           ├─ Upload File (if any)
+                                                           │
+                                                           ▼
+                                                  [ActivityService::submit()]
+                                                           │
+                                                           ├─ Create ActivitySubmission
+                                                           ├─ Store File Path
+                                                           ├─ Set Status = 'pending'
+                                                           │
+                                                           ▼
+                                                  [NotificationService::notifyTeacher()]
+                                                           │
+                                                           ├─ Create Notification
+                                                           ├─ Send Email (Queue)
+                                                           │
+                                                           ▼
+                                                  Return Success Message
+                                                  Redirect to Dashboard</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Structure -->
+        <div id="structure" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🗂️</span>
+                هيكل الملفات (File Structure)
+            </h2>
+            <div class="file-structure">
+                <pre>qiyamm-master/
+│
+├── app/
+│   ├── Console/Commands/              # أوامر Artisan مخصصة
+│   ├── Events/                        # الأحداث (Events)
+│   ├── Exceptions/                    # معالجة الأخطاء
+│   ├── Http/
+│   │   ├── Controllers/               # Controllers
+│   │   │   ├── Admin/                 # Super Admin Controllers
+│   │   │   ├── Auth/                  # Authentication Controllers
+│   │   │   ├── School/                # School Admin Controllers
+│   │   │   ├── Teacher/               # Teacher Controllers
+│   │   │   ├── Student/               # Student Controllers
+│   │   │   └── Parent/                # Parent Controllers
+│   │   ├── Middleware/                # Middleware
+│   │   └── Requests/                  # Form Requests
+│   ├── Models/                        # Eloquent Models
+│   ├── Services/                      # Business Logic
+│   │   ├── AuthService.php
+│   │   ├── GamificationService.php
+│   │   ├── ActivityService.php
+│   │   ├── NotificationService.php
+│   │   └── ReportService.php
+│   ├── Notifications/                 # Laravel Notifications
+│   └── Providers/                     # Service Providers
+│
+├── config/                            # Configuration Files
+├── database/
+│   ├── migrations/                    # Database Migrations
+│   ├── seeders/                       # Database Seeders
+│   └── factories/                     # Model Factories
+│
+├── resources/
+│   ├── views/                         # Blade Templates
+│   │   ├── auth/                      # Authentication Views
+│   │   ├── admin/                     # Super Admin Views
+│   │   ├── school-admin/              # School Admin Views
+│   │   ├── teacher/                   # Teacher Views
+│   │   ├── student/                   # Student Views
+│   │   └── parent/                    # Parent Views
+│   ├── css/                           # CSS Files
+│   └── js/                            # JavaScript Files
+│
+├── routes/
+│   ├── web.php                        # Web Routes
+│   ├── api.php                        # API Routes
+│   └── channels.php                   # Broadcasting Channels
+│
+├── storage/                           # Storage Files
+│   ├── app/public/                    # Public Files
+│   ├── framework/                     # Framework Files
+│   └── logs/                          # Log Files
+│
+└── tests/                             # Tests
+    ├── Feature/                       # Feature Tests
+    └── Unit/                          # Unit Tests</pre>
+            </div>
+        </div>
+
+        <!-- Deployment Architecture -->
+        <div id="deployment" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🚀</span>
+                معمارية الاستضافة (Deployment Architecture)
+            </h2>
+            
+            <div class="deployment-options">
+                <!-- Shared Hosting -->
+                <div class="deployment-card shared">
+                    <h3>🌐 خيار 1: Shared Hosting (بسيط)</h3>
+                    <div class="arch-diagram">
+                        <pre>┌─────────────────────────────────────────────────────────────┐
+│                      Shared Hosting                         │
+│                      (cPanel / Plesk)                       │
+├─────────────────────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  Web Server (Apache) + PHP 8.2+                   │    │
+│  └────────────────────┬───────────────────────────────┘    │
+│                       │                                     │
+│  ┌────────────────────▼───────────────────────────────┐    │
+│  │  Laravel Application                               │    │
+│  └────────────────────┬───────────────────────────────┘    │
+│                       │                                     │
+│  ┌────────────────────▼───────────────────────────────┐    │
+│  │  MySQL Database (phpMyAdmin)                      │    │
+│  └────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘</pre>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros-cons-list pros">
+                            <h4>✅ المميزات</h4>
+                            <ul>
+                                <li>سهل الإعداد</li>
+                                <li>تكلفة منخفضة</li>
+                                <li>مناسب للبداية</li>
+                            </ul>
+                        </div>
+                        <div class="pros-cons-list cons">
+                            <h4>⚠️ العيوب</h4>
+                            <ul>
+                                <li>أداء محدود</li>
+                                <li>موارد مشتركة</li>
+                                <li>صعوبة التوسع</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VPS/Cloud -->
+                <div class="deployment-card vps">
+                    <h3>☁️ خيار 2: VPS / Cloud Server (موصى به)</h3>
+                    <div class="arch-diagram">
+                        <pre>┌─────────────────────────────────────────────────────────────────┐
+│                    Cloud Server (VPS)                           │
+│             (AWS EC2 / DigitalOcean / Linode)                   │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────────────────────┐    │
+│  │  Load Balancer (Optional) → Nginx / AWS ELB           │    │
+│  └────────────────────┬───────────────────────────────────┘    │
+│                       │                                         │
+│  ┌────────────────────▼───────────────────────────────────┐    │
+│  │  Web Server → Nginx + PHP-FPM 8.2+                    │    │
+│  └────────────────────┬───────────────────────────────────┘    │
+│                       │                                         │
+│  ┌────────────────────▼───────────────────────────────────┐    │
+│  │  Laravel Application                                   │    │
+│  └────────────────────┬───────────────────────────────────┘    │
+│                       │                                         │
+│  ┌────────────────────▼───────────────────────────────────┐    │
+│  │  Database Server → MySQL 8.0+ / PostgreSQL 14+        │    │
+│  └────────────────────┬───────────────────────────────────┘    │
+│                       │                                         │
+│  ┌────────────────────▼───────────────────────────────────┐    │
+│  │  Cache Server → Redis / Memcached (Optional)          │    │
+│  └────────────────────┬───────────────────────────────────┘    │
+│                       │                                         │
+│  ┌────────────────────▼───────────────────────────────────┐    │
+│  │  Storage → AWS S3 / Local Disk                        │    │
+│  └────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘</pre>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros-cons-list pros">
+                            <h4>✅ المميزات</h4>
+                            <ul>
+                                <li>أداء عالٍ</li>
+                                <li>موارد مخصصة</li>
+                                <li>سهولة التوسع</li>
+                                <li>تحكم كامل</li>
+                            </ul>
+                        </div>
+                        <div class="pros-cons-list cons">
+                            <h4>⚠️ العيوب</h4>
+                            <ul>
+                                <li>يتطلب معرفة تقنية</li>
+                                <li>تكلفة أعلى نسبياً</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scalability -->
+        <div id="scalability" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📊</span>
+                قابلية التوسع (Scalability)
+            </h2>
+            
+            <div class="scalability-stages">
+                <div class="stage-card">
+                    <h3>المرحلة 1️⃣: Small Scale (1-1000 users)</h3>
+                    <div class="file-structure">
+                        <pre>Single Server
+├── Nginx
+├── PHP-FPM
+├── MySQL
+└── Storage (Local Disk)</pre>
+                    </div>
+                </div>
+
+                <div class="stage-card">
+                    <h3>المرحلة 2️⃣: Medium Scale (1000-10,000 users)</h3>
+                    <div class="file-structure">
+                        <pre>┌──────────────┐
+│ Load Balancer│
+└──────┬───────┘
+       │
+  ┌────┴────┬────────┬────────┐
+  │         │        │        │
+┌─▼──┐   ┌─▼──┐  ┌─▼──┐   ┌─▼──┐
+│Web1│   │Web2│  │Web3│   │...│
+└────┘   └────┘  └────┘   └────┘
+       │
+  ┌────▼────┐
+  │ Database│
+  │ (Master)│
+  └─────────┘
+       │
+  ┌────▼────┐
+  │  Redis  │
+  │ (Cache) │
+  └─────────┘
+       │
+  ┌────▼────┐
+  │   S3    │
+  │(Storage)│
+  └─────────┘</pre>
+                    </div>
+                </div>
+
+                <div class="stage-card">
+                    <h3>المرحلة 3️⃣: Large Scale (10,000+ users)</h3>
+                    <div class="file-structure">
+                        <pre>        ┌──────────────┐
+        │ CDN          │
+        │ (CloudFlare) │
+        └──────┬───────┘
+               │
+        ┌──────▼───────┐
+        │Load Balancer │
+        │(AWS ELB)     │
+        └──────┬───────┘
+               │
+  ┌────────────┴────────────┬──────────────┐
+  │                         │              │
+┌─▼──────────┐   ┌─────────▼──┐   ┌──────▼─────┐
+│Web Servers │   │Web Servers │   │Web Servers │
+│(Auto Scale)│   │(Auto Scale)│   │(Auto Scale)│
+└────────────┘   └────────────┘   └────────────┘
+       │
+  ┌────▼────────────────┐
+  │Database Cluster     │
+  │(Master + Replicas)  │
+  └─────────────────────┘
+       │
+  ┌───��▼────────────────┐
+  │Redis Cluster        │
+  │(Distributed Cache)  │
+  └─────────────────────┘</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Requirements -->
+        <div id="requirements" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔧</span>
+                المتطلبات التقنية (Technical Requirements)
+            </h2>
+            
+            <h3 style="margin: 2rem 0 1rem; color: var(--primary);">Server Requirements</h3>
+            <table class="requirements-table">
+                <thead>
+                    <tr>
+                        <th>Recommended</th>
+                        <th>Minimum</th>
+                        <th>Component</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>4+ Cores</td>
+                        <td>2 Cores</td>
+                        <td><strong>CPU</strong></td>
+                    </tr>
+                    <tr>
+                        <td>8+ GB</td>
+                        <td>4 GB</td>
+                        <td><strong>RAM</strong></td>
+                    </tr>
+                    <tr>
+                        <td>100+ GB SSD</td>
+                        <td>50 GB</td>
+                        <td><strong>Storage</strong></td>
+                    </tr>
+                    <tr>
+                        <td>8.3+</td>
+                        <td>8.2+</td>
+                        <td><strong>PHP</strong></td>
+                    </tr>
+                    <tr>
+                        <td>PostgreSQL 14+</td>
+                        <td>MySQL 8.0+</td>
+                        <td><strong>Database</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Nginx 1.20+</td>
+                        <td>Apache 2.4+</td>
+                        <td><strong>Web Server</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin: 3rem 0 1rem; color: var(--primary);">PHP Extensions Required</h3>
+            <div style="background: #f8fafc; padding: 2rem; border-radius: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>• BCMath</div>
+                    <div>• Ctype</div>
+                    <div>• cURL</div>
+                    <div>• DOM</div>
+                    <div>• Fileinfo</div>
+                    <div>• JSON</div>
+                    <div>• Mbstring</div>
+                    <div>• OpenSSL</div>
+                    <div>• PDO</div>
+                    <div>• PDO_MySQL</div>
+                    <div>• Tokenizer</div>
+                    <div>• XML</div>
+                    <div>• GD / Imagick</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📝</span>
+                ملخص المعمارية
+            </h2>
+            
+            <div class="summary-grid">
+                <div class="summary-box strengths">
+                    <h3>✅ نقاط القوة</h3>
+                    <ul>
+                        <li>معمارية متعددة الطبقات - فصل واضح</li>
+                        <li>قابلية التوسع - أفقياً ورأسياً</li>
+                        <li>الأمان - طبقات أمان متعددة</li>
+                        <li>الأداء - استخدام Caching و Queue</li>
+                        <li>الصيانة - هيكل واضح وسهل</li>
+                    </ul>
+                </div>
+
+                <div class="summary-box improvements">
+                    <h3>🔮 نقاط التحسين المستقبلية</h3>
+                    <ul>
+                        <li>إضافة Microservices للأجزاء المعقدة</li>
+                        <li>استخدام Docker & Kubernetes</li>
+                        <li>إضافة Elasticsearch للبحث المتقدم</li>
+                        <li>استخدام GraphQL API بجانب REST</li>
+                        <li>إضافة Real-time Features (WebSockets)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 2rem; border-radius: 15px; margin-top: 3rem; text-align: center;">
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>تاريخ الإعداد:</strong> ديسمبر 23, 2025
+                </p>
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>أداة الرسم المقترحة:</strong> Draw.io / Lucidchart / PlantUML
+                </p>
+                <p style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">
+                    الحالة: معتمد كبنية نهائية ✅
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        ↑
+    </button>
+
+    <script>
+        // Scroll to top button visibility
+        window.addEventListener('scroll', function() {
+            const scrollTop = document.getElementById('scrollTop');
+            if (window.pageYOffset > 300) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+            if (e.key === 'Home') {
+                e.preventDefault();
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        });
+    </script>
+</body>
+</html>

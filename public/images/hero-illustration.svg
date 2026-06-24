@@ -1,0 +1,29 @@
+<svg width="600" height="500" viewBox="0 0 600 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="300" cy="250" r="200" fill="#E8F8F1" opacity="0.5"/>
+  
+  <!-- Main Character -->
+  <circle cx="300" cy="200" r="60" fill="#3CCB8A"/>
+  
+  <!-- Stars/Values Icons -->
+  <circle cx="150" cy="150" r="30" fill="#FFC83D" opacity="0.8"/>
+  <circle cx="450" cy="150" r="30" fill="#2B7DE9" opacity="0.8"/>
+  <circle cx="150" cy="350" r="30" fill="#2B7DE9" opacity="0.8"/>
+  <circle cx="450" cy="350" r="30" fill="#FFC83D" opacity="0.8"/>
+  
+  <!-- Book/Learning Element -->
+  <rect x="225" y="300" width="150" height="100" rx="8" fill="#FFFFFF" stroke="#3CCB8A" stroke-width="4"/>
+  <line x1="300" y1="320" x2="300" y2="380" stroke="#3CCB8A" stroke-width="3"/>
+  <line x1="250" y1="340" x2="280" y2="340" stroke="#2B7DE9" stroke-width="2"/>
+  <line x1="250" y1="360" x2="280" y2="360" stroke="#2B7DE9" stroke-width="2"/>
+  <line x1="320" y1="340" x2="350" y2="340" stroke="#2B7DE9" stroke-width="2"/>
+  <line x1="320" y1="360" x2="350" y2="360" stroke="#2B7DE9" stroke-width="2"/>
+  
+  <!-- Achievement Badge -->
+  <circle cx="500" cy="100" r="40" fill="#FFC83D"/>
+  <text x="500" y="110" font-size="30" text-anchor="middle" fill="#FFFFFF">★</text>
+  
+  <!-- Progress Bar -->
+  <rect x="100" y="450" width="400" height="20" rx="10" fill="#E0E0E0"/>
+  <rect x="100" y="450" width="300" height="20" rx="10" fill="#3CCB8A"/>
+</svg>

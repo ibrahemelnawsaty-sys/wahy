@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swagger Documentation - منصة قيمّ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary-color: #6366F1; --secondary-color: #4F46E5; --dark-color: #1E293B; }
+        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); color: #334155; line-height: 1.8; padding: 2rem 1rem; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .breadcrumb { background: rgba(255,255,255,0.2); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: inline-block; }
+        .breadcrumb a { color: white; text-decoration: none; font-weight: 600; }
+        .page-header { background: white; padding: 3rem; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); margin-bottom: 3rem; text-align: center; }
+        .page-header h1 { font-size: 3rem; font-weight: 900; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
+        .section { background: white; border-radius: 20px; padding: 3rem; margin-bottom: 3rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .section-title { font-size: 2.5rem; font-weight: 900; color: var(--dark-color); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 3px solid var(--primary-color); }
+        .code-block { background: #1E293B; color: #E2E8F0; padding: 2rem; border-radius: 12px; overflow-x: auto; margin-bottom: 2rem; }
+        .code-block pre { font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.6; margin: 0; }
+        .feature-card { background: linear-gradient(135deg, #E0E7FF, #C7D2FE); padding: 2rem; border-radius: 16px; margin-bottom: 2rem; border-right: 5px solid var(--primary-color); }
+        .feature-card h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--dark-color); }
+        .footer { text-align: center; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .back-link { display: inline-block; color: var(--secondary-color); text-decoration: none; font-weight: 700; font-size: 1.2rem; padding: 1rem 2rem; border-radius: 12px; background: #F8FAFC; }
+        .swagger-preview { background: #F8FAFC; padding: 2rem; border-radius: 16px; border: 2px solid #E2E8F0; }
+        .swagger-preview img { max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="breadcrumb"><a href="index.html">← العودة للرئيسية</a></div>
+
+        <div class="page-header">
+            <h1>📚 Swagger Documentation</h1>
+            <p class="subtitle">Interactive API Documentation - OpenAPI 3.0</p>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2 class="section-title"><span>📋</span><span>نظرة عامة</span></h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">Swagger UI التفاعلي للوثائق الكاملة لجميع الـ APIs مع إمكانية الاختبار المباشر.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div style="background: linear-gradient(135deg, #E0E7FF, #C7D2FE); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">📚</div>
+                    <div style="font-size: 2rem; font-weight: 900;">Swagger UI</div>
+                    <div style="font-weight: 600;">Interactive Docs</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #DBEAFE, #BFDBFE); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">🧪</div>
+                    <div style="font-size: 2rem; font-weight: 900;">Try it Out</div>
+                    <div style="font-weight: 600;">Live Testing</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">📄</div>
+                    <div style="font-size: 2rem; font-weight: 900;">OpenAPI 3.0</div>
+                    <div style="font-weight: 600;">Standard Format</div>
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); padding: 2rem; border-radius: 16px; margin-top: 2rem; border-right: 4px solid #10B981;">
+                <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Swagger UI URL</h3>
+                <div style="font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight: 700; color: var(--dark-color);">
+                    https://api.qiyamm.com/api/documentation
+                </div>
+            </div>
+        </div>
+
+        <!-- Installation -->
+        <div class="section">
+            <h2 class="section-title"><span>⚙️</span><span>Installation & Setup</span></h2>
+
+            <h3 style="font-size: 1.8rem; margin-bottom: 1.5rem;">1. Install L5-Swagger</h3>
+            <div class="code-block">
+<pre>composer require darkaonline/l5-swagger
+
+php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"</pre>
+            </div>
+
+            <h3 style="font-size: 1.8rem; margin: 2rem 0 1.5rem;">2. Configure config/l5-swagger.php</h3>
+            <div class="code-block">
+<pre>return [
+    'api' => [
+        'title' => 'منصة قيمّ API Documentation',
+    ],
+    'routes' => [
+        'api' => 'api/documentation',
+    ],
+    'paths' => [
+        'docs' => storage_path('api-docs'),
+        'docs_json' => 'api-docs.json',
+        'annotations' => [
+            base_path('app'),
+        ],
+    ],
+];</pre>
+            </div>
+
+            <h3 style="font-size: 1.8rem; margin: 2rem 0 1.5rem;">3. Generate Documentation</h3>
+            <div class="code-block">
+<pre>php artisan l5-swagger:generate</pre>
+            </div>
+        </div>
+
+        <!-- Annotations Example -->
+        <div class="section">
+            <h2 class="section-title"><span>📝</span><span>Swagger Annotations</span></h2>
+
+            <h3 style="font-size: 1.8rem; margin-bottom: 1.5rem;">مثال: Controller مع Swagger Annotations</h3>
+            <div class="code-block">
+<pre>&lt;?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use OpenApi\Annotations as OA;
+
+/**
+ * @OA\Info(
+ *     title="منصة قيمّ API",
+ *     version="1.0.0",
+ *     description="RESTful API for Qiyamm Educational Platform",
+ *     @OA\Contact(
+ *         email="support@qiyamm.com"
+ *     )
+ * )
+ * 
+ * @OA\Server(
+ *     url="https://api.qiyamm.com/api/v1",
+ *     description="Production Server"
+ * )
+ * 
+ * @OA\SecurityScheme(
+ *     securityScheme="bearerAuth",
+ *     type="http",
+ *     scheme="bearer",
+ *     bearerFormat="JWT"
+ * )
+ */
+class ActivityController extends Controller
+{
+    /**
+     * @OA\Get(
+     *     path="/activities",
+     *     summary="Get all activities",
+     *     tags={"Activities"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="lesson_id",
+     *         in="query",
+     *         description="Filter by lesson ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="title", type="string", example="نشاط الأمانة"),
+     *                     @OA\Property(property="type", type="string", example="multiple_choice"),
+     *                     @OA\Property(property="max_points", type="integer", example=50)
+     *                 )
+     *             ),
+     *             @OA\Property(property="meta", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="total", type="integer", example=100)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     */
+    public function index()
+    {
+        // Implementation...
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/activities/{id}/submit",
+     *     summary="Submit activity solution",
+     *     tags={"Activities"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Activity ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"answers"},
+     *             @OA\Property(property="answers", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="question_id", type="integer", example=1),
+     *                     @OA\Property(property="answer", type="string", example="A")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Submission created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Activity submitted successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="submission_id", type="integer", example=123),
+     *                 @OA\Property(property="status", type="string", example="pending")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error"
+     *     )
+     * )
+     */
+    public function submit($id)
+    {
+        // Implementation...
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="section">
+            <h2 class="section-title"><span>✨</span><span>Swagger Features</span></h2>
+
+            <div class="feature-card">
+                <h3>🧪 1. Try it Out - اختبار مباشر</h3>
+                <p>إمكانية اختبار أي API مباشرة من المتصفح بدون Postman</p>
+                <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                    <li style="padding: 0.5rem 0;">✓ إدخال Parameters مباشرة</li>
+                    <li style="padding: 0.5rem 0;">✓ إرفاق JWT Token للـ Authentication</li>
+                    <li style="padding: 0.5rem 0;">✓ عرض Response الفعلي</li>
+                    <li style="padding: 0.5rem 0;">✓ عرض Status Code و Headers</li>
+                </ul>
+            </div>
+
+            <div class="feature-card" style="background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-right-color: #3B82F6;">
+                <h3>📋 2. Request/Response Examples</h3>
+                <p>أمثلة توضيحية لجميع الـ Requests و Responses</p>
+                <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                    <li style="padding: 0.5rem 0;">✓ Request Body مع أمثلة واقعية</li>
+                    <li style="padding: 0.5rem 0;">✓ Response Structure كامل</li>
+                    <li style="padding: 0.5rem 0;">✓ Error Responses لكل حالة</li>
+                </ul>
+            </div>
+
+            <div class="feature-card" style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); border-right-color: #10B981;">
+                <h3>🔐 3. Authentication في Swagger</h3>
+                <p>نظام مصادقة متكامل داخل Swagger UI</p>
+                <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                    <li style="padding: 0.5rem 0;">✓ زر "Authorize" في الأعلى</li>
+                    <li style="padding: 0.5rem 0;">✓ إدخال Bearer Token مرة واحدة</li>
+                    <li style="padding: 0.5rem 0;">✓ يُطبّق على جميع APIs تلقائيًا</li>
+                </ul>
+            </div>
+
+            <div class="feature-card" style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-right-color: #F59E0B;">
+                <h3>📑 4. Tags Organization</h3>
+                <p>تنظيم الـ APIs حسب الفئات</p>
+                <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                    <li style="padding: 0.5rem 0;">✓ Authentication</li>
+                    <li style="padding: 0.5rem 0;">✓ Users</li>
+                    <li style="padding: 0.5rem 0;">✓ Content (Values, Concepts, Lessons)</li>
+                    <li style="padding: 0.5rem 0;">✓ Activities & Submissions</li>
+                    <li style="padding: 0.5rem 0;">✓ Schools & Branches</li>
+                    <li style="padding: 0.5rem 0;">✓ Gamification (Badges, Leaderboard)</li>
+                    <li style="padding: 0.5rem 0;">✓ Reports</li>
+                </ul>
+            </div>
+
+            <div class="feature-card" style="background: linear-gradient(135deg, #F3E8FF, #E9D5FF); border-right-color: #8B5CF6;">
+                <h3>📥 5. Export Options</h3>
+                <p>تصدير التوثيق بصيغ متعددة</p>
+                <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                    <li style="padding: 0.5rem 0;">✓ OpenAPI 3.0 JSON</li>
+                    <li style="padding: 0.5rem 0;">✓ OpenAPI 3.0 YAML</li>
+                    <li style="padding: 0.5rem 0;">✓ استيراد في Postman</li>
+                </ul>
+            </div>
+
+            <div class="feature-card" style="background: linear-gradient(135deg, #FEE2E2, #FECACA); border-right-color: #EF4444;">
+                <h3>🔍 6. Search Functionality</h3>
+                <p>بحث سريع عن أي API</p>
+                <ul style="list-style: none; margin-top: 1rem; margin-right: 1.5rem;">
+                    <li style="padding: 0.5rem 0;">✓ بحث بالـ Endpoint</li>
+                    <li style="padding: 0.5rem 0;">✓ بحث بالـ Tag</li>
+                    <li style="padding: 0.5rem 0;">✓ بحث بالـ Description</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- OpenAPI JSON Structure -->
+        <div class="section">
+            <h2 class="section-title"><span>📄</span><span>OpenAPI JSON Structure</span></h2>
+
+            <div class="code-block">
+<pre>{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "منصة قيمّ API",
+    "description": "RESTful API for Qiyamm Educational Platform",
+    "version": "1.0.0",
+    "contact": {
+      "email": "support@qiyamm.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.qiyamm.com/api/v1",
+      "description": "Production Server"
+    },
+    {
+      "url": "http://localhost:8000/api/v1",
+      "description": "Development Server"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": { "$ref": "#/components/schemas/User" },
+                        "token": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "role": { "type": "string" }
+        }
+      }
+    }
+  }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="section">
+            <h2 class="section-title"><span>⭐</span><span>Best Practices</span></h2>
+
+            <div style="display: grid; gap: 2rem;">
+                <div style="background: linear-gradient(135deg, #E0E7FF, #C7D2FE); padding: 2rem; border-radius: 12px; border-right: 4px solid var(--primary-color);">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">1. توثيق شامل</h3>
+                    <ul style="list-style: none; margin-right: 1.5rem;">
+                        <li style="padding: 0.3rem 0;">✓ وصف واضح لكل API</li>
+                        <li style="padding: 0.3rem 0;">✓ تحديد جميع Parameters</li>
+                        <li style="padding: 0.3rem 0;">✓ أمثلة واقعية للـ Request/Response</li>
+                        <li style="padding: 0.3rem 0;">✓ توثيق جميع Error Codes</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #EFF6FF, #DBEAFE); padding: 2rem; border-radius: 12px; border-right: 4px solid #3B82F6;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">2. تنظيم بالـ Tags</h3>
+                    <ul style="list-style: none; margin-right: 1.5rem;">
+                        <li style="padding: 0.3rem 0;">✓ تجميع APIs المرتبطة</li>
+                        <li style="padding: 0.3rem 0;">✓ أسماء Tags واضحة</li>
+                        <li style="padding: 0.3rem 0;">✓ ترتيب منطقي للـ Tags</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); padding: 2rem; border-radius: 12px; border-right: 4px solid #10B981;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">3. تحديث مستمر</h3>
+                    <ul style="list-style: none; margin-right: 1.5rem;">
+                        <li style="padding: 0.3rem 0;">✓ مزامنة مع تغييرات الكود</li>
+                        <li style="padding: 0.3rem 0;">✓ تشغيل l5-swagger:generate بعد كل تعديل</li>
+                        <li style="padding: 0.3rem 0;">✓ اختبار Swagger UI بعد التحديث</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div style="background: linear-gradient(135deg, #6366F1, #4F46E5); color: white; border-radius: 20px; padding: 3rem; text-align: center; margin-bottom: 3rem;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; font-weight: 900;">✅ Swagger جاهز 100%</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">Interactive Documentation + Try it Out + OpenAPI 3.0 Export</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px; margin-top: 2rem;">
+                <p style="font-size: 1.1rem; font-weight: 600;">🌐 Access Swagger UI at:</p>
+                <p style="font-size: 1.3rem; font-weight: 900; margin-top: 0.5rem;">https://api.qiyamm.com/api/documentation</p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <a href="index.html" class="back-link">← العودة للرئيسية</a>
+        </footer>
+    </div>
+</body>
+</html>

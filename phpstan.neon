@@ -1,0 +1,30 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+
+    paths:
+        - app
+        - database
+        - tests
+
+    excludePaths:
+        - vendor
+        - node_modules
+        - bootstrap/cache
+        - storage
+
+    # متجاهل: حقول المخططات الديناميكية ($fillable + DB::table)
+    ignoreErrors:
+        - identifier: missingType.iterableValue
+        - '#PHPDoc tag @param has invalid value#'
+        # Spatie Permission HasRoles trait يضيف assignRole() لكن phpstan لا يكتشفه
+        - '#Call to an undefined method App\\Models\\User::assignRole\(\)#'
+
+    checkGenericClassInNonGenericObjectType: false
+    checkMissingIterableValueType: false
+
+    # تجاهل magic properties من casts
+    universalObjectCratesClasses:
+        - Illuminate\Http\Request

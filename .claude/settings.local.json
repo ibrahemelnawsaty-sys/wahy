@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -nE '\\\\\\\\\\\\\\\\\\(DB|Log|Str|Auth|Cache|Session|Storage|Hash|Mail|Notification|Validator\\)::' \"c:/Users/b.maher/Downloads/wahy \\(2\\)/app/Http/Controllers/StudentController.php\")",
+      "Bash(grep -nE '\\\\$response->question|->question_text|question:|->questions' 'c:/Users/b.maher/Downloads/wahy \\(2\\)/resources/views/admin/surveys/show.blade.php')",
+      "Bash(grep -nE \"Schema::|\\\\\\\\bsource\\\\\\\\b|points\" \"c:/Users/b.maher/Downloads/wahy \\(2\\)/database/migrations/2025_11_18_140931_create_points_table.php\")",
+      "Bash(grep -B5 \"Unsupported operand types: Illuminate\\\\\\\\\\\\\\\\Database\" \"c:/Users/b.maher/Downloads/wahy \\(2\\)/storage/logs/laravel.log\")",
+      "Bash(grep -rEn 'Schema::table\\\\\\('\\\\''users'\\\\''.*points|points.*users.*table|\\\\$table->.*points' 'c:/Users/b.maher/Downloads/wahy \\(2\\)/database/migrations/')",
+      "Bash(grep -nE \"ممتاز|XP\\\\\\\\+|submitActivity|fetch.*activity|score.*100|تم.*تسليم\" \"c:/Users/b.maher/Downloads/wahy \\(2\\)/resources/views/student/activity-view.blade.php\")",
+      "Bash(grep -nE \"loop->iteration|@foreach.*leaderboard|XP\\\\\\\\s*\\\\\\\\\\\\$|#\\\\\\\\\\\\$|ترتيبك|#\\\\\\\\{\" \"c:/Users/b.maher/Downloads/wahy \\(2\\)/resources/views/student/leaderboard.blade.php\")",
+      "Read(//c/xampp/php/**)",
+      "Bash(grep -nE \"function destroy|function update|^}\\\\s*$\" \"c:/Users/b.maher/Downloads/wahy \\(2\\)/app/Http/Controllers/Admin/SchoolManagementController.php\")",
+      "Bash(grep -nE \"messages.index|messages\\\\\\\\.show|message-icon|font-family\" \"c:/Users/b.maher/Downloads/wahy \\(2\\)/resources/views/messages/\" -r)",
+      "Bash(sed -i 's/\\\\r$//' used.txt defined_routes.txt)",
+      "Bash(sort -u used.txt -o used.txt)",
+      "Bash(sort -u defined_routes.txt -o defined_routes.txt)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\B70C7~1.MAH\\AppData\\Local\\Temp\\claude"
+    ]
+  }
+}

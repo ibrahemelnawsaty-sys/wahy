@@ -1,0 +1,584 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\User;
+use App\Mail\TwoFactorCodeMail;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
+
+class AuthController extends Controller
+{
+    /**
+     * صفحة تسجيل الدخول
+     */
+    public function showLogin()
+    {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+        return view('auth.login');
+    }
+
+    /**
+     * معالجة تسجيل الدخول
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:6|max:255',
+        ]);
+
+        $credentials = $request->only('email', 'password');
+        
+        // التحقق من البيانات (بدون eager loading لتحسين الأداء)
+        $user = User::where('email', $request->email)->first();
+        
+        // تحديد المعرف (User ID أو IP)
+        $identifier = $user ? $user->id : $request->ip();
+        $cacheKey = 'login_attempts_' . $identifier;
+        $lockoutKey = 'login_lockout_' . $identifier;
+        
+        // فحص الحظر مرة واحدة فقط
+        $lockoutUntil = cache()->get($lockoutKey);
+        
+        if ($lockoutUntil && now()->timestamp < $lockoutUntil) {
+            $remainingMinutes = ceil(($lockoutUntil - now()->timestamp) / 60);
+            $remainingHours = floor($remainingMinutes / 60);
+            $remainingMins = $remainingMinutes % 60;
+            
+            $timeMessage = $remainingHours > 0 
+                ? "{$remainingHours} ساعة و {$remainingMins} دقيقة"
+                : "{$remainingMins} دقيقة";
+            
+            return back()->withErrors([
+                'error' => "تم حظر محاولات تسجيل الدخول مؤقتاً. يرجى المحاولة بعد {$timeMessage}.",
+            ])->onlyInput('email');
+        }
+        
+        // التحقق من صحة بيانات الدخول
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            // زيادة عدد المحاولات الفاشلة
+            $attempts = cache()->get($cacheKey, 0) + 1;
+            cache()->put($cacheKey, $attempts, now()->addHours(2));
+            
+            // تطبيق Exponential Backoff بعد المحاولة الرابعة
+            if ($attempts >= 4) {
+                $lockoutMinutes = 30 * ($attempts - 3);
+                $lockoutUntil = now()->addMinutes($lockoutMinutes)->timestamp;
+                cache()->put($lockoutKey, $lockoutUntil, now()->addMinutes($lockoutMinutes));
+                
+                $lockoutHours = floor($lockoutMinutes / 60);
+                $lockoutMins = $lockoutMinutes % 60;
+                
+                $timeMessage = $lockoutHours > 0 
+                    ? "{$lockoutHours} ساعة" . ($lockoutMins > 0 ? " و {$lockoutMins} دقيقة" : "")
+                    : "{$lockoutMins} دقيقة";
+                
+                return back()->withErrors([
+                    'error' => "عدد كبير من المحاولات الخاطئة. تم حظر تسجيل الدخول لمدة {$timeMessage}.",
+                ])->onlyInput('email');
+            }
+            
+            return back()->withErrors([
+                'error' => "بيانات الدخول غير صحيحة. لديك " . max(0, (3 - $attempts)) . " محاولات متبقية.",
+            ])->onlyInput('email');
+        }
+        
+        // التحقق من حالة الحساب
+        if ($user->status === 'inactive') {
+            return back()->withErrors([
+                'error' => 'الحساب غير نشط حالياً. يرجى التواصل مع إدارة المنصة.',
+            ])->onlyInput('email');
+        }
+        
+        // مسح محاولات الفشل عند النجاح (batch operation)
+        cache()->deleteMultiple([$cacheKey, $lockoutKey]);
+
+        // إذا كان المستخدم لديه 2FA مفعل والميزة مفعّلة عالمياً (enable_2fa — كان مفتاحاً بلا أثر)
+        if ($user->two_factor_enabled && setting('enable_2fa', true)) {
+            // توليد كود آمن من 6 أرقام باستخدام random_int
+            $code = random_int(100000, 999999);
+            
+            // حفظ الكود مع وقت انتهاء الصلاحية (10 دقائق)
+            $user->two_factor_code = $code;
+            $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
+            $user->save();
+            
+            // إرسال الكود عبر البريد الإلكتروني (في الخلفية - async)
+            try {
+                Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
+            } catch (\Exception $e) {
+                return back()->withErrors([
+                    'email' => 'حدث خطأ في إرسال كود التحقق. يرجى المحاولة لاحقاً.',
+                ])->withInput($request->except('password'));
+            }
+            
+            // حفظ بيانات المستخدم في الجلسة مؤقتاً
+            $request->session()->put('two_factor_user_id', $user->id);
+            $request->session()->put('two_factor_remember', $request->has('remember'));
+            
+            return redirect()->route('two-factor.verify');
+        }
+
+        // تسجيل الدخول العادي
+        $remember = $request->has('remember');
+        Auth::login($user, $remember);
+        
+        // تجديد الجلسة للأمان (منع Session Fixation)
+        $request->session()->regenerate();
+        
+        return redirect()->intended(route('dashboard'));
+    }
+
+    /**
+     * صفحة إدخال كود التحقق
+     */
+    public function showTwoFactorVerify(Request $request)
+    {
+        if (!session()->has('two_factor_user_id')) {
+            return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى']);
+        }
+        
+        // تجديد الجلسة لضمان عدم انتهاء صلاحيتها أثناء إدخال الكود
+        $request->session()->regenerateToken();
+        $request->session()->put('two_factor_last_activity', now()->timestamp);
+        
+        return view('auth.two-factor-verify');
+    }
+
+    /**
+     * التحقق من الكود
+     */
+    public function verifyTwoFactor(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|digits:6',
+        ]);
+
+        // التحقق من وجود الجلسة وعدم انتهاء صلاحيتها
+        $userId = session('two_factor_user_id');
+        $lastActivity = session('two_factor_last_activity');
+        
+        if (!$userId) {
+            return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى']);
+        }
+        
+        // التحقق من أن الجلسة لم تنته (15 دقيقة)
+        if ($lastActivity && (now()->timestamp - $lastActivity) > 900) {
+            $request->session()->flush();
+            return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى']);
+        }
+
+        $user = User::find($userId);
+        
+        if (!$user) {
+            return redirect()->route('login')->withErrors(['error' => 'المستخدم غير موجود']);
+        }
+
+        // نظام Exponential Backoff - التحقق من المحاولات الفاشلة
+        $cacheKey = 'two_factor_attempts_' . $user->id;
+        $attempts = cache()->get($cacheKey, 0);
+        
+        // التحقق من وقت الحظر
+        $lockoutKey = 'two_factor_lockout_' . $user->id;
+        $lockoutUntil = cache()->get($lockoutKey);
+        
+        if ($lockoutUntil && now()->timestamp < $lockoutUntil) {
+            $remainingMinutes = ceil(($lockoutUntil - now()->timestamp) / 60);
+            $remainingHours = floor($remainingMinutes / 60);
+            $remainingMins = $remainingMinutes % 60;
+            
+            $timeMessage = $remainingHours > 0 
+                ? "{$remainingHours} ساعة و {$remainingMins} دقيقة"
+                : "{$remainingMins} دقيقة";
+            
+            return back()->withErrors(['code' => "عدد كبير من المحاولات الخاطئة. الرجاء المحاولة بعد {$timeMessage}."])->withInput();
+        }
+
+        // التحقق من الكود وانتهاء الصلاحية (مقارنة آمنة)
+        if (!hash_equals((string) $user->two_factor_code, (string) $request->code)) {
+            // زيادة عدد المحاولات الفاشلة
+            $attempts++;
+            cache()->put($cacheKey, $attempts, now()->addHour());
+            
+            // تطبيق Exponential Backoff بعد المحاولة الرابعة
+            if ($attempts >= 4) {
+                // المحاولة 4: 30 دقيقة
+                // المحاولة 5: 60 دقيقة (ساعة)
+                // المحاولة 6: 90 دقيقة (ساعة ونصف)
+                // المحاولة 7: 120 دقيقة (ساعتين)
+                // وهكذا...
+                $lockoutMinutes = 30 * ($attempts - 3);
+                $lockoutUntil = now()->addMinutes($lockoutMinutes)->timestamp;
+                cache()->put($lockoutKey, $lockoutUntil, now()->addMinutes($lockoutMinutes));
+                
+                $lockoutHours = floor($lockoutMinutes / 60);
+                $lockoutMins = $lockoutMinutes % 60;
+                
+                $timeMessage = $lockoutHours > 0 
+                    ? "{$lockoutHours} ساعة" . ($lockoutMins > 0 ? " و {$lockoutMins} دقيقة" : "")
+                    : "{$lockoutMins} دقيقة";
+                
+                return back()->withErrors(['code' => "كود التحقق غير صحيح. تم حظر المحاولات لمدة {$timeMessage}."]);
+            }
+            
+            $remaining = 3 - $attempts;
+            return back()->withErrors(['code' => "كود التحقق غير صحيح. لديك {$remaining} محاولة متبقية."]);
+        }
+
+        if (Carbon::now()->greaterThan($user->two_factor_expires_at)) {
+            return back()->withErrors(['code' => 'انتهت صلاحية كود التحقق. يرجى تسجيل الدخول مرة أخرى']);
+        }
+
+        // مسح الكود ومحاولات الفشل
+        $user->two_factor_code = null;
+        $user->two_factor_expires_at = null;
+        $user->save();
+        
+        cache()->forget($cacheKey);
+        cache()->forget($lockoutKey);
+
+        // تسجيل الدخول
+        $remember = session('two_factor_remember', false);
+        Auth::login($user, $remember);
+        
+        // تجديد الجلسة للأمان
+        $request->session()->regenerate();
+        
+        // مسح بيانات الجلسة المؤقتة
+        $request->session()->forget(['two_factor_user_id', 'two_factor_remember', 'two_factor_last_activity']);
+        $request->session()->regenerate();
+        $request->session()->save();
+
+        return redirect()->route('dashboard');
+    }
+
+    /**
+     * إعادة إرسال الكود
+     */
+    public function resendTwoFactorCode(Request $request)
+    {
+        $userId = session('two_factor_user_id');
+        if (!$userId) {
+            return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة']);
+        }
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return redirect()->route('login')->withErrors(['error' => 'المستخدم غير موجود']);
+        }
+
+        // حد إضافي على عدد الإرسالات لكل مستخدم خلال 15 دقيقة (دفاع في العمق فوق throttle:5,1)
+        $rateKey = "2fa_resend:user:{$user->id}";
+        $attempts = (int) \Illuminate\Support\Facades\Cache::get($rateKey, 0);
+        if ($attempts >= 5) {
+            return back()->withErrors(['error' => 'تجاوزت الحد المسموح به لإعادة إرسال الكود. حاول بعد 15 دقيقة.']);
+        }
+        \Illuminate\Support\Facades\Cache::put($rateKey, $attempts + 1, now()->addMinutes(15));
+
+        // توليد كود آمن جديد
+        $code = random_int(100000, 999999);
+
+        $user->two_factor_code = $code;
+        $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
+        $user->save();
+
+        // إرسال الكود
+        if (empty($user->email) || !filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            return back()->withErrors(['error' => 'البريد الإلكتروني غير صالح']);
+        }
+
+        try {
+            Mail::to($user->email)->send(new TwoFactorCodeMail($code, $user->name));
+            return back()->with('success', 'تم إرسال كود جديد إلى بريدك الإلكتروني');
+        } catch (\Exception $e) {
+            \Log::error('فشل إرسال 2FA code', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'حدث خطأ في إرسال الكود']);
+        }
+    }
+
+    /**
+     * تسجيل مستخدم جديد
+     */
+    public function register(Request $request)
+    {
+        // احترام مفتاح enable_registration (كان مُعرَّفاً بلا أثر) — الافتراضي مفعّل
+        if (!setting('enable_registration', true)) {
+            return back()->with('error', 'التسجيل مغلق حالياً. يرجى التواصل مع الإدارة.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'nullable|string|max:20',
+            'role' => 'required|in:teacher,student,parent',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'name.required' => 'الاسم مطلوب',
+            'email.required' => 'البريد الإلكتروني مطلوب',
+            'email.email' => 'البريد الإلكتروني غير صحيح',
+            'email.unique' => 'البريد الإلكتروني مستخدم مسبقاً',
+            'role.required' => 'نوع الحساب مطلوب',
+            'role.in' => 'نوع الحساب غير صحيح',
+            'password.required' => 'كلمة المرور مطلوبة',
+            'password.min' => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
+        ]);
+
+        // تحويل الدور للقيمة الصحيحة في قاعدة البيانات
+        $role = $request->role;
+
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'role' => $role,
+                'status' => 'inactive', // الحساب غير نشط حتى الموافقة عليه من الإدارة
+            ]);
+
+            // تعيين الدور باستخدام Spatie
+            if ($request->role) {
+                $user->assignRole($request->role);
+            }
+
+            // إرسال إيميل تأكيد استلام الطلب
+            try {
+                Mail::to($user->email)->send(new \App\Mail\RegistrationPendingMail($user));
+            } catch (\Exception $e) {
+                Log::warning('Failed to send registration email: ' . $e->getMessage());
+            }
+
+            // إعادة التوجيه مع رسالة نجاح للـ popup
+            return redirect()->route('register')->with('registration_success', true)->with('user_name', $user->name);
+        } catch (\Exception $e) {
+            Log::error('Registration error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة لاحقاً.'])->withInput();
+        }
+    }
+
+    /**
+     * تسجيل الخروج
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect()->route('login');
+    }
+
+    /**
+     * توجيه المستخدم للوحة التحكم المناسبة
+     */
+    public function dashboard()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $user = Auth::user();
+        
+        // التحقق من كلمة المرور المؤقتة
+        if ($user->password_change_required) {
+            return redirect()->route('password.change');
+        }
+
+        // الحصول على الدور النشط (يدعم تبديل الأدوار)
+        $activeRole = session('active_role_' . $user->id, $user->active_role ?? $user->role);
+
+        switch ($activeRole) {
+            case 'super_admin':
+                return redirect()->route('admin.dashboard');
+            case 'school_admin':
+                return redirect()->route('school-admin.dashboard');
+            case 'teacher':
+                return redirect()->route('teacher.dashboard');
+            case 'student':
+                return redirect()->route('student.dashboard');
+            case 'parent':
+                return redirect()->route('parent.dashboard');
+            default:
+                Auth::logout();
+                return redirect()->route('login')->withErrors(['error' => 'نوع الحساب غير صحيح']);
+        }
+    }
+    
+    /**
+     * عرض صفحة تغيير كلمة المرور
+     */
+    public function showPasswordChange()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        return view('auth.change-password');
+    }
+    
+    /**
+     * تحديث كلمة المرور
+     */
+    public function updatePassword(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed|different:current_password',
+        ], [
+            'current_password.required' => 'يرجى إدخال كلمة المرور الحالية',
+            'password.required' => 'يرجى إدخال كلمة المرور الجديدة',
+            'password.min' => 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
+            'password.confirmed' => 'كلمة المرور غير متطابقة',
+            'password.different' => 'يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية',
+        ]);
+        
+        $user = Auth::user();
+
+        // التحقق من كلمة المرور الحالية
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
+        }
+
+        // تحديث كلمة المرور + remember_token جديد لإبطال أي session سابق
+        $user->password = Hash::make($request->password);
+        $user->password_change_required = false;
+        $user->setRememberToken(\Illuminate\Support\Str::random(60));
+        $user->save();
+
+        // تجديد session id لمنع session hijacking عند تغيير كلمة المرور
+        $request->session()->regenerate();
+
+        // إنهاء جلسات أخرى للمستخدم نفسه (لو driver=database)
+        try {
+            \Illuminate\Support\Facades\Auth::logoutOtherDevices($request->password);
+        } catch (\Throwable $e) {
+            // ليس فادحًا — السجل يكفي
+            \Log::warning('logoutOtherDevices failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+        }
+
+        return redirect()->route('dashboard')->with('success', 'تم تغيير كلمة المرور بنجاح! تم تسجيل الخروج من باقي الأجهزة.');
+    }
+
+    /**
+     * عرض صفحة نسيت كلمة المرور
+     */
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * إرسال رابط إعادة تعيين كلمة المرور
+     */
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ], [
+            'email.required' => 'يرجى إدخال البريد الإلكتروني',
+            'email.email' => 'البريد الإلكتروني غير صحيح',
+        ]);
+
+        // رسالة محايدة دائماً — لا نكشف ما إذا كان البريد مسجلاً (منع user enumeration)
+        $neutral = 'إن كان هذا البريد مسجلاً لدينا فستصلك رسالة بإعادة تعيين كلمة المرور';
+
+        // لا نرسل/ننشئ token إلا إذا كان المستخدم موجوداً فعلاً، لكن الرد يبقى محايداً في كل الحالات
+        if (User::where('email', $request->email)->exists()) {
+            $token = bin2hex(random_bytes(32));
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $request->email],
+                ['token' => Hash::make($token), 'created_at' => now()]
+            );
+            try {
+                Mail::to($request->email)->send(new \App\Mail\ResetPasswordMail($token, $request->email));
+            } catch (\Exception $e) {
+                Log::error('فشل إرسال رابط إعادة التعيين: ' . $e->getMessage());
+            }
+        }
+
+        return back()->with('status', $neutral);
+    }
+
+    /**
+     * عرض صفحة إعادة تعيين كلمة المرور
+     */
+    public function showResetPassword($token)
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => request('email')
+        ]);
+    }
+
+    /**
+     * إعادة تعيين كلمة المرور
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.required' => 'يرجى إدخال البريد الإلكتروني',
+            'email.exists' => 'البريد الإلكتروني غير مسجل',
+            'password.required' => 'يرجى إدخال كلمة المرور الجديدة',
+            'password.min' => 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
+            'password.confirmed' => 'كلمة المرور غير متطابقة',
+        ]);
+
+        // التحقق من صحة الـ token
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$resetRecord) {
+            return back()->withErrors(['email' => 'رابط إعادة التعيين غير صحيح']);
+        }
+
+        // التحقق من أن الـ token لم ينته (60 دقيقة)
+        if (Carbon::parse($resetRecord->created_at)->addMinutes(60)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return back()->withErrors(['email' => 'انتهت صلاحية رابط إعادة التعيين. يرجى طلب رابط جديد']);
+        }
+
+        // التحقق من الـ token
+        if (!Hash::check($request->token, $resetRecord->token)) {
+            return back()->withErrors(['email' => 'رابط إعادة التعيين غير صحيح']);
+        }
+
+        // تحديث كلمة المرور + remember_token جديد لإبطال الـ remember-me القديم
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->password_change_required = false;
+        $user->setRememberToken(\Illuminate\Support\Str::random(60));
+        $user->save();
+
+        // حذف الـ token
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        // إنهاء كل الجلسات النشطة للمستخدم — لا نسمح بإعادة استخدام جلسة محتمل سرقتها
+        try {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to clear sessions on password reset', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+        }
+
+        return redirect()->route('login')->with('success', 'تم إعادة تعيين كلمة المرور بنجاح! يرجى تسجيل الدخول بكلمة المرور الجديدة');
+    }
+}
+

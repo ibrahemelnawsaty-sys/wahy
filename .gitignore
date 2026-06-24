@@ -1,0 +1,135 @@
+#--------------------------------------------------------------------
+# Laravel Application - Professional .gitignore
+#--------------------------------------------------------------------
+
+#--------------------------------------------------------------------
+# Environment & Configuration Files
+#--------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+/auth.json
+
+#--------------------------------------------------------------------
+# Dependencies & Package Managers
+#--------------------------------------------------------------------
+/vendor/
+/node_modules/
+composer.phar
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+#--------------------------------------------------------------------
+# Build & Compiled Assets
+#--------------------------------------------------------------------
+/public/build/
+/public/hot
+/public/storage
+/public/css/app.css
+/public/js/app.js
+*.map
+
+#--------------------------------------------------------------------
+# Laravel Storage (Temporary & Generated Files)
+#--------------------------------------------------------------------
+/storage/*.key
+/storage/pail/
+/storage/debugbar/
+/storage/clockwork/
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/logs/*.log
+!storage/framework/cache/.gitkeep
+!storage/framework/sessions/.gitkeep
+!storage/framework/views/.gitkeep
+!storage/logs/.gitkeep
+
+#--------------------------------------------------------------------
+# Testing & Code Quality
+#--------------------------------------------------------------------
+.phpunit.result.cache
+.phpunit.cache/
+/coverage/
+/.phpunit.cache/
+phpunit.xml
+.php-cs-fixer.cache
+.php_cs.cache
+/tests/coverage/
+
+#--------------------------------------------------------------------
+# IDE & Editor Configurations
+#--------------------------------------------------------------------
+/.idea/
+/.vscode/
+/.fleet/
+/.nova/
+/.zed/
+*.sublime-project
+*.sublime-workspace
+.phpactor.json
+.editorconfig.local
+
+#--------------------------------------------------------------------
+# Operating System Files
+#--------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+#--------------------------------------------------------------------
+# Homestead & Vagrant
+#--------------------------------------------------------------------
+Homestead.json
+Homestead.yaml
+Vagrantfile
+.vagrant/
+
+#--------------------------------------------------------------------
+# Docker (Optional)
+#--------------------------------------------------------------------
+# docker-compose.override.yml
+# .docker/
+
+#--------------------------------------------------------------------
+# Logs & Debug Files
+#--------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+#--------------------------------------------------------------------
+# Temporary & Backup Files
+#--------------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+\#*\#
+.#*
+
+#--------------------------------------------------------------------
+# Security (Never Commit These!)
+#--------------------------------------------------------------------
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+*.pub
+secrets.json
+credentials.json
+

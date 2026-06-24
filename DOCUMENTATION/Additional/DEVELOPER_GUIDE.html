@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Guide - دليل المطور | نظام قيمّ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .section h2 {
+            font-size: 2em;
+            color: #3b82f6;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #dbeafe;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            overflow-x: auto;
+            margin: 15px 0;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #60a5fa;
+        }
+
+        .card h4 {
+            color: #1e40af;
+            font-size: 1.3em;
+            margin-bottom: 12px;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👨‍💻 Developer Guide</h1>
+            <p style="font-size: 1.2em; color: #64748b;">دليلك الشامل للبدء في تطوير نظام قيمّ التعليمي</p>
+        </div>
+
+        <div class="section">
+            <h2>🚀 البدء السريع</h2>
+            <h3 style="color: #2563eb; margin: 20px 0;">1. متطلبات النظام</h3>
+            <div class="code-block">
+# Required
+PHP >= 8.2
+Composer >= 2.5
+Node.js >= 18.x
+NPM >= 9.x
+MySQL >= 8.0
+Redis >= 7.0
+
+# Recommended
+Git >= 2.40
+VS Code with extensions
+            </div>
+
+            <h3 style="color: #2563eb; margin: 20px 0;">2. إعداد البيئة</h3>
+            <div class="code-block">
+# Clone repository
+git clone https://github.com/qiyamm/qiyamm-platform.git
+cd qiyamm-platform
+
+# Install PHP dependencies
+composer install
+
+# Install Node dependencies
+npm install
+
+# Copy environment file
+cp .env.example .env
+
+# Generate app key
+php artisan key:generate
+
+# Run migrations
+php artisan migrate --seed
+
+# Build assets
+npm run dev
+            </div>
+
+            <h3 style="color: #2563eb; margin: 20px 0;">3. تشغيل التطبيق</h3>
+            <div class="code-block">
+# Terminal 1: Laravel Server
+php artisan serve
+
+# Terminal 2: Vite Dev Server
+npm run dev
+
+# Terminal 3: Queue Worker
+php artisan queue:work
+
+# Access: http://localhost:8000
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📁 هيكل المشروع</h2>
+            <div class="code-block">
+qiyamm-platform/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/     # All controllers
+│   │   ├── Middleware/      # Custom middleware
+│   │   └── Requests/        # Form requests
+│   ├── Models/              # Eloquent models
+│   ├── Services/            # Business logic
+│   ├── Repositories/        # Data access layer
+│   └── Events/              # System events
+├── database/
+│   ├── migrations/          # Database migrations
+│   ├── seeders/             # Seed data
+│   └── factories/           # Model factories
+├── resources/
+│   ├── js/
+│   │   ├── components/      # Vue components
+│   │   ├── views/           # Vue pages
+│   │   ├── stores/          # Pinia stores
+│   │   └── router/          # Vue Router
+│   ├── css/                 # Stylesheets
+│   └── views/               # Blade templates
+├── routes/
+│   ├── web.php              # Web routes
+│   ├── api.php              # API routes
+│   └── channels.php         # Broadcasting
+├── tests/
+│   ├── Unit/                # Unit tests
+│   ├── Feature/             # Feature tests
+│   └── E2E/                 # End-to-end tests
+└── public/                  # Public assets
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏗️ معايير البرمجة</h2>
+            <div class="grid">
+                <div class="card">
+                    <h4>📝 PHP / Laravel</h4>
+                    <ul style="padding-right: 20px; margin-top: 10px; line-height: 2;">
+                        <li>PSR-12 Coding Standard</li>
+                        <li>Laravel Best Practices</li>
+                        <li>Service Layer Pattern</li>
+                        <li>Repository Pattern</li>
+                        <li>SOLID Principles</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>⚛️ Vue.js / JavaScript</h4>
+                    <ul style="padding-right: 20px; margin-top: 10px; line-height: 2;">
+                        <li>Vue 3 Composition API</li>
+                        <li>TypeScript Support</li>
+                        <li>ESLint + Prettier</li>
+                        <li>Component-based Architecture</li>
+                        <li>Reusable Composables</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>💾 Database</h4>
+                    <ul style="padding-right: 20px; margin-top: 10px; line-height: 2;">
+                        <li>Migration-based Schema</li>
+                        <li>Eloquent ORM</li>
+                        <li>Query Optimization</li>
+                        <li>Indexes on Foreign Keys</li>
+                        <li>Soft Deletes</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>🧪 Testing</h4>
+                    <ul style="padding-right: 20px; margin-top: 10px; line-height: 2;">
+                        <li>PHPUnit for Backend</li>
+                        <li>Vitest for Frontend</li>
+                        <li>Playwright for E2E</li>
+                        <li>95%+ Code Coverage</li>
+                        <li>CI/CD Integration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 الأدوات المستخدمة</h2>
+            <div class="grid">
+                <div class="card">
+                    <h4>Backend Stack</h4>
+                    <ul style="padding-right: 20px; margin-top: 10px;">
+                        <li>Laravel 12.38.1</li>
+                        <li>PHP 8.2</li>
+                        <li>MySQL 8.0</li>
+                        <li>Redis Cache</li>
+                        <li>Laravel Sanctum</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>Frontend Stack</h4>
+                    <ul style="padding-right: 20px; margin-top: 10px;">
+                        <li>Vue.js 3</li>
+                        <li>Vite</li>
+                        <li>TypeScript</li>
+                        <li>TailwindCSS</li>
+                        <li>Pinia</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>Dev Tools</h4>
+                    <ul style="padding-right: 20px; margin-top: 10px;">
+                        <li>VS Code</li>
+                        <li>Laravel Telescope</li>
+                        <li>Vue DevTools</li>
+                        <li>Git & GitHub</li>
+                        <li>Postman</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 المراجع المهمة</h2>
+            <ul style="padding-right: 25px; line-height: 2.5; color: #475569;">
+                <li><strong>API Documentation:</strong> /api/documentation</li>
+                <li><strong>Laravel Docs:</strong> https://laravel.com/docs</li>
+                <li><strong>Vue.js Docs:</strong> https://vuejs.org</li>
+                <li><strong>TailwindCSS:</strong> https://tailwindcss.com</li>
+                <li><strong>Internal Wiki:</strong> /documentation</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="../../DOCUMENTATION_INDEX.html" class="back-button">🏠 العودة للفهرس</a>
+        </div>
+    </div>
+</body>
+</html>

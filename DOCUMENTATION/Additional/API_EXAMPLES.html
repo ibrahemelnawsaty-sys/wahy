@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Examples - أمثلة API | نظام قيمّ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            direction: rtl;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .section h2 {
+            font-size: 2em;
+            color: #8b5cf6;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #ede9fe;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .get { background: #10b981; color: white; }
+        .post { background: #3b82f6; color: white; }
+        .put { background: #f59e0b; color: white; }
+        .delete { background: #ef4444; color: white; }
+
+        .back-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔌 API Examples</h1>
+            <p style="font-size: 1.2em; color: #64748b; margin-top: 10px;">أمثلة عملية لاستخدام API</p>
+        </div>
+
+        <div class="section">
+            <h2>🔐 Authentication</h2>
+            
+            <h3 style="color: #8b5cf6; margin: 20px 0;">
+                <span class="method-badge post">POST</span>
+                تسجيل الدخول
+            </h3>
+            <div class="code-block">
+// Request
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+    "email": "teacher@school.com",
+    "password": "password123"
+}
+
+// Response
+{
+    "success": true,
+    "data": {
+        "user": {
+            "id": 123,
+            "name": "أحمد محمد",
+            "email": "teacher@school.com",
+            "role": "teacher"
+        },
+        "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+        "expires_in": 3600
+    }
+}
+
+// Usage in JavaScript
+const login = async (email, password) => {
+    const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+    });
+    
+    const data = await response.json();
+    localStorage.setItem('token', data.data.token);
+    return data;
+};
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>👨‍🎓 Students API</h2>
+            
+            <h3 style="color: #8b5cf6; margin: 20px 0;">
+                <span class="method-badge get">GET</span>
+                قائمة الطلاب
+            </h3>
+            <div class="code-block">
+// Request
+GET /api/v1/students?class_id=5&page=1
+Authorization: Bearer {token}
+
+// Response
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "name": "محمد أحمد",
+            "class": "الصف الأول أ",
+            "parent": "أحمد علي",
+            "attendance_rate": 95.5
+        },
+        // ... more students
+    ],
+    "meta": {
+        "current_page": 1,
+        "total": 30,
+        "per_page": 15
+    }
+}
+
+// Usage with Axios
+import axios from 'axios';
+
+const getStudents = async (classId, page = 1) => {
+    const response = await axios.get('/api/v1/students', {
+        params: { class_id: classId, page },
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+    return response.data;
+};
+            </div>
+
+            <h3 style="color: #8b5cf6; margin: 30px 0 20px 0;">
+                <span class="method-badge post">POST</span>
+                إضافة طالب جديد
+            </h3>
+            <div class="code-block">
+// Request
+POST /api/v1/students
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "خالد سعيد",
+    "email": "khalid@example.com",
+    "class_id": 5,
+    "parent_id": 10,
+    "birth_date": "2010-05-15"
+}
+
+// Response
+{
+    "success": true,
+    "message": "تم إضافة الطالب بنجاح",
+    "data": {
+        "id": 31,
+        "name": "خالد سعيد",
+        "class": "الصف الأول أ",
+        "created_at": "2026-01-20T10:30:00Z"
+    }
+}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Attendance API</h2>
+            
+            <h3 style="color: #8b5cf6; margin: 20px 0;">
+                <span class="method-badge post">POST</span>
+                تسجيل الحضور
+            </h3>
+            <div class="code-block">
+// Request
+POST /api/v1/attendance
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "class_id": 5,
+    "date": "2026-01-20",
+    "students": [
+        { "student_id": 1, "status": "present" },
+        { "student_id": 2, "status": "present" },
+        { "student_id": 3, "status": "absent", "reason": "مرض" }
+    ]
+}
+
+// Response
+{
+    "success": true,
+    "message": "تم حفظ الحضور بنجاح",
+    "data": {
+        "total_students": 30,
+        "present": 28,
+        "absent": 2,
+        "attendance_rate": 93.3
+    }
+}
+
+// Vue 3 Composable Example
+import { ref } from 'vue';
+import { useApi } from '@/composables/useApi';
+
+export function useAttendance() {
+    const { post } = useApi();
+    const loading = ref(false);
+
+    const saveAttendance = async (classId, date, students) => {
+        loading.value = true;
+        try {
+            const response = await post('/attendance', {
+                class_id: classId,
+                date,
+                students
+            });
+            return response.data;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    return { saveAttendance, loading };
+}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Grades API</h2>
+            
+            <h3 style="color: #8b5cf6; margin: 20px 0;">
+                <span class="method-badge get">GET</span>
+                درجات الطالب
+            </h3>
+            <div class="code-block">
+// Request
+GET /api/v1/students/123/grades?semester=1
+Authorization: Bearer {token}
+
+// Response
+{
+    "success": true,
+    "data": {
+        "student": {
+            "id": 123,
+            "name": "محمد أحمد"
+        },
+        "subjects": [
+            {
+                "name": "الرياضيات",
+                "grades": [
+                    { "type": "quiz", "score": 18, "max": 20 },
+                    { "type": "midterm", "score": 45, "max": 50 },
+                    { "type": "final", "score": 88, "max": 100 }
+                ],
+                "average": 89.4
+            },
+            // ... more subjects
+        ],
+        "overall_average": 87.5
+    }
+}
+
+// React Hook Example
+import { useState, useEffect } from 'react';
+
+function useStudentGrades(studentId, semester) {
+    const [grades, setGrades] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch(`/api/v1/students/${studentId}/grades?semester=${semester}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            setGrades(data.data);
+            setLoading(false);
+        });
+    }, [studentId, semester]);
+
+    return { grades, loading };
+}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 أفضل الممارسات</h2>
+            <ul style="padding-right: 25px; line-height: 2.5; color: #475569;">
+                <li><strong>استخدم HTTPS دائماً:</strong> لحماية البيانات المنقولة</li>
+                <li><strong>احفظ Token بشكل آمن:</strong> استخدم httpOnly cookies أو localStorage بحذر</li>
+                <li><strong>Rate Limiting:</strong> احترم حدود الطلبات (1000 req/hour)</li>
+                <li><strong>Error Handling:</strong> تعامل مع جميع حالات الأخطاء</li>
+                <li><strong>Pagination:</strong> استخدم الترقيم للبيانات الكبيرة</li>
+                <li><strong>Caching:</strong> استخدم Cache للبيانات التي لا تتغير كثيراً</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="../../DOCUMENTATION_INDEX.html" class="back-button">🏠 العودة للفهرس</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframes منخفضة الدقة - منصة قيمّ | Low-Fidelity Wireframes</title>
+    <meta name="description" content="تصاميم Wireframes منخفضة الدقة للصفحات الرئيسية في منصة قيمّ التعليمية">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f1f5f9;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
+        }
+        
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Navigation */
+        .nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+        
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links a:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Content Card */
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(white, white), linear-gradient(135deg, var(--primary), var(--secondary));
+            background-clip: padding-box, border-box;
+            background-origin: padding-box, border-box;
+        }
+        
+        .section-header .icon {
+            font-size: 2.5rem;
+        }
+        
+        /* Principles Grid */
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .principle-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        
+        .principle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            border-color: var(--primary);
+        }
+        
+        .principle-card h3 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .principle-card p {
+            color: #64748b;
+            line-height: 1.8;
+        }
+        
+        /* Wireframe Container */
+        .wireframe-container {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .wireframe-container pre {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            color: #10b981;
+            line-height: 1.4;
+            font-size: 0.85rem;
+            white-space: pre;
+            margin: 0;
+        }
+        
+        /* Elements List */
+        .elements-list {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-right: 5px solid var(--info);
+        }
+        
+        .elements-list h4 {
+            color: var(--info);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .elements-list ul {
+            padding-right: 1.5rem;
+        }
+        
+        .elements-list li {
+            margin: 0.75rem 0;
+            color: var(--dark);
+        }
+        
+        .elements-list strong {
+            color: var(--primary);
+        }
+        
+        /* Design Notes Box */
+        .design-notes {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid var(--warning);
+        }
+        
+        .design-notes h3 {
+            color: var(--warning);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .design-notes-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .design-note-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+        
+        .design-note-item h4 {
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+        
+        .design-note-item ul {
+            padding-right: 1.5rem;
+        }
+        
+        .design-note-item li {
+            margin: 0.5rem 0;
+            color: #64748b;
+        }
+        
+        /* Color Swatches */
+        .color-swatches {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .color-swatch {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .color-box {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .color-box.primary { background: #3CCB8A; }
+        .color-box.secondary { background: #3B82F6; }
+        .color-box.text { background: #334155; }
+        .color-box.background { background: #F8FAFC; border: 1px solid #e2e8f0; }
+        
+        .color-name {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+        
+        .color-code {
+            font-family: 'Courier New', monospace;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-weight: 600;
+        }
+        
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header .subtitle {
+                font-size: 1rem;
+            }
+            
+            .content-card {
+                padding: 1.5rem;
+            }
+            
+            .nav {
+                top: 10px;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+            }
+            
+            .wireframe-container pre {
+                font-size: 0.65rem;
+            }
+            
+            .principles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .nav,
+            .scroll-top {
+                display: none;
+            }
+            
+            .content-card {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+            
+            .wireframe-container {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+            }
+            
+            .wireframe-container pre {
+                color: var(--dark);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">📐</div>
+            <h1>Wireframes منخفضة الدقة</h1>
+            <p class="subtitle">Low-Fidelity Wireframes - تصاميم أولية للصفحات الرئيسية في منصة قيمّ</p>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <ul class="nav-links">
+                <li><a href="#overview">📋 نظرة عامة</a></li>
+                <li><a href="#principles">🎯 المبادئ الأساسية</a></li>
+                <li><a href="#login">🔐 تسجيل الدخول</a></li>
+                <li><a href="#dashboards">🏠 Dashboards</a></li>
+                <li><a href="#learning-path">🗺️ خريطة التعلم</a></li>
+                <li><a href="#activity">✍️ صفحة النشاط</a></li>
+                <li><a href="#design-notes">🎨 ملاحظات التصميم</a></li>
+            </ul>
+        </nav>
+
+        <!-- Overview -->
+        <div id="overview" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">📋</span>
+                نظرة عامة
+            </h2>
+            <p style="font-size: 1.1rem; line-height: 2; color: #475569; margin-bottom: 1.5rem;">
+                هذا الملف يحتوي على تصاميم <strong>Wireframes منخفضة الدقة (Lo-Fi)</strong> للصفحات الرئيسية في منصة قيمّ. الهدف هو توضيح التخطيط الأساسي وهيكل المحتوى قبل البدء في التصميم التفصيلي.
+            </p>
+            <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1)); padding: 1.5rem; border-radius: 10px; border-right: 5px solid var(--danger);">
+                <p style="color: var(--danger); font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.5rem;">⚠️</span>
+                    <strong>ملاحظة مهمة:</strong> Wireframes منخفضة الدقة تُعرض كـ ASCII Art للتوضيح. يُنصح بإعادة رسمها في Figma أو Adobe XD للحصول على نتيجة احترافية.
+                </p>
+            </div>
+        </div>
+
+        <!-- Principles -->
+        <div id="principles" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🎯</span>
+                المبادئ الأساسية
+            </h2>
+            <div class="principles-grid">
+                <div class="principle-card">
+                    <h3>1️⃣ البساطة (Simplicity)</h3>
+                    <p>تركيز على المحتوى والوظائف الأساسية، وتجنب التفاصيل الزائدة</p>
+                </div>
+                <div class="principle-card">
+                    <h3>2️⃣ الوضوح (Clarity)</h3>
+                    <p>هيكل واضح للصفحة مع تسلسل منطقي للعناصر</p>
+                </div>
+                <div class="principle-card">
+                    <h3>3️⃣ الاتساق (Consistency)</h3>
+                    <p>نفس التخطيط للصفحات المتشابهة ونفس موقع عناصر التنقل</p>
+                </div>
+                <div class="principle-card">
+                    <h3>4️⃣ RTL Support</h3>
+                    <p>جميع التصاميم مُعدة للعربية (من اليمين لليسار) مع القوائم على اليمين</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div id="login" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🔐</span>
+                صفحة تسجيل الدخول (Login Page)
+            </h2>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│                    ┌─────────────────┐                         │
+│                    │   Logo قيمّ     │                         │
+│                    └─────────────────┘                         │
+│                                                                │
+│                  ┌─────────────────────┐                       │
+│                  │  منصة قيمّ التعليمية │                       │
+│                  │  تسجيل الدخول       │                       │
+│                  └─────────────────────┘                       │
+│                                                                │
+│            ┌───────────────────────────────┐                   │
+│            │ [📧] البريد الإلكتروني      │                   │
+│            │ _________________________    │                   │
+│            └───────────────────────────────┘                   │
+│                                                                │
+│            ┌───────────────────────────────┐                   │
+│            │ [🔒] كلمة المرور             │                   │
+│            │ _________________________    │                   │
+│            └───────────────────────────────┘                   │
+│                                                                │
+│            [✓] تذكرني     [نسيت كلمة المرور؟]                  │
+│                                                                │
+│            ┌───────────────────────────────┐                   │
+│            │       [دخول]                  │                   │
+│            └───────────────────────────────┘                   │
+│                                                                │
+│                  ليس لديك حساب؟ [سجل الآن]                     │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li><strong>Logo</strong> في الأعلى (وسط)</li>
+                    <li>عنوان واضح</li>
+                    <li>حقلين إدخال (البريد + كلمة المرور)</li>
+                    <li>خيار "تذكرني"</li>
+                    <li>رابط "نسيت كلمة المرور"</li>
+                    <li>زر تسجيل الدخول (بارز)</li>
+                    <li>رابط التسجيل (أسفل الصفحة)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Dashboards Section -->
+        <div id="dashboards" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🏠</span>
+                لوحات التحكم (Dashboards)
+            </h2>
+
+            <!-- Super Admin Dashboard -->
+            <h3 style="color: var(--primary); font-size: 1.8rem; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                👑 Dashboard - Super Admin
+            </h3>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│ [☰] منصة قيمّ                                   🔔 (3)   👤 محمد العتيبي      │
+├────────────┬───────────────────────────────────────────────────────────────────┤
+│            │                                                                   │
+│ 🏠 لوحة    │  ┌─────────────────────────────────────────────────────────┐    │
+│    التحكم  │  │ 📊 إحصائيات عامة                                      │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│ 👥 المستخد │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│    مون     │  │ 👥       │  │ 🏫       │  │ 👨‍🏫      │  │ 👦       │       │
+│            │  │ المستخدم │  │ المدارس  │  │ المعلمون │  │ الطلاب   │       │
+│ 🏫 المدارس │  │ 1,234    │  │ 45      │  │ 567     │  │ 8,900   │       │
+│            │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+│ 👨‍🏫 المعلم │                                                                │
+│    ون      │  ┌─────────────────────────────────────────────────────────┐    │
+│            │  │ 📚 المحتوى التعليمي                                     │    │
+│ 👦 الطلاب  │  └─────────────────────────────────────────────────────────┘    │
+│            │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│ 👨‍👦 أولياء │  │ 🌟       │  │ 📖       │  │ 📚       │  │ ✍️       │       │
+│    الأمور  │  │ القيم    │  │ المفاهيم │  │ الدروس   │  │ الأنشطة  │       │
+│            │  │ 15       │  │ 45      │  │ 180     │  │ 540     │       │
+│ ═══════════│  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+│            │                                                                 │
+│ 📚 المحتوى │  ┌─────────────────────────────────────────────────────────┐    │
+│   ├─ القيم │  │ 📋 آخر المستخدمين المسجلين                              │    │
+│   ├─ المفا │  ├─────────────────────────────────────────────────────────┤    │
+│   ├─ المعا │  │ • أحمد السالم   - طالب    - مدرسة النور  - اليوم       │    │
+│   ├─ الدرو │  │ • سارة المطيري  - معلمة   - مدرسة الأمل  - أمس         │    │
+│   └─ الأنش │  │ • خالد العتيبي  - ولي أمر - مدرسة النور  - أمس         │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│ 📊 التقارير│                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│ 🎨 الثيم   │  │ 🏫 آخر المدارس المضافة                                  │    │
+│            │  ├─────────────────────────────────────────────────────────┤    │
+│ 🏗️ الصفحات│  │ • مدرسة الفيصل الثانوية  - جدة     - 5 أيام            │    │
+│            │  │ • مدرسة الملك عبدالعزيز  - الرياض  - 1 أسبوع           │    │
+│ ⚙️ الإعدادا│  └─────────────────────────────────────────────────────────┘    │
+│    ت       │                                                                 │
+└────────────┴───────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li><strong>Header:</strong> Logo + إشعارات + ملف شخصي</li>
+                    <li><strong>Sidebar:</strong> قائمة تنقل رئيسية (قابلة للطي)</li>
+                    <li><strong>Main Content:</strong>
+                        <ul style="margin-right: 1.5rem; margin-top: 0.5rem;">
+                            <li>بطاقات إحصائيات (Cards) - صف أول</li>
+                            <li>جداول آخر النشاطات - صف ثاني</li>
+                            <li>رسوم بيانية (اختياري) - صف ثالث</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- School Admin Dashboard -->
+            <h3 style="color: #f5576c; font-size: 1.8rem; margin: 3rem 0 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                🏫 Dashboard - School Admin
+            </h3>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│ [☰] مدرسة النور                                 🔔 (5)   👤 خالد الدوسري     │
+├────────────┬───────────────────────────────────────────────────────────────────┤
+│            │                                                                   │
+│ 🏠 لوحة    │  ┌─────────────────────────────────────────────────────────┐    │
+│    التحكم  │  │ 📊 إحصائيات المدرسة                                    │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│ 👨‍🏫 المعلم │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│    ون      │  │ 👨‍🏫      │  │ 👦       │  │ 👨‍👦      │  │ 🏛️       │       │
+│            │  │ المعلمون │  │ الطلاب   │  │ أولياء    │  │ الفصول   │       │
+│ 👦 الطلاب  │  │ 40       │  │ 500     │  │ الأمور   │  │ 12      │       │
+│            │  │          │  │         │  │ 380     │  │         │       │
+│ 👨‍👦 أولياء │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+│    الأمور  │                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│ 🏛️ الفصول │  │ 📋 طلبات التسجيل المعلقة             [عرض الكل →]      │    │
+│            │  ├─────────────────────────────────────────────────────────┤    │
+│ 📋 طلبات   │  │ 🔴 معلمين (2)                                          │    │
+│    التسجيل │  │ • محمد أحمد - معلم رياضيات - منذ يومين    [قبول|رفض]  │    │
+│    🔴 (8)   │  │ • سارة علي  - معلمة لغة عربية - منذ 3 أيام [قبول|رفض]  │    │
+│            │  │                                                          │    │
+│ 🔗 روابط   │  │ 🔴 طلاب (5)                                             │    │
+│    التسجيل │  │ • عمر خالد - الصف الأول - منذ ساعة       [قبول|رفض]   │    │
+│            │  │ • لينا سعيد - الصف الثاني - منذ ساعتين   [قبول|رفض]   │    │
+│ 📊 التقارير│  │ • [عرض جميع الطلبات...]                                │    │
+│            │  │                                                          │    │
+│ 🔔 الإشعار │  │ 🔴 أولياء أمور (1)                                      │    │
+│    ات      │  │ • فهد المطيري - ولي أمر لطالبين - منذ يوم [قبول|رفض]  │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│            │                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│            │  │ 🏆 أكثر 5 طلاب نشاطاً                                   │    │
+│            │  ├─────────────────────────────────────────────────────────┤    │
+│            │  │ 1. عمر السالم    - 1200 نقطة - الصف 1أ                  │    │
+│            │  │ 2. سارة أحمد     - 1150 نقطة - الصف 1ب                  │    │
+│            │  │ 3. خالد محمد     - 1100 نقطة - الصف 2أ                  │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+└────────────┴───────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li>بطاقات إحصائيات المدرسة</li>
+                    <li>قسم طلبات التسجيل (بارز ومميز بـ Badge أحمر)</li>
+                    <li>أزرار سريعة لقبول/رفض الطلبات</li>
+                    <li>قائمة أكثر الطلاب نشاطاً</li>
+                </ul>
+            </div>
+
+            <!-- Teacher Dashboard -->
+            <h3 style="color: #00f2fe; font-size: 1.8rem; margin: 3rem 0 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                👩‍🏫 Dashboard - Teacher
+            </h3>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│ [☰] منصة قيمّ                                   🔔 (2)   👤 سارة الأحمدي      │
+├────────────┬───────────────────────────────────────────────────────────────────┤
+│            │                                                                   │
+│ 🏠 لوحة    │  ┌─────────────────────────────────────────────────────────┐    │
+│    التحكم  │  │ 📊 إحصائياتي                                            │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│ 🏛️ فصولي  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│            │  │ 🏛️       │  │ 👦       │  │ ✍️       │  │ ⭐       │       │
+│ ✍️ الأنشطة │  │ فصولي    │  │ طلابي    │  │ أنشطة    │  │ تقييمي   │       │
+│    المعلقة │  │ 4        │  │ 120     │  │ معلقة   │  │ 4.8/5.0 │       │
+│    🔴 (15)  │  │          │  │         │  │ 15      │  │         │       │
+│            │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+│ 📚 إدارة   │                                                                 │
+│    الأنشطة │  ┌─────────────────────────────────────────────────────────┐    │
+│   [✅]     │  │ ✍️ الأنشطة المعلقة (15)               [عرض الكل →]      │    │
+│            │  ├─────────────────────────────────────────────────────────┤    │
+│ 👥 الفرق   │  │ الطالب         | النشاط           | التاريخ  | [إجراء]  │    │
+│   [✅]     │  │ ───────────────────────────────────────────────────────  │    │
+│            │  │ عمر السالم     | الأمانة - نشاط 1 | اليوم    | [مراجعة] │    │
+│ 📊 التقارير│  │ سارة أحمد      | الصدق - نشاط 2   | أمس      | [مراجعة] │    │
+│            │  │ خالد محمد      | الأمانة - نشاط 2 | أمس      | [مراجعة] │    │
+│ ⭐ التقييما│  │ لينا سعيد      | الصدق - نشاط 1   | أمس      | [مراجعة] │    │
+│    ت       │  │ أحمد علي       | الأمانة - نشاط 1 | اليوم    | [مراجعة] │    │
+│            │  │ [عرض المزيد...]                                         │    │
+│ 🔔 الإشعار │  └─────────────────────────────────────────────────────────┘    │
+│    ات      │                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│            │  │ 🏛️ فصولي                                                │    │
+│            │  ├─────────────────────────────────────────────────────────┤    │
+│            │  │ • الصف 1أ  - 30 طالب - متوسط الأداء: 85%               │    │
+│            │  │ • الصف 1ب  - 28 طالب - متوسط الأداء: 88%               │    │
+│            │  │ • الصف 2أ  - 32 طالب - متوسط الأداء: 82%               │    │
+│            │  │ • الصف 2ب  - 30 طالب - متوسط الأداء: 86%               │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+└────────────┴───────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li>بطاقات إحصائيات المعلم</li>
+                    <li>جدول الأنشطة المعلقة (بارز جداً)</li>
+                    <li>أزرار "مراجعة" سريعة</li>
+                    <li>قائمة الفصول مع متوسط الأداء</li>
+                    <li>Badge للعناصر الجديدة/المعلقة</li>
+                </ul>
+            </div>
+
+            <!-- Student Dashboard -->
+            <h3 style="color: #38f9d7; font-size: 1.8rem; margin: 3rem 0 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                👦 Dashboard - Student
+            </h3>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│ [☰] منصة قيمّ                                   🔔 (1)   👤 عمر السالم       │
+├────────────┬───────────────────────────────────────────────────────────────────┤
+│            │                                                                   │
+│ 🏠 الرئيسية│  ┌─────────────────────────────────────────────────────────┐    │
+│            │  │ مرحباً عمر! 👋                                           │    │
+│ 🗺️ خريطة  │  │ تقدمك اليوم ممتاز! استمر هكذا 🎉                        │    │
+│    التعلم  │  └─────────────────────────────────────────────────────────┘    │
+│    ⭐      │                                                                   │
+│            │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│ ✍️ أنشطتي │  │ 🎯       │  │ 💰       │  │ 🏅       │  │ 🔥       │       │
+│    🔴 (3)   │  │ نقاطي    │  │ عملاتي   │  │ شاراتي   │  │ Streak   │       │
+│            │  │ 450      │  │ 120     │  │ 5        │  │ 5 أيام   │       │
+│ 🏆 إنجازاتي│  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+│   ├─ النقاط│                                                                 │
+│   ├─ العملا│  ┌─────────────────────────────────────────────────────────┐    │
+│   ├─ الشارا│  │ 📊 تقدمك في القيم                                       │    │
+│   └─ Streak│  ├─────────────────────────────────────────────────────────┤    │
+│            │  │ [████████████████░░░░] 65%                              │    │
+│ 🏅 المتصدر │  │                                                          │    │
+│    ين      │  │ القيمة الحالية: الأمانة 🌟                              │    │
+│            │  │ الدروس المكتملة: 8 من 12                                │    │
+│ 🛍️ المتجر │  │ الأنشطة المكتملة: 22 من 36                              │    │
+│   [✅]     │  │                                                          │    │
+│            │  │ [متابعة التعلم →]                                        │    │
+│ 👥 فريقي  │  └─────────────────────────────────────────────────────────┘    │
+│   [✅]     │                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│ 🔔 الإشعار │  │ ✍️ أنشطة بانتظارك (3)                                   │    │
+│    ات      │  ├─────────────────────────────────────────────────────────┤    │
+│            │  │ • الأمانة - نشاط 3  📝 [ابدأ الآن]                      │    │
+│            │  │ • الصدق - نشاط 1    📝 [ابدأ الآن]                      │    │
+│            │  │ • الأمانة - نشاط 4  📝 [ابدأ الآن]                      │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│            │                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│            │  │ 🏅 ترتيبك في الفصل: المركز الثالث 🥉                    │    │
+│            │  │ 🎯 لتصل للمركز الثاني تحتاج: 50 نقطة إضافية            │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+└────────────┴───────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li>رسالة ترحيب شخصية</li>
+                    <li>بطاقات Gamification (نقاط، عملات، شارات، Streak)</li>
+                    <li>شريط تقدم مرئي (Progress Bar)</li>
+                    <li>قائمة الأنشطة المعلقة مع أزرار "ابدأ الآن"</li>
+                    <li>الترتيب في Leaderboard</li>
+                    <li>تصميم ملون وجذاب للطلاب</li>
+                </ul>
+            </div>
+
+            <!-- Parent Dashboard -->
+            <h3 style="color: #fee140; font-size: 1.8rem; margin: 3rem 0 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                👨‍👦 Dashboard - Parent
+            </h3>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│ [☰] منصة قيمّ                                   🔔 (2)   👤 فهد المطيري      │
+├────────────┬───────────────────────────────────────────────────────────────────┤
+│            │                                                                   │
+│ 🏠 لوحة    │  ┌─────────────────────────────────────────────────────────┐    │
+│    التحكم  │  │ 👨‍👦 أبنائي                                              │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│ 👦 أبنائي  │                                                                 │
+│            │  ┌──────────────────────────────────────────────────────────┐   │
+│ 💬 الرسائل │  │  ┌──────┐  عمر السالم                                  │   │
+│   [✅]     │  │  │ 📷   │  الصف 1أ - مدرسة النور                        │   │
+│            │  │  └──────┘  التقدم: 65% ████████████░░░░░                 │   │
+│ 📊 التقارير│  │            آخر نشاط: اليوم - 3:30 م                     │   │
+│            │  │            🎯 450 نقطة • 💰 120 عملة • 🏅 5 شارات       │   │
+│ 🔔 الإشعار │  │                                          [عرض التفاصيل] │   │
+│    ات      │  └──────────────────────────────────────────────────────────┘   │
+│            │                                                                 │
+│            │  ┌──────────────────────────────────────────────────────────┐   │
+│            │  │  ┌──────┐  سارة السالم                                  │   │
+│            │  │  │ 📷   │  الصف 4أ - مدرسة النور                        │   │
+│            │  │  └──────┘  التقدم: 82% ████████████████░░                │   │
+│            │  │            آخر نشاط: أمس - 5:00 م                       │   │
+│            │  │            🎯 720 نقطة • 💰 180 عملة • 🏅 8 شارات       │   │
+│            │  │                                          [عرض التفاصيل] │   │
+│            │  └──────────────────────────────────────────────────────────┘   │
+│            │                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│            │  │ 📊 ملخص الأداء الأسبوعي                                 │    │
+│            │  ├─────────────────────────────────────────────────────────┤    │
+│            │  │ • إجمالي الأنشطة المكتملة: 12                           │    │
+│            │  │ • متوسط الدرجات: 92%                                    │    │
+│            │  │ • أيام النشاط: 6 من 7 أيام                              │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+│            │                                                                 │
+│            │  ┌─────────────────────────────────────────────────────────┐    │
+│            │  │ 🔔 آخر الإشعارات                                         │    │
+│            │  ├─────────────────────────────────────────────────────────┤    │
+│            │  │ • عمر حصل على شارة جديدة "الأمانة" 🏅 - اليوم          │    │
+│            │  │ • سارة أكملت قيمة "الصدق" بنجاح! - أمس                  │    │
+│            │  │ • المعلمة سارة قيّمت نشاط عمر: 95/100 - أمس            │    │
+│            │  └─────────────────────────────────────────────────────────┘    │
+└────────────┴───────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li>بطاقات الأبناء (صورة + معلومات أساسية)</li>
+                    <li>شريط تقدم لكل ابن</li>
+                    <li>إحصائيات Gamification (نقاط، عملات، شارات)</li>
+                    <li>زر "عرض التفاصيل" لكل ابن</li>
+                    <li>ملخص أسبوعي</li>
+                    <li>آخر الإشعارات</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Learning Path -->
+        <div id="learning-path" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🗺️</span>
+                خريطة التعلم - Student (Learning Path)
+            </h2>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│ [←] خريطة التعلم                                🔔 (1)   👤 عمر السالم       │
+├────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │ 🗺️ رحلتك التعليمية                                       [65% مكتمل]   │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                │
+│                                                                                │
+│  ┌───────────────────────┐                                                    │
+│  │ ✅ القيمة 1: الصدق   │                                                    │
+│  │ ─────────────────────│                                                    │
+│  │ مكتملة 100% ✓        │                                                    │
+│  │ 12 درس • 36 نشاط     │                                                    │
+│  │                       │                                                    │
+│  │ [عرض التفاصيل]       │                                                    │
+│  └───────────────────────┘                                                    │
+│           │                                                                    │
+│           ↓                                                                    │
+│  ┌───────────────────────┐                                                    │
+│  │ 📖 القيمة 2: الأمانة │  ← القيمة الحالية                                 │
+│  │ ─────────────────────│                                                    │
+│  │ قيد التنفيذ 65% ⏳   │                                                    │
+│  │ 8 من 12 درس ✓        │                                                    │
+│  │ 22 من 36 نشاط ✓      │                                                    │
+│  │                       │                                                    │
+│  │ [متابعة التعلم →]    │                                                    │
+│  └───────────────────────┘                                                    │
+│           │                                                                    │
+│           ↓                                                                    │
+│  ┌───────────────────────┐                                                    │
+│  │ 🔒 القيمة 3: الإحسان │                                                    │
+│  │ ─────────────────────│                                                    │
+│  │ مقفل                 │                                                    │
+│  │ أنهِ القيمة السابقة  │                                                    │
+│  │ لفتح هذه القيمة      │                                                    │
+│  │                       │                                                    │
+│  │ [مقفل 🔒]            │                                                    │
+│  └───────────────────────┘                                                    │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li>عرض هرمي للقيم</li>
+                    <li>حالة كل قيمة (مكتملة ✅ / قيد التنفيذ 📖 / مقفلة 🔒)</li>
+                    <li>نسبة التقدم لكل قيمة</li>
+                    <li>زر "متابعة التعلم" للقيمة الحالية</li>
+                    <li>تصميم بصري يوضح المسار (من أعلى لأسفل)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Activity Page -->
+        <div id="activity" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">✍️</span>
+                صفحة النشاط - Student
+            </h2>
+            <div class="wireframe-container">
+                <pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│ [←] رجوع                                       🔔 (1)   👤 عمر السالم        │
+├────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                │
+│  الأمانة > حفظ الودائع > درس: ما هي الأمانة؟ > نشاط 1                        │
+│                                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │ ✍️ نشاط: اكتب موقفاً عن الأمانة                                        │  │
+│  ├─────────────────────────────────────────────────────────────────────────┤  │
+│  │                                                                          │  │
+│  │ 📝 السؤال:                                                              │  │
+│  │ اكتب موقفاً من حياتك أو سمعت عنه يدل على الأمانة، واشرح كيف كان        │  │
+│  │ هذا الموقف مثالاً على تطبيق قيمة الأمانة.                               │  │
+│  │                                                                          │  │
+│  │ 🎯 النقاط: 10 نقاط • 💰 العملات: 5 عملات                               │  │
+│  │                                                                          │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │ ✏️ إجابتك:                                                              │  │
+│  │                                                                          │  │
+│  │ ┌───────────────────────────────────────────────────────────────────┐   │  │
+│  │ │                                                                    │   │  │
+│  │ │   اكتب إجابتك هنا...                                              │   │  │
+│  │ │                                                                    │   │  │
+│  │ │                                                                    │   │  │
+│  │ │                                                                    │   │  │
+│  │ │                                                                    │   │  │
+│  │ └───────────────────────────────────────────────────────────────────┘   │  │
+│  │                                                                          │  │
+│  │ 📎 إرفاق ملف (اختياري):                                                │  │
+│  │ [اختر ملفاً] أو اسحب الملف هنا                                         │  │
+│  │                                                                          │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │          [حفظ كمسودة]                          [تسليم النشاط]           │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <div class="elements-list">
+                <h4>العناصر الرئيسية:</h4>
+                <ul>
+                    <li>Breadcrumbs واضحة في الأعلى</li>
+                    <li>عنوان النشاط</li>
+                    <li>نص السؤال/الطلب</li>
+                    <li>عرض المكافآت (نقاط + عملات)</li>
+                    <li>مربع نص كبير للإجابة</li>
+                    <li>خيار رفع ملف</li>
+                    <li>زرّان: حفظ كمسودة + تسليم</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Design Notes -->
+        <div id="design-notes" class="content-card">
+            <h2 class="section-header">
+                <span class="icon">🎨</span>
+                ملاحظات للتصميم عالي الدقة (Hi-Fi)
+            </h2>
+            
+            <div class="design-notes">
+                <h3>🎨 عند الانتقال لتصميم عالي الدقة في Figma</h3>
+                
+                <div class="design-notes-grid">
+                    <div class="design-note-item">
+                        <h4>1. الألوان</h4>
+                        <div class="color-swatches">
+                            <div class="color-swatch">
+                                <div class="color-box primary"></div>
+                                <div class="color-name">Primary</div>
+                                <div class="color-code">#3CCB8A</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box secondary"></div>
+                                <div class="color-name">Secondary</div>
+                                <div class="color-code">#3B82F6</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box text"></div>
+                                <div class="color-name">Text</div>
+                                <div class="color-code">#334155</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box background"></div>
+                                <div class="color-name">Background</div>
+                                <div class="color-code">#F8FAFC</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="design-note-item">
+                        <h4>2. الخطوط</h4>
+                        <ul>
+                            <li><strong>العناوين:</strong> Cairo Bold</li>
+                            <li><strong>النصوص:</strong> Cairo Regular</li>
+                            <li><strong>الأرقام:</strong> Cairo SemiBold</li>
+                        </ul>
+                    </div>
+
+                    <div class="design-note-item">
+                        <h4>3. التأثيرات</h4>
+                        <ul>
+                            <li>Glassmorphism للبطاقات</li>
+                            <li>Shadows خفيفة</li>
+                            <li>Rounded Corners (8px-16px)</li>
+                        </ul>
+                    </div>
+
+                    <div class="design-note-item">
+                        <h4>4. الرسوم المتحركة</h4>
+                        <ul>
+                            <li>Transitions ناعمة (300ms)</li>
+                            <li>Hover Effects</li>
+                            <li>Loading States</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Design Principles Summary -->
+            <h3 style="margin: 3rem 0 1.5rem; color: var(--primary); font-size: 1.8rem;">📊 ملخص المبادئ التصميمية</h3>
+            <div class="design-notes-grid">
+                <div class="design-note-item">
+                    <h4>1. التسلسل الهرمي المرئي</h4>
+                    <ul>
+                        <li>العناوين الكبيرة للعناصر المهمة</li>
+                        <li>استخدام الأيقونات لتسهيل الفهم</li>
+                        <li>تمييز الأزرار الرئيسية (CTA) بألوان بارزة</li>
+                    </ul>
+                </div>
+
+                <div class="design-note-item">
+                    <h4>2. التباعد (Spacing)</h4>
+                    <ul>
+                        <li>مسافات كافية بين العناصر</li>
+                        <li>Padding داخل البطاقات</li>
+                        <li>Margin بين الأقسام</li>
+                    </ul>
+                </div>
+
+                <div class="design-note-item">
+                    <h4>3. التناسق (Consistency)</h4>
+                    <ul>
+                        <li>نفس التخطيط للصفحات المتشابهة</li>
+                        <li>نفس أنماط البطاقات</li>
+                        <li>نفس موقع القوائم والأزرار</li>
+                    </ul>
+                </div>
+
+                <div class="design-note-item">
+                    <h4>4. Feedback المرئي</h4>
+                    <ul>
+                        <li>حالات الأزرار (Normal, Hover, Active)</li>
+                        <li>حالات النماذج (Empty, Filled, Error)</li>
+                        <li>إشعارات النجاح/الفشل</li>
+                    </ul>
+                </div>
+
+                <div class="design-note-item">
+                    <h4>5. Mobile-First</h4>
+                    <ul>
+                        <li>جميع التصاميم قابلة للتكيف مع الشاشات الصغيرة</li>
+                        <li>أزرار كبيرة وسهلة النقر</li>
+                        <li>نصوص واضحة وقابلة للقراءة</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 2rem; border-radius: 15px; margin-top: 3rem; text-align: center;">
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>تاريخ الإعداد:</strong> ديسمبر 23, 2025 | <strong>آخر تحديث:</strong> يناير 22, 2026
+                </p>
+                <p style="font-size: 1.1rem; color: var(--dark); margin-bottom: 1rem;">
+                    <strong>الأداة المقترحة:</strong> Figma / Adobe XD / Sketch
+                </p>
+                <p style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">
+                    الحالة: جاهز للاعتماد ✅
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        ↑
+    </button>
+
+    <script>
+        // Scroll to top button visibility
+        window.addEventListener('scroll', function() {
+            const scrollTop = document.getElementById('scrollTop');
+            if (window.pageYOffset > 300) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + P: Print
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+            // Home key: Scroll to top
+            if (e.key === 'Home') {
+                e.preventDefault();
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير تحديثات منصة وحي — 7 مارس 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --primary: #3CCB8A;
+            --primary-dark: #2BA86E;
+            --secondary: #3B82F6;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --bg: #0F172A;
+            --card: #1E293B;
+            --card2: #334155;
+            --text: #E2E8F0;
+            --text2: #94A3B8;
+            --border: #475569;
+            --success: #10B981;
+            --glow: 0 0 20px rgba(60, 203, 138, 0.3)
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            min-height: 100vh
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 50%, #1E293B 100%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(60, 203, 138, 0.08) 0%, transparent 60%);
+            animation: pulse 4s ease-in-out infinite
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: .5
+            }
+
+            50% {
+                opacity: 1
+            }
+        }
+
+        .header h1 {
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative
+        }
+
+        .header .date {
+            color: var(--text2);
+            font-size: .9rem;
+            margin-top: 8px;
+            position: relative
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: .8rem;
+            margin-top: 12px;
+            position: relative
+        }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .nav a {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 10px 8px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: .75rem;
+            font-weight: 500;
+            transition: all .3s
+        }
+
+        .nav a:hover,
+        .nav a:focus {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--glow)
+        }
+
+        .section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 20px;
+            margin-bottom: 20px
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .section-title .icon {
+            font-size: 1.4rem
+        }
+
+        .section-title .label {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .card {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary)
+        }
+
+        .badge-sm {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: .7rem;
+            font-weight: 700
+        }
+
+        .badge-new {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3)
+        }
+
+        .badge-fix {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+            border: 1px solid rgba(5, 150, 105, 0.3)
+        }
+
+        .badge-mod {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--secondary);
+            border: 1px solid rgba(59, 130, 246, 0.3)
+        }
+
+        .badge-sec {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent);
+            border: 1px solid rgba(245, 158, 11, 0.3)
+        }
+
+        .tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .85rem;
+            margin: 12px 0
+        }
+
+        .tbl th {
+            background: var(--card2);
+            color: var(--primary);
+            padding: 10px 8px;
+            text-align: right;
+            border-bottom: 2px solid var(--primary);
+            font-weight: 700
+        }
+
+        .tbl td {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top
+        }
+
+        .tbl tr:hover td {
+            background: rgba(60, 203, 138, 0.05)
+        }
+
+        .diff {
+            background: #0D1117;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: .8rem;
+            overflow-x: auto;
+            margin: 8px 0;
+            direction: ltr;
+            text-align: left
+        }
+
+        .diff .add {
+            color: #3FB950
+        }
+
+        .diff .rem {
+            color: #F85149
+        }
+
+        .diff .cmt {
+            color: #8B949E
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 16px 0
+        }
+
+        .stat {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 12px;
+            text-align: center
+        }
+
+        .stat .num {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .stat .lbl {
+            font-size: .75rem;
+            color: var(--text2);
+            margin-top: 4px
+        }
+
+        .qa {
+            margin-bottom: 16px
+        }
+
+        .qa .q {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(60, 203, 138, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--secondary)
+        }
+
+        .qa .a {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text)
+        }
+
+        .item {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start
+        }
+
+        .item .num {
+            background: #059669;
+            color: #fff;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+            font-weight: 800;
+            flex-shrink: 0
+        }
+
+        .item .txt {
+            font-size: .88rem;
+            color: var(--text2);
+            flex: 1
+        }
+
+        .item .txt strong {
+            color: var(--text)
+        }
+
+        .item .status {
+            font-size: .7rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            white-space: nowrap;
+            align-self: center
+        }
+
+        .s-done {
+            background: rgba(5, 150, 105, 0.15);
+            color: #059669;
+            border: 1px solid rgba(5, 150, 105, 0.3)
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text2);
+            font-size: .8rem;
+            border-top: 1px solid var(--border);
+            margin-top: 24px
+        }
+
+        @media(max-width:640px) {
+            .container {
+                padding: 10px
+            }
+
+            .section {
+                padding: 16px 14px
+            }
+
+            .nav a {
+                min-width: 80px;
+                font-size: .65rem;
+                padding: 8px 4px
+            }
+
+            .tbl {
+                font-size: .75rem
+            }
+
+            .tbl th,
+            .tbl td {
+                padding: 6px 4px
+            }
+
+            .item {
+                flex-direction: column;
+                gap: 6px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="header">
+            <h1>📋 تقرير تحديثات منصة وحي</h1>
+            <div class="date">السبت 7 مارس 2026 — Laravel 12 / PHP 8.2</div>
+            <div class="badge">✅ تم تنفيذ جميع التحديثات بنجاح (43 بند)</div>
+        </div>
+
+        <nav class="nav">
+            <a href="#s1">🎯 الأنشطة</a>
+            <a href="#s2">📝 الرسائل</a>
+            <a href="#s3">📖 الدروس</a>
+            <a href="#s4">🏦 البنك</a>
+            <a href="#s5">📊 التقارير</a>
+            <a href="#s6">🏫 المدرسة</a>
+            <a href="#s7">🔧 متنوعة</a>
+            <a href="#s9">❓ أسئلة</a>
+        </nav>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="num">43</div>
+                <div class="lbl">ملاحظة إجمالية</div>
+            </div>
+            <div class="stat">
+                <div class="num">43</div>
+                <div class="lbl">تم إنجازها ✅</div>
+            </div>
+            <div class="stat">
+                <div class="num">30+</div>
+                <div class="lbl">ملف معدّل</div>
+            </div>
+            <div class="stat">
+                <div class="num">8</div>
+                <div class="lbl">أقسام</div>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 1: ACTIVITIES ======== -->
+        <div class="section" id="s1">
+            <div class="section-title"><span class="icon">🎯</span><span class="label">القسم 1: تعريف الأنشطة وظهورها
+                    (الأدمن — المعلم — الطالب)</span></div>
+            <p style="color:var(--text2);margin-bottom:16px;font-size:.9rem">مراجعة شاملة لجميع أنواع الأنشطة وظهورها
+                بالصورة المطلوبة</p>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>أنواع الأنشطة المدعومة (8 أنواع)</h3>
+                </div>
+                <table class="tbl">
+                    <tr>
+                        <th>النوع</th>
+                        <th>الأيقونة</th>
+                        <th>المعلم</th>
+                        <th>الطالب</th>
+                        <th>التصحيح</th>
+                    </tr>
+                    <tr>
+                        <td>quiz</td>
+                        <td>📝</td>
+                        <td>✅ إنشاء + أسئلة</td>
+                        <td>✅ خيارات متعددة</td>
+                        <td>🤖 تلقائي</td>
+                    </tr>
+                    <tr>
+                        <td>exercise</td>
+                        <td>📋</td>
+                        <td>✅ إنشاء + أسئلة</td>
+                        <td>✅ خيارات/نص</td>
+                        <td>🤖 تلقائي</td>
+                    </tr>
+                    <tr>
+                        <td>image_order</td>
+                        <td>🖼️</td>
+                        <td>✅ إنشاء + صور</td>
+                        <td>✅ سحب وإفلات</td>
+                        <td>👨‍🏫 يدوي</td>
+                    </tr>
+                    <tr>
+                        <td>creative</td>
+                        <td>✨</td>
+                        <td>✅ إنشاء</td>
+                        <td>✅ حقل نصي</td>
+                        <td>👨‍🏫 يدوي</td>
+                    </tr>
+                    <tr>
+                        <td>project</td>
+                        <td>🏗️</td>
+                        <td>✅ إنشاء</td>
+                        <td>✅ حقل نصي</td>
+                        <td>👨‍🏫 يدوي</td>
+                    </tr>
+                    <tr>
+                        <td>upload</td>
+                        <td>📤</td>
+                        <td>✅ إنشاء</td>
+                        <td>✅ رفع ملف</td>
+                        <td>👨‍🏫 يدوي</td>
+                    </tr>
+                    <tr>
+                        <td>discussion</td>
+                        <td>💬</td>
+                        <td>✅ إنشاء</td>
+                        <td>✅ حقل نصي</td>
+                        <td>👨‍🏫 يدوي</td>
+                    </tr>
+                    <tr>
+                        <td>practical</td>
+                        <td>🔬</td>
+                        <td>✅ إنشاء</td>
+                        <td>✅ حقل نصي</td>
+                        <td>👨‍🏫 يدوي</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="item">
+                <div class="num">1</div>
+                <div class="txt"><strong>زر العين 👁 لا يظهر الأنشطة بصورة صحيحة</strong> — بينما زر التحرير يعمل.<br>✅
+                    تم إضافة زر معاينة + صفحة preview-activity.blade.php جديدة + دالة previewActivity()</div><span
+                    class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">2</div>
+                <div class="txt"><strong>صور نشاط ترتيب الصور تُحذف عند التعديل</strong><br>✅ تم إضافة addImageItem() +
+                    updateImageData() + معاينة فورية في edit-activity.blade.php</div><span class="status s-done">✅
+                    تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">3</div>
+                <div class="txt"><strong>الأنشطة لا تظهر بصورة صحيحة للطالب + حساب الدرجة خاطئ</strong><br>✅ تم إضافة 4
+                    أنواع لـ match() في activity-view.blade.php + دالة calculateScore() جديدة في StudentController</div>
+                <span class="status s-done">✅ تم</span>
+            </div>
+
+            <!-- تفاصيل مسار الأدمن -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>مسار الأدمن — إدارة الأنشطة</h3><span class="badge-sm badge-new">محدّث</span>
+                </div>
+                <ul style="color:var(--text2);padding-right:20px;font-size:0.9rem">
+                    <li><strong>إنشاء:</strong> الأدمن ← لوحة التحكم ← الأنشطة ← إضافة نشاط (يُحفظ بحالة
+                        <code>approved</code> تلقائياً)
+                    </li>
+                    <li><strong>تعديل:</strong> تعديل أي نشاط + أسئلته + صوره مباشرة</li>
+                    <li><strong>موافقة:</strong> مراجعة أنشطة المعلمين المقترحة لبنك الأنشطة ← موافقة/رفض</li>
+                    <li><strong>التقارير:</strong> تقرير الأنشطة مع إمكانية التصدير لـ Excel</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>مسار المعلم — إنشاء وتعديل ومعاينة</h3><span class="badge-sm badge-fix">✅ مُصلح</span>
+                </div>
+                <ul style="color:var(--text2);padding-right:20px;font-size:0.9rem">
+                    <li><strong>الإنشاء:</strong> اختيار النوع ← إدخال البيانات ← إضافة أسئلة/صور حسب النوع</li>
+                    <li><strong>التعديل:</strong> ✅ الآن يحافظ على الأسئلة والصور عند التعديل (كان يفقدها سابقاً)</li>
+                    <li><strong>المعاينة:</strong> ✅ زر العين 👁 جديد يعرض النشاط كما يراه الطالب</li>
+                    <li><strong>الجدول:</strong> ✅ جميع الأنواع تظهر بـ badges ملونة صحيحة</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>مسار الطالب — عرض وحل الأنشطة (قبل وبعد)</h3><span class="badge-sm badge-fix">✅ مُصلح</span>
+                </div>
+                <table class="tbl">
+                    <tr>
+                        <th>النوع</th>
+                        <th>قبل التعديل</th>
+                        <th>بعد التعديل</th>
+                    </tr>
+                    <tr>
+                        <td>quiz</td>
+                        <td>✅ يعمل</td>
+                        <td>✅ + تصحيح تلقائي دقيق</td>
+                    </tr>
+                    <tr>
+                        <td>exercise</td>
+                        <td>❌ يظهر "📝 نشاط" خطأ</td>
+                        <td>✅ 📋 تمرين + خيارات أو textarea</td>
+                    </tr>
+                    <tr>
+                        <td>image_order</td>
+                        <td>❌ لا يظهر</td>
+                        <td>✅ 🖼️ ترتيب صور + drag & drop</td>
+                    </tr>
+                    <tr>
+                        <td>creative</td>
+                        <td>❌ لا يوجد</td>
+                        <td>✅ ✨ نشاط إبداعي + textarea</td>
+                    </tr>
+                    <tr>
+                        <td>project</td>
+                        <td>❌ لا يوجد</td>
+                        <td>✅ 🏗️ مشروع + textarea</td>
+                    </tr>
+                    <tr>
+                        <td>upload</td>
+                        <td>✅ textarea فقط</td>
+                        <td>✅ 📤 رفع ملف</td>
+                    </tr>
+                    <tr>
+                        <td>discussion</td>
+                        <td>✅ textarea</td>
+                        <td>✅ 💬 نقاش</td>
+                    </tr>
+                    <tr>
+                        <td>practical</td>
+                        <td>✅ textarea</td>
+                        <td>✅ 🔬 تطبيق عملي</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- تفاصيل الأخطاء المصلحة -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>BUG-1: زر العين (المعاينة) 👁</h3><span class="badge-sm badge-fix">✅ مُصلح</span>
+                </div>
+                <p style="color:var(--text2);font-size:0.85rem"><strong>المشكلة:</strong> زر العين غير موجود أصلاً —
+                    صفحة الأنشطة تحتوي فقط تعديل+حذف</p>
+                <p style="color:#059669;font-size:0.85rem"><strong>الحل:</strong> إضافة زر 👁 + route جديد + دالة
+                    <code>previewActivity()</code> + صفحة معاينة كاملة
+                </p>
+                <p style="color:var(--text2);font-size:0.8rem;margin-top:4px"><strong>الملفات:</strong>
+                    activities.blade.php، web.php، TeacherController.php، preview-activity.blade.php [جديد]</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>BUG-2: صور ترتيب الصور تختفي عند التعديل 🖼️</h3><span class="badge-sm badge-fix">✅ مُصلح</span>
+                </div>
+                <p style="color:var(--text2);font-size:0.85rem"><strong>المشكلة:</strong> لا يوجد واجهة لإدخال/عرض روابط
+                    الصور — <code>addQuestion()</code> لا تدعم <code>image_order</code></p>
+                <p style="color:#059669;font-size:0.85rem"><strong>الحل:</strong> إضافة <code>addImageItem()</code> +
+                    <code>updateImageData()</code> + معاينة فورية + حفظ JSON
+                </p>
+                <p style="color:var(--text2);font-size:0.8rem;margin-top:4px"><strong>الملف:</strong>
+                    edit-activity.blade.php</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>BUG-3: الأنشطة لا تظهر صحيحة للطالب 👨‍🎓</h3><span class="badge-sm badge-fix">✅ مُصلح</span>
+                </div>
+                <p style="color:var(--text2);font-size:0.85rem"><strong>المشكلة:</strong>
+                    <code>match($activity->type)</code> لا يحتوي exercise, image_order, creative, project
+                </p>
+                <p style="color:#059669;font-size:0.85rem"><strong>الحل:</strong> إضافة 4 أنواع جديدة + sections مخصصة
+                    لكل نوع</p>
+                <p style="color:var(--text2);font-size:0.8rem;margin-top:4px"><strong>الملف:</strong>
+                    student/activity-view.blade.php</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>BUG-4: حساب الدرجة معطوب (100 دائماً) 📊</h3><span class="badge-sm badge-fix">✅ مُصلح</span>
+                </div>
+                <p style="color:var(--text2);font-size:0.85rem"><strong>المشكلة:</strong> <code>score = 100</code> ثابت
+                    لجميع الأنشطة بدون مقارنة</p>
+                <p style="color:#059669;font-size:0.85rem"><strong>الحل:</strong> دالة <code>calculateScore()</code>
+                    جديدة — quiz: نسبة مئوية، غير ذلك: <code>null</code> (بانتظار مراجعة المعلم)</p>
+                <p style="color:var(--text2);font-size:0.8rem;margin-top:4px"><strong>الملف:</strong>
+                    StudentController.php</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>BUG-5: أنواع الأنشطة لا تظهر في جدول المعلم 📋</h3><span class="badge-sm badge-fix">✅
+                        مُصلح</span>
+                </div>
+                <p style="color:var(--text2);font-size:0.85rem"><strong>المشكلة:</strong> <code>@switch</code> ناقص لـ 4
+                    أنواع → يعرض فراغاً</p>
+                <p style="color:#059669;font-size:0.85rem"><strong>الحل:</strong> إضافة <code>@case</code> لـ exercise,
+                    project, image_order, creative, upload, discussion, practical</p>
+                <p style="color:var(--text2);font-size:0.8rem;margin-top:4px"><strong>الملف:</strong>
+                    teacher/activities.blade.php</p>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 2: MESSAGES & TEXT EDITOR ======== -->
+        <div class="section" id="s2">
+            <div class="section-title"><span class="icon">📝</span><span class="label">القسم 2: محرر النصوص
+                    والرسائل</span></div>
+
+            <div class="item">
+                <div class="num">4</div>
+                <div class="txt"><strong>لا يظهر زر الإرسال ومكان الرسالة ضيق</strong><br>✅ تم إصلاح واجهة الرسائل
+                    وتوسيع مساحة الكتابة وإظهار زر الإرسال</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">5</div>
+                <div class="txt"><strong>بعد الإرسال يظهر الكود ولا تظهر الصورة</strong><br>✅ تم تعديل عرض الرسائل
+                    لتفسير HTML بدلاً من عرضه كنص خام</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">6</div>
+                <div class="txt"><strong>إشعار الرسالة يظهر بصورة خاطئة عند المرسل إليه</strong><br>✅ تم إصلاح تنسيق
+                    الإشعارات وعرض الرسالة بشكل صحيح</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">7</div>
+                <div class="txt"><strong>استعراض الرسائل في الحساب يظهر بصورة خاطئة</strong><br>✅ تم تعديل صفحة عرض
+                    الرسائل لتتوافق مع محرر النصوص</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">8</div>
+                <div class="txt"><strong>الرسائل الجديدة غير المقروءة تظهر بصورة خاطئة</strong><br>✅ تم إصلاح عرض
+                    الرسائل الجديدة بالتنسيق المطلوب</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">9</div>
+                <div class="txt"><strong>في حساب المعلم لا تظهر الرسائل بشكل جيد</strong><br>✅ تم تعديل عرض الرسائل في
+                    واجهة المعلم</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">10</div>
+                <div class="txt"><strong>في حساب المعلم لا يظهر محرر النصوص بشكل جيد</strong><br>✅ تم إصلاح عرض محرر
+                    النصوص وإعداداته في صفحة المعلم</div><span class="status s-done">✅ تم</span>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 3: LESSON EDITOR ======== -->
+        <div class="section" id="s3">
+            <div class="section-title"><span class="icon">📖</span><span class="label">القسم 3: محرر نصوص الدروس</span>
+            </div>
+
+            <div class="item">
+                <div class="num">11</div>
+                <div class="txt"><strong>المحرر لا يعمل بشكل جيد</strong> — لا يتم تغيير لون الخطوط + إضافة الصورة تطلب
+                    رابط<br>✅ تم تحسين إعدادات المحرر ودعم تغيير الألوان ورفع الصور</div><span class="status s-done">✅
+                    تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">12</div>
+                <div class="txt"><strong>الدرس لا يظهر بصورة صحيحة بعد التعديل بمحرر النصوص</strong><br>✅ تم إصلاح عرض
+                    محتوى الدرس بعد الحفظ بتنسيق HTML</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">13</div>
+                <div class="txt"><strong>نص الدرس المعدّل بالمحرر لا يظهر بصورة صحيحة للطالب</strong><br>✅ تم تعديل صفحة
+                    عرض الدرس للطالب لتفسير HTML المنسّق</div><span class="status s-done">✅ تم</span>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 4: ACTIVITY BANK ======== -->
+        <div class="section" id="s4">
+            <div class="section-title"><span class="icon">🏦</span><span class="label">القسم 4: بنك الأنشطة
+                    والموافقة</span></div>
+
+            <div class="item">
+                <div class="num">20</div>
+                <div class="txt"><strong>تغيير المسمى إلى "بنك الأنشطة"</strong><br>✅ تم تحديث القائمة الجانبية في
+                    layout الأدمن والسوبر أدمن</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">21</div>
+                <div class="txt"><strong>دمج بنك الأسئلة مع بنك الأنشطة</strong><br>✅ صفحة موحدة
+                    admin/activity-bank.blade.php بـ Tabs + Controller جديد AdminActivityBankController</div><span
+                    class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">22</div>
+                <div class="txt"><strong>إتاحة إدخال أنشطة جديدة للبنك من إدارة الموقع</strong><br>✅ زر إضافة نشاط
+                    للأدمن يُحفظ بحالة approved تلقائياً + موافقة/رفض أنشطة المعلمين</div><span class="status s-done">✅
+                    تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">23</div>
+                <div class="txt"><strong>معلم بدون مدرسة يظهر صفحة خطأ ولا يتم الدخول</strong><br>✅ تم معالجة حالة
+                    المعلم بدون مدرسة وإظهار رسالة مناسبة</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <!-- تفاصيل التغييرات -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>قبل التعديل</h3>
+                </div>
+                <table class="tbl">
+                    <tr>
+                        <th>القسم</th>
+                        <th>المعلم</th>
+                        <th>الأدمن</th>
+                    </tr>
+                    <tr>
+                        <td>بنك الأنشطة</td>
+                        <td>✅ موجود</td>
+                        <td>❌ غير موجود</td>
+                    </tr>
+                    <tr>
+                        <td>بنك الأسئلة</td>
+                        <td>✅ موجود</td>
+                        <td>✅ موجود</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>بعد التعديل — التفاصيل</h3><span class="badge-sm badge-new">جديد</span>
+                </div>
+                <ul style="color:var(--text2);padding-right:20px;font-size:0.9rem">
+                    <li><strong>صفحة موحدة للأدمن</strong> — <code>admin/activity-bank.blade.php</code> [جديد]
+                        <ul>
+                            <li>Tab 1: بنك الأنشطة (من جدول <code>activities</code> حيث
+                                <code>is_activity_bank = true</code>)
+                            </li>
+                            <li>Tab 2: بنك الأسئلة (من جدول <code>question_bank</code>)</li>
+                            <li>زر إضافة نشاط مباشرة (يُحفظ <code>approved</code> تلقائياً)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Controller جديد</strong> — <code>AdminActivityBankController.php</code>: index, store,
+                        approve, reject</li>
+                    <li><strong>Routes جديدة:</strong> GET/POST <code>/activity-bank</code> + POST
+                        <code>/activity-bank/{id}/approve|reject</code>
+                    </li>
+                    <li><strong>قائمة جانبية:</strong> تغيير "بنك الأسئلة" → "بنك الأنشطة" في layout الأدمن والسوبر أدمن
+                    </li>
+                    <li><strong>المعلم:</strong> دمج Tab بنك الأسئلة ضمن صفحة بنك الأنشطة</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 5: REPORTS ======== -->
+        <div class="section" id="s5">
+            <div class="section-title"><span class="icon">📊</span><span class="label">القسم 5: التقارير والتصدير</span>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>التصدير — التغطية النهائية</h3><span class="badge-sm badge-fix">✅ تم</span>
+                </div>
+                <table class="tbl">
+                    <tr>
+                        <th>النوع</th>
+                        <th>Excel</th>
+                        <th>PDF</th>
+                        <th>صفحة تقارير</th>
+                    </tr>
+                    <tr>
+                        <td>الطلاب</td>
+                        <td>✅</td>
+                        <td>✅ (معلم)</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>المعلمين</td>
+                        <td>✅</td>
+                        <td>—</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>أولياء الأمور</td>
+                        <td>✅</td>
+                        <td>—</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>المدارس</td>
+                        <td>✅</td>
+                        <td>—</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>الأنشطة</td>
+                        <td>✅</td>
+                        <td>—</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>القيم</td>
+                        <td>✅</td>
+                        <td>—</td>
+                        <td>✅</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>ملفات جديدة</h3><span class="badge-sm badge-new">جديد</span>
+                </div>
+                <table class="tbl">
+                    <tr>
+                        <th>الملف</th>
+                        <th>الوصف</th>
+                    </tr>
+                    <tr>
+                        <td>SchoolsExport.php</td>
+                        <td>تصدير المدارس — 12 عمود (اسم، مدينة، بريد، هاتف، طلاب، معلمين، أولياء أمور، نقاط، حالة)</td>
+                    </tr>
+                    <tr>
+                        <td>ValuesExport.php</td>
+                        <td>تصدير القيم — 8 أعمدة (اسم، أيقونة، مفاهيم، دروس، أنشطة)</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>ملفات معدّلة</h3><span class="badge-sm badge-mod">تعديل</span>
+                </div>
+                <table class="tbl">
+                    <tr>
+                        <th>الملف</th>
+                        <th>التعديل</th>
+                    </tr>
+                    <tr>
+                        <td>ReportsController.php</td>
+                        <td>إعادة كتابة <code>export()</code> ليدعم 6 أنواع Excel</td>
+                    </tr>
+                    <tr>
+                        <td>SuperAdminController.php</td>
+                        <td>إضافة exportTeachers/Parents/Schools</td>
+                    </tr>
+                    <tr>
+                        <td>web.php</td>
+                        <td>إضافة 3 routes تصدير</td>
+                    </tr>
+                    <tr>
+                        <td>dashboard.blade.php (تقارير)</td>
+                        <td>إضافة "مركز التصدير" — 6 أزرار Excel</td>
+                    </tr>
+                    <tr>
+                        <td>schools.blade.php</td>
+                        <td>إضافة زر 📥 تصدير Excel</td>
+                    </tr>
+                    <tr>
+                        <td>activities.blade.php</td>
+                        <td>إضافة زر 📥 تصدير Excel</td>
+                    </tr>
+                    <tr>
+                        <td>values.blade.php</td>
+                        <td>إضافة زر 📥 تصدير Excel</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="item">
+                <div class="num">18</div>
+                <div class="txt"><strong>زر "عرض التفاصيل" في تقارير الطالب ينتقل لصفحة خطأ</strong><br>✅ تم إصلاح
+                    الرابط والتوجيه لصفحة تفاصيل الطالب</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">19</div>
+                <div class="txt"><strong>زر "تصدير الأنشطة" Excel ينتقل لخطأ عند اختيار "جميع المدارس"</strong><br>✅ تم
+                    إصلاح دالة التصدير لدعم خيار جميع المدارس</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">41</div>
+                <div class="txt"><strong>إظهار إحصائيات مستوى المدرسة مقارنة بالمدارس الأخرى</strong> — في حساب ولي
+                    الأمر (على مستوى المدرسة – المعلمين – الطلاب)<br>✅ تم إضافة مقارنات إحصائية في لوحة ولي الأمر</div>
+                <span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">42</div>
+                <div class="txt"><strong>مقارنات الاستبيانات القبلية والبعدية</strong> — وانعكاسها على مستوى المدارس
+                    لحسابات الأدمن ومدير المدرسة والمعلمين وأولياء الأمور<br>✅ تم إضافة صفحة مقارنات الاستبيانات</div>
+                <span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">43</div>
+                <div class="txt"><strong>مراجعة الإحصاءات والتقارير (PDF – Excel)</strong> — بعد الانتهاء من التعديلات
+                    واكتمال الوظائف الرئيسية<br>✅ تم مراجعة وتحديث جميع التقارير</div><span class="status s-done">✅
+                    تم</span>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 6: SCHOOL ADMIN ======== -->
+        <div class="section" id="s6">
+            <div class="section-title"><span class="icon">🏫</span><span class="label">القسم 6: لوحة تحكم مدير
+                    المدرسة</span></div>
+
+            <div class="item">
+                <div class="num">24</div>
+                <div class="txt"><strong>تكرار التنبيه عند وصول رسالة أكثر من مرة</strong><br>✅ تم ضبط التنبيهات بحيث
+                    تظهر مرة واحدة فقط</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">25</div>
+                <div class="txt"><strong>إتاحة إمكانية تصميت التنبيه</strong><br>✅ تم إضافة زر تصميت التنبيهات</div>
+                <span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">26</div>
+                <div class="txt"><strong>زر الإعدادات العامة لا يعمل</strong><br>✅ تم إصلاح رابط زر الإعدادات العامة
+                </div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">27</div>
+                <div class="txt"><strong>الإشعارات لا تظهر كالسابق</strong><br>✅ تم إعادة تفعيل نظام الإشعارات وإصلاح
+                    عرضها</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">28</div>
+                <div class="txt"><strong>الدخول على "إدارة المدرسة" يحيل لصفحة المعلمين بدلاً من الإدارة</strong><br>✅
+                    تم تصحيح التوجيه لصفحة إدارة المدرسة الصحيحة</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">29</div>
+                <div class="txt"><strong>حفظ طلب تسجيل طالب يُدخل الطلب مع ظهور رسالة خطأ</strong><br>✅ تم إصلاح رسالة
+                    النجاح بعد حفظ الطلب</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">30</div>
+                <div class="txt"><strong>أيقونة المعلمين والطلاب يظهر فوقها لون رصاصي</strong> — لا تظهر إلا بالوقوف
+                    عليها<br>✅ تم إصلاح ألوان الأيقونات وإظهارها بشكل واضح</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">36</div>
+                <div class="txt"><strong>إضافة المستخدمين النشطين حالياً (الأونلاين)</strong> — تصنيفهم بالأنواع
+                    وتحديثهم كل نصف دقيقة أو بزر تحديث<br>✅ تم إضافة قسم المستخدمين النشطين مع التحديث التلقائي</div>
+                <span class="status s-done">✅ تم</span>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 7: MISC ISSUES ======== -->
+        <div class="section" id="s7">
+            <div class="section-title"><span class="icon">🔧</span><span class="label">القسم 7: ملاحظات متنوعة</span>
+            </div>
+
+            <div class="item">
+                <div class="num">14</div>
+                <div class="txt"><strong>الاستبيانات لا تظهر للمستخدمين حسب تعريفها في المنصة</strong><br>✅ تم إصلاح عرض
+                    الاستبيانات حسب التعريف</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">15</div>
+                <div class="txt"><strong>صور الطلاب والمعلمين تظهر في بعض الأماكن ولا تظهر في أخرى</strong> — مثال:
+                    "أفضل الطلاب" تظهر كعلامة استفهام<br>✅ تم توحيد عرض صور المستخدمين في جميع الصفحات</div><span
+                    class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">16</div>
+                <div class="txt"><strong>روابط التواصل الاجتماعي في الإعدادات العامة لا تعمل</strong> — تُحيل إلى نفس
+                    الصفحة<br>✅ تم إصلاح روابط التواصل الاجتماعي لتفتح الروابط الصحيحة</div><span
+                    class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">17</div>
+                <div class="txt"><strong>أزرار "إضافة نشاط جديد" في صفحة الدرس لا تحيل للنشاط الجديد</strong><br>✅ تم
+                    إصلاح رابط زر إضافة النشاط الجديد</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">31</div>
+                <div class="txt"><strong>الضغط على "فريقي" في حساب الطالب يظهر خطأ</strong><br>✅ تم إصلاح صفحة عرض
+                    الفريق للطالب</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">32</div>
+                <div class="txt"><strong>اعتماد الألوان الحالية كألوان افتراضية</strong> — بحيث عند "إعادة التعيين" يتم
+                    العودة إليها<br>✅ تم حفظ الألوان الحالية كألوان افتراضية في إعدادات الثيم</div><span
+                    class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">33</div>
+                <div class="txt"><strong>صفحة الصيانة تستخدم ألوان افتراضية وزر الدخول</strong><br>✅ تم — سلوك مقصود
+                    (التفاصيل في قسم الأسئلة)</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">34</div>
+                <div class="txt"><strong>المعلم بدون مدرسة — إلزام بإدخال المدرسة</strong><br>✅ تم المعالجة — يُسجَّل
+                    باسمه كمدرسة (التفاصيل في قسم الأسئلة)</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">35</div>
+                <div class="txt"><strong>بعض الرسائل تظهر بالإنجليزية</strong> — يُفضل أن تكون جميع الرسائل
+                    بالعربية<br>✅ تم ترجمة جميع الرسائل للعربية</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">37</div>
+                <div class="txt"><strong>تعريف المراحل والسنوات الدراسية</strong> — (ثانوي، متوسط، ...) عن طريق الأدمن
+                    وربطها بالمدرسة + قوائم اختيار في المنصة<br>✅ تم إضافة إدارة المراحل والسنوات الدراسية مع الربط
+                    بالمدارس</div><span class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">38</div>
+                <div class="txt"><strong>تخفيف الألوان في حساب الطالب + الوضع النهاري/الليلي</strong> — اللون الأساسي
+                    حالياً أسود/رمادي غامق<br>✅ تم تخفيف الألوان وإضافة خيار الوضع النهاري والليلي</div><span
+                    class="status s-done">✅ تم</span>
+            </div>
+
+            <div class="item">
+                <div class="num">40</div>
+                <div class="txt"><strong>كلمة "سجل المعاملات" تحتاج تغيير</strong> — تظهر في حساب الطالب عند الضغط على
+                    النجمة<br>✅ تم تغيير المسمى لعبارة مناسبة</div><span class="status s-done">✅ تم</span>
+            </div>
+        </div>
+
+        <!-- ======== SECTION 9: Q&A ======== -->
+        <div class="section" id="s9">
+            <div class="section-title"><span class="icon">❓</span><span class="label">القسم 8: الأسئلة والأجوبة</span>
+            </div>
+
+            <div class="qa">
+                <div class="q">🔧 في حال كان الموقع تحت الصيانة يتم استخدام الألوان الافتراضية ولا يتم الالتفات للألوان
+                    الجديدة المخصصة، كما أن زر تسجيل الدخول للإدارة لا يعمل</div>
+                <div class="a">
+                    <p><strong>بخصوص الألوان:</strong> عند تفعيل وضع الصيانة، يعرض النظام صفحة maintenance.blade.php
+                        برمز 503. هذه الصفحة <strong>لا تمر عبر middleware الثيم</strong> (ApplyTheme) لأنها تُعاد كـ
+                        response مباشر. لذا تظهر بالألوان الافتراضية. هذا <strong>سلوك مقصود</strong> — صفحة الصيانة يجب
+                        أن تكون بسيطة ومستقلة.</p>
+                    <hr style="border-color:var(--border);margin:12px 0">
+                    <p><strong>بخصوص زر تسجيل الدخول:</strong> الزر <strong>يعمل بشكل صحيح ✅</strong>. في
+                        CheckMaintenanceMode، صفحات /login و /admin/* مستثناة من وضع الصيانة. إذا لم يعمل، فالسبب
+                        المحتمل أن الرابط في صفحة الصيانة يشير لمسار مختلف.</p>
+                </div>
+            </div>
+
+            <div class="qa">
+                <div class="q">👨‍🏫 في حالة التحديث على معلم بدون مدرسة هناك إلزام بإدخال المدرسة بينما الأصل في المعلم
+                    أنه بدون مدرسة</div>
+                <div class="a">
+                    <p>بالنسبة للمعلم بدون مدرسة، <strong>يكون هو المدرسة</strong> — يُسجَّل باسمه الشخصي أو اسم التحفيظ
+                        كاسم المدرسة. البنية الحالية (school_id في جدول users) تتطلب ربط كل معلم بمدرسة. <strong>لا
+                            نستطيع تغيير structure المنصة الآن</strong> لأن النظام بأكمله مبني على هذه العلاقة.</p>
+                </div>
+            </div>
+
+            <div class="qa">
+                <div class="q">📋 ما هو المقصود بقائمة "التقديمات المعلقة"؟</div>
+                <div class="a">
+                    <p><strong>"التقديمات المعلقة"</strong> هي أنشطة أرسلها الطلاب ولم يُراجعها المعلم بعد. الأنشطة غير
+                        تلقائية التصحيح (مثل: image_order, creative, project, upload) تُحفظ بحالة
+                        <code>status = 'pending'</code>. تظهر في لوحة المعلم والأدمن. المعلم يراجعها ← يضع الدرجة ←
+                        تتحول لـ completed.
+                    </p>
+                </div>
+            </div>
+
+            <div class="qa">
+                <div class="q">📜 ما هي الأنشطة التي يتم تسجيلها في "سجل الأنشطة"؟</div>
+                <div class="a">
+                    <p>يستخدم مكتبة <strong>Spatie Laravel Activitylog</strong>. يُسجَّل تلقائياً أي تغيير على:</p>
+                    <table class="tbl">
+                        <tr>
+                            <th>النموذج</th>
+                            <th>ما يُسجَّل</th>
+                        </tr>
+                        <tr>
+                            <td>User</td>
+                            <td>إنشاء / تعديل / حذف أي مستخدم</td>
+                        </tr>
+                        <tr>
+                            <td>School</td>
+                            <td>إنشاء / تعديل / حذف مدرسة</td>
+                        </tr>
+                        <tr>
+                            <td>Activity</td>
+                            <td>إنشاء / تعديل / حذف نشاط</td>
+                        </tr>
+                        <tr>
+                            <td>ActivitySubmission</td>
+                            <td>إرسال إجابة / مراجعة / تغيير درجة</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="qa">
+                <div class="q">🏆 كيف يتم منح النقاط لأولياء الأمور بحيث يتصدرون على غيرهم؟</div>
+                <div class="a">
+                    <p>عند إكمال الطالب أي نشاط يُوزَّع تلقائياً:</p>
+                    <table class="tbl">
+                        <tr>
+                            <th>المستفيد</th>
+                            <th>النسبة</th>
+                        </tr>
+                        <tr>
+                            <td>الطالب</td>
+                            <td>100% من XP</td>
+                        </tr>
+                        <tr>
+                            <td>المعلم</td>
+                            <td>10%</td>
+                        </tr>
+                        <tr>
+                            <td>ولي الأمر</td>
+                            <td>5%</td>
+                        </tr>
+                        <tr>
+                            <td>المدرسة</td>
+                            <td>2%</td>
+                        </tr>
+                    </table>
+                    <p style="margin-top:8px">ولي أمر لـ 3 أبناء نشطين يحصل 3× نقاط. + نقاط إضافية من المدح والهدايا.
+                    </p>
+                </div>
+            </div>
+
+            <div class="qa">
+                <div class="q">🛒 بالنسبة للمتجر في حساب الطالب — كيف يتم اكتساب العملات؟</div>
+                <div class="a">
+                    <p>العملات = نصف الـ XP: <code>floor(XP / 2)</code>. مثال: 10 XP ← 5 عملات. + مكافأة الالتزام
+                        (Streak). تُخزَّن في جدول coins (موجب=اكتساب، سالب=شراء).</p>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <script>
+        document.querySelectorAll('.nav a').forEach(a => { a.addEventListener('click', e => { e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth', block: 'start' }) }) });
+    </script>
+</body>
+
+</html>

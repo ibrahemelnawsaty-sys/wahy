@@ -1,0 +1,344 @@
+/* Additional Enhancements for Auth Pages - قيمّ */
+
+/* ===================================
+   Final Optimizations & Additions
+   =================================== */
+
+/* Better Error Messages Styling */
+.alert {
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    animation: fadeInUp 0.4s ease;
+}
+
+.alert p {
+    margin: 0;
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #EF4444;
+}
+
+[data-theme="light"] .alert-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #DC2626;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10B981;
+}
+
+[data-theme="light"] .alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.alert-warning {
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #FBBF24;
+}
+
+/* Smooth Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Button Hover Effects */
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(16, 185, 129, 0.4);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+/* Form Focus States Enhancement */
+.form-input:focus {
+    outline: none;
+    border-color: rgba(16, 185, 129, 0.6);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1), 0 0 24px rgba(16, 185, 129, 0.2);
+}
+
+/* Link Hover Effects */
+.auth-link {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.auth-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    inset-inline-start: 0; /* يبدأ من بداية الرابط (اليمين في RTL) — كان left:0 ثابتاً */
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.3s ease;
+}
+
+.auth-link:hover::after {
+    width: 100%;
+}
+
+/* Improved Input Validation States */
+.form-input:invalid:not(:placeholder-shown) {
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.form-input:valid:not(:placeholder-shown) {
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+/* Loading Overlay (optional) */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.loading-overlay.hidden {
+    display: none;
+}
+
+/* Smooth Page Transitions */
+.auth-main {
+    animation: fadeIn 0.5s ease;
+}
+
+.auth-card {
+    animation: fadeInUp 0.6s ease;
+}
+
+/* Better Mobile Experience */
+@media (max-width: 768px) {
+    .auth-card {
+        margin: 20px;
+        padding: 30px 24px;
+    }
+    
+    .auth-title {
+        font-size: 24px;
+    }
+    
+    .auth-subtitle {
+        font-size: 14px;
+    }
+    
+    .btn-submit {
+        padding: 14px 24px;
+        font-size: 16px;
+    }
+}
+
+/* Accessibility Improvements */
+.form-input:focus-visible,
+.btn:focus-visible,
+.password-toggle:focus-visible {
+    outline: 2px solid #10B981;
+    outline-offset: 2px;
+}
+
+/* Skip to Content Link (Accessibility) */
+.skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #10B981;
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 0 0 8px 0;
+    z-index: 100;
+    transition: top 0.3s ease;
+}
+
+.skip-to-content:focus {
+    top: 0;
+}
+
+/* Print Styles */
+@media print {
+    .header,
+    .footer,
+    .btn-secondary,
+    .auth-divider {
+        display: none;
+    }
+    
+    .auth-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .form-input,
+    .btn {
+        border-width: 2px;
+    }
+    
+    .auth-card {
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark Mode Specific Enhancements */
+[data-theme="dark"] .form-input {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .form-input:focus {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Light Mode Specific Enhancements */
+[data-theme="light"] .form-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(15, 23, 42, 0.15);
+}
+
+[data-theme="light"] .form-input:focus {
+    background: white;
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+/* Success Checkmark Animation */
+@keyframes checkmark {
+    0% {
+        stroke-dashoffset: 50;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+.checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    animation: checkmark 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+/* Better Code Input Styling for 2FA */
+.code-input::-webkit-outer-spin-button,
+.code-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.code-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Shake Animation for Errors */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+.shake {
+    animation: shake 0.5s ease;
+}
+
+/* Tooltip Styles (if needed) */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(15, 23, 42, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+}

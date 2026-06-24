@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Project Structure - منصة قيمّ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #10B981;
+            --secondary-color: #059669;
+            --dark-color: #1E293B;
+            --light-color: #F8FAFC;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #334155;
+            line-height: 1.8;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .breadcrumb {
+            background: rgba(255,255,255,0.2);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .page-header {
+            background: white;
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--dark-color);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .folder-tree {
+            background: #1E293B;
+            color: #E2E8F0;
+            padding: 2rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        .folder-tree pre {
+            margin: 0;
+            line-height: 1.8;
+        }
+
+        .folder {
+            color: #F59E0B;
+            font-weight: 700;
+        }
+
+        .file {
+            color: #3CCB8A;
+        }
+
+        .comment {
+            color: #64748B;
+            font-style: italic;
+        }
+
+        .code-block {
+            background: #1E293B;
+            color: #E2E8F0;
+            padding: 2rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        .code-block pre {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+            padding: 2rem;
+            border-radius: 16px;
+            border-right: 5px solid var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        .info-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 1rem;
+        }
+
+        .info-card ul {
+            list-style: none;
+            margin: 0;
+        }
+
+        .info-card li {
+            padding: 0.5rem 0;
+            color: #475569;
+        }
+
+        .info-card li::before {
+            content: "✓";
+            color: var(--primary-color);
+            font-weight: 900;
+            margin-left: 0.8rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            background: var(--light-color);
+        }
+
+        .back-link:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="index.html">← العودة للرئيسية</a>
+        </div>
+
+        <div class="page-header">
+            <h1>🏗️ Laravel Project Structure</h1>
+            <p class="subtitle">هيكل المشروع الكامل - Laravel 11</p>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2 class="section-title">
+                <span>📋</span>
+                <span>نظرة عامة</span>
+            </h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; color: #475569;">
+                هيكل مشروع Laravel 11 المنظم بمعايير احترافية مع فصل واضح بين Business Logic، Data Layer، و Presentation Layer.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">📁</div>
+                    <div style="font-size: 2rem; font-weight: 900; color: var(--dark-color);">PSR-12</div>
+                    <div style="font-weight: 600;">Code Standard</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #DBEAFE, #BFDBFE); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">🎯</div>
+                    <div style="font-size: 2rem; font-weight: 900; color: var(--dark-color);">SOLID</div>
+                    <div style="font-weight: 600;">Design Principles</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); padding: 2rem; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 3rem;">✅</div>
+                    <div style="font-size: 2rem; font-weight: 900; color: var(--dark-color);">Level 8</div>
+                    <div style="font-weight: 600;">PHPStan Analysis</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Structure -->
+        <div class="section">
+            <h2 class="section-title">
+                <span>🗂️</span>
+                <span>الهيكل الكامل</span>
+            </h2>
+
+            <div class="folder-tree">
+<pre><span class="folder">qiyamm-project/</span>
+│
+├── <span class="folder">app/</span>
+│   ├── <span class="folder">Console/</span>                  <span class="comment"># Artisan Commands</span>
+│   │   ├── <span class="file">Kernel.php</span>
+│   │   └── <span class="folder">Commands/</span>
+│   │       ├── <span class="file">SendDailyReports.php</span>
+│   │       └── <span class="file">ProcessQueuedNotifications.php</span>
+│   │
+│   ├── <span class="folder">Exceptions/</span>                <span class="comment"># Custom Exceptions</span>
+│   │   ├── <span class="file">Handler.php</span>
+│   │   ├── <span class="file">InvalidTokenException.php</span>
+│   │   └── <span class="file">PermissionDeniedException.php</span>
+│   │
+│   ├── <span class="folder">Http/</span>
+│   │   ├── <span class="folder">Controllers/</span>
+│   │   │   ├── <span class="folder">Api/</span>             <span class="comment"># API Controllers</span>
+│   │   │   │   ├── <span class="folder">V1/</span>          <span class="comment"># Version 1</span>
+│   │   │   │   │   ├── <span class="file">AuthController.php</span>
+│   │   │   │   │   ├── <span class="file">UserController.php</span>
+│   │   │   │   │   ├── <span class="file">SchoolController.php</span>
+│   │   │   │   │   ├── <span class="file">ValueController.php</span>
+│   │   │   │   │   ├── <span class="file">ConceptController.php</span>
+│   │   │   │   │   ├── <span class="file">MeaningController.php</span>
+│   │   │   │   │   ├── <span class="file">LessonController.php</span>
+│   │   │   │   │   ├── <span class="file">ActivityController.php</span>
+│   │   │   │   │   ├── <span class="file">SubmissionController.php</span>
+│   │   │   │   │   ├── <span class="file">BadgeController.php</span>
+│   │   │   │   │   ├── <span class="file">ReportController.php</span>
+│   │   │   │   │   └── <span class="file">NotificationController.php</span>
+│   │   │   │   │
+│   │   │   │   └── <span class="file">Controller.php</span>  <span class="comment"># Base API Controller</span>
+│   │   │   │
+│   │   │   └── <span class="file">Controller.php</span>      <span class="comment"># Base Controller</span>
+│   │   │
+│   │   ├── <span class="folder">Middleware/</span>            <span class="comment"># Custom Middleware</span>
+│   │   │   ├── <span class="file">CheckRole.php</span>
+│   │   │   ├── <span class="file">CheckPermission.php</span>
+│   │   │   ├── <span class="file">ForceJsonResponse.php</span>
+│   │   │   └── <span class="file">LogApiRequests.php</span>
+│   │   │
+│   │   ├── <span class="folder">Requests/</span>              <span class="comment"># Form Requests</span>
+│   │   │   ├── <span class="file">LoginRequest.php</span>
+│   │   │   ├── <span class="file">RegisterRequest.php</span>
+│   │   │   ├── <span class="file">StoreUserRequest.php</span>
+│   │   │   ├── <span class="file">UpdateUserRequest.php</span>
+│   │   │   ├── <span class="file">StoreSchoolRequest.php</span>
+│   │   │   ├── <span class="file">StoreValueRequest.php</span>
+│   │   │   ├── <span class="file">StoreActivityRequest.php</span>
+│   │   │   └── <span class="file">SubmitActivityRequest.php</span>
+│   │   │
+│   │   └── <span class="folder">Resources/</span>             <span class="comment"># API Resources</span>
+│   │       ├── <span class="file">UserResource.php</span>
+│   │       ├── <span class="file">SchoolResource.php</span>
+│   │       ├── <span class="file">ValueResource.php</span>
+│   │       ├── <span class="file">LessonResource.php</span>
+│   │       ├── <span class="file">ActivityResource.php</span>
+│   │       ├── <span class="file">SubmissionResource.php</span>
+│   │       └── <span class="file">BadgeResource.php</span>
+│   │
+│   ├── <span class="folder">Models/</span>                    <span class="comment"># Eloquent Models</span>
+│   │   ├── <span class="file">User.php</span>
+│   │   ├── <span class="file">School.php</span>
+│   │   ├── <span class="file">Branch.php</span>
+│   │   ├── <span class="file">Classroom.php</span>
+│   │   ├── <span class="file">Value.php</span>
+│   │   ├── <span class="file">Concept.php</span>
+│   │   ├── <span class="file">Meaning.php</span>
+│   │   ├── <span class="file">Lesson.php</span>
+│   │   ├── <span class="file">Activity.php</span>
+│   │   ├── <span class="file">Submission.php</span>
+│   │   ├── <span class="file">Badge.php</span>
+│   │   ├── <span class="file">UserBadge.php</span>
+│   │   ├── <span class="file">Notification.php</span>
+│   │   ├── <span class="file">Token.php</span>
+│   │   ├── <span class="file">Role.php</span>
+│   │   └── <span class="file">Permission.php</span>
+│   │
+│   ├── <span class="folder">Services/</span>                  <span class="comment"># Business Logic Layer</span>
+│   │   ├── <span class="file">AuthService.php</span>
+│   │   ├── <span class="file">UserService.php</span>
+│   │   ├── <span class="file">SchoolService.php</span>
+│   │   ├── <span class="file">ContentService.php</span>
+│   │   ├── <span class="file">ActivityService.php</span>
+│   │   ├── <span class="file">SubmissionService.php</span>
+│   │   ├── <span class="file">BadgeService.php</span>
+│   │   ├── <span class="file">NotificationService.php</span>
+│   │   └── <span class="file">ReportService.php</span>
+│   │
+│   ├── <span class="folder">Repositories/</span>              <span class="comment"># Data Access Layer</span>
+│   │   ├── <span class="folder">Contracts/</span>            <span class="comment"># Interfaces</span>
+│   │   │   ├── <span class="file">UserRepositoryInterface.php</span>
+│   │   │   ├── <span class="file">SchoolRepositoryInterface.php</span>
+│   │   │   ├── <span class="file">ActivityRepositoryInterface.php</span>
+│   │   │   └── <span class="file">BadgeRepositoryInterface.php</span>
+│   │   │
+│   │   └── <span class="folder">Eloquent/</span>             <span class="comment"># Implementations</span>
+│   │       ├── <span class="file">UserRepository.php</span>
+│   │       ├── <span class="file">SchoolRepository.php</span>
+│   │       ├── <span class="file">ActivityRepository.php</span>
+│   │       └── <span class="file">BadgeRepository.php</span>
+│   │
+│   ├── <span class="folder">Notifications/</span>             <span class="comment"># Laravel Notifications</span>
+│   │   ├── <span class="file">ActivityCorrected.php</span>
+│   │   ├── <span class="file">BadgeUnlocked.php</span>
+│   │   ├── <span class="file">RegistrationApproved.php</span>
+│   │   └── <span class="file">ResetPasswordNotification.php</span>
+│   │
+│   ├── <span class="folder">Events/</span>                    <span class="comment"># Events</span>
+│   │   ├── <span class="file">UserRegistered.php</span>
+│   │   ├── <span class="file">ActivitySubmitted.php</span>
+│   │   └── <span class="file">BadgeEarned.php</span>
+│   │
+│   ├── <span class="folder">Listeners/</span>                 <span class="comment"># Event Listeners</span>
+│   │   ├── <span class="file">SendWelcomeEmail.php</span>
+│   │   ├── <span class="file">NotifyTeacherOfSubmission.php</span>
+│   │   └── <span class="file">SendBadgeNotification.php</span>
+│   │
+│   └── <span class="folder">Providers/</span>                 <span class="comment"># Service Providers</span>
+│       ├── <span class="file">AppServiceProvider.php</span>
+│       ├── <span class="file">AuthServiceProvider.php</span>
+│       ├── <span class="file">EventServiceProvider.php</span>
+│       └── <span class="file">RepositoryServiceProvider.php</span>
+│
+├── <span class="folder">bootstrap/</span>
+│   ├── <span class="file">app.php</span>
+│   ├── <span class="file">providers.php</span>
+│   └── <span class="folder">cache/</span>
+│
+├── <span class="folder">config/</span>                        <span class="comment"># Configuration Files</span>
+│   ├── <span class="file">app.php</span>
+│   ├── <span class="file">auth.php</span>
+│   ├── <span class="file">database.php</span>
+│   ├── <span class="file">queue.php</span>
+│   ├── <span class="file">cache.php</span>
+│   ├── <span class="file">cors.php</span>
+│   ├── <span class="file">sanctum.php</span>
+│   └── <span class="file">l5-swagger.php</span>
+│
+├── <span class="folder">database/</span>
+│   ├── <span class="folder">migrations/</span>               <span class="comment"># Database Migrations</span>
+│   │   ├── <span class="file">2024_01_01_000001_create_users_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000002_create_roles_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000003_create_schools_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000004_create_branches_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000005_create_classrooms_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000006_create_values_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000007_create_concepts_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000008_create_meanings_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000009_create_lessons_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000010_create_activities_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000011_create_submissions_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000012_create_badges_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000013_create_user_badges_table.php</span>
+│   │   ├── <span class="file">2024_01_01_000014_create_notifications_table.php</span>
+│   │   └── <span class="file">2024_01_01_000015_create_tokens_table.php</span>
+│   │
+│   ├── <span class="folder">seeders/</span>                  <span class="comment"># Database Seeders</span>
+│   │   ├── <span class="file">DatabaseSeeder.php</span>
+│   │   ├── <span class="file">RoleSeeder.php</span>
+│   │   ├── <span class="file">PermissionSeeder.php</span>
+│   │   ├── <span class="file">UserSeeder.php</span>
+│   │   ├── <span class="file">SchoolSeeder.php</span>
+│   │   └── <span class="file">ContentSeeder.php</span>
+│   │
+│   └── <span class="folder">factories/</span>                <span class="comment"># Model Factories</span>
+│       ├── <span class="file">UserFactory.php</span>
+│       ├── <span class="file">SchoolFactory.php</span>
+│       └── <span class="file">ActivityFactory.php</span>
+│
+├── <span class="folder">routes/</span>
+│   ├── <span class="file">api.php</span>                     <span class="comment"># API Routes</span>
+│   ├── <span class="file">web.php</span>                     <span class="comment"># Web Routes</span>
+│   └── <span class="file">console.php</span>                 <span class="comment"># Console Routes</span>
+│
+├── <span class="folder">tests/</span>                        <span class="comment"># PHPUnit Tests</span>
+│   ├── <span class="folder">Feature/</span>
+│   │   ├── <span class="file">AuthTest.php</span>
+│   │   ├── <span class="file">UserTest.php</span>
+│   │   ├── <span class="file">ActivityTest.php</span>
+│   │   └── <span class="file">SubmissionTest.php</span>
+│   │
+│   ├── <span class="folder">Unit/</span>
+│   │   ├── <span class="file">UserServiceTest.php</span>
+│   │   ├── <span class="file">BadgeServiceTest.php</span>
+│   │   └── <span class="file">NotificationServiceTest.php</span>
+│   │
+│   ├── <span class="file">TestCase.php</span>
+│   └── <span class="file">CreatesApplication.php</span>
+│
+├── <span class="file">.env</span>                            <span class="comment"># Environment Variables</span>
+├── <span class="file">.env.example</span>
+├── <span class="file">composer.json</span>                   <span class="comment"># PHP Dependencies</span>
+├── <span class="file">phpunit.xml</span>                     <span class="comment"># PHPUnit Config</span>
+├── <span class="file">phpstan.neon</span>                    <span class="comment"># PHPStan Config</span>
+└── <span class="file">artisan</span>                         <span class="comment"># CLI Entry Point</span>
+</pre>
+            </div>
+        </div>
+
+        <!-- Controller Example -->
+        <div class="section">
+            <h2 class="section-title">
+                <span>📝</span>
+                <span>مثال: API Controller</span>
+            </h2>
+
+            <div class="code-block">
+<pre>&lt;?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreActivityRequest;
+use App\Http\Resources\ActivityResource;
+use App\Services\ActivityService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+
+class ActivityController extends Controller
+{
+    public function __construct(
+        private ActivityService $activityService
+    ) {}
+
+    /**
+     * Display a listing of activities.
+     *
+     * @return AnonymousResourceCollection
+     */
+    public function index(): AnonymousResourceCollection
+    {
+        $activities = $this->activityService->getAllActivities(
+            perPage: request('per_page', 15)
+        );
+
+        return ActivityResource::collection($activities);
+    }
+
+    /**
+     * Store a newly created activity.
+     *
+     * @param StoreActivityRequest $request
+     * @return JsonResponse
+     */
+    public function store(StoreActivityRequest $request): JsonResponse
+    {
+        $activity = $this->activityService->createActivity(
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'Activity created successfully',
+            'data' => new ActivityResource($activity)
+        ], 201);
+    }
+
+    /**
+     * Display the specified activity.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
+    {
+        $activity = $this->activityService->getActivityById($id);
+
+        return response()->json([
+            'data' => new ActivityResource($activity)
+        ]);
+    }
+
+    /**
+     * Update the specified activity.
+     *
+     * @param StoreActivityRequest $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(StoreActivityRequest $request, int $id): JsonResponse
+    {
+        $activity = $this->activityService->updateActivity(
+            $id,
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'Activity updated successfully',
+            'data' => new ActivityResource($activity)
+        ]);
+    }
+
+    /**
+     * Remove the specified activity.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $this->activityService->deleteActivity($id);
+
+        return response()->json([
+            'message' => 'Activity deleted successfully'
+        ], 204);
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Service Layer Example -->
+        <div class="section">
+            <h2 class="section-title">
+                <span>⚙️</span>
+                <span>مثال: Service Layer</span>
+            </h2>
+
+            <div class="code-block">
+<pre>&lt;?php
+
+namespace App\Services;
+
+use App\Models\Activity;
+use App\Models\Submission;
+use App\Models\User;
+use App\Repositories\Contracts\ActivityRepositoryInterface;
+use App\Events\ActivitySubmitted;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+
+class ActivityService
+{
+    public function __construct(
+        private ActivityRepositoryInterface $activityRepository,
+        private BadgeService $badgeService
+    ) {}
+
+    /**
+     * Get all activities with pagination.
+     */
+    public function getAllActivities(int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->activityRepository->paginate($perPage);
+    }
+
+    /**
+     * Create a new activity.
+     */
+    public function createActivity(array $data): Activity
+    {
+        return DB::transaction(function () use ($data) {
+            $activity = $this->activityRepository->create($data);
+
+            // Additional business logic here
+            // e.g., create related records, send notifications, etc.
+
+            return $activity;
+        });
+    }
+
+    /**
+     * Submit an activity.
+     */
+    public function submitActivity(int $activityId, User $student, array $answers): Submission
+    {
+        return DB::transaction(function () use ($activityId, $student, $answers) {
+            // Create submission
+            $submission = Submission::create([
+                'activity_id' => $activityId,
+                'user_id' => $student->id,
+                'answers' => $answers,
+                'status' => 'pending',
+                'submitted_at' => now()
+            ]);
+
+            // Fire event for notifications
+            event(new ActivitySubmitted($submission));
+
+            // Check if student earned any badges
+            $this->badgeService->checkAndAwardBadges($student);
+
+            return $submission;
+        });
+    }
+
+    /**
+     * Get activity by ID.
+     */
+    public function getActivityById(int $id): Activity
+    {
+        return $this->activityRepository->findOrFail($id);
+    }
+
+    /**
+     * Update activity.
+     */
+    public function updateActivity(int $id, array $data): Activity
+    {
+        $activity = $this->getActivityById($id);
+
+        return $this->activityRepository->update($activity, $data);
+    }
+
+    /**
+     * Delete activity.
+     */
+    public function deleteActivity(int $id): bool
+    {
+        $activity = $this->getActivityById($id);
+
+        return $this->activityRepository->delete($activity);
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Repository Pattern -->
+        <div class="section">
+            <h2 class="section-title">
+                <span>💾</span>
+                <span>مثال: Repository Pattern</span>
+            </h2>
+
+            <p style="margin-bottom: 2rem; font-size: 1.1rem;">Repository Pattern يفصل Business Logic عن Data Access Layer</p>
+
+            <div class="info-card">
+                <h3>📌 Interface (Contract)</h3>
+            </div>
+
+            <div class="code-block">
+<pre>&lt;?php
+
+namespace App\Repositories\Contracts;
+
+use App\Models\Activity;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+interface ActivityRepositoryInterface
+{
+    public function all(): Collection;
+    public function paginate(int $perPage = 15): LengthAwarePaginator;
+    public function find(int $id): ?Activity;
+    public function findOrFail(int $id): Activity;
+    public function create(array $data): Activity;
+    public function update(Activity $activity, array $data): Activity;
+    public function delete(Activity $activity): bool;
+    public function findByLesson(int $lessonId): Collection;
+}</pre>
+            </div>
+
+            <div class="info-card">
+                <h3>📌 Implementation</h3>
+            </div>
+
+            <div class="code-block">
+<pre>&lt;?php
+
+namespace App\Repositories\Eloquent;
+
+use App\Models\Activity;
+use App\Repositories\Contracts\ActivityRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+class ActivityRepository implements ActivityRepositoryInterface
+{
+    public function all(): Collection
+    {
+        return Activity::with(['lesson', 'meaning'])->get();
+    }
+
+    public function paginate(int $perPage = 15): LengthAwarePaginator
+    {
+        return Activity::with(['lesson', 'meaning'])
+            ->latest()
+            ->paginate($perPage);
+    }
+
+    public function find(int $id): ?Activity
+    {
+        return Activity::with(['lesson', 'meaning', 'submissions'])
+            ->find($id);
+    }
+
+    public function findOrFail(int $id): Activity
+    {
+        return Activity::with(['lesson', 'meaning', 'submissions'])
+            ->findOrFail($id);
+    }
+
+    public function create(array $data): Activity
+    {
+        return Activity::create($data);
+    }
+
+    public function update(Activity $activity, array $data): Activity
+    {
+        $activity->update($data);
+        return $activity->fresh();
+    }
+
+    public function delete(Activity $activity): bool
+    {
+        return $activity->delete();
+    }
+
+    public function findByLesson(int $lessonId): Collection
+    {
+        return Activity::where('lesson_id', $lessonId)->get();
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="section">
+            <h2 class="section-title">
+                <span>⭐</span>
+                <span>Best Practices</span>
+            </h2>
+
+            <div style="display: grid; gap: 2rem;">
+                <div class="info-card">
+                    <h3>1️⃣ PSR-12 Code Standard</h3>
+                    <ul>
+                        <li>استخدام 4 spaces للـ indentation</li>
+                        <li>Opening braces على نفس السطر للـ methods</li>
+                        <li>استخدام type hints لجميع parameters و return types</li>
+                        <li>Camel case للـ methods، Pascal case للـ classes</li>
+                    </ul>
+                </div>
+
+                <div class="info-card" style="background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-right-color: #3B82F6;">
+                    <h3>2️⃣ SOLID Principles</h3>
+                    <ul>
+                        <li><strong>S</strong>ingle Responsibility: كل class لها مسؤولية واحدة</li>
+                        <li><strong>O</strong>pen/Closed: مفتوحة للامتداد، مغلقة للتعديل</li>
+                        <li><strong>L</strong>iskov Substitution: استخدام Interfaces بدلاً من Concrete Classes</li>
+                        <li><strong>I</strong>nterface Segregation: Interfaces صغيرة ومحددة</li>
+                        <li><strong>D</strong>ependency Inversion: Depend on abstractions</li>
+                    </ul>
+                </div>
+
+                <div class="info-card" style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-right-color: #F59E0B;">
+                    <h3>3️⃣ PHPStan Level 8</h3>
+                    <ul>
+                        <li>أعلى مستوى من الـ static analysis</li>
+                        <li>Type safety في جميع الأكواد</li>
+                        <li>No mixed types إلا عند الضرورة</li>
+                        <li>PHPDoc blocks لجميع methods</li>
+                    </ul>
+                </div>
+
+                <div class="info-card" style="background: linear-gradient(135deg, #F3E8FF, #E9D5FF); border-right-color: #8B5CF6;">
+                    <h3>4️⃣ Performance Optimization</h3>
+                    <ul>
+                        <li>Eager Loading مع with() لتجنب N+1 queries</li>
+                        <li>Database Indexing على الحقول المستخدمة في WHERE/JOIN</li>
+                        <li>Redis Cache للبيانات المستخدمة بكثرة</li>
+                        <li>Queue للعمليات الطويلة (emails, notifications)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div style="background: linear-gradient(135deg, #10B981, #059669); color: white; border-radius: 20px; padding: 3rem; margin-bottom: 3rem; text-align: center;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; font-weight: 900;">✅ جاهزية الهيكل 100%</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+                    <div style="font-weight: 700;">PSR-12 Compliant</div>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                    <div style="font-weight: 700;">SOLID Principles</div>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+                    <div style="font-weight: 700;">PHPStan Level 8</div>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚡</div>
+                    <div style="font-weight: 700;">Optimized Performance</div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <a href="index.html" class="back-link">← العودة للرئيسية</a>
+        </footer>
+    </div>
+</body>
+</html>

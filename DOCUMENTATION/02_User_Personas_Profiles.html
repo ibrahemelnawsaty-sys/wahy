@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Personas - ملفات شخصيات المستخدمين - منصة قِيَم</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👥</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            
+            --super-admin: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --school-admin: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --teacher: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --student: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --parent: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
+        }
+
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #64748b;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation */
+        .nav-container {
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+            margin-bottom: 2rem;
+        }
+
+        .nav {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+        }
+
+        .nav h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            transform: translateX(-5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Persona Cards */
+        .persona-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 0;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .persona-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.25);
+        }
+
+        .persona-header {
+            padding: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .persona-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 120%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(-15deg);
+        }
+
+        .persona-super-admin { background: var(--super-admin); }
+        .persona-school-admin { background: var(--school-admin); }
+        .persona-teacher { background: var(--teacher); }
+        .persona-student { background: var(--student); }
+        .persona-parent { background: var(--parent); }
+
+        .persona-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .persona-avatar {
+            font-size: 4rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .persona-name h2 {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .persona-role {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .persona-body {
+            padding: 2rem;
+        }
+
+        .persona-section {
+            margin-bottom: 2rem;
+        }
+
+        .persona-section h3 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Info Table */
+        .info-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .info-table tr {
+            background: white;
+        }
+
+        .info-table tr:nth-child(even) {
+            background: rgba(102, 126, 234, 0.03);
+        }
+
+        .info-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .info-table td:first-child {
+            font-weight: 600;
+            color: var(--primary);
+            width: 30%;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Lists */
+        .icon-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .icon-list li {
+            padding: 0.6rem 0;
+            padding-right: 1.8rem;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .icon-list li::before {
+            position: absolute;
+            right: 0;
+            font-size: 1.2rem;
+        }
+
+        /* Tags */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: var(--primary);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        /* Quote Box */
+        .quote-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-right: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            font-style: italic;
+            font-size: 1.1rem;
+            color: var(--dark);
+            position: relative;
+        }
+
+        .quote-box::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            font-size: 4rem;
+            color: var(--primary);
+            opacity: 0.3;
+            font-family: Georgia, serif;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Comparison Table */
+        .comparison-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1.5rem 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table thead {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .comparison-table th {
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .comparison-table tbody tr {
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: scale(1.01);
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 600;
+            text-align: right;
+            color: var(--primary);
+        }
+
+        /* Insights Section */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .insight-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .insight-card h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .insight-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .insight-card li {
+            padding: 0.5rem 0;
+            padding-right: 1.5rem;
+            position: relative;
+        }
+
+        .insight-card li::before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            .persona-title {
+                flex-direction: column;
+                text-align: center;
+            }
+            .persona-avatar {
+                font-size: 3rem;
+            }
+            .nav-links {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .nav-container, .scroll-top {
+                display: none;
+            }
+            .persona-card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">👥</div>
+            <h1>User Personas - ملفات شخصيات المستخدمين</h1>
+            <p>تعرّف على المستخدمين الخمسة الرئيسيين لمنصة قِيَم التعليمية</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-container">
+            <nav class="nav">
+                <h3>🗺️ انتقل إلى الشخصية</h3>
+                <div class="nav-links">
+                    <a href="#persona-1" class="nav-link">👑 محمد - Super Admin</a>
+                    <a href="#persona-2" class="nav-link">🏫 خالد - School Admin</a>
+                    <a href="#persona-3" class="nav-link">👩‍🏫 سارة - Teacher</a>
+                    <a href="#persona-4" class="nav-link">👦 عمر - Student</a>
+                    <a href="#persona-5" class="nav-link">👨‍👦 فهد - Parent</a>
+                    <a href="#comparison" class="nav-link">📊 المقارنة</a>
+                    <a href="#insights" class="nav-link">💡 الاستنتاجات</a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Persona 1: Super Admin -->
+        <div id="persona-1" class="persona-card">
+            <div class="persona-header persona-super-admin">
+                <div class="persona-title">
+                    <div class="persona-avatar">👑</div>
+                    <div class="persona-name">
+                        <h2>محمد العتيبي</h2>
+                        <div class="persona-role">Super Admin - مدير النظام</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="persona-body">
+                <div class="persona-section">
+                    <h3>📋 المعلومات الأساسية</h3>
+                    <table class="info-table">
+                        <tr>
+                            <td>العمر</td>
+                            <td>35 سنة</td>
+                        </tr>
+                        <tr>
+                            <td>المؤهل</td>
+                            <td>بكالوريوس علوم حاسب</td>
+                        </tr>
+                        <tr>
+                            <td>الخبرة</td>
+                            <td>10 سنوات في إدارة الأنظمة التعليمية</td>
+                        </tr>
+                        <tr>
+                            <td>الموقع</td>
+                            <td>الرياض، المملكة العربية السعودية</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="persona-section">
+                    <h3>🎯 الأهداف الرئيسية</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '✅ ' inside;">إدارة جميع المستخدمين والمدارس بكفاءة</li>
+                        <li style="list-style: '✅ ' inside;">ضمان استقرار النظام وأمانه</li>
+                        <li style="list-style: '✅ ' inside;">تخصيص المنصة لتناسب هوية المؤسسة</li>
+                        <li style="list-style: '✅ ' inside;">مراقبة الأداء والإحصائيات</li>
+                        <li style="list-style: '✅ ' inside;">إضافة محتوى تعليمي جديد بانتظام</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>📅 المهام اليومية</h3>
+                    <div class="tags">
+                        <span class="tag">🔍 مراجعة Dashboard</span>
+                        <span class="tag">➕ إضافة مدارس جديدة</span>
+                        <span class="tag">📊 مراجعة التقارير</span>
+                        <span class="tag">🎨 تحديث الثيم</span>
+                        <span class="tag">🛠️ حل المشاكل التقنية</span>
+                        <span class="tag">📚 إضافة قيم ودروس</span>
+                    </div>
+                </div>
+
+                <div class="persona-section">
+                    <h3>⚠️ نقاط الألم</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '⚠️ ' inside;">صعوبة إدارة عدد كبير من المدارس</li>
+                        <li style="list-style: '⚠️ ' inside;">الحاجة لمراقبة أداء النظام بشكل مستمر</li>
+                        <li style="list-style: '⚠️ ' inside;">صعوبة تخصيص التقارير حسب الحاجة</li>
+                        <li style="list-style: '⚠️ ' inside;">عدم وجود إشعارات فورية للمشاكل الحرجة</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>💻 السلوكيات التقنية</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-label">مستوى التقنية</div>
+                            <div class="stat-value">خبير</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">💻</div>
+                            <div class="stat-label">الجهاز</div>
+                            <div class="stat-value">PC + Tablet</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">⏰</div>
+                            <div class="stat-label">وقت الاستخدام</div>
+                            <div class="stat-value">8 ساعات</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">🌐</div>
+                            <div class="stat-label">المتصفح</div>
+                            <div class="stat-value">Chrome</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quote-box">
+                    أحتاج إلى نظام يمنحني رؤية كاملة على كل ما يحدث في المنصة، مع أدوات تخصيص سهلة وآمنة.
+                </div>
+            </div>
+        </div>
+
+        <!-- Persona 2: School Admin -->
+        <div id="persona-2" class="persona-card">
+            <div class="persona-header persona-school-admin">
+                <div class="persona-title">
+                    <div class="persona-avatar">🏫</div>
+                    <div class="persona-name">
+                        <h2>خالد الدوسري</h2>
+                        <div class="persona-role">School Admin - مدير مدرسة</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="persona-body">
+                <div class="persona-section">
+                    <h3>📋 المعلومات الأساسية</h3>
+                    <table class="info-table">
+                        <tr>
+                            <td>العمر</td>
+                            <td>42 سنة</td>
+                        </tr>
+                        <tr>
+                            <td>المؤهل</td>
+                            <td>ماجستير تربية</td>
+                        </tr>
+                        <tr>
+                            <td>الخبرة</td>
+                            <td>15 سنة في الإدارة التربوية</td>
+                        </tr>
+                        <tr>
+                            <td>الموقع</td>
+                            <td>جدة، المملكة العربية السعودية</td>
+                        </tr>
+                        <tr>
+                            <td>حجم المدرسة</td>
+                            <td>500 طالب و 40 معلم</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="persona-section">
+                    <h3>🎯 الأهداف الرئيسية</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '✅ ' inside;">إدارة المعلمين والطلاب بكفاءة</li>
+                        <li style="list-style: '✅ ' inside;">تسهيل عملية التسجيل الذاتي</li>
+                        <li style="list-style: '✅ ' inside;">متابعة أداء المدرسة ككل</li>
+                        <li style="list-style: '✅ ' inside;">تحسين التواصل مع أولياء الأمور</li>
+                        <li style="list-style: '✅ ' inside;">الحصول على تقارير شاملة</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>📅 المهام اليومية</h3>
+                    <div class="tags">
+                        <span class="tag">📋 مراجعة طلبات التسجيل</span>
+                        <span class="tag">✅ قبول/رفض المستخدمين</span>
+                        <span class="tag">👥 إدارة الفصول</span>
+                        <span class="tag">📊 مراجعة الإحصائيات</span>
+                        <span class="tag">📧 التواصل مع المعلمين</span>
+                        <span class="tag">📈 إعداد التقارير</span>
+                    </div>
+                </div>
+
+                <div class="persona-section">
+                    <h3>⚠️ نقاط الألم</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '⚠️ ' inside;">كثرة المهام الإدارية اليومية</li>
+                        <li style="list-style: '⚠️ ' inside;">صعوبة متابعة أداء جميع المعلمين</li>
+                        <li style="list-style: '⚠️ ' inside;">الحاجة لوقت طويل لمراجعة طلبات التسجيل</li>
+                        <li style="list-style: '⚠️ ' inside;">عدم وجود تقارير جاهزة لأولياء الأمور</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>💻 السلوكيات التقنية</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-label">مستوى التقنية</div>
+                            <div class="stat-value">متوسط</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">📱</div>
+                            <div class="stat-label">الجهاز</div>
+                            <div class="stat-value">PC + Phone</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">⏰</div>
+                            <div class="stat-label">وقت الاستخدام</div>
+                            <div class="stat-value">3-4 ساعات</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">🌐</div>
+                            <div class="stat-label">المتصفح</div>
+                            <div class="stat-value">Chrome/Safari</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quote-box">
+                    أحتاج إلى نظام يوفر لي الوقت ويسهل علي إدارة المدرسة بدون تعقيدات تقنية.
+                </div>
+            </div>
+        </div>
+
+        <!-- Persona 3: Teacher -->
+        <div id="persona-3" class="persona-card">
+            <div class="persona-header persona-teacher">
+                <div class="persona-title">
+                    <div class="persona-avatar">👩‍🏫</div>
+                    <div class="persona-name">
+                        <h2>سارة الأحمدي</h2>
+                        <div class="persona-role">Teacher - معلمة</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="persona-body">
+                <div class="persona-section">
+                    <h3>📋 المعلومات الأساسية</h3>
+                    <table class="info-table">
+                        <tr>
+                            <td>العمر</td>
+                            <td>29 سنة</td>
+                        </tr>
+                        <tr>
+                            <td>المؤهل</td>
+                            <td>بكالوريوس تربية إسلامية</td>
+                        </tr>
+                        <tr>
+                            <td>الخبرة</td>
+                            <td>5 سنوات في التدريس</td>
+                        </tr>
+                        <tr>
+                            <td>الموقع</td>
+                            <td>الدمام، المملكة العربية السعودية</td>
+                        </tr>
+                        <tr>
+                            <td>عدد الطلاب</td>
+                            <td>120 طالب في 4 فصول</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="persona-section">
+                    <h3>🎯 الأهداف الرئيسية</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '✅ ' inside;">جعل التعليم ممتعاً وتفاعلياً</li>
+                        <li style="list-style: '✅ ' inside;">متابعة تقدم جميع طلابها</li>
+                        <li style="list-style: '✅ ' inside;">تقييم أنشطة الطلاب بكفاءة</li>
+                        <li style="list-style: '✅ ' inside;">التواصل مع أولياء الأمور</li>
+                        <li style="list-style: '✅ ' inside;">إنشاء أنشطة مخصصة لطلابها</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>📅 المهام اليومية</h3>
+                    <div class="tags">
+                        <span class="tag">📚 عرض الدروس</span>
+                        <span class="tag">✍️ مراجعة التسليمات</span>
+                        <span class="tag">⭐ إعطاء درجات</span>
+                        <span class="tag">📊 متابعة التقدم</span>
+                        <span class="tag">💬 التواصل مع الطلاب</span>
+                        <span class="tag">👥 إدارة الفرق</span>
+                    </div>
+                </div>
+
+                <div class="persona-section">
+                    <h3>⚠️ نقاط الألم</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '⚠️ ' inside;">عدد كبير من الأنشطة للمراجعة</li>
+                        <li style="list-style: '⚠️ ' inside;">صعوبة متابعة 120 طالب</li>
+                        <li style="list-style: '⚠️ ' inside;">الحاجة لوقت طويل لتقييم الأنشطة</li>
+                        <li style="list-style: '⚠️ ' inside;">الحاجة لمزيد من التقارير التفصيلية</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>✅ مميزات متاحة لها</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '✅ ' inside;">إنشاء أنشطة جديدة (createActivity, storeActivity)</li>
+                        <li style="list-style: '✅ ' inside;">إدارة الفرق (Teams) وتعيين أنشطة جماعية</li>
+                        <li style="list-style: '✅ ' inside;">بنك الأسئلة وبنك الأنشطة</li>
+                        <li style="list-style: '✅ ' inside;">التواصل مع أولياء الأمور (ParentTeacherMessage)</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>💻 السلوكيات التقنية</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-label">مستوى التقنية</div>
+                            <div class="stat-value">متوسط</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">💻</div>
+                            <div class="stat-label">الجهاز</div>
+                            <div class="stat-value">Laptop + Phone</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">⏰</div>
+                            <div class="stat-label">وقت الاستخدام</div>
+                            <div class="stat-value">2-3 ساعات</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">🌐</div>
+                            <div class="stat-label">المتصفح</div>
+                            <div class="stat-value">Chrome/Edge</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quote-box">
+                    أحب نظام Gamification وأدوات إنشاء الأنشطة. الآن أستطيع تصميم أنشطة تتناسب مع احتياجات طلابي!
+                </div>
+            </div>
+        </div>
+
+        <!-- Persona 4: Student -->
+        <div id="persona-4" class="persona-card">
+            <div class="persona-header persona-student">
+                <div class="persona-title">
+                    <div class="persona-avatar">👦</div>
+                    <div class="persona-name">
+                        <h2>عمر السالم</h2>
+                        <div class="persona-role">Student - طالب - المرحلة المتوسطة</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="persona-body">
+                <div class="persona-section">
+                    <h3>📋 المعلومات الأساسية</h3>
+                    <table class="info-table">
+                        <tr>
+                            <td>العمر</td>
+                            <td>12 سنة</td>
+                        </tr>
+                        <tr>
+                            <td>الصف</td>
+                            <td>الأول متوسط</td>
+                        </tr>
+                        <tr>
+                            <td>الاهتمامات</td>
+                            <td>ألعاب الفيديو، القراءة، الرياضة</td>
+                        </tr>
+                        <tr>
+                            <td>الموقع</td>
+                            <td>مكة المكرمة، المملكة العربية السعودية</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="persona-section">
+                    <h3>🎯 الأهداف الرئيسية</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '🎮 ' inside;">التعلم بطريقة ممتعة</li>
+                        <li style="list-style: '🏆 ' inside;">الحصول على شارات ونقاط</li>
+                        <li style="list-style: '🥇 ' inside;">التنافس مع زملائه</li>
+                        <li style="list-style: '✅ ' inside;">إنهاء جميع القيم والدروس</li>
+                        <li style="list-style: '⭐ ' inside;">الحصول على أعلى الدرجات</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>📅 المهام اليومية</h3>
+                    <div class="tags">
+                        <span class="tag">📖 مراجعة خريطة التعلم</span>
+                        <span class="tag">✍️ إنجاز الأنشطة</span>
+                        <span class="tag">🎯 المحافظة على Streak</span>
+                        <span class="tag">📊 مراجعة Leaderboard</span>
+                        <span class="tag">🏅 جمع الشارات</span>
+                        <span class="tag">💬 التفاعل مع الفريق</span>
+                    </div>
+                </div>
+
+                <div class="persona-section">
+                    <h3>⚠️ نقاط الألم</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '⚠️ ' inside;">بعض الدروس طويلة ومملة</li>
+                        <li style="list-style: '⚠️ ' inside;">الانتظار الطويل لتقييم الأنشطة</li>
+                        <li style="list-style: '⚠️ ' inside;">يريد مزيد من الألعاب التفاعلية</li>
+                        <li style="list-style: '⚠️ ' inside;">يريد تطبيق موبايل أسهل</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>✅ مميزات متاحة له</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '✅ ' inside;">المتجر (Shop) - شراء Avatars, Themes, Badges</li>
+                        <li style="list-style: '✅ ' inside;">نظام الفرق (Teams) - المشاركة مع الأصدقاء</li>
+                        <li style="list-style: '✅ ' inside;">اختبارات Quiz تفاعلية</li>
+                        <li style="list-style: '✅ ' inside;">نظام Leaderboard والتنافس</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>💻 السلوكيات التقنية</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-label">مستوى التقنية</div>
+                            <div class="stat-value">جيد</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">📱</div>
+                            <div class="stat-label">الجهاز</div>
+                            <div class="stat-value">Phone + Tablet</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">⏰</div>
+                            <div class="stat-label">وقت الاستخدام</div>
+                            <div class="stat-value">1-2 ساعة</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">🌐</div>
+                            <div class="stat-label">المتصفح</div>
+                            <div class="stat-value">Chrome Mobile</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="persona-section">
+                    <h3>💪 الدوافع والمحفزات</h3>
+                    <div class="tags">
+                        <span class="tag">🏆 المنافسة الصحية</span>
+                        <span class="tag">🎖️ جمع الشارات</span>
+                        <span class="tag">🔥 المحافظة على Streak</span>
+                        <span class="tag">👥 التعاون مع الأصدقاء</span>
+                        <span class="tag">⭐ رضا المعلمة وولي الأمر</span>
+                    </div>
+                </div>
+
+                <div class="quote-box">
+                    أحب أن أرى نقاطي تزيد وأتنافس مع أصدقائي. المتجر رائع - أشتري أشياء جميلة بالعملات!
+                </div>
+            </div>
+        </div>
+
+        <!-- Persona 5: Parent -->
+        <div id="persona-5" class="persona-card">
+            <div class="persona-header persona-parent">
+                <div class="persona-title">
+                    <div class="persona-avatar">👨‍👦</div>
+                    <div class="persona-name">
+                        <h2>فهد المطيري</h2>
+                        <div class="persona-role">Parent - ولي أمر</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="persona-body">
+                <div class="persona-section">
+                    <h3>📋 المعلومات الأساسية</h3>
+                    <table class="info-table">
+                        <tr>
+                            <td>العمر</td>
+                            <td>38 سنة</td>
+                        </tr>
+                        <tr>
+                            <td>المهنة</td>
+                            <td>مهندس</td>
+                        </tr>
+                        <tr>
+                            <td>عدد الأبناء</td>
+                            <td>3 أطفال (طالبان في المنصة)</td>
+                        </tr>
+                        <tr>
+                            <td>الموقع</td>
+                            <td>المدينة المنورة، المملكة العربية السعودية</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="persona-section">
+                    <h3>🎯 الأهداف الرئيسية</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '👀 ' inside;">متابعة تقدم أبنائه الدراسي</li>
+                        <li style="list-style: '📊 ' inside;">فهم نقاط القوة والضعف لديهم</li>
+                        <li style="list-style: '💬 ' inside;">التواصل مع المعلمين عند الحاجة</li>
+                        <li style="list-style: '✅ ' inside;">التأكد من التزام الأبناء بالواجبات</li>
+                        <li style="list-style: '📈 ' inside;">تحفيز الأبناء على التحسن</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>📅 المهام (يومية أو أسبوعية)</h3>
+                    <div class="tags">
+                        <span class="tag">📱 مراجعة تقدم الأبناء</span>
+                        <span class="tag">📊 النقاط والشارات</span>
+                        <span class="tag">✅ التأكد من الإنجاز</span>
+                        <span class="tag">💬 قراءة ملاحظات المعلمين</span>
+                        <span class="tag">📧 مراسلة المعلمين</span>
+                        <span class="tag">🎉 تشجيع الأبناء</span>
+                    </div>
+                </div>
+
+                <div class="persona-section">
+                    <h3>⚠️ نقاط الألم</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '⚠️ ' inside;">صعوبة متابعة أكثر من ابن في نفس الوقت</li>
+                        <li style="list-style: '⚠️ ' inside;">يريد إشعارات فورية (Push Notifications)</li>
+                        <li style="list-style: '⚠️ ' inside;">يريد تطبيق موبايل مخصص</li>
+                        <li style="list-style: '⚠️ ' inside;">يريد مقارنة بين أداء الأبناء</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>✅ مميزات متاحة له</h3>
+                    <ul class="icon-list">
+                        <li style="list-style: '✅ ' inside;">نظام رسائل مباشر مع المعلمين (ParentTeacherMessage)</li>
+                        <li style="list-style: '✅ ' inside;">متابعة تقدم الأبناء والنقاط</li>
+                        <li style="list-style: '✅ ' inside;">عرض الشارات والإنجازات</li>
+                        <li style="list-style: '✅ ' inside;">تقارير أداء الأبناء</li>
+                    </ul>
+                </div>
+
+                <div class="persona-section">
+                    <h3>💻 السلوكيات التقنية</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-label">مستوى التقنية</div>
+                            <div class="stat-value">متوسط</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">📱</div>
+                            <div class="stat-label">الجهاز</div>
+                            <div class="stat-value">Smartphone</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">⏰</div>
+                            <div class="stat-label">وقت الاستخدام</div>
+                            <div class="stat-value">15-30 دقيقة</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">🌐</div>
+                            <div class="stat-label">المتصفح</div>
+                            <div class="stat-value">Safari/Chrome</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="persona-section">
+                    <h3>💪 الدوافع والمحفزات</h3>
+                    <div class="tags">
+                        <span class="tag">👨‍👦 حب الأبناء</span>
+                        <span class="tag">📚 تعزيز القيم الإسلامية</span>
+                        <span class="tag">🏆 رؤية التحسن</span>
+                        <span class="tag">🤝 الشراكة مع المدرسة</span>
+                    </div>
+                </div>
+
+                <div class="quote-box">
+                    أستطيع متابعة تقدم أبنائي والتواصل مع المعلمين مباشرة. أتمنى لو كان هناك تطبيق موبايل!
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div id="comparison" class="comparison-section">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center; font-size: 2rem;">📊 ملخص مقارن للشخصيات</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>الجانب</th>
+                        <th>Super Admin</th>
+                        <th>School Admin</th>
+                        <th>Teacher</th>
+                        <th>Student</th>
+                        <th>Parent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>مستوى التقنية</td>
+                        <td>خبير ⭐⭐⭐⭐⭐</td>
+                        <td>متوسط ⭐⭐⭐</td>
+                        <td>متوسط ⭐⭐⭐</td>
+                        <td>جيد ⭐⭐⭐⭐</td>
+                        <td>متوسط ⭐⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>الجهاز الأساسي</td>
+                        <td>PC</td>
+                        <td>PC + Phone</td>
+                        <td>Laptop + Phone</td>
+                        <td>Phone/Tablet</td>
+                        <td>Smartphone</td>
+                    </tr>
+                    <tr>
+                        <td>وقت الاستخدام</td>
+                        <td>8 ساعات</td>
+                        <td>3-4 ساعات</td>
+                        <td>2-3 ساعات</td>
+                        <td>1-2 ساعة</td>
+                        <td>15-30 دقيقة</td>
+                    </tr>
+                    <tr>
+                        <td>الهدف الرئيسي</td>
+                        <td>إدارة النظام</td>
+                        <td>إدارة المدرسة</td>
+                        <td>تعليم الطلاب</td>
+                        <td>التعلم والمتعة</td>
+                        <td>متابعة الأبناء</td>
+                    </tr>
+                    <tr>
+                        <td>أكبر Pain Point</td>
+                        <td>إدارة عدد كبير</td>
+                        <td>كثرة المهام</td>
+                        <td>وقت التقييم</td>
+                        <td>تطبيق موبايل</td>
+                        <td>تطبيق موبايل</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Insights Section -->
+        <div id="insights" class="comparison-section">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center; font-size: 2rem;">💡 استنتاجات رئيسية</h2>
+            
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <h4>✨ احتياجات مشتركة</h4>
+                    <ul>
+                        <li>السهولة والوضوح في الواجهات</li>
+                        <li>السرعة في الاستجابة</li>
+                        <li>تقارير ملخصة وقابلة للفهم</li>
+                        <li>إشعارات فورية للأحداث المهمة</li>
+                    </ul>
+                </div>
+
+                <div class="insight-card">
+                    <h4>✅ إنجازات تم تحقيقها</h4>
+                    <ul>
+                        <li><strong>Teacher:</strong> إنشاء أنشطة جديدة ✅</li>
+                        <li><strong>Teams:</strong> نظام الفرق مفعّل بالكامل ✅</li>
+                        <li><strong>Shop:</strong> المتجر متاح للطلاب ✅</li>
+                        <li><strong>Messaging:</strong> رسائل بين المعلمين وأولياء الأمور ✅</li>
+                    </ul>
+                </div>
+
+                <div class="insight-card">
+                    <h4>🚀 فرص للتحسين</h4>
+                    <ul>
+                        <li>تطبيق Mobile للطلاب وأولياء الأمور</li>
+                        <li>Push Notifications للإشعارات الفورية</li>
+                        <li>Advanced Analytics للإدارة</li>
+                        <li>AI Recommendations لتحسين التعلم</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 15px; text-align: center;">
+                <p style="font-size: 0.9rem; color: #64748b;">
+                    <strong>تاريخ التحديث:</strong> يناير 22, 2026 | 
+                    <strong>الإصدار:</strong> 2.0.0 | 
+                    <strong>الحالة:</strong> محدّث ومعتمد ✅
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" onclick="scrollToTop()">↑</button>
+
+    <script>
+        // Scroll to Top Functionality
+        const scrollTopBtn = document.querySelector('.scroll-top');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Smooth Scroll for Navigation Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Print Functionality
+        function printDocument() {
+            window.print();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+P for print
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printDocument();
+            }
+            // Home key to scroll to top
+            if (e.key === 'Home') {
+                e.preventDefault();
+                scrollToTop();
+            }
+        });
+    </script>
+</body>
+</html>
