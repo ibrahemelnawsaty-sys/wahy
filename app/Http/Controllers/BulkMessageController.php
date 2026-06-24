@@ -105,6 +105,11 @@ class BulkMessageController extends Controller
             if (! in_array($validated['recipient_type'], self::SCHOOL_SCOPED_TYPES, true)) {
                 return back()->with('error', 'يمكنك الإرسال إلى أعضاء مدرستك فقط')->withInput();
             }
+            // أمان: مُرسِل بلا مدرسة سيؤدي school_id=null إلى where IS NULL وبالتالي استهداف كل
+            // المستخدمين بلا مدرسة عبر المنصّة — نرفض الطلب كما يفعل CheckSchoolAccess.
+            if (empty($sender->school_id)) {
+                abort(403, 'لا يوجد مدرسة مرتبطة بحسابك. يرجى التواصل مع الإدارة.');
+            }
             $validated['school_id'] = $sender->school_id; // فرض مدرسة المُرسِل — يمنع استهداف مدارس أخرى
         }
 
@@ -181,6 +186,12 @@ class BulkMessageController extends Controller
             UserRole::Student->value,
             UserRole::SchoolAdmin->value,
         ];
+
+        // أمان: أي نوع school_* بلا مدرسة محدَّدة سيتحوّل where('school_id', null) إلى IS NULL
+        // فيستهدف كل المستخدمين بلا مدرسة عبر المنصّة — نُعيد مجموعة فارغة لمنع ذلك نهائياً.
+        if (in_array($type, self::SCHOOL_SCOPED_TYPES, true) && empty($schoolId)) {
+            return collect();
+        }
 
         switch ($type) {
             case 'teacher':

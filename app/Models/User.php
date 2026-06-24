@@ -42,20 +42,32 @@ class User extends Authenticatable
                 return; // creation handled by explicit controllers; allow.
             }
 
-            $sensitive = ['role', 'school_id', 'status', 'secondary_roles', 'active_role', 'password_change_required'];
-            $changed = collect($sensitive)->filter(fn ($field) => $user->isDirty($field));
-
-            if ($changed->isEmpty()) {
-                return;
-            }
-
             // Allow CLI (seeders, artisan commands), queue workers, and unauthenticated bootstrap.
             if (app()->runningInConsole()) {
                 return;
             }
 
             $actor = auth()->user();
-            if ($actor && in_array($actor->role, ['super_admin', 'school_admin'], true)) {
+            $isPrivileged = $actor && in_array($actor->role, ['super_admin', 'school_admin'], true);
+
+            // active_role is a SELF-SERVICE selection among the user's already-owned roles
+            // (role-switching). Allow it iff the new value is a role the user actually owns;
+            // setting it to an UNOWNED role would be escalation -> blocked for non-admins.
+            // (Kept OUT of the $sensitive list below so a legitimate switch is not 403'd.)
+            if ($user->isDirty('active_role') && ! $isPrivileged) {
+                $newActive = $user->active_role;
+                if (filled($newActive) && ! in_array($newActive, $user->getAllRoles(), true)) {
+                    abort(403, 'لا يمكن تفعيل دور غير مُسنَد للحساب');
+                }
+            }
+
+            // The privilege-GRANTING fields stay strictly admin-only.
+            $sensitive = ['role', 'school_id', 'status', 'secondary_roles', 'password_change_required'];
+            if (collect($sensitive)->filter(fn ($field) => $user->isDirty($field))->isEmpty()) {
+                return;
+            }
+
+            if ($isPrivileged) {
                 return;
             }
 

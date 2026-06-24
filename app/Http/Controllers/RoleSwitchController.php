@@ -14,13 +14,15 @@ class RoleSwitchController extends Controller
     {
         $user = Auth::user();
         
-        // التحقق من أن الدور المطلوب متاح للمستخدم
-        if (!in_array($role, $user->getAllRoles())) {
-            return back()->with('error', 'هذا الدور غير متاح لك');
+        // التحقق من أن الدور المطلوب متاح للمستخدم (منع تصعيد الصلاحيات)
+        if (!in_array($role, $user->getAllRoles(), true)) {
+            abort(403, 'هذا الدور غير متاح لك');
         }
-        
-        // تبديل الدور
-        $user->switchRole($role);
+
+        // تبديل الدور — يُعيد التحقق داخلياً من getAllRoles؛ نرفض إن فشل
+        if (!$user->switchRole($role)) {
+            abort(403, 'هذا الدور غير متاح لك');
+        }
         
         // إعادة التوجيه للداشبورد الخاص بالدور الجديد
         $dashboardRoute = $user->getRoleDashboardRoute($role);

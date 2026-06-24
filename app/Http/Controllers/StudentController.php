@@ -470,6 +470,13 @@ class StudentController extends Controller
         $lesson = Lesson::with(['concept.value', 'activities'])
             ->findOrFail($id);
 
+        // Pass-4 Batch 3 (BOLA): الدرس يتبع concept->value. امنع فتح محتوى
+        // مدرسة أخرى — يجب أن تكون القيمة مرئية لمدرسة الطالب.
+        $value = optional($lesson->concept)->value;
+        if (! $value || ! Value::visibleForSchool($user->school_id)->whereKey($value->id)->exists()) {
+            abort(404);
+        }
+
         // جلب الأنشطة مرة واحدة مرتّبة
         $activities = $lesson->activities()->orderBy('order')->get();
 
@@ -1889,12 +1896,39 @@ class StudentController extends Controller
     }
 
     /**
+     * Pass-4 Batch 3 (BOLA): هل هذا التمرين متاح لهذا الطالب؟
+     * متاح إن كان عاماً (classroom_id = null) أو ضمن فصول الطالب — نفس منطق practice().
+     */
+    private function exerciseBelongsToStudent(\App\Models\PracticeExercise $exercise, User $student): bool
+    {
+        if ($exercise->classroom_id === null) {
+            // Public exercise has NO classroom anchor — bind it to the CREATOR'S school so a
+            // school-B teacher's public exercise is not reachable (or point-farmable) by a
+            // school-A student. A teacherless public exercise is reachable by nobody (safe default).
+            $exercise->loadMissing('teacher:id,school_id');
+
+            return $exercise->teacher
+                && (int) $exercise->teacher->school_id === (int) $student->school_id;
+        }
+
+        return $student->classrooms()
+            ->where('classrooms.id', $exercise->classroom_id)
+            ->exists();
+    }
+
+    /**
      * بدء تمرين
      */
     public function startExercise($id)
     {
         $student = Auth::user();
         $exercise = \App\Models\PracticeExercise::findOrFail($id);
+
+        // Pass-4 Batch 3 (BOLA): التمرين يخص الطالب فقط إن كان classroom_id ضمن
+        // فصوله، أو عاماً (classroom_id = null). يطابق نفس فلترة practice().
+        if (! $this->exerciseBelongsToStudent($exercise, $student)) {
+            abort(403);
+        }
 
         // التحقق من عدد المحاولات
         $attemptsCount = \App\Models\PracticeAttempt::where('student_id', $student->id)
@@ -1920,6 +1954,12 @@ class StudentController extends Controller
     {
         $student = Auth::user();
         $exercise = \App\Models\PracticeExercise::findOrFail($id);
+
+        // Pass-4 Batch 3 (BOLA): submit يجب ألا يكون متاحاً لتمرين أجنبي حتى لو
+        // حُجب start — نفس فحص الملكية على المسارين.
+        if (! $this->exerciseBelongsToStudent($exercise, $student)) {
+            abort(403);
+        }
 
         // Pass-4 Batch 2: enforce max_attempts on SUBMIT too. startExercise gated this,
         // submitExercise did not — the unlimited-points-farming bug (replay the POST →
@@ -2096,7 +2136,16 @@ class StudentController extends Controller
     public function joinPvpMatch($challengeId)
     {
         $student = Auth::user();
+
         $challenge = \App\Models\PvpChallenge::where('is_active', true)->findOrFail($challengeId);
+
+        // Pass-4 Batch 3 (BOLA): قصر الانضمام على التحديات المتاحة لمدرسة الطالب
+        // فقط (عامة أو مرتبطة بقيمة مفعّلة لمدرسته) — نفس scope صالة الانتظار.
+        // يمنع الانضمام لتحدٍّ مقيّد بقيمة مدرسة أخرى عبر تمرير id مباشرة.
+        if (! \App\Models\PvpChallenge::availableForSchool($student->school_id)
+            ->whereKey($challenge->id)->exists()) {
+            abort(403);
+        }
 
         // البحث عن مباراة بحالة "waiting" (طالب ينتظر)
         $match = \App\Models\PvpMatch::where('challenge_id', $challengeId)

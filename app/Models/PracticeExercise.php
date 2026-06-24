@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property-read \App\Models\User|null $teacher
+ * @property-read \App\Models\Classroom|null $classroom
+ */
 class PracticeExercise extends Model
 {
     protected $fillable = [

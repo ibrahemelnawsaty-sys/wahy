@@ -1018,6 +1018,14 @@ class TeacherController extends Controller
             ->where('teacher_id', $user->id)
             ->firstOrFail();
 
+        // التحقق على مستوى الكائن: القائد والأعضاء طلاب في مدرسة المعلم فقط (منع IDOR عبر المدارس)
+        $allowed = User::where('school_id', $user->school_id)
+            ->where('role', 'student')
+            ->whereIn('id', array_merge([$validated['leader_id']], $validated['member_ids']))
+            ->pluck('id');
+
+        abort_unless($allowed->contains((int) $validated['leader_id']), 422, 'قائد غير صالح');
+
         DB::beginTransaction();
         try {
             // إنشاء الفريق
@@ -1029,11 +1037,10 @@ class TeacherController extends Controller
                 'status' => 'active',
             ]);
 
-            // إضافة الأعضاء
-            $memberIds = array_unique(array_merge(
-                [$validated['leader_id']],
-                $validated['member_ids'],
-            ));
+            // إضافة الأعضاء (مقيّدة بطلاب مدرسة المعلم فقط)
+            $memberIds = $allowed->intersect($validated['member_ids'])
+                ->push((int) $validated['leader_id'])
+                ->unique();
 
             foreach ($memberIds as $studentId) {
                 DB::table('team_members')->insert([
@@ -1119,6 +1126,14 @@ class TeacherController extends Controller
             'status' => 'nullable|in:active,inactive',
         ]);
 
+        // التحقق على مستوى الكائن: القائد والأعضاء طلاب في مدرسة المعلم فقط (منع IDOR عبر المدارس)
+        $allowed = User::where('school_id', $user->school_id)
+            ->where('role', 'student')
+            ->whereIn('id', array_merge([$validated['leader_id']], $validated['member_ids']))
+            ->pluck('id');
+
+        abort_unless($allowed->contains((int) $validated['leader_id']), 422, 'قائد غير صالح');
+
         DB::beginTransaction();
         try {
             $team->update([
@@ -1130,10 +1145,10 @@ class TeacherController extends Controller
             // إعادة بناء الأعضاء
             DB::table('team_members')->where('team_id', $team->id)->delete();
 
-            $memberIds = array_unique(array_merge(
-                [$validated['leader_id']],
-                $validated['member_ids'],
-            ));
+            // مقيّدة بطلاب مدرسة المعلم فقط (لا تُدرَج أبداً المعرّفات الخام من الطلب)
+            $memberIds = $allowed->intersect($validated['member_ids'])
+                ->push((int) $validated['leader_id'])
+                ->unique();
 
             foreach ($memberIds as $studentId) {
                 DB::table('team_members')->insert([
