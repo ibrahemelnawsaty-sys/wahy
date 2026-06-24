@@ -1,8 +1,14 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
 
 parameters:
     level: 5
+
+    # Pass-4: pre-existing level-5 debt is grandfathered via phpstan-baseline.neon
+    # (generated 2026-06-24). New code must be clean; the baseline only suppresses
+    # the 391 errors that predate the remediation.
+    reportUnmatchedIgnoredErrors: false
 
     paths:
         - app
@@ -14,6 +20,10 @@ parameters:
         - node_modules
         - bootstrap/cache
         - storage
+        # livewire/livewire is NOT installed (config exists but the package is absent),
+        # so QuickStats extends an unknown class and cannot be statically analysed.
+        # Flagged as a confirmed follow-up (install Livewire or remove the dead component).
+        - app/Livewire
 
     # متجاهل: حقول المخططات الديناميكية ($fillable + DB::table)
     ignoreErrors:
@@ -21,9 +31,6 @@ parameters:
         - '#PHPDoc tag @param has invalid value#'
         # Spatie Permission HasRoles trait يضيف assignRole() لكن phpstan لا يكتشفه
         - '#Call to an undefined method App\\Models\\User::assignRole\(\)#'
-
-    checkGenericClassInNonGenericObjectType: false
-    checkMissingIterableValueType: false
 
     # تجاهل magic properties من casts
     universalObjectCratesClasses:

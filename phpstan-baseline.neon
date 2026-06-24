@@ -1,0 +1,1435 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$students\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Console/Commands/CheckHomeworkDueDates.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:teachingClassrooms\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Console/Commands/CheckHomeworkDueDates.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>platform_rank" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Console/Commands/RefreshSchoolStatistics.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>total_points" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Console/Commands/RefreshSchoolStatistics.php
+
+		-
+			message: '#^Relation ''children'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Exports/ParentsExport.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Exports/ParentsExport.php
+
+		-
+			message: '#^Relation ''classrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Exports/StudentsExport.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Exports/StudentsExport.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Exports/TeachersExport.php
+
+		-
+			message: '#^Relation ''teachingClassrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Exports/TeachersExport.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivitySubmission\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ActivitySubmission\>\:\:\$activity\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivitySubmission\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ActivitySubmission\>\:\:\$student\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Relation ''activity'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 4
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 2
+			path: app/Http/Controllers/Admin/LessonManagementController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Message\:\:\$read_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/MessagesLogController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Message\:\:\$total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/MessagesLogController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int\<1, 9999\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/ParentManagementController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/Admin/ParentManagementController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$activity_submissions_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/ReportsController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$badges\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/ReportsController.php
+
+		-
+			message: '#^Relation ''activitySubmissions'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/Admin/ReportsController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/Admin/ReportsController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/Admin/ReportsController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>current_streak" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/ReportsController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int\<1, 9999\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/SchoolManagementController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int\<1, 9999\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/StudentManagementController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/Admin/StudentManagementController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SurveyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Admin/SurveyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$question_text\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SurveyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SurveyController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:responses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SurveyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SurveyManagementController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SurveyManagementController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$question_text\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SurveyManagementController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int\<1, 9999\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/TeacherManagementController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/Admin/TeacherManagementController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int\<1, 9999\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/UserManagementController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/Admin/UserManagementController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$classrooms\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$school\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/AuthApiController.php
+
+		-
+			message: '#^Cannot access property \$content_snapshot on array\<mixed\>\|object\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/Api/LandingContentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Activity\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Activity\>\:\:\$attachments\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Activity\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Activity\>\:\:\$instructions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Activity\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Activity\>\:\:\$school_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$classrooms\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lessons\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Anonymous function should return array\{id\: int, title\: string, icon\: string\|null, image\: string\|null, concepts_count\: int\<0, max\>, concepts\: Illuminate\\Support\\Collection\<int, array\{id\: mixed, title\: mixed, lessons_count\: mixed\}\>\} but returns array\{id\: int, title\: string, icon\: string\|null, image\: string\|null, concepts_count\: int\<0, max\>, concepts\: Illuminate\\Support\\Collection\<int, array\{id\: int, title\: string, lessons_count\: mixed\}\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\Activity\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between ''approved''\|''needs_review''\|''pending''\|''rejected'' and ''completed'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>current_streak" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Property App\\Models\\User\:\:\$two_factor_code \(string\|null\) does not accept int\<100000, 999999\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Http/Controllers/AuthController.php
+
+		-
+			message: '#^Relation ''bulkMessage'' is not found in App\\Models\\BulkMessageRecipient model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/BulkMessageController.php
+
+		-
+			message: '#^Relation ''recipients'' is not found in App\\Models\\BulkMessage model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/BulkMessageController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\BulkMessage model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/BulkMessageController.php
+
+		-
+			message: '#^Trait App\\Http\\Controllers\\Concerns\\ScopedToSchool is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: app/Http/Controllers/Concerns/ScopedToSchool.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: app/Http/Controllers/Health/HealthCheckController.php
+
+		-
+			message: '#^Called ''count'' on Laravel collection, but could have been retrieved as a query\.$#'
+			identifier: larastan.noUnnecessaryCollectionCall
+			count: 1
+			path: app/Http/Controllers/LeaderboardController.php
+
+		-
+			message: '#^Relation ''classrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/LeaderboardController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/LeaderboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/LeaderboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Message\:\:\$count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/MessagesController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$streak\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/MessagesController.php
+
+		-
+			message: '#^Match arm comparison between ''student'' and ''student'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/MessagesController.php
+
+		-
+			message: '#^Relation ''lastMessage'' is not found in App\\Models\\Conversation model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/MessagesController.php
+
+		-
+			message: '#^Offset ''parent''\|''school_admin''\|''student''\|''super_admin''\|''teacher'' on array\{super_admin\: ''layouts\.admin'', school_admin\: ''layouts\.school\-admin'', teacher\: ''layouts\.teacher'', parent\: ''layouts\.parent'', student\: ''layouts\.student\-app''\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/NotificationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$school\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''activity'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''activity'' is not found in App\\Models\\FamilyActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''classrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\FamilyActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\ParentTeacherMessage model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''teacher'' is not found in App\\Models\\ParentTeacherMessage model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''teachingClassrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ParentController.php
+
+		-
+			message: '#^Relation ''activity'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ParentDashboardController.php
+
+		-
+			message: '#^Relation ''teachingClassrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ParentDashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$online_since\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$school\.$#'
+			identifier: property.notFound
+			count: 38
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$session_time\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Relation ''activity'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Relation ''badges'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Relation ''children'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Relation ''classrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Relation ''streak'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SchoolAdminController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Activity\:\:\$urgency\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Lesson\:\:\$progress\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PracticeAttempt\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PracticeAttempt\>\:\:\$exercise\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PvpMatch\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PvpMatch\>\:\:\$player1\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PvpMatch\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PvpMatch\>\:\:\$player2\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$parents\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$school\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$streak\.$#'
+			identifier: property.notFound
+			count: 14
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$total_xp\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Value\:\:\$is_completed\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Value\:\:\$is_mastered\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Value\:\:\$is_unlocked\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Value\:\:\$progress\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Value\:\:\$progress_percent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_completed\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_unlocked\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lessons\.$#'
+			identifier: property.notFound
+			count: 8
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$score\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Call to function is_string\(\) with array\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StudentController\:\:calculateScore\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''activity'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''challenge'' is not found in App\\Models\\PvpMatch model\.$#'
+			identifier: larastan.relationExistence
+			count: 4
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''player1'' is not found in App\\Models\\PvpMatch model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''player2'' is not found in App\\Models\\PvpMatch model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''ratings'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''submissions'' is not found in App\\Models\\Activity model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''teacher'' is not found in App\\Models\\PracticeExercise model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''teachingClassrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''users'' is not found in App\\Models\\Badge model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''value'' is not found in App\\Models\\PvpChallenge model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Relation ''winner'' is not found in App\\Models\\PvpMatch model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\SuperAdminController\:\:addFilesToZip\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Relation ''creator'' is not found in App\\Models\\PvpChallenge model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Relation ''featuredBy'' is not found in App\\Models\\Activity model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Relation ''submissions'' is not found in App\\Models\\Activity model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Relation ''value'' is not found in App\\Models\\PvpChallenge model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Variable \$_ENV on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/SuperAdminController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SurveyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_required\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SurveyController.php
+
+		-
+			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/SurveyController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Activity\:\:\$average_score\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Activity\:\:\$submissions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivitySubmission\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ActivitySubmission\>\:\:\$activity\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Team\:\:\$members\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\TeamActivity\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TeamActivity\>\:\:\$activity\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\TeamActivity\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TeamActivity\>\:\:\$team\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$average_score\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$completed_activities\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$parents\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$school\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$total_badges\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$badges\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''activities'' is not found in App\\Models\\Team model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''activity'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 5
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''children'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''classroom'' is not found in App\\Models\\PracticeExercise model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''classroom'' is not found in App\\Models\\Team model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''classrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''exercise'' is not found in App\\Models\\PracticeAttempt model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''leader'' is not found in App\\Models\\Team model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''members'' is not found in App\\Models\\Team model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''parent'' is not found in App\\Models\\ParentTeacherMessage model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''school'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\ActivitySubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\ParentTeacherMessage model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''student'' is not found in App\\Models\\PracticeAttempt model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''submissions'' is not found in App\\Models\\Activity model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Relation ''team'' is not found in App\\Models\\TeamActivity model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between ''parent''\|''school_admin''\|''student''\|''teacher'' and ''admin'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Middleware/CheckPendingSurveys.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Http/Middleware/VerifyCsrfToken.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$creator\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$due_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$duration_minutes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$is_family_activity\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$is_featured\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$is_homework\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$is_team_activity\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$lesson\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$max_attempts\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$passing_score\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$question_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityResource\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$avatar\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$school\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivitySubmission\:\:\$activity\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/SendActivityGradedNotification.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivitySubmission\:\:\$student\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/SendActivityGradedNotification.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$parent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/SendBadgeEarnedNotification.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$parent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/SendWelcomeNotification.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Computed does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/Student/QuickStats.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\On does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/Student/QuickStats.php
+
+		-
+			message: '#^Property App\\Models\\ActivityUserStreak\:\:\$last_activity_date \(Carbon\\Carbon\|null\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Models/ActivityUserStreak.php
+
+		-
+			message: '#^Offset ''institution''\|''parent''\|''school''\|''student''\|''teacher'' on array\{school\: ''مدرسة'', teacher\: ''معلم'', parent\: ''ولي أمر'', student\: ''طالب'', institution\: ''جهة تعليمية''\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Models/ContactMessage.php
+
+		-
+			message: '#^Called ''pluck'' on Laravel collection, but could have been retrieved as a query\.$#'
+			identifier: larastan.noUnnecessaryCollectionCall
+			count: 1
+			path: app/Models/LandingContent.php
+
+		-
+			message: '#^Method App\\Models\\Lesson\:\:getUserStreak\(\) should return App\\Models\\LessonUserStreak\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Lesson.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$streak_bonus_points\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/LessonUserStreak.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$streak_enabled\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/LessonUserStreak.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$streak_max_days\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/LessonUserStreak.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$streak_min_days\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/LessonUserStreak.php
+
+		-
+			message: '#^Property App\\Models\\LessonUserStreak\:\:\$last_activity_date \(Carbon\\Carbon\|null\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Models/LessonUserStreak.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lesson\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Survey.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:questions\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/Survey.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:responses\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/Survey.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$points\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Cannot access property \$age on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$school_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/ActivityPolicy.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivitySubmission\:\:\$student\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/ActivitySubmissionPolicy.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$badges\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$streak\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Call to method getRequest\(\) on an unknown class Sentry\\Event\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Call to method setRequest\(\) on an unknown class Sentry\\Event\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Parameter \$event of anonymous function has invalid type Sentry\\Event\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Call to function is_numeric\(\) with int will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/ActivityGradingService.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: app/Services/ActivityGradingService.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: app/Services/Backup/BackupService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$points\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/PointsService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/PointsService.php
+
+		-
+			message: '#^Relation ''classrooms'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Services/PointsService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/PointsService.php
+
+		-
+			message: '#^Call to static method create\(\) on an unknown class App\\Models\\Meaning\.$#'
+			identifier: class.notFound
+			count: 2
+			path: database/seeders/ConceptsSeeder.php
+
+		-
+			message: '#^Call to static method where\(\) on an unknown class App\\Models\\Meaning\.$#'
+			identifier: class.notFound
+			count: 1
+			path: database/seeders/LessonsSeeder.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: database/seeders/UsersSeeder.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Feature/Gamification/ShopPurchaseTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lessons\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/Performance/StudentDashboardNPlusOneTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with int will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Feature/Security/HttpGuardsTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with int will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Feature/Security/MassAssignmentGuardsTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with int will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Feature/Student/SubmitActivityFlowTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Enums/UserRoleTest.php
