@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
             $table->string('relationship')->default('ولي أمر'); // أب، أم، ولي أمر...
             $table->timestamps();
-            
+
             $table->unique(['parent_id', 'student_id']);
         });
     }

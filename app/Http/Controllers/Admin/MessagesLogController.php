@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
-use App\Models\Conversation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -59,11 +59,11 @@ class MessagesLogController extends Controller
         // الترتيب — حماية ضد SQL Injection بقائمة سماحية صارمة
         $allowedSortColumns = ['created_at', 'sender_id', 'receiver_id', 'is_read', 'id'];
         $sortBy = $request->get('sort_by', 'created_at');
-        if (!in_array($sortBy, $allowedSortColumns, true)) {
+        if (! in_array($sortBy, $allowedSortColumns, true)) {
             $sortBy = 'created_at';
         }
         $sortOrder = strtolower((string) $request->get('sort_order', 'desc'));
-        if (!in_array($sortOrder, ['asc', 'desc'], true)) {
+        if (! in_array($sortOrder, ['asc', 'desc'], true)) {
             $sortOrder = 'desc';
         }
         $query->orderBy($sortBy, $sortOrder);
@@ -100,7 +100,7 @@ class MessagesLogController extends Controller
             'messages',
             'stats',
             'users',
-            'topSenders'
+            'topSenders',
         ));
     }
 
@@ -185,18 +185,18 @@ class MessagesLogController extends Controller
         $messages = $query->orderBy('created_at', 'desc')->get();
 
         $filename = 'messages_log_' . now()->format('Y-m-d_H-i-s') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = function() use ($messages) {
+        $callback = function () use ($messages) {
             $file = fopen('php://output', 'w');
-            
+
             // UTF-8 BOM for Excel compatibility
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
             // Headers
             fputcsv($file, ['ID', 'المرسل', 'المستقبل', 'الرسالة', 'مقروءة', 'تاريخ القراءة', 'تاريخ الإرسال']);
 
@@ -233,9 +233,9 @@ class MessagesLogController extends Controller
 
         // الرسائل حسب اليوم (آخر 30 يوم)
         $messagesPerDay = Message::select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('COUNT(*) as count')
-            )
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('COUNT(*) as count'),
+        )
             ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('date')
             ->orderBy('date', 'asc')
@@ -270,8 +270,8 @@ class MessagesLogController extends Controller
             ')
             ->first();
 
-        $readPercentage = $readRate->total > 0 
-            ? round(($readRate->read_count / $readRate->total) * 100, 2) 
+        $readPercentage = $readRate->total > 0
+            ? round(($readRate->read_count / $readRate->total) * 100, 2)
             : 0;
 
         return view('admin.messages-log.statistics', compact(
@@ -280,8 +280,7 @@ class MessagesLogController extends Controller
             'messagesByRole',
             'topSenders',
             'topReceivers',
-            'readPercentage'
+            'readPercentage',
         ));
     }
 }
-

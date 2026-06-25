@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Setting;
 use App\Models\PageBuilder;
+use App\Models\Setting;
+use Illuminate\Http\Request;
 
 class LandingPageController extends Controller
 {
@@ -24,8 +24,8 @@ class LandingPageController extends Controller
 
         // جلب صفحة الـ Landing أو إنشاء واحدة افتراضية
         $landingPage = PageBuilder::where('slug', 'home')->first();
-        
-        if (!$landingPage) {
+
+        if (! $landingPage) {
             $landingPage = $this->createDefaultLandingPage();
         }
 
@@ -52,7 +52,7 @@ class LandingPageController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم حفظ إعدادات الثيم بنجاح!'
+            'message' => 'تم حفظ إعدادات الثيم بنجاح!',
         ]);
     }
 
@@ -63,9 +63,9 @@ class LandingPageController extends Controller
         ]);
 
         $landingPage = PageBuilder::where('slug', 'home')->first();
-        
-        if (!$landingPage) {
-            $landingPage = new PageBuilder();
+
+        if (! $landingPage) {
+            $landingPage = new PageBuilder;
             $landingPage->page_name = 'الصفحة الرئيسية';
             $landingPage->slug = 'home';
             $landingPage->is_active = true;
@@ -76,7 +76,7 @@ class LandingPageController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم حفظ محتوى الصفحة بنجاح!'
+            'message' => 'تم حفظ محتوى الصفحة بنجاح!',
         ]);
     }
 
@@ -97,28 +97,28 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'level' => 'h1',
                                         'text' => '🌟 ابنِ قيمك خطوة بخطوة',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
                                         'text' => 'منصة تعليمية رائدة لبناء القيم الإنسانية وتعزيز الأخلاق الحميدة',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'button',
                                     'content' => [
                                         'text' => 'ابدأ رحلتك الآن 🚀',
                                         'link' => '/login',
-                                        'style' => 'primary'
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        'style' => 'primary',
+                                    ],
+                                ],
+                            ],
+                        ],
                     ],
-                    
+
                     // Section 2: Features (3 Columns)
                     [
                         'columns' => 3,
@@ -130,9 +130,9 @@ class LandingPageController extends Controller
                                         'icon' => '📚',
                                         'title' => 'محتوى تعليمي متميز',
                                         'description' => 'دروس تفاعلية وأنشطة مبتكرة لبناء القيم',
-                                        'link' => '#'
-                                    ]
-                                ]
+                                        'link' => '#',
+                                    ],
+                                ],
                             ],
                             [
                                 [
@@ -141,9 +141,9 @@ class LandingPageController extends Controller
                                         'icon' => '🏆',
                                         'title' => 'نظام مكافآت محفز',
                                         'description' => 'نقاط وشارات وجوائز لتحفيز التعلم',
-                                        'link' => '#'
-                                    ]
-                                ]
+                                        'link' => '#',
+                                    ],
+                                ],
                             ],
                             [
                                 [
@@ -152,13 +152,13 @@ class LandingPageController extends Controller
                                         'icon' => '📊',
                                         'title' => 'تقارير وتحليلات',
                                         'description' => 'متابعة تقدم الطلاب بشكل دقيق',
-                                        'link' => '#'
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        'link' => '#',
+                                    ],
+                                ],
+                            ],
+                        ],
                     ],
-                    
+
                     // Section 3: About (2 Columns)
                     [
                         'columns' => 2,
@@ -169,24 +169,24 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'level' => 'h2',
                                         'text' => 'لماذا نظام قيمّ؟',
-                                        'align' => 'right'
-                                    ]
+                                        'align' => 'right',
+                                    ],
                                 ],
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
                                         'text' => 'نظام قيمّ هو منصة تعليمية متكاملة تهدف إلى بناء شخصية الطالب من خلال القيم الإنسانية والأخلاق الحميدة. نوفر محتوى تفاعلي وأنشطة مبتكرة تساعد على ترسيخ القيم بطريقة ممتعة وفعالة.',
-                                        'align' => 'right'
-                                    ]
+                                        'align' => 'right',
+                                    ],
                                 ],
                                 [
                                     'type' => 'button',
                                     'content' => [
                                         'text' => 'اعرف المزيد',
                                         'link' => '#about',
-                                        'style' => 'secondary'
-                                    ]
-                                ]
+                                        'style' => 'secondary',
+                                    ],
+                                ],
                             ],
                             [
                                 [
@@ -194,13 +194,13 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'url' => 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
                                         'alt' => 'تعليم القيم',
-                                        'caption' => ''
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        'caption' => '',
+                                    ],
+                                ],
+                            ],
+                        ],
                     ],
-                    
+
                     // Section 4: Stats (4 Columns)
                     [
                         'columns' => 4,
@@ -211,16 +211,16 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'level' => 'h2',
                                         'text' => '1000+',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
                                         'text' => 'طالب مستفيد',
-                                        'align' => 'center'
-                                    ]
-                                ]
+                                        'align' => 'center',
+                                    ],
+                                ],
                             ],
                             [
                                 [
@@ -228,16 +228,16 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'level' => 'h2',
                                         'text' => '50+',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
                                         'text' => 'مدرسة شريكة',
-                                        'align' => 'center'
-                                    ]
-                                ]
+                                        'align' => 'center',
+                                    ],
+                                ],
                             ],
                             [
                                 [
@@ -245,16 +245,16 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'level' => 'h2',
                                         'text' => '100+',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
                                         'text' => 'درس تفاعلي',
-                                        'align' => 'center'
-                                    ]
-                                ]
+                                        'align' => 'center',
+                                    ],
+                                ],
                             ],
                             [
                                 [
@@ -262,20 +262,20 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'level' => 'h2',
                                         'text' => '20+',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
                                         'text' => 'قيمة أساسية',
-                                        'align' => 'center'
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        'align' => 'center',
+                                    ],
+                                ],
+                            ],
+                        ],
                     ],
-                    
+
                     // Section 5: CTA
                     [
                         'columns' => 1,
@@ -286,33 +286,32 @@ class LandingPageController extends Controller
                                     'content' => [
                                         'level' => 'h2',
                                         'text' => 'هل أنت مستعد لبناء قيمك؟',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
                                         'text' => 'انضم إلينا الآن وابدأ رحلتك في بناء شخصية متميزة',
-                                        'align' => 'center'
-                                    ]
+                                        'align' => 'center',
+                                    ],
                                 ],
                                 [
                                     'type' => 'button',
                                     'content' => [
                                         'text' => 'سجل الآن مجاناً ✨',
                                         'link' => '/register',
-                                        'style' => 'primary'
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                        'style' => 'primary',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ],
             'meta_title' => 'قيمّ - ابنِ قيمك خطوة بخطوة',
             'meta_description' => 'منصة تعليمية رائدة لبناء القيم الإنسانية وتعزيز الأخلاق الحميدة. محتوى تفاعلي وأنشطة مبتكرة للطلاب والمعلمين.',
-            'is_active' => true
+            'is_active' => true,
         ]);
     }
 }
-

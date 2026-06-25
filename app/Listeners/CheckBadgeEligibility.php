@@ -5,7 +5,6 @@ namespace App\Listeners;
 use App\Events\ActivityCompleted;
 use App\Events\LevelUp;
 use App\Events\StreakUpdated;
-use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 
 class CheckBadgeEligibility
@@ -18,11 +17,11 @@ class CheckBadgeEligibility
         if ($event instanceof ActivityCompleted) {
             $this->checkActivityBadges($event->student);
         }
-        
+
         if ($event instanceof LevelUp) {
             $this->checkLevelBadges($event->student, $event->newLevel);
         }
-        
+
         if ($event instanceof StreakUpdated) {
             $this->checkStreakBadges($event->student, $event->streakDays);
         }

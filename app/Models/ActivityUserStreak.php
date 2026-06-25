@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class ActivityUserStreak extends Model
 {
@@ -45,13 +45,14 @@ class ActivityUserStreak extends Model
 
             // إعادة قراءة الصف تحت قفل لمنع race بين القراءة و الكتابة
             $fresh = static::lockForUpdate()->find($this->id);
-            if (!$fresh) {
+            if (! $fresh) {
                 return false;
             }
 
             $dates = $fresh->activity_dates ?? [];
             if (in_array($today, $dates, true)) {
                 $this->setRawAttributes($fresh->getAttributes(), true);
+
                 return false;
             }
 
@@ -62,6 +63,7 @@ class ActivityUserStreak extends Model
             $fresh->save();
 
             $this->setRawAttributes($fresh->getAttributes(), true);
+
             return true;
         }, 3);
     }
@@ -76,10 +78,10 @@ class ActivityUserStreak extends Model
             return [
                 'success' => false,
                 'message' => 'تم صرف المكافأة مسبقاً',
-                'bonus' => 0
+                'bonus' => 0,
             ];
         }
-        
+
         // التحقق من تحقيق الحد الأدنى من الأيام
         if ($this->completed_days >= $minDays) {
             // المكافأة ثابتة
@@ -93,20 +95,20 @@ class ActivityUserStreak extends Model
             $this->bonus_claimed = true;
             $this->total_bonus_earned = ($this->total_bonus_earned ?? 0) + $finalBonus;
             $this->save();
-            
+
             return [
                 'success' => true,
                 'message' => "🎉 تهانينا! حصلت على مكافأة الالتزام: {$finalBonus} نقطة",
                 'bonus' => $finalBonus,
-                'days' => $this->completed_days
+                'days' => $this->completed_days,
             ];
         }
-        
+
         return [
             'success' => false,
             'message' => 'لم تكمل العدد المطلوب من الأيام بعد',
             'bonus' => 0,
-            'remaining' => $minDays - $this->completed_days
+            'remaining' => $minDays - $this->completed_days,
         ];
     }
 
@@ -127,7 +129,10 @@ class ActivityUserStreak extends Model
      */
     public function getProgressPercentage(int $targetDays): int
     {
-        if ($targetDays <= 0) return 0;
+        if ($targetDays <= 0) {
+            return 0;
+        }
+
         return min(100, round(($this->completed_days / $targetDays) * 100));
     }
 
@@ -143,7 +148,7 @@ class ActivityUserStreak extends Model
                 'activity_dates' => [],
                 'bonus_claimed' => false,
                 'total_bonus_earned' => 0,
-            ]
+            ],
         );
     }
 }

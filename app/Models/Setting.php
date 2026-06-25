@@ -17,8 +17,8 @@ class Setting extends Model
         // استخدام Cache tags للتحكم الأفضل
         return Cache::remember("setting.{$key}", 86400, function () use ($key, $default) {
             $setting = self::where('key', $key)->first(['value', 'type']);
-            
-            if (!$setting) {
+
+            if (! $setting) {
                 return $default;
             }
 
@@ -40,7 +40,7 @@ class Setting extends Model
     {
         $result = [];
         $uncached = [];
-        
+
         foreach ($keys as $key) {
             $cached = Cache::get("setting.{$key}");
             if ($cached !== null) {
@@ -49,10 +49,10 @@ class Setting extends Model
                 $uncached[] = $key;
             }
         }
-        
-        if (!empty($uncached)) {
+
+        if (! empty($uncached)) {
             $settings = self::whereIn('key', $uncached)->get(['key', 'value', 'type']);
-            
+
             foreach ($settings as $setting) {
                 $value = match ($setting->type) {
                     'json' => json_decode($setting->value, true),
@@ -61,19 +61,19 @@ class Setting extends Model
                     'float' => (float) $setting->value,
                     default => $setting->value,
                 };
-                
+
                 Cache::put("setting.{$setting->key}", $value, 86400);
                 $result[$setting->key] = $value;
             }
-            
+
             // إضافة القيم الافتراضية للمفاتيح غير الموجودة
             foreach ($uncached as $key) {
-                if (!isset($result[$key])) {
+                if (! isset($result[$key])) {
                     $result[$key] = $defaults[$key] ?? null;
                 }
             }
         }
-        
+
         return $result;
     }
 
@@ -94,14 +94,14 @@ class Setting extends Model
             [
                 'value' => $storedValue,
                 'type' => $type,
-                'description' => $description
-            ]
+                'description' => $description,
+            ],
         );
 
         // حذف من الكاش وإعادة تخزينه
         Cache::forget("setting.{$key}");
         Cache::put("setting.{$key}", $value, 86400);
-        
+
         return $setting;
     }
 

@@ -13,19 +13,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('points', function (Blueprint $table) {
-            if (!Schema::hasColumn('points', 'source')) {
+            if (! Schema::hasColumn('points', 'source')) {
                 $table->string('source', 100)->nullable()->after('points');
             }
-            if (!Schema::hasColumn('points', 'description')) {
+            if (! Schema::hasColumn('points', 'description')) {
                 $table->string('description', 500)->nullable()->after('source');
             }
         });
 
         Schema::table('coins', function (Blueprint $table) {
-            if (!Schema::hasColumn('coins', 'source')) {
+            if (! Schema::hasColumn('coins', 'source')) {
                 $table->string('source', 100)->nullable()->after('coins');
             }
-            if (!Schema::hasColumn('coins', 'description')) {
+            if (! Schema::hasColumn('coins', 'description')) {
                 $table->string('description', 500)->nullable()->after('source');
             }
         });

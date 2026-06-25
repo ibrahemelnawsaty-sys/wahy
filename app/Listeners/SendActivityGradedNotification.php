@@ -3,8 +3,8 @@
 namespace App\Listeners;
 
 use App\Events\ActivityGraded;
-use App\Services\NotificationService;
 use App\Mail\ActivityGradedMail;
+use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 
@@ -40,7 +40,7 @@ class SendActivityGradedNotification implements ShouldQueue
             'activity_graded',
             '📝 تم التقييم',
             $message,
-            "/student/activities/{$activity->id}"
+            "/student/activities/{$activity->id}",
         );
 
         // إرسال بريد إلكتروني للطالب
@@ -56,13 +56,13 @@ class SendActivityGradedNotification implements ShouldQueue
         $parent = $student->parent;
         if ($parent) {
             $parentMessage = "تم تقييم نشاط ابنك/ابنتك {$student->name} في '{$activity->title}' - حصل على {$event->grade} نقطة";
-            
+
             $this->notificationService->create(
                 $parent->id,
                 'child_activity_graded',
                 '📊 تقييم جديد',
                 $parentMessage,
-                "/parent/child/{$student->id}/activities"
+                "/parent/child/{$student->id}/activities",
             );
         }
     }

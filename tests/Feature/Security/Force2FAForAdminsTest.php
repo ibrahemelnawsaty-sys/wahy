@@ -2,10 +2,8 @@
 
 namespace Tests\Feature\Security;
 
-use App\Enums\UserRole;
 use App\Http\Middleware\Force2FAForAdmins;
 use App\Models\User;
-use Closure;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Tests\TestCase;
@@ -22,7 +20,7 @@ class Force2FAForAdminsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new Force2FAForAdmins();
+        $this->middleware = new Force2FAForAdmins;
     }
 
     public function test_passes_through_for_non_admin_users(): void

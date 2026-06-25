@@ -10,7 +10,10 @@ class EnvDebugTest extends TestCase
     {
         $this->assertEquals('testing', app()->environment(), 'env: ' . app()->environment());
         $this->assertEquals('sqlite', config('database.default'), 'db.default: ' . config('database.default'));
-        $this->assertEquals(':memory:', config('database.connections.sqlite.database'),
-            'sqlite.db: ' . config('database.connections.sqlite.database'));
+        $this->assertEquals(
+            ':memory:',
+            config('database.connections.sqlite.database'),
+            'sqlite.db: ' . config('database.connections.sqlite.database'),
+        );
     }
 }

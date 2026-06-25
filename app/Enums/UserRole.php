@@ -17,11 +17,11 @@ namespace App\Enums;
  */
 enum UserRole: string
 {
-    case SuperAdmin  = 'super_admin';
+    case SuperAdmin = 'super_admin';
     case SchoolAdmin = 'school_admin';
-    case Teacher     = 'teacher';
-    case Student     = 'student';
-    case Parent      = 'parent';
+    case Teacher = 'teacher';
+    case Student = 'student';
+    case Parent = 'parent';
 
     /**
      * التسمية بالعربي للعرض.
@@ -29,11 +29,11 @@ enum UserRole: string
     public function label(): string
     {
         return match ($this) {
-            self::SuperAdmin  => 'مدير عام',
+            self::SuperAdmin => 'مدير عام',
             self::SchoolAdmin => 'مدير مدرسة',
-            self::Teacher     => 'معلم',
-            self::Student     => 'طالب',
-            self::Parent      => 'ولي أمر',
+            self::Teacher => 'معلم',
+            self::Student => 'طالب',
+            self::Parent => 'ولي أمر',
         };
     }
 

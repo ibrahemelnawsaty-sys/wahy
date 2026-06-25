@@ -35,7 +35,7 @@ class Force2FAForAdmins
     {
         $user = Auth::user();
 
-        if (!$user || !$this->isAdminRole($user->role)) {
+        if (! $user || ! $this->isAdminRole($user->role)) {
             return $next($request);
         }
 
@@ -45,13 +45,13 @@ class Force2FAForAdmins
         }
 
         // الأدمن يجب أن يكون مفعّلاً 2FA
-        if (!$user->two_factor_enabled) {
+        if (! $user->two_factor_enabled) {
             // AJAX/API requests: 403 JSON
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'يجب تفعيل المصادقة الثنائية (2FA) للوصول كأدمن',
-                    'code'    => 'admin_2fa_required',
+                    'code' => 'admin_2fa_required',
                 ], 403);
             }
 
@@ -74,6 +74,7 @@ class Force2FAForAdmins
     private function isExemptRoute(Request $request): bool
     {
         $routeName = optional($request->route())->getName();
+
         return $routeName && in_array($routeName, self::EXEMPT_ROUTES, true);
     }
 }

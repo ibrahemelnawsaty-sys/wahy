@@ -15,19 +15,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('team_activities', function (Blueprint $table) {
-            if (!Schema::hasColumn('team_activities', 'total_score')) {
+            if (! Schema::hasColumn('team_activities', 'total_score')) {
                 $table->integer('total_score')->nullable()->after('status');
             }
-            if (!Schema::hasColumn('team_activities', 'team_submission')) {
+            if (! Schema::hasColumn('team_activities', 'team_submission')) {
                 $table->text('team_submission')->nullable()->after('total_score');
             }
-            if (!Schema::hasColumn('team_activities', 'team_file')) {
+            if (! Schema::hasColumn('team_activities', 'team_file')) {
                 $table->string('team_file')->nullable()->after('team_submission');
             }
-            if (!Schema::hasColumn('team_activities', 'submitted_at')) {
+            if (! Schema::hasColumn('team_activities', 'submitted_at')) {
                 $table->timestamp('submitted_at')->nullable()->after('team_file');
             }
-            if (!Schema::hasColumn('team_activities', 'teacher_feedback')) {
+            if (! Schema::hasColumn('team_activities', 'teacher_feedback')) {
                 $table->text('teacher_feedback')->nullable()->after('submitted_at');
             }
         });

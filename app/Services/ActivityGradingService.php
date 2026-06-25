@@ -43,7 +43,7 @@ class ActivityGradingService
         }
 
         // النشاط من نوع quiz أو أي نشاط متعدد الأسئلة → تصحيح لكل سؤال حسب نوعه
-        if (!empty($questions) && ($activity->type === 'quiz' || count($questions) > 1)) {
+        if (! empty($questions) && ($activity->type === 'quiz' || count($questions) > 1)) {
             return self::gradeQuiz($questions, $answer);
         }
 
@@ -59,14 +59,14 @@ class ActivityGradingService
 
         // الأنشطة الفردية ذات نوع سؤال واحد
         return match ($type) {
-            'multiple_choice'                   => self::gradeMultipleChoice($activity, $answer),
-            'true_false'                        => self::gradeTrueFalse($activity, $answer),
-            'short_answer'                      => self::gradeShortAnswer($activity, $answer),
-            'letter_choice'                     => self::gradeLetterChoice($activity, $answer),
-            'word_ordering', 'word_order'       => self::gradeOrdering($activity, $answer),
+            'multiple_choice' => self::gradeMultipleChoice($activity, $answer),
+            'true_false' => self::gradeTrueFalse($activity, $answer),
+            'short_answer' => self::gradeShortAnswer($activity, $answer),
+            'letter_choice' => self::gradeLetterChoice($activity, $answer),
+            'word_ordering', 'word_order' => self::gradeOrdering($activity, $answer),
             'sentence_ordering', 'sentence_order' => self::gradeOrdering($activity, $answer),
-            'image_ordering', 'image_order'     => self::gradeOrdering($activity, $answer),
-            default                             => null,
+            'image_ordering', 'image_order' => self::gradeOrdering($activity, $answer),
+            default => null,
         };
     }
 
@@ -106,10 +106,11 @@ class ActivityGradingService
             return null;
         }
         $map = [
-            'word_order'     => 'word_ordering',
+            'word_order' => 'word_ordering',
             'sentence_order' => 'sentence_ordering',
-            'image_order'    => 'image_ordering',
+            'image_order' => 'image_ordering',
         ];
+
         return $map[$t] ?? $t;
     }
 
@@ -120,7 +121,7 @@ class ActivityGradingService
     {
         $questions = $activity->questions;
 
-        if (is_array($questions) && !empty($questions)) {
+        if (is_array($questions) && ! empty($questions)) {
             $first = $questions[0] ?? null;
             if (is_array($first)) {
                 return $first['correct_answer'] ?? $first['answer'] ?? null;
@@ -136,12 +137,13 @@ class ActivityGradingService
     private static function firstQuestion(Activity $activity): array
     {
         $questions = $activity->questions;
-        if (is_array($questions) && !empty($questions)) {
+        if (is_array($questions) && ! empty($questions)) {
             $first = $questions[0] ?? null;
             if (is_array($first)) {
                 return $first;
             }
         }
+
         return [];
     }
 
@@ -151,9 +153,9 @@ class ActivityGradingService
      *        correct_answer، answer، correct (كنص).
      *
      * @return array{index: int|null, text: mixed, has: bool}
-     *   - index: دليل الخيار الصحيح إن وُجد
-     *   - text : نص/قيمة الإجابة الصحيحة إن وُجدت
-     *   - has  : هل يوجد مفتاح إجابة صالح أصلاً (وإلا → مراجعة يدوية)
+     *                                                        - index: دليل الخيار الصحيح إن وُجد
+     *                                                        - text : نص/قيمة الإجابة الصحيحة إن وُجدت
+     *                                                        - has  : هل يوجد مفتاح إجابة صالح أصلاً (وإلا → مراجعة يدوية)
      */
     private static function resolveKey(array $q): array
     {
@@ -169,7 +171,7 @@ class ActivityGradingService
             // 2) اشتقاق الفهرس من options[].is_correct
             $opts = is_array($q['options'] ?? null) ? $q['options'] : [];
             foreach ($opts as $i => $opt) {
-                if (is_array($opt) && !empty($opt['is_correct'])) {
+                if (is_array($opt) && ! empty($opt['is_correct'])) {
                     $index = (int) $i;
                     break;
                 }
@@ -193,10 +195,10 @@ class ActivityGradingService
      *
      * يستخدم مصفوفة options لتحويل الـ index إلى نص الخيار قبل المقارنة.
      *
-     * @param mixed $studentAnswer إجابة الطالب
-     * @param mixed $correctAnswer الإجابة الصحيحة المحفوظة
-     * @param array $options قائمة الخيارات للسؤال (لتحويل الأرقام إلى نصوص)
-     * @param int|null $correctIndex دليل الخيار الصحيح إن وُجد
+     * @param  mixed  $studentAnswer  إجابة الطالب
+     * @param  mixed  $correctAnswer  الإجابة الصحيحة المحفوظة
+     * @param  array  $options  قائمة الخيارات للسؤال (لتحويل الأرقام إلى نصوص)
+     * @param  int|null  $correctIndex  دليل الخيار الصحيح إن وُجد
      */
     private static function optionMatches($studentAnswer, $correctAnswer, array $options, $correctIndex = null): bool
     {
@@ -237,7 +239,7 @@ class ActivityGradingService
         $key = self::resolveKey($firstQ);
 
         // لا مفتاح إجابة صالح → مراجعة يدوية بدل منح صفر زائف أو تطابق كاذب
-        if (!$key['has']) {
+        if (! $key['has']) {
             return null;
         }
 
@@ -256,10 +258,11 @@ class ActivityGradingService
         $options = is_array($firstQ['options'] ?? null) ? $firstQ['options'] : [];
 
         // الطريقة المعتمدة: إن وُجد options، حوّل دليل الطالب إلى النص ثم قارن نصياً
-        if (!empty($options)) {
-            if (!$key['has']) {
+        if (! empty($options)) {
+            if (! $key['has']) {
                 return null;
             }
+
             return self::optionMatches($student, $key['text'], $options, $key['index']) ? 100 : 0;
         }
 
@@ -346,10 +349,10 @@ class ActivityGradingService
         $correct = self::correctAnswerOf($activity);
 
         // الترتيب الصحيح هو ترتيب الـ options كما حفظها الأدمن (الافتراضي)
-        if ($correct === null && !empty($firstQ['options']) && is_array($firstQ['options'])) {
+        if ($correct === null && ! empty($firstQ['options']) && is_array($firstQ['options'])) {
             $correct = array_map(
-                fn($opt) => is_array($opt) ? ($opt['text'] ?? $opt['label'] ?? '') : (string) $opt,
-                $firstQ['options']
+                fn ($opt) => is_array($opt) ? ($opt['text'] ?? $opt['label'] ?? '') : (string) $opt,
+                $firstQ['options'],
             );
         }
 
@@ -362,7 +365,7 @@ class ActivityGradingService
             $correct = preg_split('/[,،|]\s*/u', $correct);
         }
 
-        if (!is_array($answer) || !is_array($correct) || empty($correct)) {
+        if (! is_array($answer) || ! is_array($correct) || empty($correct)) {
             return 0;
         }
 
@@ -384,7 +387,7 @@ class ActivityGradingService
      */
     private static function gradeQuiz(array $questions, $answers): ?int
     {
-        if (!is_array($answers)) {
+        if (! is_array($answers)) {
             return 0;
         }
 
@@ -393,7 +396,7 @@ class ActivityGradingService
         $needsManualReview = false;
 
         foreach ($questions as $i => $question) {
-            if (!is_array($question)) {
+            if (! is_array($question)) {
                 continue;
             }
             $totalQuestions++;
@@ -405,6 +408,7 @@ class ActivityGradingService
             // أنواع تتطلب مراجعة المعلم → الكويز كله يذهب للمراجعة اليدوية
             if (in_array($type, ['essay', 'upload', 'creative', 'project', 'practical', 'discussion'], true)) {
                 $needsManualReview = true;
+
                 continue;
             }
 
@@ -417,32 +421,36 @@ class ActivityGradingService
 
             if ($isOrdering) {
                 $correctSeq = $question['correct_answer'] ?? $question['answer'] ?? null;
-                if ($correctSeq === null && !empty($options)) {
+                if ($correctSeq === null && ! empty($options)) {
                     $correctSeq = array_map(
-                        fn($o) => is_array($o) ? ($o['text'] ?? $o['label'] ?? '') : (string) $o,
-                        $options
+                        fn ($o) => is_array($o) ? ($o['text'] ?? $o['label'] ?? '') : (string) $o,
+                        $options,
                     );
                 }
                 if ($correctSeq === null) {
                     $needsManualReview = true;
+
                     continue;
                 }
                 if (self::orderingMatches($student, $correctSeq)) {
                     $earned++;
                 }
+
                 continue;
             }
 
             // ترتيب الصور داخل الكويز: بنيته تتطلب معالجة خاصة → مراجعة يدوية (فشل آمن)
             if ($type === 'image_order') {
                 $needsManualReview = true;
+
                 continue;
             }
 
             // باقي الأنواع: لا بد من مفتاح إجابة صالح، وإلا → مراجعة يدوية
             $key = self::resolveKey($question);
-            if (!$key['has']) {
+            if (! $key['has']) {
                 $needsManualReview = true;
+
                 continue;
             }
 
@@ -451,9 +459,9 @@ class ActivityGradingService
                     && self::textEquals($student, (string) $key['text']),
                 'letter_choice' => self::textEquals(
                     is_array($student) ? implode('', $student) : (string) $student,
-                    (string) ($key['text'] ?? '')
+                    (string) ($key['text'] ?? ''),
                 ),
-                default => !empty($options)
+                default => ! empty($options)
                     ? self::optionMatches($student, $key['text'], $options, $key['index'])
                     : self::scalarEquals($student, $key['text'] ?? $key['index']),
             };
@@ -493,7 +501,7 @@ class ActivityGradingService
                 $correctOrders[(string) $q['image_url']] = (int) $q['order'];
             }
             // صيغة الأدمن: نشاط واحد بمصفوفة images داخله
-            if (isset($q['type']) && $q['type'] === 'image_order' && !empty($q['images'])) {
+            if (isset($q['type']) && $q['type'] === 'image_order' && ! empty($q['images'])) {
                 foreach ($q['images'] as $i => $img) {
                     $url = $img['url'] ?? $img['image_url'] ?? '';
                     if ($url !== '') {
@@ -504,7 +512,7 @@ class ActivityGradingService
         }
 
         // لا بنية ترتيب صالحة → مراجعة يدوية (لا منح صفر زائف)
-        if (empty($correctOrders) || !is_array($answer)) {
+        if (empty($correctOrders) || ! is_array($answer)) {
             return null;
         }
 
@@ -513,10 +521,14 @@ class ActivityGradingService
         $matched = 0;
         $selectedValues = [];
         foreach ($answer as $item) {
-            if (!is_array($item)) continue;
+            if (! is_array($item)) {
+                continue;
+            }
             $url = (string) ($item['image_url'] ?? '');
             $selected = (int) ($item['selected_order'] ?? 0);
-            if (!isset($correctOrders[$url])) continue;
+            if (! isset($correctOrders[$url])) {
+                continue;
+            }
 
             $total++;
             $selectedValues[] = $selected;
@@ -544,7 +556,7 @@ class ActivityGradingService
         if (is_string($correct)) {
             $correct = preg_split('/[,،|]\s*/u', $correct);
         }
-        if (!is_array($student) || !is_array($correct)) {
+        if (! is_array($student) || ! is_array($correct)) {
             return false;
         }
         if (count($student) !== count($correct)) {
@@ -552,10 +564,11 @@ class ActivityGradingService
         }
 
         foreach ($correct as $idx => $expected) {
-            if (!self::scalarEquals($student[$idx] ?? null, $expected)) {
+            if (! self::scalarEquals($student[$idx] ?? null, $expected)) {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -567,6 +580,7 @@ class ActivityGradingService
         if (is_numeric($a) && is_numeric($b)) {
             return (string) $a === (string) $b;
         }
+
         return self::textEquals((string) $a, (string) $b);
     }
 
@@ -593,6 +607,7 @@ class ActivityGradingService
         ]);
         // ضغط المسافات المتعددة
         $value = preg_replace('/\s+/u', ' ', $value);
+
         return $value;
     }
 
@@ -614,14 +629,21 @@ class ActivityGradingService
             if (in_array($v, ['0', 'false', 'no', 'خطأ', 'خاطئ', 'لا'], true)) {
                 return false;
             }
+
             return null;
         }
         if (is_int($value)) {
             // فقط 0 و 1 صريحَين يُترجمان كمنطقي؛ غيرهما غامض → null
-            if ($value === 0) return false;
-            if ($value === 1) return true;
+            if ($value === 0) {
+                return false;
+            }
+            if ($value === 1) {
+                return true;
+            }
+
             return null;
         }
+
         return null;
     }
 }

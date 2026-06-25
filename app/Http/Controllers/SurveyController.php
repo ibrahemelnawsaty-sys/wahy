@@ -17,7 +17,7 @@ class SurveyController extends Controller
         $user = Auth::user();
 
         // التحقق من أن الاستبيان نشط
-        if (!$survey->isActive()) {
+        if (! $survey->isActive()) {
             return redirect()->back()->with('error', 'هذا الاستبيان غير متاح حالياً');
         }
 
@@ -27,7 +27,7 @@ class SurveyController extends Controller
         $isTargeted = in_array($user->role, $survey->target_roles ?? [])
                    || ($targetType && in_array($targetType, $survey->target_roles ?? []));
 
-        if (!$isTargeted) {
+        if (! $isTargeted) {
             return redirect()->back()->with('error', 'هذا الاستبيان غير موجّه لك');
         }
 
@@ -57,12 +57,12 @@ class SurveyController extends Controller
         };
 
         // إذا الاستبيان يتطلب تسجيل دخول والمستخدم غير مسجل → رفض
-        if (($survey->requires_login ?? true) && !$user) {
+        if (($survey->requires_login ?? true) && ! $user) {
             return $fail('يجب تسجيل الدخول للإجابة على هذا الاستبيان', 401);
         }
 
         // التحقق من أن الاستبيان نشط
-        if (!$survey->isActive()) {
+        if (! $survey->isActive()) {
             return $fail('هذا الاستبيان غير متاح حالياً', 400);
         }
 
@@ -91,15 +91,17 @@ class SurveyController extends Controller
                 }
 
                 SurveyResponse::create([
-                    'survey_id'    => $survey->id,
-                    'user_id'      => $user?->id,
-                    'answers'      => $answers,
+                    'survey_id' => $survey->id,
+                    'user_id' => $user?->id,
+                    'answers' => $answers,
                     'completed_at' => now(),
                 ]);
+
                 return false;
             }, 3);
         } catch (\Throwable $e) {
             \Log::error('Survey submit failed', ['survey_id' => $survey->id, 'error' => $e->getMessage()]);
+
             return $fail('حدث خطأ أثناء حفظ الإجابات', 500);
         }
 
@@ -109,7 +111,7 @@ class SurveyController extends Controller
 
         // إزالة الاستبيان من الجلسة
         $pendingSurveys = session('pending_surveys', collect());
-        $pendingSurveys = $pendingSurveys->filter(function($s) use ($survey) {
+        $pendingSurveys = $pendingSurveys->filter(function ($s) use ($survey) {
             return $s->id !== $survey->id;
         });
 
@@ -119,7 +121,7 @@ class SurveyController extends Controller
             session(['pending_surveys' => $pendingSurveys]);
         }
 
-        if (!$wantsJson) {
+        if (! $wantsJson) {
             return redirect()->back()->with('success', 'شكراً لك! تم حفظ إجاباتك بنجاح');
         }
 
@@ -137,7 +139,7 @@ class SurveyController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['surveys' => []]);
         }
 
@@ -149,4 +151,3 @@ class SurveyController extends Controller
         ]);
     }
 }
-

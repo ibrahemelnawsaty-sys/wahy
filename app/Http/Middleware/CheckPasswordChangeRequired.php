@@ -18,20 +18,20 @@ class CheckPasswordChangeRequired
         // التحقق من أن المستخدم مسجل دخول
         if (auth()->check()) {
             $user = auth()->user();
-            
+
             // إذا كان المستخدم يحتاج لتغيير كلمة المرور
             if ($user->password_change_required) {
                 // السماح بالوصول لصفحة تغيير كلمة المرور وتسجيل الخروج فقط
-                if (!$request->routeIs('password.change') &&
-                    !$request->routeIs('password.change.update') &&
-                    !$request->routeIs('password.update') &&
-                    !$request->routeIs('logout')) {
+                if (! $request->routeIs('password.change') &&
+                    ! $request->routeIs('password.change.update') &&
+                    ! $request->routeIs('password.update') &&
+                    ! $request->routeIs('logout')) {
                     return redirect()->route('password.change')
                         ->with('warning', 'يجب عليك تغيير كلمة المرور المؤقتة قبل المتابعة');
                 }
             }
         }
-        
+
         return $next($request);
     }
 }

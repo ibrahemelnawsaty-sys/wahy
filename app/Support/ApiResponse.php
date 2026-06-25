@@ -21,9 +21,9 @@ class ApiResponse
     {
         return response()->json(array_filter([
             'success' => true,
-            'data'    => $data,
+            'data' => $data,
             'message' => $message,
-            'meta'    => $meta ?: null,
+            'meta' => $meta ?: null,
         ], fn ($v) => $v !== null), $status);
     }
 
@@ -42,7 +42,7 @@ class ApiResponse
         return response()->json(array_filter([
             'success' => false,
             'message' => $message,
-            'errors'  => $errors ?: null,
+            'errors' => $errors ?: null,
         ], fn ($v) => $v !== null), $status);
     }
 

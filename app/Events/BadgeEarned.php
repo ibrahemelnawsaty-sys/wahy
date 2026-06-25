@@ -2,8 +2,8 @@
 
 namespace App\Events;
 
-use App\Models\User;
 use App\Models\Badge;
+use App\Models\User;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -12,6 +12,7 @@ class BadgeEarned
     use Dispatchable, SerializesModels;
 
     public User $user;
+
     public Badge $badge;
 
     /**

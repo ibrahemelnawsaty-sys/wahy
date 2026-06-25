@@ -43,8 +43,7 @@ class LazyImage extends Component
         public ?int $height = null,
         public string $class = '',
         public bool $eager = false, // اجعلها true للصور أعلى الـ fold (LCP)
-    ) {
-    }
+    ) {}
 
     /**
      * placeholder SVG inline — لا request شبكة، حجم ~150 bytes.

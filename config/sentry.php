@@ -78,12 +78,12 @@ return [
      * Integrations — جمع breadcrumbs من المصادر المختلفة
      */
     'breadcrumbs' => [
-        'logs'         => true,
-        'cache'        => true,
-        'livewire'     => false,
-        'sql_queries'  => true,
+        'logs' => true,
+        'cache' => true,
+        'livewire' => false,
+        'sql_queries' => true,
         'sql_bindings' => false, // 🔴 false لمنع تسريب بيانات في الـ SQL
-        'queue_info'   => true,
+        'queue_info' => true,
         'command_info' => true,
     ],
 ];

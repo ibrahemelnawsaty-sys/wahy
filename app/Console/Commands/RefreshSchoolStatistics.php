@@ -66,7 +66,7 @@ class RefreshSchoolStatistics extends Command
         $platformRank = School::where('status', 'active')
             ->whereRaw(
                 '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ?) > ?',
-                ['student', $totalPoints]
+                ['student', $totalPoints],
             )
             ->count() + 1;
 
@@ -75,12 +75,12 @@ class RefreshSchoolStatistics extends Command
         // city rank (قد يكون city فارغ)
         $cityRank = null;
         $cityTotal = null;
-        if (!empty($school->city)) {
+        if (! empty($school->city)) {
             $cityRank = School::where('status', 'active')
                 ->where('city', $school->city)
                 ->whereRaw(
                     '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ?) > ?',
-                    ['student', $totalPoints]
+                    ['student', $totalPoints],
                 )
                 ->count() + 1;
 
@@ -93,31 +93,31 @@ class RefreshSchoolStatistics extends Command
             ->first();
 
         $previousPoints = $previous?->total_points ?? 0;
-        $pointsChange  = $totalPoints - $previousPoints;
-        $previousRank  = $previous?->platform_rank ?? $platformRank;
-        $rankChange    = $previousRank - $platformRank; // موجب = ارتفع
-        $trend         = $pointsChange > 0 ? 'up' : ($pointsChange < 0 ? 'down' : 'flat');
+        $pointsChange = $totalPoints - $previousPoints;
+        $previousRank = $previous?->platform_rank ?? $platformRank;
+        $rankChange = $previousRank - $platformRank; // موجب = ارتفع
+        $trend = $pointsChange > 0 ? 'up' : ($pointsChange < 0 ? 'down' : 'flat');
 
         SchoolStatisticsCache::updateOrCreate(
             [
                 'entity_type' => 'school',
-                'entity_id'   => $school->id,
+                'entity_id' => $school->id,
             ],
             [
-                'school_id'       => $school->id,
-                'total_points'    => $totalPoints,
+                'school_id' => $school->id,
+                'total_points' => $totalPoints,
                 'previous_points' => $previousPoints,
-                'points_change'   => $pointsChange,
-                'monthly_points'  => $monthlyPoints,
-                'platform_rank'   => $platformRank,
-                'platform_total'  => $platformTotal,
-                'city_rank'       => $cityRank,
-                'city_total'      => $cityTotal,
-                'city'            => $school->city,
-                'trend'           => $trend,
-                'rank_change'     => $rankChange,
-                'calculated_at'   => now(),
-            ]
+                'points_change' => $pointsChange,
+                'monthly_points' => $monthlyPoints,
+                'platform_rank' => $platformRank,
+                'platform_total' => $platformTotal,
+                'city_rank' => $cityRank,
+                'city_total' => $cityTotal,
+                'city' => $school->city,
+                'trend' => $trend,
+                'rank_change' => $rankChange,
+                'calculated_at' => now(),
+            ],
         );
     }
 }

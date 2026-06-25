@@ -51,13 +51,14 @@ class LessonUserStreak extends Model
 
             // قراءة تحت قفل لمنع race condition
             $fresh = static::lockForUpdate()->find($this->id);
-            if (!$fresh) {
+            if (! $fresh) {
                 return false;
             }
 
             $dates = $fresh->activity_dates ?? [];
             if (in_array($today, $dates, true)) {
                 $this->setRawAttributes($fresh->getAttributes(), true);
+
                 return false;
             }
 
@@ -68,6 +69,7 @@ class LessonUserStreak extends Model
             $fresh->save();
 
             $this->setRawAttributes($fresh->getAttributes(), true);
+
             return true;
         }, 3);
     }
@@ -85,17 +87,17 @@ class LessonUserStreak extends Model
         $lesson = $this->lesson;
 
         // لو الـ streak غير مفعل للدرس
-        if (!$lesson->streak_enabled) {
+        if (! $lesson->streak_enabled) {
             return ['eligible' => false, 'reason' => 'streak_disabled'];
         }
 
         // التحقق من الحد الأدنى
         if ($this->completed_days < $lesson->streak_min_days) {
             return [
-                'eligible' => false, 
+                'eligible' => false,
                 'reason' => 'min_not_reached',
                 'current' => $this->completed_days,
-                'required' => $lesson->streak_min_days
+                'required' => $lesson->streak_min_days,
             ];
         }
 
@@ -107,7 +109,7 @@ class LessonUserStreak extends Model
         return [
             'eligible' => true,
             'bonus_points' => $lesson->streak_bonus_points,
-            'days_completed' => $this->completed_days
+            'days_completed' => $this->completed_days,
         ];
     }
 
@@ -117,8 +119,8 @@ class LessonUserStreak extends Model
     public function getProgressPercentage(): int
     {
         $lesson = $this->lesson;
-        
-        if (!$lesson->streak_enabled || !$lesson->streak_min_days) {
+
+        if (! $lesson->streak_enabled || ! $lesson->streak_min_days) {
             return 0;
         }
 
@@ -131,8 +133,8 @@ class LessonUserStreak extends Model
     public function hasReachedMax(): bool
     {
         $lesson = $this->lesson;
-        
-        if (!$lesson->streak_max_days) {
+
+        if (! $lesson->streak_max_days) {
             return false;
         }
 

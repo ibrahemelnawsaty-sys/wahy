@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('activity_id')->nullable()->constrained('activities')->onDelete('set null');
             $table->foreignId('lesson_id')->nullable()->constrained('lessons')->onDelete('set null');
             $table->timestamps();
-            
+
             $table->index('user_id'); // لسرعة حساب مجموع النقاط
         });
     }

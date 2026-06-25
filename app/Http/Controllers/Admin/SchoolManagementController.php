@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\School;
-use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class SchoolManagementController extends Controller
@@ -16,29 +15,29 @@ class SchoolManagementController extends Controller
     public function index(Request $request)
     {
         $query = School::with('admin');
-        
+
         // فلترة حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // فلترة حسب المدينة
         if ($request->filled('city')) {
             $query->where('city', $request->city);
         }
-        
+
         // بحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('contact_email', 'like', "%{$search}%")
-                  ->orWhere('qr_code', 'like', "%{$search}%");
+                    ->orWhere('contact_email', 'like', "%{$search}%")
+                    ->orWhere('qr_code', 'like', "%{$search}%");
             });
         }
-        
+
         $schools = $query->latest()->paginate(20);
-        
+
         return view('admin.schools.index', compact('schools'));
     }
 
@@ -67,12 +66,12 @@ class SchoolManagementController extends Controller
         ]);
 
         // توليد QR Code تلقائي
-        if (!$request->filled('qr_code')) {
+        if (! $request->filled('qr_code')) {
             $validated['qr_code'] = $this->generateSchoolQRCode();
         }
 
         $validated['created_by'] = auth()->id();
-        
+
         $school = School::create($validated);
 
         return redirect()
@@ -86,7 +85,7 @@ class SchoolManagementController extends Controller
     public function show(School $school)
     {
         $school->load(['users', 'branches']);
-        
+
         $stats = [
             'total_users' => $school->users()->count(),
             'teachers' => $school->users()->where('role', 'teacher')->count(),
@@ -94,7 +93,7 @@ class SchoolManagementController extends Controller
             'parents' => $school->users()->where('role', 'parent')->count(),
             'branches' => $school->branches()->count(),
         ];
-        
+
         return view('admin.schools.show', compact('school', 'stats'));
     }
 
@@ -189,7 +188,7 @@ class SchoolManagementController extends Controller
     public function updateActiveValues(Request $request, School $school)
     {
         $validated = $request->validate([
-            'value_ids'   => 'array',
+            'value_ids' => 'array',
             'value_ids.*' => 'integer|exists:values,id',
         ]);
 
@@ -212,4 +211,3 @@ class SchoolManagementController extends Controller
                 : 'تم إعادة المدرسة إلى السلوك الافتراضي (كل القيم النشطة).');
     }
 }
-

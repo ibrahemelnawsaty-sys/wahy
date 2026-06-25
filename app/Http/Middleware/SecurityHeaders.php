@@ -32,8 +32,8 @@ class SecurityHeaders
         // Content-Security-Policy — يبدأ بـ Report-Only لتجنّب كسر الواجهة
         // ⚠️  بعد المراقبة في console المتصفح لمدة أسبوع، حوّل إلى Content-Security-Policy فقط (بدون Report-Only)
         // unsafe-inline ضروري حالياً للسكربتات/الستايلات Inline في Blade. عند Migration إلى nonces، أزله.
-        if (!$response->headers->has('Content-Security-Policy')
-            && !$response->headers->has('Content-Security-Policy-Report-Only')) {
+        if (! $response->headers->has('Content-Security-Policy')
+            && ! $response->headers->has('Content-Security-Policy-Report-Only')) {
 
             $csp = implode('; ', [
                 "default-src 'self'",

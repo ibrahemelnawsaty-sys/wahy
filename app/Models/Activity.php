@@ -5,9 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Activity extends Model
 {
@@ -19,7 +18,7 @@ class Activity extends Model
             ->logOnly(['title', 'type', 'difficulty', 'status', 'is_team_activity'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "النشاط {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "النشاط {$eventName}");
     }
 
     protected $fillable = [

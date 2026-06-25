@@ -3,7 +3,6 @@
 namespace App\Services\Backup;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use ZipArchive;
 
 /**
@@ -27,7 +26,7 @@ class BackupService
     {
         $this->backupDir = storage_path('app/Laravel');
 
-        if (!file_exists($this->backupDir)) {
+        if (! file_exists($this->backupDir)) {
             mkdir($this->backupDir, 0755, true);
         }
     }
@@ -35,8 +34,9 @@ class BackupService
     /**
      * إنشاء نسخة احتياطية.
      *
-     * @param  string $type  full | database-only | files-only
-     * @return string  المسار الكامل للملف المُنشأ
+     * @param  string  $type  full | database-only | files-only
+     * @return string المسار الكامل للملف المُنشأ
+     *
      * @throws \RuntimeException عند فشل إنشاء الـ zip
      */
     public function create(string $type = 'full'): string
@@ -46,11 +46,11 @@ class BackupService
 
         $zipFile = match ($type) {
             'database-only' => $this->backupDir . "/database-backup-{$timestamp}.zip",
-            'files-only'    => $this->backupDir . "/files-backup-{$timestamp}.zip",
-            default         => $this->backupDir . "/full-backup-{$timestamp}.zip",
+            'files-only' => $this->backupDir . "/files-backup-{$timestamp}.zip",
+            default => $this->backupDir . "/full-backup-{$timestamp}.zip",
         };
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($zipFile, ZipArchive::CREATE) !== true) {
             throw new \RuntimeException("Failed to open ZIP for writing: {$zipFile}");
         }
@@ -82,7 +82,7 @@ class BackupService
         $filename = basename($filename); // 🔴 amnع path traversal
         $fullPath = $this->backupDir . '/' . $filename;
 
-        if (!file_exists($fullPath)) {
+        if (! file_exists($fullPath)) {
             return false;
         }
 
@@ -100,7 +100,7 @@ class BackupService
      */
     public function list(): array
     {
-        if (!is_dir($this->backupDir)) {
+        if (! is_dir($this->backupDir)) {
             return [];
         }
 
@@ -113,22 +113,22 @@ class BackupService
             }
 
             $fullPath = $this->backupDir . '/' . $file;
-            if (!is_file($fullPath)) {
+            if (! is_file($fullPath)) {
                 continue;
             }
 
             $type = match (true) {
                 str_starts_with($file, 'database-backup') => 'database',
-                str_starts_with($file, 'files-backup')    => 'files',
-                str_starts_with($file, 'full-backup')     => 'full',
-                default                                    => 'other',
+                str_starts_with($file, 'files-backup') => 'files',
+                str_starts_with($file, 'full-backup') => 'full',
+                default => 'other',
             };
 
             $backups[] = [
-                'filename'   => $file,
-                'size'       => filesize($fullPath),
+                'filename' => $file,
+                'size' => filesize($fullPath),
                 'created_at' => new \DateTimeImmutable('@' . filemtime($fullPath)),
-                'type'       => $type,
+                'type' => $type,
             ];
         }
 
@@ -149,6 +149,7 @@ class BackupService
             if (file_exists($dbPath)) {
                 $zip->addFile($dbPath, $prefix . 'database.sqlite');
             }
+
             return;
         }
 
@@ -158,7 +159,7 @@ class BackupService
         // محاولة mysqldump أولاً، fallback لـ PHP
         $success = $this->createMysqlDump($dumpFile);
 
-        if (!$success) {
+        if (! $success) {
             $this->createPhpMysqlDump($dumpFile);
         }
 
@@ -176,7 +177,7 @@ class BackupService
 
     private function createMysqlDump(string $outputFile): bool
     {
-        $host     = config('database.connections.mysql.host');
+        $host = config('database.connections.mysql.host');
         $database = config('database.connections.mysql.database');
         $username = config('database.connections.mysql.username');
         $password = config('database.connections.mysql.password');
@@ -187,7 +188,7 @@ class BackupService
             escapeshellarg($username),
             escapeshellarg($password),
             escapeshellarg($database),
-            escapeshellarg($outputFile)
+            escapeshellarg($outputFile),
         );
 
         @exec($command, $output, $returnVar);
@@ -222,7 +223,7 @@ class BackupService
                 foreach ($rows as $row) {
                     $rowData = array_map(
                         fn ($v) => is_null($v) ? 'NULL' : "'" . addslashes((string) $v) . "'",
-                        (array) $row
+                        (array) $row,
                     );
                     $values[] = '(' . implode(',', $rowData) . ')';
                 }
@@ -249,13 +250,13 @@ class BackupService
 
     private function addDirectoryToZip(ZipArchive $zip, string $path, string $zipPath = ''): void
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return;
         }
 
         $files = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($path),
-            \RecursiveIteratorIterator::LEAVES_ONLY
+            \RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
         foreach ($files as $file) {
@@ -271,7 +272,7 @@ class BackupService
 
     private function deleteDirectory(string $path): bool
     {
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             return false;
         }
 

@@ -14,10 +14,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('family_activity_submissions', function (Blueprint $table) {
-            if (!Schema::hasColumn('family_activity_submissions', 'status')) {
+            if (! Schema::hasColumn('family_activity_submissions', 'status')) {
                 $table->string('status', 20)->default('pending')->after('parent_approved');
             }
-            if (!Schema::hasColumn('family_activity_submissions', 'rejection_reason')) {
+            if (! Schema::hasColumn('family_activity_submissions', 'rejection_reason')) {
                 $table->text('rejection_reason')->nullable()->after('parent_praise');
             }
         });

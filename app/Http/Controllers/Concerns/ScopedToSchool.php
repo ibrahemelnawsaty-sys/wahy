@@ -27,25 +27,26 @@ trait ScopedToSchool
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             abort(401);
         }
 
         // super_admin غير محصور بمدرسة
         if ($user->role === UserRole::SuperAdmin->value) {
             $school = School::where('status', 'active')->first();
-            if (!$school) {
+            if (! $school) {
                 abort(404, 'لا توجد مدارس نشطة');
             }
+
             return $school;
         }
 
-        if (!$user->school_id) {
+        if (! $user->school_id) {
             abort(403, 'حسابك غير مرتبط بمدرسة. اتصل بالإدارة.');
         }
 
         $school = $user->school;
-        if (!$school) {
+        if (! $school) {
             abort(404, 'المدرسة المرتبطة بحسابك غير موجودة');
         }
 

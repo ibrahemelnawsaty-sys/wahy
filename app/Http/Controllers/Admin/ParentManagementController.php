@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\School;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -17,30 +17,30 @@ class ParentManagementController extends Controller
     public function index(Request $request)
     {
         $query = User::where('role', 'parent')->with('school');
-        
+
         // فلترة حسب المدرسة
         if ($request->filled('school_id')) {
             $query->where('school_id', $request->school_id);
         }
-        
+
         // فلترة حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // بحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('qr_code', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('qr_code', 'like', "%{$search}%");
             });
         }
-        
+
         $parents = $query->latest()->paginate(20);
         $schools = School::where('status', 'active')->get();
-        
+
         return view('admin.parents.index', compact('parents', 'schools'));
     }
 
@@ -50,6 +50,7 @@ class ParentManagementController extends Controller
     public function create()
     {
         $schools = School::where('status', 'active')->get();
+
         return view('admin.parents.create', compact('schools'));
     }
 
@@ -72,12 +73,12 @@ class ParentManagementController extends Controller
         $validated['role'] = 'parent';
 
         // توليد QR Code
-        if (!$request->filled('qr_code')) {
+        if (! $request->filled('qr_code')) {
             $validated['qr_code'] = $this->generateQRCode();
         }
 
         $validated['password'] = Hash::make($validated['password']);
-        
+
         User::create($validated);
 
         return redirect()
@@ -96,6 +97,7 @@ class ParentManagementController extends Controller
         }
 
         $schools = School::where('status', 'active')->get();
+
         return view('admin.parents.edit', compact('parent', 'schools'));
     }
 
@@ -175,4 +177,3 @@ class ParentManagementController extends Controller
         return $qrCode;
     }
 }
-

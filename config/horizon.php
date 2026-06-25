@@ -13,8 +13,6 @@
  * (في الإنتاج: عبر Supervisor)
  */
 
-use Illuminate\Support\Str;
-
 return [
 
     'domain' => env('HORIZON_DOMAIN'),
@@ -41,12 +39,12 @@ return [
      * Retention — كم يوماً يحتفظ بسجلات الـ jobs
      */
     'trim' => [
-        'recent'        => 60,    // 1 hour
-        'pending'       => 60,
-        'completed'     => 60,
+        'recent' => 60,    // 1 hour
+        'pending' => 60,
+        'completed' => 60,
         'recent_failed' => 10080, // 7 days
-        'failed'        => 10080,
-        'monitored'     => 10080,
+        'failed' => 10080,
+        'monitored' => 10080,
     ],
 
     /*
@@ -55,13 +53,13 @@ return [
     'notifications' => [
         'email' => null,
         'slack' => null,
-        'sms'   => null,
+        'sms' => null,
     ],
 
     'silenced' => [],
     'metrics' => [
         'trim_snapshots' => [
-            'job'   => 24,
+            'job' => 24,
             'queue' => 24,
         ],
     ],
@@ -81,17 +79,17 @@ return [
      */
     'defaults' => [
         'supervisor-1' => [
-            'connection'   => 'redis',
-            'queue'        => ['default'],
-            'balance'      => 'auto',
+            'connection' => 'redis',
+            'queue' => ['default'],
+            'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
-            'maxTime'      => 0,
-            'maxJobs'      => 0,
-            'memory'       => 128,
-            'tries'        => 3,
-            'timeout'      => 60,
-            'nice'         => 0,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 60,
+            'nice' => 0,
         ],
     ],
 
@@ -102,24 +100,24 @@ return [
 
         'production' => [
             'supervisor-1' => [
-                'maxProcesses'    => 10,
+                'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
-                'tries'           => 3,
+                'tries' => 3,
             ],
         ],
 
         'staging' => [
             'supervisor-1' => [
                 'maxProcesses' => 3,
-                'tries'        => 3,
+                'tries' => 3,
             ],
         ],
 
         'local' => [
             'supervisor-1' => [
                 'maxProcesses' => 3,
-                'tries'        => 1,
+                'tries' => 1,
             ],
         ],
     ],

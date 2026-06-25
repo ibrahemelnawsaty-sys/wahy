@@ -11,6 +11,7 @@ class ResetPasswordMail extends Mailable
     use Queueable, SerializesModels;
 
     public $token;
+
     public $email;
 
     /**
@@ -28,12 +29,12 @@ class ResetPasswordMail extends Mailable
     public function build()
     {
         $resetUrl = url('/reset-password/' . $this->token . '?email=' . urlencode($this->email));
-        
+
         return $this->subject('إعادة تعيين كلمة المرور - منصة قيمّ')
-                    ->view('emails.reset-password')
-                    ->with([
-                        'resetUrl' => $resetUrl,
-                        'email' => $this->email,
-                    ]);
+            ->view('emails.reset-password')
+            ->with([
+                'resetUrl' => $resetUrl,
+                'email' => $this->email,
+            ]);
     }
 }

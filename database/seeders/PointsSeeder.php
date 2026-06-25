@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
 use App\Models\Point;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class PointsSeeder extends Seeder
 {
@@ -17,6 +17,7 @@ class PointsSeeder extends Seeder
 
         if ($students->isEmpty()) {
             $this->command->error('لا يوجد طلاب! قم بتشغيل UsersSeeder أولاً.');
+
             return;
         }
 
@@ -34,7 +35,7 @@ class PointsSeeder extends Seeder
         foreach ($students as $student) {
             // إنشاء 10-30 نقطة عشوائية لكل طالب
             $pointsCount = rand(10, 30);
-            
+
             for ($i = 0; $i < $pointsCount; $i++) {
                 Point::create([
                     'user_id' => $student->id,

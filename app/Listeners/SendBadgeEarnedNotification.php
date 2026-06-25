@@ -3,8 +3,8 @@
 namespace App\Listeners;
 
 use App\Events\BadgeEarned;
-use App\Services\NotificationService;
 use App\Mail\BadgeEarnedMail;
+use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 
@@ -36,7 +36,7 @@ class SendBadgeEarnedNotification implements ShouldQueue
             'badge_earned',
             '🏆 شارة جديدة',
             $message,
-            '/student/badges'
+            '/student/badges',
         );
 
         // إرسال بريد إلكتروني
@@ -51,13 +51,13 @@ class SendBadgeEarnedNotification implements ShouldQueue
         // إرسال إشعار لولي الأمر إن وجد
         if ($user->role === 'student' && $user->parent) {
             $parentMessage = "حصل ابنك/ابنتك {$user->name} على شارة جديدة: {$badge->name}";
-            
+
             $this->notificationService->create(
                 $user->parent->id,
                 'child_badge_earned',
                 '🎖️ إنجاز جديد',
                 $parentMessage,
-                "/parent/child/{$user->id}/achievements"
+                "/parent/child/{$user->id}/achievements",
             );
         }
     }

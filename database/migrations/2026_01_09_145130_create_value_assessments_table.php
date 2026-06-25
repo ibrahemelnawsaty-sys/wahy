@@ -25,7 +25,7 @@ return new class extends Migration
             $table->json('answers')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('value_id')->references('id')->on('values')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('users')->onDelete('cascade');
             $table->index(['value_id', 'student_id', 'assessment_type']);
@@ -38,7 +38,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('value_assessments');
-        
+
         Schema::table('values', function (Blueprint $table) {
             $table->dropColumn(['pre_assessment_required', 'post_assessment_required']);
         });

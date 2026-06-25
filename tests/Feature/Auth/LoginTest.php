@@ -19,12 +19,12 @@ class LoginTest extends TestCase
     public function test_user_can_login_with_correct_credentials(): void
     {
         $user = User::factory()->create([
-            'email'    => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => Hash::make('password123'),
         ]);
 
         $response = $this->post('/login', [
-            'email'    => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => 'password123',
         ]);
 
@@ -36,12 +36,12 @@ class LoginTest extends TestCase
     public function test_user_cannot_login_with_wrong_password(): void
     {
         User::factory()->create([
-            'email'    => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => Hash::make('correct-password'),
         ]);
 
         $response = $this->from('/login')->post('/login', [
-            'email'    => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => 'wrong-password',
         ]);
 

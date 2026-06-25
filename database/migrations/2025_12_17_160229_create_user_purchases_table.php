@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true); // هل العنصر مفعل حالياً
             $table->dateTime('used_at')->nullable(); // تاريخ الاستخدام (للعناصر ذات الاستخدام الواحد)
             $table->timestamps();
-            
+
             $table->index('user_id');
             $table->index('shop_item_id');
         });

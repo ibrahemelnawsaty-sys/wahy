@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -68,14 +68,14 @@ return new class extends Migration
         $this->dropIndexSafely('notifications', 'idx_user_read_created');
         $this->dropIndexSafely('streaks', 'idx_user_current');
     }
-    
+
     /**
      * Add index safely (skip if exists)
      */
     private function addIndexSafely(string $table, string $indexName, array $columns): void
     {
         try {
-            if (!$this->indexExists($table, $indexName)) {
+            if (! $this->indexExists($table, $indexName)) {
                 Schema::table($table, function (Blueprint $blueprint) use ($columns, $indexName) {
                     $blueprint->index($columns, $indexName);
                 });
@@ -84,7 +84,7 @@ return new class extends Migration
             // Index already exists, skip
         }
     }
-    
+
     /**
      * Drop index safely (skip if not exists)
      */
@@ -100,13 +100,14 @@ return new class extends Migration
             // Index doesn't exist, skip
         }
     }
-    
+
     /**
      * Check if index exists for SQLite
      */
     private function indexExists(string $table, string $indexName): bool
     {
         $result = DB::select("SELECT name FROM sqlite_master WHERE type='index' AND name=?", [$indexName]);
+
         return count($result) > 0;
     }
 };

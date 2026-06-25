@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
 class Value extends Model
@@ -61,7 +61,7 @@ class Value extends Model
      */
     public function scopeVisibleForSchool($query, ?int $schoolId)
     {
-        if (!$schoolId) {
+        if (! $schoolId) {
             return $query->where('status', 'active');
         }
 
@@ -69,7 +69,7 @@ class Value extends Model
             ->where('school_id', $schoolId)
             ->exists();
 
-        if (!$hasCustom) {
+        if (! $hasCustom) {
             return $query->where('status', 'active');
         }
 

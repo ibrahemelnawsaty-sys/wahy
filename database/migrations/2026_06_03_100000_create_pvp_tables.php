@@ -17,7 +17,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('pvp_challenges')) {
+        if (! Schema::hasTable('pvp_challenges')) {
             Schema::create('pvp_challenges', function (Blueprint $table) {
                 $table->id();
                 $table->string('title');
@@ -29,7 +29,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('pvp_matches')) {
+        if (! Schema::hasTable('pvp_matches')) {
             Schema::create('pvp_matches', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('challenge_id')->constrained('pvp_challenges')->cascadeOnDelete();

@@ -30,9 +30,9 @@ return [
     'routes' => [
         [
             'match' => [
-                'prefixes'         => ['api/*'],
-                'domains'          => ['*'],
-                'versions'         => ['v1'],
+                'prefixes' => ['api/*'],
+                'domains' => ['*'],
+                'versions' => ['v1'],
             ],
             'include' => [
                 // فقط API endpoints — استبعاد web routes
@@ -44,13 +44,13 @@ return [
             'apply' => [
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'Accept'       => 'application/json',
+                    'Accept' => 'application/json',
                 ],
                 'authentication' => [
-                    'enabled'    => true,
-                    'in_query'   => false,
-                    'name'       => 'Authorization',
-                    'use_value'  => env('SCRIBE_AUTH_KEY'),
+                    'enabled' => true,
+                    'in_query' => false,
+                    'name' => 'Authorization',
+                    'use_value' => env('SCRIBE_AUTH_KEY'),
                     'placeholder' => 'Bearer {YOUR_AUTH_TOKEN}',
                 ],
             ],
@@ -64,19 +64,19 @@ return [
     ],
 
     'try_it_out' => [
-        'enabled'    => true,
-        'base_url'   => null,
-        'use_csrf'   => false,
+        'enabled' => true,
+        'base_url' => null,
+        'use_csrf' => false,
     ],
 
     'auth' => [
-        'enabled'  => true,
-        'default'  => false,
-        'in'       => 'bearer',
-        'name'     => 'Authorization',
-        'use_value'   => env('SCRIBE_AUTH_KEY'),
+        'enabled' => true,
+        'default' => false,
+        'in' => 'bearer',
+        'name' => 'Authorization',
+        'use_value' => env('SCRIBE_AUTH_KEY'),
         'placeholder' => '{YOUR_AUTH_TOKEN}',
-        'extra_info'  => 'احصل على الـ token عبر `POST /api/v1/login`.',
+        'extra_info' => 'احصل على الـ token عبر `POST /api/v1/login`.',
     ],
 
     'intro_text' => <<<MARKDOWN
@@ -132,7 +132,7 @@ return [
 
     'groups' => [
         'default' => 'General',
-        'order'   => [
+        'order' => [
             'Authentication',
             'Student',
             'Landing Page Content',

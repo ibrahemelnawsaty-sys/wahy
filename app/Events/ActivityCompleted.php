@@ -11,9 +11,13 @@ class ActivityCompleted
     use Dispatchable, SerializesModels;
 
     public $student;
+
     public $activity;
+
     public $score;
+
     public $xpAwarded;
+
     public $coinsAwarded;
 
     public function __construct(User $student, $activity, $score, $xpAwarded, $coinsAwarded)

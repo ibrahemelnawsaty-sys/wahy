@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 /**
  * @group Authentication
@@ -41,12 +40,10 @@ class AuthApiController extends Controller
      *     }
      *   }
      * }
-     *
      * @response 401 {
      *   "success": false,
      *   "message": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
      * }
-     *
      * @response 403 {
      *   "success": false,
      *   "message": "حسابك غير مفعل. يرجى التواصل مع الإدارة"
@@ -61,10 +58,10 @@ class AuthApiController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+                'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
             ], 401);
         }
 
@@ -72,7 +69,7 @@ class AuthApiController extends Controller
         if ($user->status !== 'active') {
             return response()->json([
                 'success' => false,
-                'message' => 'حسابك غير مفعل. يرجى التواصل مع الإدارة'
+                'message' => 'حسابك غير مفعل. يرجى التواصل مع الإدارة',
             ], 403);
         }
 
@@ -91,8 +88,8 @@ class AuthApiController extends Controller
                     'role' => $user->role,
                     'avatar' => $user->avatar,
                     'school_id' => $user->school_id,
-                ]
-            ]
+                ],
+            ],
         ], 200);
     }
 
@@ -102,6 +99,7 @@ class AuthApiController extends Controller
      * يحذف الـ token الحالي فقط (لا يؤثر على tokens أخرى للمستخدم).
      *
      * @authenticated
+     *
      * @response 200 {"success": true, "message": "تم تسجيل الخروج بنجاح"}
      */
     public function logout(Request $request)
@@ -110,7 +108,7 @@ class AuthApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم تسجيل الخروج بنجاح'
+            'message' => 'تم تسجيل الخروج بنجاح',
         ], 200);
     }
 
@@ -136,13 +134,13 @@ class AuthApiController extends Controller
                     'name' => $user->school->name,
                     'logo' => $user->school->logo,
                 ] : null,
-                'classrooms' => $user->classrooms->map(function($classroom) {
+                'classrooms' => $user->classrooms->map(function ($classroom) {
                     return [
                         'id' => $classroom->id,
                         'name' => $classroom->name,
                     ];
                 }),
-            ]
+            ],
         ], 200);
     }
 
@@ -181,7 +179,7 @@ class AuthApiController extends Controller
                 'name' => $user->name,
                 'phone' => $user->phone,
                 'avatar' => $user->avatar,
-            ]
+            ],
         ], 200);
     }
 
@@ -197,10 +195,10 @@ class AuthApiController extends Controller
 
         $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'كلمة المرور الحالية غير صحيحة'
+                'message' => 'كلمة المرور الحالية غير صحيحة',
             ], 400);
         }
 
@@ -209,8 +207,7 @@ class AuthApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم تغيير كلمة المرور بنجاح'
+            'message' => 'تم تغيير كلمة المرور بنجاح',
         ], 200);
     }
 }
-

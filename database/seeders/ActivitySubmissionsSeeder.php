@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
 use App\Models\Activity;
 use App\Models\ActivitySubmission;
 use App\Models\Lesson;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class ActivitySubmissionsSeeder extends Seeder
 {
@@ -16,15 +16,16 @@ class ActivitySubmissionsSeeder extends Seeder
     public function run(): void
     {
         $students = User::where('role', 'student')->get();
-        
+
         if ($students->isEmpty()) {
             $this->command->error('لا يوجد طلاب!');
+
             return;
         }
 
         // إنشاء دروس وأنشطة إذا لم تكن موجودة
         $lesson = Lesson::first();
-        if (!$lesson) {
+        if (! $lesson) {
             $lesson = Lesson::create([
                 'title' => 'درس تجريبي - الصدق',
                 'description' => 'درس عن قيمة الصدق',
@@ -51,11 +52,11 @@ class ActivitySubmissionsSeeder extends Seeder
         foreach ($students as $student) {
             // إنشاء 5-15 نشاط مقدم لكل طالب
             $submissionsCount = rand(5, 15);
-            
+
             for ($i = 0; $i < $submissionsCount; $i++) {
                 $activity = $activities->random();
                 $status = ['pending', 'approved', 'rejected'][rand(0, 2)];
-                
+
                 ActivitySubmission::create([
                     'student_id' => $student->id,
                     'activity_id' => $activity->id,

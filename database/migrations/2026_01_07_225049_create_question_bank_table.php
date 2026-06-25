@@ -29,7 +29,7 @@ return new class extends Migration
             $table->text('rejection_reason')->nullable(); // سبب الرفض
             $table->integer('usage_count')->default(0); // عدد مرات استخدام السؤال
             $table->timestamps();
-            
+
             $table->index(['status', 'created_at']);
             $table->index('lesson_id');
             $table->index('created_by');

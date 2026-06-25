@@ -11,7 +11,9 @@ class StreakUpdated
     use Dispatchable, SerializesModels;
 
     public $student;
+
     public $streakDays;
+
     public $milestone;
 
     public function __construct(User $student, $streakDays, $milestone = false)

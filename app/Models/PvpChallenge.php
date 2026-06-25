@@ -15,9 +15,20 @@ class PvpChallenge extends Model
         'is_active' => 'boolean',
     ];
 
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
-    public function matches() { return $this->hasMany(PvpMatch::class, 'challenge_id'); }
-    public function value()   { return $this->belongsTo(Value::class, 'value_id'); }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function matches()
+    {
+        return $this->hasMany(PvpMatch::class, 'challenge_id');
+    }
+
+    public function value()
+    {
+        return $this->belongsTo(Value::class, 'value_id');
+    }
 
     /**
      * Scope: تحديات متاحة لطالب مدرسة معينة.
@@ -26,22 +37,23 @@ class PvpChallenge extends Model
      */
     public function scopeAvailableForSchool($query, ?int $schoolId)
     {
-        if (!$schoolId) {
+        if (! $schoolId) {
             return $query->where('is_active', true)->whereNull('value_id');
         }
 
         return $query->where('is_active', true)
             ->where(function ($q) use ($schoolId) {
                 $q->whereNull('value_id')
-                  ->orWhereHas('value', function ($vq) use ($schoolId) {
-                      $vq->visibleForSchool($schoolId);
-                  });
+                    ->orWhereHas('value', function ($vq) use ($schoolId) {
+                        $vq->visibleForSchool($schoolId);
+                    });
             });
     }
 
     public function getFullQuestionsAttribute()
     {
         $ids = $this->questions ?? [];
+
         return QuestionBank::whereIn('id', $ids)->get();
     }
 

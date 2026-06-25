@@ -41,8 +41,8 @@ class TeacherPoint extends Model
     public static function updateTeacherPoints($teacherId)
     {
         $teacher = User::find($teacherId);
-        
-        if (!$teacher || $teacher->role !== 'teacher') {
+
+        if (! $teacher || $teacher->role !== 'teacher') {
             return;
         }
 
@@ -82,7 +82,7 @@ class TeacherPoint extends Model
                 'students_count' => $studentIds->count(),
                 'activities_created' => $activitiesCreated,
                 'questions_approved' => $questionsApproved,
-            ]
+            ],
         );
     }
 }

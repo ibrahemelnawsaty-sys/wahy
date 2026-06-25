@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Lesson;
 use App\Models\Concept;
+use App\Models\Lesson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,9 +32,9 @@ class LessonManagementController extends Controller
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
@@ -78,9 +78,9 @@ class LessonManagementController extends Controller
 
         // معالجة checkbox الـ streak
         $validated['streak_enabled'] = $request->has('streak_enabled');
-        
+
         // إذا لم يفعّل النظام، نصفّر القيم
-        if (!$validated['streak_enabled']) {
+        if (! $validated['streak_enabled']) {
             $validated['streak_min_days'] = null;
             $validated['streak_max_days'] = null;
             $validated['streak_bonus_points'] = 0;
@@ -110,7 +110,7 @@ class LessonManagementController extends Controller
         }
 
         // Auto-order within the same concept
-        if (!$request->filled('order')) {
+        if (! $request->filled('order')) {
             $validated['order'] = Lesson::where('concept_id', $validated['concept_id'])->max('order') + 1;
         }
 
@@ -162,9 +162,9 @@ class LessonManagementController extends Controller
 
         // معالجة checkbox الـ streak
         $validated['streak_enabled'] = $request->has('streak_enabled');
-        
+
         // إذا لم يفعّل النظام، نصفّر القيم
-        if (!$validated['streak_enabled']) {
+        if (! $validated['streak_enabled']) {
             $validated['streak_min_days'] = null;
             $validated['streak_max_days'] = null;
             $validated['streak_bonus_points'] = 0;
@@ -202,7 +202,7 @@ class LessonManagementController extends Controller
                     }
                 }
             }
-            
+
             $images = [];
             foreach ($request->file('images') as $image) {
                 $images[] = $image->store('lessons/images', 'public');
@@ -231,11 +231,11 @@ class LessonManagementController extends Controller
         if ($lesson->video_file && Storage::disk('public')->exists($lesson->video_file)) {
             Storage::disk('public')->delete($lesson->video_file);
         }
-        
+
         if ($lesson->audio_file && Storage::disk('public')->exists($lesson->audio_file)) {
             Storage::disk('public')->delete($lesson->audio_file);
         }
-        
+
         if ($lesson->images && is_array($lesson->images)) {
             foreach ($lesson->images as $image) {
                 if (Storage::disk('public')->exists($image)) {
@@ -260,4 +260,3 @@ class LessonManagementController extends Controller
         return back()->with('success', 'تم تحديث حالة الدرس بنجاح!');
     }
 }
-

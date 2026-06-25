@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('activities_created')->default(0)->comment('عدد الأنشطة المنشأة');
             $table->integer('questions_approved')->default(0)->comment('عدد الأسئلة المعتمدة');
             $table->timestamps();
-            
+
             $table->unique('teacher_id');
             $table->index(['points', 'created_at']);
         });

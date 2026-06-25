@@ -16,10 +16,10 @@ class ConceptFactory extends Factory
     public function definition(): array
     {
         return [
-            'value_id'    => Value::factory(),
-            'name'        => fake()->words(2, true),
+            'value_id' => Value::factory(),
+            'name' => fake()->words(2, true),
             'description' => fake()->sentence(),
-            'order'       => fake()->numberBetween(1, 50),
+            'order' => fake()->numberBetween(1, 50),
         ];
     }
 }

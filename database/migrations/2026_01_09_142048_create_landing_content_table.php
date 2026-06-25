@@ -22,10 +22,10 @@ return new class extends Migration
             $table->integer('version')->default(1); // رقم النسخة
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
-            
+
             $table->index(['section', 'order']);
         });
-        
+
         // جدول للنسخ السابقة
         Schema::create('landing_content_versions', function (Blueprint $table) {
             $table->id();

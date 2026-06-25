@@ -26,11 +26,11 @@ class PvpChallengesSeeder extends Seeder
             ->toArray();
 
         PvpChallenge::create([
-            'title'         => 'تحدي القيم — العام',
-            'questions'     => $questionIds,
-            'time_limit'    => 15 * max(1, count($questionIds)),   // 15 ثانية لكل سؤال
-            'is_active'     => true,
-            'created_by'    => null,
+            'title' => 'تحدي القيم — العام',
+            'questions' => $questionIds,
+            'time_limit' => 15 * max(1, count($questionIds)),   // 15 ثانية لكل سؤال
+            'is_active' => true,
+            'created_by' => null,
         ]);
     }
 }

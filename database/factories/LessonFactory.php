@@ -17,13 +17,13 @@ class LessonFactory extends Factory
     {
         return [
             'concept_id' => Concept::factory(),
-            'title'      => 'درس ' . fake()->words(3, true),
-            'content'    => fake()->paragraph(),
-            'type'       => 'text',
-            'duration'   => fake()->numberBetween(5, 30),
-            'points'     => 10,
-            'order'      => fake()->numberBetween(1, 50),
-            'status'     => 'active',
+            'title' => 'درس ' . fake()->words(3, true),
+            'content' => fake()->paragraph(),
+            'type' => 'text',
+            'duration' => fake()->numberBetween(5, 30),
+            'points' => 10,
+            'order' => fake()->numberBetween(1, 50),
+            'status' => 'active',
         ];
     }
 }

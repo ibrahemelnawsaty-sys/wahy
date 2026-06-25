@@ -14,7 +14,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'email', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:6', 'max:255'],
             'remember' => ['nullable', 'boolean'],
         ];
@@ -23,10 +23,10 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required'    => 'البريد الإلكتروني مطلوب',
-            'email.email'       => 'البريد الإلكتروني غير صحيح',
+            'email.required' => 'البريد الإلكتروني مطلوب',
+            'email.email' => 'البريد الإلكتروني غير صحيح',
             'password.required' => 'كلمة المرور مطلوبة',
-            'password.min'      => 'كلمة المرور قصيرة جداً',
+            'password.min' => 'كلمة المرور قصيرة جداً',
         ];
     }
 

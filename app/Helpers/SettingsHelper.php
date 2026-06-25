@@ -2,12 +2,12 @@
 
 use App\Models\Setting;
 
-if (!function_exists('setting')) {
+if (! function_exists('setting')) {
     /**
      * Get or set a setting value
      *
-     * @param string $key
-     * @param mixed $default
+     * @param  string  $key
+     * @param  mixed  $default
      * @return mixed
      */
     function setting($key, $default = null)
@@ -16,7 +16,7 @@ if (!function_exists('setting')) {
     }
 }
 
-if (!function_exists('safe_mail_subject')) {
+if (! function_exists('safe_mail_subject')) {
     /**
      * تنظيف عنوان البريد من حقن CRLF لمنع Email Header Injection.
      * يزيل \r و \n و التحكم في صورة \0..\x1F.
@@ -26,12 +26,13 @@ if (!function_exists('safe_mail_subject')) {
         $s = (string) $subject;
         // إزالة CR/LF وأي تحكم
         $s = preg_replace('/[\r\n\0\x00-\x1F\x7F]+/u', ' ', $s) ?? '';
+
         // قص للحدود المعقولة (RFC 5322: 998 لكن أقل أفضل)
         return mb_substr(trim($s), 0, 200);
     }
 }
 
-if (!function_exists('social_links')) {
+if (! function_exists('social_links')) {
     /**
      * روابط التواصل الاجتماعي الموحّدة — تدمج نطاقَي المفاتيح المتعارضين:
      * social_facebook (السيدر/الإيميل) و facebook_url (الإعدادات/الفوتر).
@@ -43,22 +44,23 @@ if (!function_exists('social_links')) {
         $links = [];
         foreach ($platforms as $p) {
             $url = setting('social_' . $p) ?: setting($p . '_url');
-            if (!empty($url) && $url !== '#') {
+            if (! empty($url) && $url !== '#') {
                 $links[$p] = $url;
             }
         }
+
         return $links;
     }
 }
 
-if (!function_exists('set_setting')) {
+if (! function_exists('set_setting')) {
     /**
      * Set a setting value
-     * 
-     * @param string $key
-     * @param mixed $value
-     * @param string $type
-     * @param string|null $description
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @param  string  $type
+     * @param  string|null  $description
      * @return Setting
      */
     function set_setting($key, $value, $type = 'string', $description = null)
@@ -67,87 +69,83 @@ if (!function_exists('set_setting')) {
     }
 }
 
-if (!function_exists('hexToRgba')) {
+if (! function_exists('hexToRgba')) {
     /**
      * Convert HEX color to RGBA
-     * 
-     * @param string $hex
-     * @param float $opacity
+     *
+     * @param  string  $hex
+     * @param  float  $opacity
      * @return string
      */
     function hexToRgba($hex, $opacity = 1)
     {
         $hex = str_replace('#', '', $hex);
-        
+
         if (strlen($hex) == 3) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }
-        
+
         $r = hexdec(substr($hex, 0, 2));
         $g = hexdec(substr($hex, 2, 2));
         $b = hexdec(substr($hex, 4, 2));
-        
+
         return "rgba($r, $g, $b, $opacity)";
     }
 }
 
-if (!function_exists('hexToRgb')) {
+if (! function_exists('hexToRgb')) {
     /**
      * Convert HEX color to RGB (without alpha)
-     * 
-     * @param string $hex
+     *
+     * @param  string  $hex
      * @return string
      */
     function hexToRgb($hex)
     {
         $hex = str_replace('#', '', $hex);
-        
+
         if (strlen($hex) == 3) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }
-        
+
         $r = hexdec(substr($hex, 0, 2));
         $g = hexdec(substr($hex, 2, 2));
         $b = hexdec(substr($hex, 4, 2));
-        
+
         return "$r, $g, $b";
     }
 }
 
-if (!function_exists('adjustBrightness')) {
+if (! function_exists('adjustBrightness')) {
     /**
      * Adjust color brightness
-     * 
-     * @param string $hex
-     * @param int $steps (-255 to 255)
+     *
+     * @param  string  $hex
+     * @param  int  $steps  (-255 to 255)
      * @return string
      */
     function adjustBrightness($hex, $steps)
     {
         $hex = str_replace('#', '', $hex);
-        
+
         if (strlen($hex) == 3) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }
-        
+
         $r = max(0, min(255, hexdec(substr($hex, 0, 2)) + $steps));
         $g = max(0, min(255, hexdec(substr($hex, 2, 2)) + $steps));
         $b = max(0, min(255, hexdec(substr($hex, 4, 2)) + $steps));
-        
+
         return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT)
                   . str_pad(dechex($g), 2, '0', STR_PAD_LEFT)
                   . str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
     }
 }
 
-if (!function_exists('html_excerpt')) {
+if (! function_exists('html_excerpt')) {
     /**
      * استخراج نص نظيف من محتوى محرر HTML لعرضه كمعاينة قصيرة.
      * يُزيل الوسوم ويفكّ ترميز الكيانات (&nbsp; &amp; ...) بشكل آمن وحتى لو كانت مرمّزة مرّتين.
-     *
-     * @param string|null $html
-     * @param int $limit
-     * @return string
      */
     function html_excerpt(?string $html, int $limit = 100): string
     {
@@ -170,13 +168,10 @@ if (!function_exists('html_excerpt')) {
     }
 }
 
-if (!function_exists('safe_html')) {
+if (! function_exists('safe_html')) {
     /**
      * تنظيف HTML من XSS مع السماح بالعلامات الآمنة (للرسائل ومحتوى الدروس).
      * يُستخدم في الـ Blade مع {!! safe_html($message->message) !!}
-     *
-     * @param  string|null $html
-     * @return string
      */
     function safe_html(?string $html): string
     {

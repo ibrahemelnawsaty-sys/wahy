@@ -16,11 +16,11 @@ class TeamActivity extends Model
         'team_submission',
         'team_file',
         'submitted_at',
-        'teacher_feedback'
+        'teacher_feedback',
     ];
 
     protected $casts = [
-        'submitted_at' => 'datetime'
+        'submitted_at' => 'datetime',
     ];
 
     public function team()

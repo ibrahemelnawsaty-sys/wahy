@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
-use App\Models\QuestionBank;
 use App\Models\Lesson;
+use App\Models\QuestionBank;
 use App\Models\Value;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class ActivityBankController extends Controller
 {
@@ -31,7 +30,7 @@ class ActivityBankController extends Controller
 
         // فلتر المدرسة (فقط للسوبر أدمن)
         if ($request->filled('school_id') && $user->isSuperAdmin()) {
-            $activityQuery->whereHas('creator', fn($q) => $q->where('school_id', $request->school_id));
+            $activityQuery->whereHas('creator', fn ($q) => $q->where('school_id', $request->school_id));
         }
 
         $activities = $activityQuery->orderBy('created_at', 'desc')->paginate(20, ['*'], 'activities_page');
@@ -48,29 +47,32 @@ class ActivityBankController extends Controller
 
         // ─── الإحصائيات ────────────────────────────────────
         $activityStats = [
-            'total'    => Activity::where('is_activity_bank', true)->count(),
-            'pending'  => Activity::where('is_activity_bank', true)->where('approval_status', 'pending')->count(),
+            'total' => Activity::where('is_activity_bank', true)->count(),
+            'pending' => Activity::where('is_activity_bank', true)->where('approval_status', 'pending')->count(),
             'approved' => Activity::where('is_activity_bank', true)->where('approval_status', 'approved')->count(),
             'rejected' => Activity::where('is_activity_bank', true)->where('approval_status', 'rejected')->count(),
         ];
 
         $questionStats = [
-            'total'    => QuestionBank::count(),
-            'pending'  => QuestionBank::where('status', 'pending')->count(),
+            'total' => QuestionBank::count(),
+            'pending' => QuestionBank::where('status', 'pending')->count(),
             'approved' => QuestionBank::where('status', 'approved')->count(),
             'rejected' => QuestionBank::where('status', 'rejected')->count(),
         ];
 
         $lessons = Lesson::select('id', 'title')->orderBy('title')->get();
-        $values  = Value::select('id', 'name')->get();
+        $values = Value::select('id', 'name')->get();
 
         $activeTab = $request->get('tab', 'activities');
 
         return view('admin.activity-bank', compact(
-            'activities', 'questions',
-            'activityStats', 'questionStats',
-            'lessons', 'values',
-            'activeTab'
+            'activities',
+            'questions',
+            'activityStats',
+            'questionStats',
+            'lessons',
+            'values',
+            'activeTab',
         ));
     }
 
@@ -80,32 +82,32 @@ class ActivityBankController extends Controller
     public function storeActivity(Request $request)
     {
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type'        => 'required|in:quiz,exercise,project,creative,image_order,homework,practice',
-            'difficulty'  => 'required|in:easy,medium,hard',
-            'points'      => 'required|integer|min:1|max:500',
-            'coins'       => 'nullable|integer|min:0|max:500',
-            'lesson_id'   => 'nullable|exists:lessons,id',
-            'status'      => 'required|in:active,draft,inactive',
+            'type' => 'required|in:quiz,exercise,project,creative,image_order,homework,practice',
+            'difficulty' => 'required|in:easy,medium,hard',
+            'points' => 'required|integer|min:1|max:500',
+            'coins' => 'nullable|integer|min:0|max:500',
+            'lesson_id' => 'nullable|exists:lessons,id',
+            'status' => 'required|in:active,draft,inactive',
         ]);
 
         $user = Auth::user();
 
         $activity = Activity::create([
-            'title'           => $validated['title'],
-            'description'     => $validated['description'] ?? null,
-            'type'            => $validated['type'],
-            'difficulty'      => $validated['difficulty'],
-            'points'          => $validated['points'],
-            'coins'           => $validated['coins'] ?? 0,
-            'lesson_id'       => $validated['lesson_id'] ?? null,
-            'status'          => $validated['status'],
-            'is_activity_bank'=> true,
-            'created_by'      => $user->id,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'type' => $validated['type'],
+            'difficulty' => $validated['difficulty'],
+            'points' => $validated['points'],
+            'coins' => $validated['coins'] ?? 0,
+            'lesson_id' => $validated['lesson_id'] ?? null,
+            'status' => $validated['status'],
+            'is_activity_bank' => true,
+            'created_by' => $user->id,
             'approval_status' => 'approved',   // معتمد تلقائياً من الأدمن
-            'approved_by'     => $user->id,
-            'approved_at'     => now(),
+            'approved_by' => $user->id,
+            'approved_at' => now(),
         ]);
 
         return redirect()->route('admin.activity-bank.index', ['tab' => 'activities'])
@@ -122,8 +124,8 @@ class ActivityBankController extends Controller
 
         $activity->update([
             'approval_status' => 'approved',
-            'approved_by'     => $user->id,
-            'approved_at'     => now(),
+            'approved_by' => $user->id,
+            'approved_at' => now(),
         ]);
 
         // إشعار المعلم
@@ -134,7 +136,7 @@ class ActivityBankController extends Controller
                 '✅ تمت الموافقة على نشاطك',
                 "تمت الموافقة على نشاطك في بنك الأنشطة: {$activity->title}",
                 [],
-                route('teacher.activity-bank.index')
+                route('teacher.activity-bank.index'),
             );
         }
 
@@ -153,9 +155,9 @@ class ActivityBankController extends Controller
         // الأعمدة الموجودة فعلاً هي approved_by/approved_at (لا rejected_by/at) — تسجّل المُراجِع والوقت
         $activity->update([
             'approval_status' => 'rejected',
-            'approved_by'     => $user->id,
-            'approved_at'     => now(),
-            'rejection_reason'=> $request->reason,
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+            'rejection_reason' => $request->reason,
         ]);
 
         // إشعار المعلم
@@ -166,7 +168,7 @@ class ActivityBankController extends Controller
                 '❌ تم رفض نشاطك',
                 "تم رفض نشاطك: {$activity->title}" . ($request->reason ? ". السبب: {$request->reason}" : ''),
                 [],
-                route('teacher.activity-bank.index')
+                route('teacher.activity-bank.index'),
             );
         }
 
@@ -189,7 +191,7 @@ class ActivityBankController extends Controller
                 'question_approved',
                 '✅ تمت الموافقة على سؤالك',
                 "تمت الموافقة على سؤالك: {$question->title}",
-                route('teacher.question-bank.index')
+                route('teacher.question-bank.index'),
             );
         }
 
@@ -213,7 +215,7 @@ class ActivityBankController extends Controller
                 'question_rejected',
                 '❌ تم رفض سؤالك',
                 "تم رفض سؤالك: {$question->title}" . ($request->reason ? ". السبب: {$request->reason}" : ''),
-                route('teacher.question-bank.index')
+                route('teacher.question-bank.index'),
             );
         }
 

@@ -18,10 +18,10 @@ class MessageFactory extends Factory
     {
         return [
             'conversation_id' => Conversation::factory(),
-            'sender_id'       => User::factory(),
-            'receiver_id'     => User::factory(),
-            'message'         => fake()->sentence(),
-            'is_read'         => false,
+            'sender_id' => User::factory(),
+            'receiver_id' => User::factory(),
+            'message' => fake()->sentence(),
+            'is_read' => false,
         ];
     }
 }

@@ -11,7 +11,9 @@ class ActivityGraded
     use Dispatchable, SerializesModels;
 
     public ActivitySubmission $submission;
+
     public int $grade;
+
     public ?string $feedback;
 
     /**

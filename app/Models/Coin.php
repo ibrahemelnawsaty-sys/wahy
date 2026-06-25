@@ -15,17 +15,20 @@ class Coin extends Model
     protected static function booted(): void
     {
         static::updating(function (self $coin) {
-            if (!app()->runningInConsole()) {
+            if (! app()->runningInConsole()) {
                 abort(403, 'سجل العملات للقراءة فقط — لا يمكن تعديله');
             }
         });
 
         static::deleting(function (self $coin) {
-            if (!app()->runningInConsole()) {
+            if (! app()->runningInConsole()) {
                 abort(403, 'سجل العملات للقراءة فقط — لا يمكن حذفه');
             }
         });
     }
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

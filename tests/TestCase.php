@@ -3,8 +3,6 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -19,8 +17,8 @@ abstract class TestCase extends BaseTestCase
         return [
             '--drop-views' => false,
             '--drop-types' => false,
-            '--seed'       => false,
-            '--force'      => true,
+            '--seed' => false,
+            '--force' => true,
         ];
     }
 
@@ -46,7 +44,10 @@ abstract class TestCase extends BaseTestCase
      */
     protected function assertSafeTestingEnv(): void
     {
-        $this->assertEquals('sqlite', config('database.default'),
-            'CRITICAL: tests must run on sqlite, not production DB');
+        $this->assertEquals(
+            'sqlite',
+            config('database.default'),
+            'CRITICAL: tests must run on sqlite, not production DB',
+        );
     }
 }

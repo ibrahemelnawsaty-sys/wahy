@@ -43,6 +43,7 @@ class SchoolStatisticsCache extends Model
         if ($this->entity_type === 'school') {
             return $this->belongsTo(School::class, 'entity_id');
         }
+
         return $this->belongsTo(User::class, 'entity_id');
     }
 
@@ -56,7 +57,7 @@ class SchoolStatisticsCache extends Model
      */
     public function getTrendIconAttribute(): string
     {
-        return match($this->trend) {
+        return match ($this->trend) {
             'up' => '📈',
             'down' => '📉',
             default => '➡️',
@@ -70,9 +71,11 @@ class SchoolStatisticsCache extends Model
     {
         $rank = $this->{$scope . '_rank'} ?? 0;
         $total = $this->{$scope . '_total'} ?? 0;
-        
-        if ($total <= 0 || $rank <= 0) return 0;
-        
+
+        if ($total <= 0 || $rank <= 0) {
+            return 0;
+        }
+
         return round((1 - ($rank / $total)) * 100, 1);
     }
 }

@@ -2,17 +2,17 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Meaning;
-use App\Models\Lesson;
 use App\Models\Activity;
+use App\Models\Lesson;
+use App\Models\Meaning;
+use Illuminate\Database\Seeder;
 
 class LessonsSeeder extends Seeder
 {
     public function run(): void
     {
         $meaning = Meaning::where('name', 'رد الأمانات')->first();
-        
+
         if ($meaning) {
             // درس تجريبي
             $lesson = Lesson::create([
@@ -36,13 +36,13 @@ class LessonsSeeder extends Seeder
                     [
                         'question' => 'ما معنى الأمانة؟',
                         'options' => ['حفظ الحقوق', 'الكذب', 'الخيانة', 'التأخير'],
-                        'correct' => 0
+                        'correct' => 0,
                     ],
                     [
                         'question' => 'ماذا يفعل الطالب الأمين؟',
                         'options' => ['يحفظ أغراض زملائه', 'يأخذ ما ليس له', 'يكذب', 'يتأخر'],
-                        'correct' => 0
-                    ]
+                        'correct' => 0,
+                    ],
                 ]),
                 'points' => 20,
                 'passing_score' => 50,

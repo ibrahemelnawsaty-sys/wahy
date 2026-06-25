@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ActivitySubmission extends Model
 {
@@ -17,13 +17,13 @@ class ActivitySubmission extends Model
             ->logOnly(['status', 'score', 'feedback'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "تقديم النشاط {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "تقديم النشاط {$eventName}");
     }
 
     protected $fillable = [
-        'activity_id', 'student_id', 'answer', 'file_path', 
-        'score', 'status', 'reviewed_by', 'feedback', 
-        'submitted_at', 'reviewed_at'
+        'activity_id', 'student_id', 'answer', 'file_path',
+        'score', 'status', 'reviewed_by', 'feedback',
+        'submitted_at', 'reviewed_at',
     ];
 
     protected $casts = [
@@ -59,9 +59,20 @@ class ActivitySubmission extends Model
         });
     }
 
-    public function activity() { return $this->belongsTo(Activity::class); }
-    public function student() { return $this->belongsTo(User::class, 'student_id'); }
-    public function reviewer() { return $this->belongsTo(User::class, 'reviewed_by'); }
+    public function activity()
+    {
+        return $this->belongsTo(Activity::class);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 
     /**
      * الحالات المعتبرة "إنجازاً نهائياً للنشاط" — فقط ما تم اعتماده.

@@ -11,7 +11,9 @@ class LevelUp
     use Dispatchable, SerializesModels;
 
     public $student;
+
     public $newLevel;
+
     public $oldLevel;
 
     public function __construct(User $student, $newLevel, $oldLevel)

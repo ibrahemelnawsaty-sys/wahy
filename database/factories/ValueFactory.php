@@ -15,9 +15,9 @@ class ValueFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'        => fake()->unique()->randomElement(['الصدق', 'الأمانة', 'الصبر', 'العدل', 'الإحسان', 'الكرم', 'التواضع', 'التعاون']),
+            'name' => fake()->unique()->randomElement(['الصدق', 'الأمانة', 'الصبر', 'العدل', 'الإحسان', 'الكرم', 'التواضع', 'التعاون']),
             'description' => fake()->sentence(),
-            'order'       => fake()->numberBetween(1, 100),
+            'order' => fake()->numberBetween(1, 100),
         ];
     }
 }

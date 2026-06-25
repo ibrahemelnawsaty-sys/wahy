@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('last_activity_date')->nullable();
             $table->integer('total_bonus_earned')->default(0); // إجمالي المكافآت
             $table->timestamps();
-            
+
             $table->unique('user_id');
         });
     }

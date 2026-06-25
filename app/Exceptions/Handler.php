@@ -2,12 +2,12 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Throwable;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Throwable;
 
 class Handler extends ExceptionHandler
 {
@@ -97,11 +97,13 @@ class Handler extends ExceptionHandler
             // أخطاء 500 عامة - لا نكشف التفاصيل
             if ($request->expectsJson()) {
                 \Log::error('Unhandled exception [' . get_class($e) . ']: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى.'
+                    'message' => 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى.',
                 ], 500);
             }
+
             return response()->view('errors.500', [], 500);
         }
 

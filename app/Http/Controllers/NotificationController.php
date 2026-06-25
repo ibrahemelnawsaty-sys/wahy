@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Services\NotificationService;
-use App\Models\Notification;
 
 class NotificationController extends Controller
 {
@@ -24,7 +24,7 @@ class NotificationController extends Controller
         // تحديد الليوت المناسب حسب دور المستخدم
         $user = Auth::user();
         $role = $user->role ?? 'student';
-        
+
         $layoutMap = [
             'super_admin' => 'layouts.admin',
             'school_admin' => 'layouts.school-admin',
@@ -32,7 +32,7 @@ class NotificationController extends Controller
             'parent' => 'layouts.parent',
             'student' => 'layouts.student-app',
         ];
-        
+
         $layout = $layoutMap[$role] ?? 'layouts.student-app';
 
         return view('notifications.index', compact('notifications', 'unreadCount', 'layout'));
@@ -53,7 +53,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'notifications' => $notifications,
-            'unread_count' => $unreadCount
+            'unread_count' => $unreadCount,
         ]);
     }
 

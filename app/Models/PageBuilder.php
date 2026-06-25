@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PageBuilder extends Model
 {
     protected $table = 'page_builder';
-    
+
     protected $fillable = [
         'page_name',
         'slug',
@@ -15,7 +15,7 @@ class PageBuilder extends Model
         'meta_title',
         'meta_description',
         'og_image',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [

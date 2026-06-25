@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class School extends Model
 {
@@ -20,7 +20,7 @@ class School extends Model
             ->logOnly(['name', 'description', 'address', 'phone', 'email'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "المدرسة {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "المدرسة {$eventName}");
     }
 
     protected $fillable = [
@@ -67,7 +67,7 @@ class School extends Model
     {
         return $this->hasMany(User::class);
     }
-    
+
     /**
      * العلاقة مع الطلاب فقط
      */
@@ -75,7 +75,7 @@ class School extends Model
     {
         return $this->hasMany(User::class)->where('role', 'student');
     }
-    
+
     /**
      * العلاقة مع المعلمين فقط
      */

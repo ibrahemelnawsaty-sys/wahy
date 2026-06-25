@@ -2,17 +2,17 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\URL;
+use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,20 +35,20 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale('ar');
 
         // مشاركة الهوية/الثيم/روابط التواصل مع كل القوالب (مصدر موحّد بدل hardcode في كل لايوت)
-        if (!$this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             try {
                 $branding = \App\Models\Setting::getMany([
                     'site_name', 'site_logo', 'site_favicon', 'site_tagline', 'site_description',
                     'footer_text', 'meta_title', 'meta_description',
                     'primary_color', 'secondary_color', 'text_color', 'background_color', 'font_family', 'site_theme',
                 ], [
-                    'site_name'        => 'قيمّ',
-                    'primary_color'    => '#667eea',
-                    'secondary_color'  => '#764ba2',
-                    'text_color'       => '#1e293b',
+                    'site_name' => 'قيمّ',
+                    'primary_color' => '#667eea',
+                    'secondary_color' => '#764ba2',
+                    'text_color' => '#1e293b',
                     'background_color' => '#ffffff',
-                    'font_family'      => 'IBM Plex Sans Arabic',
-                    'site_theme'       => 'light',
+                    'font_family' => 'IBM Plex Sans Arabic',
+                    'site_theme' => 'light',
                 ]);
                 $branding['social_links'] = social_links();
                 View::share('branding', $branding);
@@ -73,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $email = (string) $request->input('email', $request->input('login', ''));
+
             return [
                 Limit::perMinute(5)->by($email . '|' . $request->ip()),
                 Limit::perMinute(20)->by($request->ip()),
@@ -92,14 +93,14 @@ class AppServiceProvider extends ServiceProvider
         // مشاركة بيانات العداد مع لوحات الأدمن
         View::composer(
             ['layouts.admin', 'layouts.super-admin'],
-            \App\View\Composers\HeaderDataComposer::class
+            \App\View\Composers\HeaderDataComposer::class,
         );
 
         // مشاركة بيانات المستخدم مع جميع Views - محسّن للأداء
         View::composer(['layouts.student-app', 'student.*'], function ($view) {
             if (auth()->check() && auth()->user()->role === 'student') {
                 $user = auth()->user();
-                
+
                 // Cache للبيانات لمدة دقيقة واحدة
                 $cacheKey = 'student_stats_' . $user->id;
                 $stats = Cache::remember($cacheKey, 60, function () use ($user) {
@@ -109,7 +110,7 @@ class AppServiceProvider extends ServiceProvider
                         'total_badges' => $user->badges()->count(),
                     ];
                 });
-                
+
                 $view->with('stats', $stats);
                 $view->with('streak', $user->streak);
                 $view->with('badges', $user->badges);
@@ -119,38 +120,38 @@ class AppServiceProvider extends ServiceProvider
         // تسجيل Event Listeners للتلعيب
         Event::listen(
             \App\Events\ActivityCompleted::class,
-            [\App\Listeners\CheckBadgeEligibility::class, 'handle']
+            [\App\Listeners\CheckBadgeEligibility::class, 'handle'],
         );
 
         Event::listen(
             \App\Events\ActivityCompleted::class,
-            [\App\Listeners\UpdateStreak::class, 'handle']
+            [\App\Listeners\UpdateStreak::class, 'handle'],
         );
 
         Event::listen(
             \App\Events\LevelUp::class,
-            [\App\Listeners\CheckBadgeEligibility::class, 'handle']
+            [\App\Listeners\CheckBadgeEligibility::class, 'handle'],
         );
 
         Event::listen(
             \App\Events\StreakUpdated::class,
-            [\App\Listeners\CheckBadgeEligibility::class, 'handle']
+            [\App\Listeners\CheckBadgeEligibility::class, 'handle'],
         );
 
         // تسجيل Event Listeners للإشعارات التلقائية
         Event::listen(
             \App\Events\ActivityGraded::class,
-            [\App\Listeners\SendActivityGradedNotification::class, 'handle']
+            [\App\Listeners\SendActivityGradedNotification::class, 'handle'],
         );
 
         Event::listen(
             \App\Events\BadgeEarned::class,
-            [\App\Listeners\SendBadgeEarnedNotification::class, 'handle']
+            [\App\Listeners\SendBadgeEarnedNotification::class, 'handle'],
         );
 
         Event::listen(
             \App\Events\StudentRegistered::class,
-            [\App\Listeners\SendWelcomeNotification::class, 'handle']
+            [\App\Listeners\SendWelcomeNotification::class, 'handle'],
         );
     }
 
@@ -162,20 +163,20 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerSentryBeforeSend(): void
     {
-        if (!class_exists(\Sentry\State\Hub::class)) {
+        if (! class_exists(\Sentry\State\Hub::class)) {
             return;
         }
 
         $hub = \Sentry\State\Hub::getCurrent();
         $client = $hub->getClient();
-        if (!$client) {
+        if (! $client) {
             return;
         }
 
         $client->getOptions()->setBeforeSendCallback(function (\Sentry\Event $event) {
             $request = $event->getRequest();
 
-            if (!empty($request)) {
+            if (! empty($request)) {
                 $data = $request['data'] ?? [];
 
                 foreach (['password', 'password_confirmation', 'token', 'api_key', 'secret', 'access_token'] as $sensitive) {

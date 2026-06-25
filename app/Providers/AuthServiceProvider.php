@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,10 +12,10 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        \App\Models\Activity::class           => \App\Policies\ActivityPolicy::class,
+        \App\Models\Activity::class => \App\Policies\ActivityPolicy::class,
         \App\Models\ActivitySubmission::class => \App\Policies\ActivitySubmissionPolicy::class,
-        \App\Models\Lesson::class             => \App\Policies\LessonPolicy::class,
-        \App\Models\Message::class            => \App\Policies\MessagePolicy::class,
+        \App\Models\Lesson::class => \App\Policies\LessonPolicy::class,
+        \App\Models\Message::class => \App\Policies\MessagePolicy::class,
     ];
 
     public function boot(): void

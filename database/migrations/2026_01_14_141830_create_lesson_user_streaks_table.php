@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('bonus_claimed')->default(false); // هل حصل على المكافأة؟
             $table->timestamp('bonus_claimed_at')->nullable(); // متى حصل على المكافأة
             $table->timestamps();
-            
+
             // كل طالب له سجل واحد لكل درس
             $table->unique(['user_id', 'lesson_id']);
             $table->index('user_id');

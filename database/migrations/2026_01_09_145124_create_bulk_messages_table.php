@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('message');
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('recipient_id')->references('id')->on('users')->onDelete('cascade');
             $table->index(['recipient_type', 'sent_at']);
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('bulk_message_id')->references('id')->on('bulk_messages')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->index(['user_id', 'read_at']);

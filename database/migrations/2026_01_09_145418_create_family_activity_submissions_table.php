@@ -22,7 +22,7 @@ return new class extends Migration
             $table->timestamp('parent_approved_at')->nullable();
             $table->text('parent_praise')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('activity_id')->references('id')->on('activities')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('parent_id')->references('id')->on('users')->onDelete('cascade');

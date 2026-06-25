@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\School;
-use App\Models\RegistrationRequest;
-use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\RegistrationSubmittedMail;
 use App\Mail\NewRegistrationNotificationMail;
+use App\Mail\RegistrationSubmittedMail;
+use App\Models\RegistrationRequest;
+use App\Models\School;
+use App\Models\User;
 use App\Notifications\NewRegistrationNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class PublicRegistrationController extends Controller
 {
@@ -21,7 +21,7 @@ class PublicRegistrationController extends Controller
         $school = School::where('teacher_token', $token)
             ->where('enable_teacher_registration', true)
             ->firstOrFail();
-        
+
         return view('public.register.teacher', compact('school', 'token'));
     }
 
@@ -101,7 +101,7 @@ class PublicRegistrationController extends Controller
         $school = School::where('student_token', $token)
             ->where('enable_student_registration', true)
             ->firstOrFail();
-        
+
         return view('public.register.student', compact('school', 'token'));
     }
 
@@ -155,7 +155,7 @@ class PublicRegistrationController extends Controller
         ]);
 
         // إرسال إيميل للطالب — مع التحقق المزدوج من صيغة الإيميل
-        if (!empty($validated['email']) && filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
+        if (! empty($validated['email']) && filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
             try {
                 Mail::to($validated['email'])->send(new RegistrationSubmittedMail($registrationRequest));
             } catch (\Exception $e) {
@@ -164,7 +164,7 @@ class PublicRegistrationController extends Controller
         }
 
         // إرسال إيميل لولي الأمر إذا كان موجود
-        if (!empty($validated['parent_email']) && filter_var($validated['parent_email'], FILTER_VALIDATE_EMAIL)) {
+        if (! empty($validated['parent_email']) && filter_var($validated['parent_email'], FILTER_VALIDATE_EMAIL)) {
             try {
                 Mail::to($validated['parent_email'])->send(new RegistrationSubmittedMail($registrationRequest));
             } catch (\Exception $e) {
@@ -180,7 +180,7 @@ class PublicRegistrationController extends Controller
         if ($schoolAdmin) {
             $schoolAdmin->notify(new NewRegistrationNotification($registrationRequest));
             try {
-                if (!empty($schoolAdmin->email) && filter_var($schoolAdmin->email, FILTER_VALIDATE_EMAIL)) {
+                if (! empty($schoolAdmin->email) && filter_var($schoolAdmin->email, FILTER_VALIDATE_EMAIL)) {
                     Mail::to($schoolAdmin->email)->send(new NewRegistrationNotificationMail($registrationRequest));
                 }
             } catch (\Exception $e) {
@@ -199,7 +199,7 @@ class PublicRegistrationController extends Controller
         $school = School::where('parent_token', $token)
             ->where('enable_parent_registration', true)
             ->firstOrFail();
-        
+
         return view('public.register.parent', compact('school', 'token'));
     }
 
@@ -272,4 +272,3 @@ class PublicRegistrationController extends Controller
         return redirect()->back()->with('success', 'تم إرسال طلب التسجيل بنجاح! سيتم مراجعته من قبل إدارة المدرسة.');
     }
 }
-

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Message extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'conversation_id',
         'sender_id',
@@ -52,7 +53,7 @@ class Message extends Model
      */
     public function markAsRead()
     {
-        if (!$this->is_read) {
+        if (! $this->is_read) {
             $this->update([
                 'is_read' => true,
                 'read_at' => now(),

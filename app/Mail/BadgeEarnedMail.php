@@ -2,19 +2,20 @@
 
 namespace App\Mail;
 
+use App\Models\Badge;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Badge;
-use App\Models\User;
 
 class BadgeEarnedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $user;
+
     public $badge;
 
     public function __construct(User $user, Badge $badge)

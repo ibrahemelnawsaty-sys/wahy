@@ -31,9 +31,9 @@ class ActivityManagementController extends Controller
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -76,7 +76,7 @@ class ActivityManagementController extends Controller
         ]);
 
         // Auto-order within the same lesson
-        if (!$request->filled('order')) {
+        if (! $request->filled('order')) {
             $validated['order'] = Activity::where('lesson_id', $validated['lesson_id'])->max('order') + 1;
         }
 
@@ -84,7 +84,7 @@ class ActivityManagementController extends Controller
         if ($request->filled('questions')) {
             $validated['questions'] = json_decode($validated['questions'], true);
         }
-        
+
         // تحويل أنواع الملفات المسموحة إلى JSON
         if (isset($validated['allowed_file_types'])) {
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
@@ -125,11 +125,11 @@ class ActivityManagementController extends Controller
             'passing_score' => 'nullable|integer|min:0|max:100',
             'order' => 'nullable|integer|min:0',
             'status' => 'required|in:active,inactive,draft',
-            
+
             // حقول خاصة بالاختبار
             'quiz_duration' => 'nullable|integer|min:1',
             'max_attempts' => 'nullable|integer|min:1',
-            
+
             // حقول خاصة بالمشروع
             'allowed_file_types' => 'nullable|array',
             'allowed_file_types.*' => 'in:document,image,video,audio',
@@ -140,7 +140,7 @@ class ActivityManagementController extends Controller
         if ($request->filled('questions')) {
             $validated['questions'] = json_decode($validated['questions'], true);
         }
-        
+
         // تحويل أنواع الملفات المسموحة إلى JSON
         if (isset($validated['allowed_file_types'])) {
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
@@ -188,4 +188,3 @@ class ActivityManagementController extends Controller
         return response()->json(['url' => $url]);
     }
 }
-

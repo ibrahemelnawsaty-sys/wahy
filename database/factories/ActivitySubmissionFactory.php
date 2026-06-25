@@ -17,12 +17,12 @@ class ActivitySubmissionFactory extends Factory
     public function definition(): array
     {
         return [
-            'activity_id'  => Activity::factory(),
-            'student_id'   => User::factory()->student(),
-            'answer'       => json_encode([0, 1]),
+            'activity_id' => Activity::factory(),
+            'student_id' => User::factory()->student(),
+            'answer' => json_encode([0, 1]),
             // 'pending' متاح في كل من MySQL و SQLite (الـ enum الأصلي)
-            'status'       => 'pending',
-            'score'        => fake()->numberBetween(0, 100),
+            'status' => 'pending',
+            'score' => fake()->numberBetween(0, 100),
             'submitted_at' => now(),
         ];
     }
@@ -31,7 +31,7 @@ class ActivitySubmissionFactory extends Factory
     {
         return $this->state(fn () => [
             'status' => 'pending',
-            'score'  => null,
+            'score' => null,
         ]);
     }
 
@@ -39,7 +39,7 @@ class ActivitySubmissionFactory extends Factory
     {
         return $this->state(fn () => [
             'status' => 'approved',
-            'score'  => $score,
+            'score' => $score,
         ]);
     }
 }

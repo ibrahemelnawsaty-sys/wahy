@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('activities', 'approval_status')) {
+        if (! Schema::hasColumn('activities', 'approval_status')) {
             Schema::table('activities', function (Blueprint $table) {
                 $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('approved')->after('status');
                 $table->foreignId('approved_by')->nullable()->after('approval_status')->constrained('users')->nullOnDelete();

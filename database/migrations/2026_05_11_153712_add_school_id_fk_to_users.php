@@ -2,9 +2,9 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * إضافة Foreign Key على users.school_id (كان مفقوداً منذ migration الأصلي).
@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Log;
  *
  * ⚠️  قبل التشغيل في الإنتاج: خذ نسخة احتياطية كاملة من قاعدة البيانات.
  */
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         $driver = Schema::getConnection()->getDriverName();
@@ -27,11 +28,12 @@ return new class extends Migration {
                  WHERE TABLE_SCHEMA = DATABASE()
                    AND TABLE_NAME = 'users'
                    AND COLUMN_NAME = 'school_id'
-                   AND REFERENCED_TABLE_NAME = 'schools'"
+                   AND REFERENCED_TABLE_NAME = 'schools'",
             ))->isNotEmpty();
 
             if ($hasFk) {
                 Log::info('FK users.school_id موجود مسبقاً — تخطّي المهجرة');
+
                 return;
             }
         }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Value;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,23 +16,23 @@ class ValueManagementController extends Controller
     public function index(Request $request)
     {
         $query = Value::with('creator', 'concepts');
-        
+
         // فلترة حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // بحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
-        
+
         $values = $query->orderBy('order')->paginate(20);
-        
+
         return view('admin.values.index', compact('values'));
     }
 
@@ -59,14 +59,14 @@ class ValueManagementController extends Controller
         ]);
 
         $validated['created_by'] = Auth::id();
-        
+
         // رفع الصورة إذا تم إرسالها
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('values', 'public');
         }
-        
+
         // إذا لم يتم تحديد الترتيب، خليه آخر واحد
-        if (!$request->filled('order')) {
+        if (! $request->filled('order')) {
             $validated['order'] = Value::max('order') + 1;
         }
 
@@ -85,7 +85,7 @@ class ValueManagementController extends Controller
         $value->load(['concepts.lessons', 'creator']);
         $conceptsCount = $value->concepts()->count();
         $lessonsCount = $value->concepts()->withCount('lessons')->get()->sum('lessons_count');
-        
+
         return view('admin.values.show', compact('value', 'conceptsCount', 'lessonsCount'));
     }
 
@@ -160,4 +160,3 @@ class ValueManagementController extends Controller
         return back()->with('success', 'تم تغيير حالة القيمة! ✅');
     }
 }
-

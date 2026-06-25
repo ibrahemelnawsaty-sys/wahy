@@ -14,28 +14,28 @@ return new class extends Migration
         // إضافة الأعمدة الجديدة لجدول الاستبيانات الموجود
         if (Schema::hasTable('surveys')) {
             Schema::table('surveys', function (Blueprint $table) {
-                if (!Schema::hasColumn('surveys', 'target_roles')) {
+                if (! Schema::hasColumn('surveys', 'target_roles')) {
                     $table->json('target_roles')->nullable()->after('description');
                 }
-                if (!Schema::hasColumn('surveys', 'school_id')) {
+                if (! Schema::hasColumn('surveys', 'school_id')) {
                     $table->foreignId('school_id')->nullable()->after('target_roles')->constrained()->nullOnDelete();
                 }
-                if (!Schema::hasColumn('surveys', 'is_mandatory')) {
+                if (! Schema::hasColumn('surveys', 'is_mandatory')) {
                     $table->boolean('is_mandatory')->default(true)->after('status');
                 }
-                if (!Schema::hasColumn('surveys', 'is_popup')) {
+                if (! Schema::hasColumn('surveys', 'is_popup')) {
                     $table->boolean('is_popup')->default(true)->after('is_mandatory');
                 }
-                if (!Schema::hasColumn('surveys', 'start_date')) {
+                if (! Schema::hasColumn('surveys', 'start_date')) {
                     $table->timestamp('start_date')->nullable()->after('is_popup');
                 }
-                if (!Schema::hasColumn('surveys', 'end_date')) {
+                if (! Schema::hasColumn('surveys', 'end_date')) {
                     $table->timestamp('end_date')->nullable()->after('start_date');
                 }
             });
         }
-        
-        if (!Schema::hasTable('surveys')) {
+
+        if (! Schema::hasTable('surveys')) {
             // جدول الاستبيانات
             Schema::create('surveys', function (Blueprint $table) {
                 $table->id();
@@ -54,7 +54,7 @@ return new class extends Migration
         }
 
         // جدول أسئلة الاستبيان
-        if (!Schema::hasTable('survey_questions')) {
+        if (! Schema::hasTable('survey_questions')) {
             Schema::create('survey_questions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('survey_id')->constrained()->cascadeOnDelete();
@@ -70,10 +70,10 @@ return new class extends Migration
         // إضافة الأعمدة الجديدة لجدول الإجابات الموجود
         if (Schema::hasTable('survey_responses')) {
             Schema::table('survey_responses', function (Blueprint $table) {
-                if (!Schema::hasColumn('survey_responses', 'answers')) {
+                if (! Schema::hasColumn('survey_responses', 'answers')) {
                     $table->json('answers')->nullable()->after('user_id');
                 }
-                if (!Schema::hasColumn('survey_responses', 'completed_at')) {
+                if (! Schema::hasColumn('survey_responses', 'completed_at')) {
                     $table->timestamp('completed_at')->nullable()->after('answers');
                 }
             });

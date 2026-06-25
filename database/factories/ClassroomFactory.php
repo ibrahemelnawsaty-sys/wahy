@@ -16,13 +16,13 @@ class ClassroomFactory extends Factory
     public function definition(): array
     {
         return [
-            'school_id'     => School::factory(),
-            'teacher_id'    => null,
-            'name'          => 'الصف ' . fake()->randomElement(['الأول', 'الثاني', 'الثالث', 'الرابع']) . ' ' . fake()->randomLetter(),
-            'grade_level'   => fake()->randomElement(['ابتدائي', 'متوسط', 'ثانوي']),
+            'school_id' => School::factory(),
+            'teacher_id' => null,
+            'name' => 'الصف ' . fake()->randomElement(['الأول', 'الثاني', 'الثالث', 'الرابع']) . ' ' . fake()->randomLetter(),
+            'grade_level' => fake()->randomElement(['ابتدائي', 'متوسط', 'ثانوي']),
             'academic_year' => '2025-2026',
-            'capacity'      => fake()->numberBetween(20, 35),
-            'status'        => 'active',
+            'capacity' => fake()->numberBetween(20, 35),
+            'status' => 'active',
         ];
     }
 }

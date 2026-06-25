@@ -36,7 +36,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'sold_out'])->default('active');
             $table->integer('order')->default(0); // ترتيب العرض
             $table->timestamps();
-            
+
             $table->index('type');
             $table->index('status');
             $table->index('rarity');

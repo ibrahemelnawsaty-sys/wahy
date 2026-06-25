@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
-use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,12 +28,12 @@ class ActivityApprovalController extends Controller
         // البحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhereHas('creator', function($creatorQ) use ($search) {
-                      $creatorQ->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('creator', function ($creatorQ) use ($search) {
+                        $creatorQ->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -79,7 +78,7 @@ class ActivityApprovalController extends Controller
                 'تمت الموافقة على نشاطك',
                 "تمت الموافقة على نشاط '{$activity->title}' وأصبح متاحاً في بنك الأنشطة لجميع المعلمين.",
                 'activity_approved',
-                route('teacher.activity-bank.index')
+                route('teacher.activity-bank.index'),
             );
         }
 
@@ -110,7 +109,7 @@ class ActivityApprovalController extends Controller
                 'تم رفض نشاطك',
                 "تم رفض نشاط '{$activity->title}'. السبب: {$request->rejection_reason}",
                 'activity_rejected',
-                route('teacher.activity-bank.index')
+                route('teacher.activity-bank.index'),
             );
         }
 
@@ -146,7 +145,7 @@ class ActivityApprovalController extends Controller
                     'تمت الموافقة على نشاطك',
                     "تمت الموافقة على نشاط '{$activity->title}' وأصبح متاحاً في بنك الأنشطة.",
                     'activity_approved',
-                    route('teacher.activity-bank.index')
+                    route('teacher.activity-bank.index'),
                 );
             }
         }
@@ -155,4 +154,3 @@ class ActivityApprovalController extends Controller
             ->with('success', 'تمت الموافقة على ' . count($activities) . ' نشاط بنجاح');
     }
 }
-

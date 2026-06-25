@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('rating'); // من 1 إلى 5
             $table->text('comment')->nullable();
             $table->timestamps();
-            
+
             // طالب واحد يقيّم معلم واحد مرة واحدة فقط
             $table->unique(['teacher_id', 'student_id']);
         });

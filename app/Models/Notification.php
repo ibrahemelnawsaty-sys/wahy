@@ -9,17 +9,19 @@ class Notification extends Model
 {
     // UUID primary key
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected static function boot()
     {
         parent::boot();
         static::creating(function ($model) {
-            if (!$model->id) {
+            if (! $model->id) {
                 $model->id = (string) Str::uuid();
             }
         });
     }
+
     protected $fillable = [
         'notifiable_type',
         'notifiable_id',
@@ -28,12 +30,12 @@ class Notification extends Model
         'message',
         'data',
         'read_at',
-        'action_url'
+        'action_url',
     ];
 
     protected $casts = [
         'data' => 'array',
-        'read_at' => 'datetime'
+        'read_at' => 'datetime',
     ];
 
     /**

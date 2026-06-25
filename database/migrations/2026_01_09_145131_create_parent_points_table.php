@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('reference_type')->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('parent_id')->references('id')->on('users')->onDelete('cascade');
             $table->index(['parent_id', 'created_at']);
         });
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->enum('praise_type', ['encouragement', 'achievement', 'behavior', 'custom']);
             $table->integer('points_awarded')->default(5);
             $table->timestamps();
-            
+
             $table->foreign('parent_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('users')->onDelete('cascade');
             $table->index(['student_id', 'created_at']);
@@ -46,7 +46,7 @@ return new class extends Migration
             $table->text('gift_message')->nullable();
             $table->integer('points_cost')->default(10);
             $table->timestamps();
-            
+
             $table->foreign('parent_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('users')->onDelete('cascade');
         });

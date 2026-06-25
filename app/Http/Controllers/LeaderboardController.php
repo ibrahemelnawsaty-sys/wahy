@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\School;
-use App\Models\ParentPoint;
-use App\Services\PointsService;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -28,8 +26,8 @@ class LeaderboardController extends Controller
         $data = [
             'students' => $this->getStudentLeaderboard(10, $schoolId),
             'teachers' => $this->getTeacherLeaderboard(10, $schoolId),
-            'parents'  => $this->getParentLeaderboard(10, $schoolId),
-            'schools'  => $this->getSchoolLeaderboard(10),
+            'parents' => $this->getParentLeaderboard(10, $schoolId),
+            'schools' => $this->getSchoolLeaderboard(10),
         ];
 
         $userRank = $this->getCurrentUserRank($user);
@@ -126,7 +124,7 @@ class LeaderboardController extends Controller
      */
     private function getStudentLeaderboard(int $limit, ?int $schoolId = null, ?int $classroomId = null, string $scope = 'school'): array
     {
-        $cacheKey = "lb:students:" . md5("$limit|$schoolId|$classroomId|$scope");
+        $cacheKey = 'lb:students:' . md5("$limit|$schoolId|$classroomId|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit, $schoolId, $classroomId, $scope) {
             $query = User::query()
@@ -147,15 +145,16 @@ class LeaderboardController extends Controller
             $students = $query->orderByDesc('total_points')->limit($limit)->get();
 
             $rank = 1;
+
             return $students->map(function ($s) use (&$rank) {
                 return [
-                    'rank'   => $rank++,
-                    'id'     => $s->id,
-                    'name'   => $s->name,
+                    'rank' => $rank++,
+                    'id' => $s->id,
+                    'name' => $s->name,
                     'avatar' => $this->avatarUrl($s->avatar, $s->name),
                     'points' => (int) ($s->total_points ?? 0),
                     'school' => $s->school?->name ?? '-',
-                    'badge'  => $this->getRankBadge($rank - 1),
+                    'badge' => $this->getRankBadge($rank - 1),
                 ];
             })->toArray();
         });
@@ -166,7 +165,7 @@ class LeaderboardController extends Controller
      */
     private function getTeacherLeaderboard(int $limit, ?int $schoolId = null, string $scope = 'school'): array
     {
-        $cacheKey = "lb:teachers:" . md5("$limit|$schoolId|$scope");
+        $cacheKey = 'lb:teachers:' . md5("$limit|$schoolId|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit, $schoolId, $scope) {
             // عدد طلاب المعلم عبر subquery (يدعم MySQL)
@@ -195,16 +194,17 @@ class LeaderboardController extends Controller
             $teachers = $query->orderByDesc('total_points')->limit($limit)->get();
 
             $rank = 1;
+
             return $teachers->map(function ($t) use (&$rank) {
                 return [
-                    'rank'           => $rank++,
-                    'id'             => $t->id,
-                    'name'           => $t->name,
-                    'avatar'         => $this->avatarUrl($t->avatar, $t->name),
-                    'points'         => (int) ($t->total_points ?? 0),
-                    'school'         => $t->school?->name ?? '-',
+                    'rank' => $rank++,
+                    'id' => $t->id,
+                    'name' => $t->name,
+                    'avatar' => $this->avatarUrl($t->avatar, $t->name),
+                    'points' => (int) ($t->total_points ?? 0),
+                    'school' => $t->school?->name ?? '-',
                     'students_count' => (int) ($t->students_count ?? 0),
-                    'badge'          => $this->getRankBadge($rank - 1),
+                    'badge' => $this->getRankBadge($rank - 1),
                 ];
             })->toArray();
         });
@@ -215,7 +215,7 @@ class LeaderboardController extends Controller
      */
     private function getParentLeaderboard(int $limit, ?int $schoolId = null, string $scope = 'school'): array
     {
-        $cacheKey = "lb:parents:" . md5("$limit|$schoolId|$scope");
+        $cacheKey = 'lb:parents:' . md5("$limit|$schoolId|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit, $schoolId, $scope) {
             $childrenCountSub = DB::table('parent_student')
@@ -241,15 +241,16 @@ class LeaderboardController extends Controller
             $parents = $query->orderByDesc('total_points')->limit($limit)->get();
 
             $rank = 1;
+
             return $parents->map(function ($p) use (&$rank) {
                 return [
-                    'rank'           => $rank++,
-                    'id'             => $p->id,
-                    'name'           => $p->name,
-                    'avatar'         => $this->avatarUrl($p->avatar, $p->name),
-                    'points'         => (int) ($p->total_points ?? 0),
+                    'rank' => $rank++,
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'avatar' => $this->avatarUrl($p->avatar, $p->name),
+                    'points' => (int) ($p->total_points ?? 0),
                     'children_count' => (int) ($p->children_count ?? 0),
-                    'badge'          => $this->getRankBadge($rank - 1),
+                    'badge' => $this->getRankBadge($rank - 1),
                 ];
             })->toArray();
         });
@@ -260,7 +261,7 @@ class LeaderboardController extends Controller
      */
     private function getSchoolLeaderboard(int $limit, string $scope = 'all'): array
     {
-        $cacheKey = "lb:schools:" . md5("$limit|$scope");
+        $cacheKey = 'lb:schools:' . md5("$limit|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit) {
             // SUM(points) عبر join على points + users داخل subquery
@@ -291,16 +292,17 @@ class LeaderboardController extends Controller
                 ->get();
 
             $rank = 1;
+
             return $schools->map(function ($s) use (&$rank) {
                 return [
-                    'rank'           => $rank++,
-                    'id'             => $s->id,
-                    'name'           => $s->name,
-                    'logo'           => $s->logo ? asset('storage/' . $s->logo) : asset('images/default-school.png'),
-                    'points'         => (int) ($s->total_points ?? 0),
+                    'rank' => $rank++,
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'logo' => $s->logo ? asset('storage/' . $s->logo) : asset('images/default-school.png'),
+                    'points' => (int) ($s->total_points ?? 0),
                     'students_count' => (int) ($s->students_count ?? 0),
                     'teachers_count' => (int) ($s->teachers_count ?? 0),
-                    'badge'          => $this->getRankBadge($rank - 1),
+                    'badge' => $this->getRankBadge($rank - 1),
                 ];
             })->toArray();
         });
@@ -308,9 +310,10 @@ class LeaderboardController extends Controller
 
     private function getCurrentUserRank(?User $user): ?array
     {
-        if (!$user) {
+        if (! $user) {
             return null;
         }
+
         return $this->getUserRankInCategory($user->id, $user->role, $user->school_id);
     }
 
@@ -340,10 +343,10 @@ class LeaderboardController extends Controller
             $user = User::select('id', 'name')->find($userId);
 
             return [
-                'rank'   => $rank,
+                'rank' => $rank,
                 'points' => $userPoints,
-                'name'   => $user->name ?? '-',
-                'badge'  => $this->getRankBadge($rank),
+                'name' => $user->name ?? '-',
+                'badge' => $this->getRankBadge($rank),
             ];
         });
     }
@@ -364,15 +367,15 @@ class LeaderboardController extends Controller
             $rank = School::where('status', 'active')
                 ->whereRaw(
                     '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ?) > ?',
-                    ['student', $schoolPoints]
+                    ['student', $schoolPoints],
                 )
                 ->count() + 1;
 
             return [
-                'rank'   => $rank,
+                'rank' => $rank,
                 'points' => $schoolPoints,
-                'name'   => $school->name ?? '-',
-                'badge'  => $this->getRankBadge($rank),
+                'name' => $school->name ?? '-',
+                'badge' => $this->getRankBadge($rank),
             ];
         });
     }
@@ -395,6 +398,7 @@ class LeaderboardController extends Controller
              . '<rect width="100" height="100" fill="#667eea"/>'
              . '<text x="50" y="62" font-family="Arial,Tahoma" font-size="50" fill="white" text-anchor="middle" font-weight="700">' . $letter . '</text>'
              . '</svg>';
+
         return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
     }
 
@@ -406,7 +410,7 @@ class LeaderboardController extends Controller
             $rank === 3 => ['icon' => '🥉', 'color' => '#CD7F32', 'label' => 'الثالث'],
             $rank <= 10 => ['icon' => '⭐', 'color' => '#10b981', 'label' => 'العشرة الأوائل'],
             $rank <= 50 => ['icon' => '🌟', 'color' => '#6366f1', 'label' => 'الخمسون الأوائل'],
-            default     => ['icon' => '💫', 'color' => '#64748b', 'label' => "#{$rank}"],
+            default => ['icon' => '💫', 'color' => '#64748b', 'label' => "#{$rank}"],
         };
     }
 }

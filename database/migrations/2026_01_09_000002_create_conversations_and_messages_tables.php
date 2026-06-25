@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('user2_id')->constrained('users')->onDelete('cascade');
             $table->timestamp('last_message_at')->nullable();
             $table->timestamps();
-            
+
             // فهرس للبحث السريع عن المحادثة بين مستخدمين
             $table->index(['user1_id', 'user2_id']);
             $table->unique(['user1_id', 'user2_id']); // كل محادثة فريدة
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->index('conversation_id');
             $table->index('sender_id');
             $table->index('receiver_id');

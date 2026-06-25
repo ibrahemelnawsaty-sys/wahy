@@ -19,7 +19,7 @@ class GamificationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new GamificationService();
+        $this->service = new GamificationService;
     }
 
     public function test_add_xp_creates_point_record(): void

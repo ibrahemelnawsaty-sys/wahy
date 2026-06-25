@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['parent_id', 'teacher_id']);
             $table->index('is_read');
         });

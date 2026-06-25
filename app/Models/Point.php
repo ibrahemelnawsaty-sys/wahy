@@ -15,13 +15,13 @@ class Point extends Model
     protected static function booted(): void
     {
         static::updating(function (self $point) {
-            if (!app()->runningInConsole()) {
+            if (! app()->runningInConsole()) {
                 abort(403, 'سجل النقاط للقراءة فقط — لا يمكن تعديله');
             }
         });
 
         static::deleting(function (self $point) {
-            if (!app()->runningInConsole()) {
+            if (! app()->runningInConsole()) {
                 abort(403, 'سجل النقاط للقراءة فقط — لا يمكن حذفه');
             }
         });
@@ -30,9 +30,9 @@ class Point extends Model
         static::created(function (self $point) {
             try {
                 $userId = $point->user_id;
-                \Illuminate\Support\Facades\Cache::forget("leaderboard:students:all");
-                \Illuminate\Support\Facades\Cache::forget("leaderboard:students:week");
-                \Illuminate\Support\Facades\Cache::forget("leaderboard:students:month");
+                \Illuminate\Support\Facades\Cache::forget('leaderboard:students:all');
+                \Illuminate\Support\Facades\Cache::forget('leaderboard:students:week');
+                \Illuminate\Support\Facades\Cache::forget('leaderboard:students:month');
                 \Illuminate\Support\Facades\Cache::forget("lb:rank:student:{$userId}");
                 \Illuminate\Support\Facades\Cache::forget("parent_dashboard:ranks:{$userId}");
             } catch (\Throwable $e) {
@@ -41,7 +41,18 @@ class Point extends Model
         });
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function activity() { return $this->belongsTo(Activity::class); }
-    public function lesson() { return $this->belongsTo(Lesson::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function activity()
+    {
+        return $this->belongsTo(Activity::class);
+    }
+
+    public function lesson()
+    {
+        return $this->belongsTo(Lesson::class);
+    }
 }

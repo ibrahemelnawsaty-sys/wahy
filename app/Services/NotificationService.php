@@ -14,8 +14,9 @@ class NotificationService
      */
     public static function create($userId, $type, $title, $message, $data = [], $actionUrl = null)
     {
-        if (empty($userId) || !User::where('id', $userId)->exists()) {
+        if (empty($userId) || ! User::where('id', $userId)->exists()) {
             \Log::warning('محاولة إنشاء إشعار لمستخدم غير موجود', ['user_id' => $userId, 'type' => $type]);
+
             return null;
         }
 
@@ -38,7 +39,7 @@ class NotificationService
             'title' => $title,
             'message' => $message,
             'data' => $data,
-            'action_url' => $actionUrl
+            'action_url' => $actionUrl,
         ]);
     }
 
@@ -65,8 +66,8 @@ class NotificationService
                 'activity' => $activityTitle,
                 'score' => $score,
                 'xp' => $xp,
-                'coins' => $coins
-            ]
+                'coins' => $coins,
+            ],
         );
     }
 
@@ -80,7 +81,7 @@ class NotificationService
             'level_up',
             '🎊 مبروك! ارتقيت لمستوى جديد!',
             "أصبحت الآن مستوى {$newLevel}! استمر في التقدم",
-            ['level' => $newLevel]
+            ['level' => $newLevel],
         );
     }
 
@@ -94,7 +95,7 @@ class NotificationService
             'badge_earned',
             '🏅 حصلت على وسام جديد!',
             "مبروك! حصلت على وسام \"{$badgeName}\"",
-            ['badge' => $badgeName]
+            ['badge' => $badgeName],
         );
     }
 
@@ -108,7 +109,7 @@ class NotificationService
             'streak_milestone',
             '🔥 إنجاز رائع!',
             "واصلت السلسلة لمدة {$days} يوم متتالي! استمر في التقدم",
-            ['days' => $days]
+            ['days' => $days],
         );
     }
 
@@ -125,8 +126,8 @@ class NotificationService
             [
                 'activity' => $activityTitle,
                 'score' => $score,
-                'feedback' => $feedback
-            ]
+                'feedback' => $feedback,
+            ],
         );
     }
 
@@ -140,7 +141,7 @@ class NotificationService
             $type,
             "📢 تحديث عن {$childName}",
             $message,
-            ['child' => $childName]
+            ['child' => $childName],
         );
     }
 
@@ -154,7 +155,7 @@ class NotificationService
             'teacher_message',
             "💬 رسالة من المعلم {$teacherName}",
             $message,
-            ['teacher' => $teacherName]
+            ['teacher' => $teacherName],
         );
     }
 
@@ -164,11 +165,11 @@ class NotificationService
     public static function newActivity($studentId, $activityTitle, $type = 'نشاط', $dueDate = null)
     {
         $message = "نشاط جديد: \"{$activityTitle}\"";
-        
+
         if ($dueDate) {
-            $message .= " - الموعد النهائي: " . $dueDate->format('Y-m-d H:i');
+            $message .= ' - الموعد النهائي: ' . $dueDate->format('Y-m-d H:i');
         }
-        
+
         return self::create(
             $studentId,
             'new_activity',
@@ -177,8 +178,8 @@ class NotificationService
             [
                 'activity' => $activityTitle,
                 'type' => $type,
-                'due_date' => $dueDate ? $dueDate->toDateTimeString() : null
-            ]
+                'due_date' => $dueDate ? $dueDate->toDateTimeString() : null,
+            ],
         );
     }
 
@@ -188,7 +189,7 @@ class NotificationService
     public static function homeworkReminder($studentId, $homeworkTitle, $dueDate)
     {
         $hoursLeft = now()->diffInHours($dueDate);
-        
+
         return self::create(
             $studentId,
             'homework_reminder',
@@ -197,8 +198,8 @@ class NotificationService
             [
                 'homework' => $homeworkTitle,
                 'due_date' => $dueDate->toDateTimeString(),
-                'hours_left' => $hoursLeft
-            ]
+                'hours_left' => $hoursLeft,
+            ],
         );
     }
 
@@ -215,8 +216,8 @@ class NotificationService
             [
                 'homework' => $homeworkTitle,
                 'due_date' => $dueDate->toDateTimeString(),
-                'activity_id' => null // سيتم إضافته في Command
-            ]
+                'activity_id' => null, // سيتم إضافته في Command
+            ],
         );
     }
 
@@ -269,7 +270,7 @@ class NotificationService
             $title,
             $message,
             [],
-            $actionUrl
+            $actionUrl,
         );
     }
 
@@ -284,7 +285,7 @@ class NotificationService
             '📋 طلب تسجيل جديد',
             "طلب تسجيل جديد من الطالب: {$studentName}",
             ['student' => $studentName],
-            route('school-admin.requests')
+            route('school-admin.requests'),
         );
     }
 }

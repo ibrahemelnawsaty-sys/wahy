@@ -22,7 +22,7 @@ class HealthCheckController extends Controller
     public function ping(): \Illuminate\Http\JsonResponse
     {
         return response()->json([
-            'status'    => 'ok',
+            'status' => 'ok',
             'timestamp' => now()->toIso8601String(),
         ]);
     }
@@ -30,23 +30,23 @@ class HealthCheckController extends Controller
     public function detailed(): \Illuminate\Http\JsonResponse
     {
         $checks = [
-            'database'   => $this->checkDatabase(),
-            'cache'      => $this->checkCache(),
-            'storage'    => $this->checkStorage(),
-            'queue'      => $this->checkQueue(),
+            'database' => $this->checkDatabase(),
+            'cache' => $this->checkCache(),
+            'storage' => $this->checkStorage(),
+            'queue' => $this->checkQueue(),
         ];
 
         $allHealthy = collect($checks)->every(fn ($c) => $c['healthy']);
 
         return response()->json([
-            'status'     => $allHealthy ? 'healthy' : 'degraded',
-            'timestamp'  => now()->toIso8601String(),
-            'app'        => [
-                'name'        => config('app.name'),
+            'status' => $allHealthy ? 'healthy' : 'degraded',
+            'timestamp' => now()->toIso8601String(),
+            'app' => [
+                'name' => config('app.name'),
                 'environment' => app()->environment(),
-                'version'     => env('APP_VERSION', 'unknown'),
+                'version' => env('APP_VERSION', 'unknown'),
             ],
-            'checks'     => $checks,
+            'checks' => $checks,
         ], $allHealthy ? 200 : 503);
     }
 
@@ -59,14 +59,14 @@ class HealthCheckController extends Controller
             $latency = round((microtime(true) - $start) * 1000, 2);
 
             return [
-                'healthy'    => true,
+                'healthy' => true,
                 'latency_ms' => $latency,
-                'driver'     => config('database.default'),
+                'driver' => config('database.default'),
             ];
         } catch (\Throwable $e) {
             return [
                 'healthy' => false,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -81,12 +81,12 @@ class HealthCheckController extends Controller
 
             return [
                 'healthy' => $value === 'pong',
-                'driver'  => config('cache.default'),
+                'driver' => config('cache.default'),
             ];
         } catch (\Throwable $e) {
             return [
                 'healthy' => false,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -101,12 +101,12 @@ class HealthCheckController extends Controller
 
             return [
                 'healthy' => $content === 'ok',
-                'driver'  => config('filesystems.default'),
+                'driver' => config('filesystems.default'),
             ];
         } catch (\Throwable $e) {
             return [
                 'healthy' => false,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -119,12 +119,12 @@ class HealthCheckController extends Controller
             // فحص بسيط — فقط أن الـ driver متاح
             return [
                 'healthy' => true,
-                'driver'  => $connection,
+                'driver' => $connection,
             ];
         } catch (\Throwable $e) {
             return [
                 'healthy' => false,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ];
         }
     }

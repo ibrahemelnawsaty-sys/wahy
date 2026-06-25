@@ -2,9 +2,9 @@
 
 namespace App\View\Composers;
 
-use Illuminate\View\View;
 use App\Models\ActivitySubmission;
 use App\Models\RegistrationRequest;
+use Illuminate\View\View;
 
 class HeaderDataComposer
 {
@@ -13,7 +13,7 @@ class HeaderDataComposer
      */
     public function compose(View $view): void
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return;
         }
 

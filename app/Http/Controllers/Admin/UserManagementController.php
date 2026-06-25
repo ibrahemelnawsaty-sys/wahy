@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\School;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -17,35 +17,35 @@ class UserManagementController extends Controller
     public function index(Request $request)
     {
         $query = User::with('school');
-        
+
         // فلترة حسب الدور
         if ($request->filled('role')) {
             $query->where('role', $request->role);
         }
-        
+
         // فلترة حسب المدرسة
         if ($request->filled('school_id')) {
             $query->where('school_id', $request->school_id);
         }
-        
+
         // فلترة حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // بحث
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('qr_code', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('qr_code', 'like', "%{$search}%");
             });
         }
-        
+
         $users = $query->latest()->paginate(20);
         $schools = School::where('status', 'active')->get();
-        
+
         return view('admin.users.index', compact('users', 'schools'));
     }
 
@@ -55,6 +55,7 @@ class UserManagementController extends Controller
     public function create()
     {
         $schools = School::where('status', 'active')->get();
+
         return view('admin.users.create', compact('schools'));
     }
 
@@ -77,7 +78,7 @@ class UserManagementController extends Controller
         ]);
 
         // توليد QR Code تلقائي إذا لم يتم إدخاله
-        if (!$request->filled('qr_code')) {
+        if (! $request->filled('qr_code')) {
             $validated['qr_code'] = $this->generateQRCode($validated['role']);
         }
 
@@ -85,7 +86,7 @@ class UserManagementController extends Controller
         $validated['two_factor_enabled'] = $request->has('two_factor_enabled') ? true : false;
 
         $validated['password'] = Hash::make($validated['password']);
-        
+
         $user = User::create($validated);
 
         return redirect()
@@ -99,6 +100,7 @@ class UserManagementController extends Controller
     public function edit(User $user)
     {
         $schools = School::where('status', 'active')->get();
+
         return view('admin.users.edit', compact('user', 'schools'));
     }
 
@@ -170,7 +172,7 @@ class UserManagementController extends Controller
      */
     private function generateQRCode($role)
     {
-        $prefix = match($role) {
+        $prefix = match ($role) {
             'super_admin' => 'SA-ADM',
             'school_admin' => 'SA-SCH-ADM',
             'teacher' => 'SA-TCH',
@@ -186,4 +188,3 @@ class UserManagementController extends Controller
         return $qrCode;
     }
 }
-

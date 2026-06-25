@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Setting;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class SettingsController extends Controller
 {
@@ -67,7 +67,7 @@ class SettingsController extends Controller
             foreach ($settingsToSave as $key => $value) {
                 $type = $key === 'maintenance_mode' ? 'boolean' : 'string';
                 $description = $this->getSettingDescription($key);
-                
+
                 Setting::set($key, $value ?? '', $type, $description);
             }
 
@@ -76,16 +76,16 @@ class SettingsController extends Controller
 
             return redirect()->route('admin.settings')
                 ->with('success', 'تم حفظ الإعدادات العامة بنجاح! ✅');
-                
+
         } catch (\Exception $e) {
             Log::error('Error updating settings: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->with('error', 'حدث خطأ أثناء حفظ الإعدادات!')
                 ->withInput();
         }
     }
-    
+
     /**
      * الحصول على وصف الإعداد
      */
@@ -104,8 +104,7 @@ class SettingsController extends Controller
             'maintenance_mode' => 'وضع الصيانة',
             'maintenance_message' => 'رسالة الصيانة',
         ];
-        
+
         return $descriptions[$key] ?? $key;
     }
 }
-

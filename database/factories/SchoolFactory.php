@@ -15,13 +15,13 @@ class SchoolFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'         => 'مدرسة ' . fake()->words(2, true),
-            'address'      => fake()->streetAddress(),
-            'city'         => fake()->city(),
-            'country'      => 'Saudi Arabia',
+            'name' => 'مدرسة ' . fake()->words(2, true),
+            'address' => fake()->streetAddress(),
+            'city' => fake()->city(),
+            'country' => 'Saudi Arabia',
             'contact_email' => fake()->unique()->safeEmail(),
             'contact_phone' => '+9665' . fake()->numerify('########'),
-            'status'       => 'active',
+            'status' => 'active',
         ];
     }
 

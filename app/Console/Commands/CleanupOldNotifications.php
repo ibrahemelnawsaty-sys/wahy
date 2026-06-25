@@ -16,6 +16,7 @@ class CleanupOldNotifications extends Command
         $days = (int) $this->option('days');
         if ($days < 7) {
             $this->error('لا يجوز الحذف بأقل من 7 أيام لأسباب أمان.');
+
             return self::FAILURE;
         }
 

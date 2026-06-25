@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -28,15 +28,15 @@ class EditorUploadController extends Controller
         $request->validate([
             'image' => 'required|file|max:5120|mimetypes:image/jpeg,image/png,image/gif,image/webp',
         ], [
-            'image.required'   => 'الرجاء اختيار صورة',
-            'image.file'       => 'الملف غير صالح',
-            'image.max'        => 'الحد الأقصى لحجم الصورة 5MB',
-            'image.mimetypes'  => 'الأنواع المسموحة: JPG, PNG, GIF, WEBP, SVG',
+            'image.required' => 'الرجاء اختيار صورة',
+            'image.file' => 'الملف غير صالح',
+            'image.max' => 'الحد الأقصى لحجم الصورة 5MB',
+            'image.mimetypes' => 'الأنواع المسموحة: JPG, PNG, GIF, WEBP, SVG',
         ]);
 
         $file = $request->file('image');
 
-        if (!in_array($file->getMimeType(), self::ALLOWED_MIME, true)) {
+        if (! in_array($file->getMimeType(), self::ALLOWED_MIME, true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'نوع الصورة غير مدعوم',
@@ -50,17 +50,17 @@ class EditorUploadController extends Controller
             ], 422);
         }
 
-        $ext      = $file->getClientOriginalExtension() ?: $file->guessExtension();
+        $ext = $file->getClientOriginalExtension() ?: $file->guessExtension();
         $filename = now()->format('His') . '_' . Str::random(10) . '.' . strtolower($ext);
-        $path     = 'editor/' . now()->format('Y/m');
+        $path = 'editor/' . now()->format('Y/m');
 
         $stored = $file->storeAs($path, $filename, 'public');
 
         return response()->json([
-            'success'  => true,
-            'url'      => Storage::url($stored),
+            'success' => true,
+            'url' => Storage::url($stored),
             'filename' => $filename,
-            'size'     => $file->getSize(),
+            'size' => $file->getSize(),
         ]);
     }
 }

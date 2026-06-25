@@ -20,7 +20,7 @@ return new class extends Migration
                 'letter_choice',       // اختيار حروف (جديد)
                 'word_ordering',       // ترتيب كلمات (جديد)
                 'sentence_ordering',   // ترتيب جمل (جديد)
-                'image_ordering'       // ترتيب صور (جديد)
+                'image_ordering',       // ترتيب صور (جديد)
             ])->default('multiple_choice')->after('type');
         });
     }

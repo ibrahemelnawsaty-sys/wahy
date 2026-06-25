@@ -3,11 +3,8 @@
 namespace Tests\Feature\Security;
 
 use App\Enums\UserRole;
-use App\Models\Activity;
-use App\Models\ActivitySubmission;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 /**
@@ -29,7 +26,7 @@ class MassAssignmentGuardsTest extends TestCase
     public function test_user_role_field_exists_in_fillable(): void
     {
         // نتأكد أن الحقول الحساسة موجودة في $fillable لكنها محمية بـ saving event
-        $user = new User();
+        $user = new User;
         $fillable = $user->getFillable();
 
         $this->assertContains('role', $fillable, 'role موجود في fillable لكنه محمي بـ saving event');
@@ -41,11 +38,11 @@ class MassAssignmentGuardsTest extends TestCase
     {
         // CREATE مسموح (admin/seeder context)
         $user = User::create([
-            'name'     => 'طالب',
-            'email'    => 'create@example.com',
+            'name' => 'طالب',
+            'email' => 'create@example.com',
             'password' => bcrypt('password'),
-            'role'     => UserRole::Student->value,
-            'status'   => 'inactive',
+            'role' => UserRole::Student->value,
+            'status' => 'inactive',
         ]);
 
         $this->assertNotNull($user->id);
@@ -55,7 +52,7 @@ class MassAssignmentGuardsTest extends TestCase
     public function test_admin_actor_can_change_user_role(): void
     {
         $admin = User::factory()->superAdmin()->create();
-        $user  = User::factory()->student()->create();
+        $user = User::factory()->student()->create();
 
         $this->actingAs($admin);
 
@@ -70,9 +67,9 @@ class MassAssignmentGuardsTest extends TestCase
     {
         $student = User::factory()->student()->create();
         $teacher = User::factory()->teacher()->create();
-        $parent  = User::factory()->parent()->create();
-        $admin   = User::factory()->schoolAdmin()->create();
-        $super   = User::factory()->superAdmin()->create();
+        $parent = User::factory()->parent()->create();
+        $admin = User::factory()->schoolAdmin()->create();
+        $super = User::factory()->superAdmin()->create();
 
         $this->assertTrue($student->isStudent());
         $this->assertFalse($student->isTeacher());

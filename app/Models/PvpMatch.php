@@ -21,21 +21,47 @@ class PvpMatch extends Model
         'completed_at' => 'datetime',
     ];
 
-    public function challenge() { return $this->belongsTo(PvpChallenge::class, 'challenge_id'); }
-    public function player1() { return $this->belongsTo(User::class, 'player1_id'); }
-    public function player2() { return $this->belongsTo(User::class, 'player2_id'); }
-    public function winner() { return $this->belongsTo(User::class, 'winner_id'); }
+    public function challenge()
+    {
+        return $this->belongsTo(PvpChallenge::class, 'challenge_id');
+    }
 
-    public function isWaiting() { return $this->status === 'waiting'; }
-    public function isPlaying() { return $this->status === 'playing'; }
-    public function isCompleted() { return $this->status === 'completed'; }
+    public function player1()
+    {
+        return $this->belongsTo(User::class, 'player1_id');
+    }
+
+    public function player2()
+    {
+        return $this->belongsTo(User::class, 'player2_id');
+    }
+
+    public function winner()
+    {
+        return $this->belongsTo(User::class, 'winner_id');
+    }
+
+    public function isWaiting()
+    {
+        return $this->status === 'waiting';
+    }
+
+    public function isPlaying()
+    {
+        return $this->status === 'playing';
+    }
+
+    public function isCompleted()
+    {
+        return $this->status === 'completed';
+    }
 
     // تحديد الفائز — atomic مع lockForUpdate لمنع race condition
     public function determineWinner()
     {
         \DB::transaction(function () {
             $fresh = static::lockForUpdate()->find($this->id);
-            if (!$fresh || $fresh->status === 'completed') {
+            if (! $fresh || $fresh->status === 'completed') {
                 return; // تم تحديد الفائز مسبقًا — تجاهل
             }
 

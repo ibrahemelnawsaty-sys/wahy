@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\School;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\School;
 
 class UsersSeeder extends Seeder
 {
@@ -91,7 +91,7 @@ class UsersSeeder extends Seeder
             'qr_code' => 'SA-PAR-001',
             'status' => 'active',
         ]);
-        
+
         // 7. مستخدم بأكثر من دور (معلم وولي أمر)
         $saraAhmed = User::create([
             'name' => 'سارة أحمد',
@@ -103,19 +103,19 @@ class UsersSeeder extends Seeder
             'qr_code' => 'SA-TCH-003',
             'status' => 'active',
         ]);
-        
+
         // 8. إضافة بيانات ربط أولياء الأمور بالطلاب
         $parent1 = User::where('email', 'parent1@qiyamm.sa')->first();
         $student1 = User::where('email', 'student1@qiyamm.sa')->first();
         $student2 = User::where('email', 'student2@qiyamm.sa')->first();
         $student3 = User::where('email', 'student3@qiyamm.sa')->first();
-        
+
         // ربط ولي الأمر الأول بطالبين
         if ($parent1 && $student1 && $student2) {
             $parent1->children()->attach($student1->id, ['relationship' => 'أب']);
             $parent1->children()->attach($student2->id, ['relationship' => 'أب']);
         }
-        
+
         // ربط سارة أحمد (معلم + ولي أمر) بطالب
         if ($saraAhmed && $student3) {
             $saraAhmed->children()->attach($student3->id, ['relationship' => 'أم']);

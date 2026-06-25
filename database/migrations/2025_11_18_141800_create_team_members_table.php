@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('role', ['leader', 'member'])->default('member');
             $table->timestamp('joined_at')->useCurrent();
             $table->timestamps();
-            
+
             $table->unique(['team_id', 'student_id']);
         });
     }

@@ -3,8 +3,6 @@
 namespace App\Listeners;
 
 use App\Events\ActivityCompleted;
-use App\Events\StreakUpdated;
-use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 
 class UpdateStreak
@@ -17,7 +15,7 @@ class UpdateStreak
         $student = $event->student;
         $streak = $student->streak;
 
-        if (!$streak) {
+        if (! $streak) {
             // إنشاء streak جديد
             DB::table('streaks')->insert([
                 'user_id' => $student->id,
@@ -27,6 +25,7 @@ class UpdateStreak
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
             return;
         }
 

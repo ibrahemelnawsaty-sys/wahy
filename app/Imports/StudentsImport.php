@@ -5,18 +5,21 @@ namespace App\Imports;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Validators\Failure;
 
-class StudentsImport implements ToModel, WithStartRow, SkipsEmptyRows, SkipsOnError, SkipsOnFailure
+class StudentsImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, ToModel, WithStartRow
 {
     protected $schoolId;
+
     protected $importedCount = 0;
+
     protected $skippedCount = 0;
+
     protected $errors = [];
 
     public function __construct($schoolId)
@@ -52,19 +55,22 @@ class StudentsImport implements ToModel, WithStartRow, SkipsEmptyRows, SkipsOnEr
         // تخطي إذا لم يكن هناك اسم أو بريد إلكتروني
         if (empty($name) || empty($email)) {
             $this->skippedCount++;
+
             return null;
         }
 
         // التحقق من صحة البريد الإلكتروني
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->skippedCount++;
             $this->errors[] = "تم تخطي '{$name}': البريد الإلكتروني '{$email}' غير صالح";
+
             return null;
         }
 
         // تخطي إذا البريد موجود مسبقاً
         if (User::where('email', $email)->exists()) {
             $this->skippedCount++;
+
             return null;
         }
 

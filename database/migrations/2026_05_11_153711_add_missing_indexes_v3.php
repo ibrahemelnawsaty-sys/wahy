@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 /**
  * إضافة الفهارس الناقصة المكتشفة في تدقيق الأداء (Sprint 1).
@@ -16,7 +15,8 @@ use Illuminate\Support\Facades\DB;
  * كل index مغلّف بـ try/catch لأن بعض الفهارس قد تكون موجودة سابقاً
  * من migrations الأداء السابقة (لا نريد فشل المهجرة كاملة).
  */
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         $this->safeAdd('notifications', function (Blueprint $t) {
@@ -70,7 +70,7 @@ return new class extends Migration {
      */
     private function safeAdd(string $table, \Closure $callback): void
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             return;
         }
 
@@ -78,7 +78,7 @@ return new class extends Migration {
             Schema::table($table, $callback);
         } catch (\Throwable $e) {
             // تجاهل "Duplicate key name" — index موجود مسبقاً
-            if (!str_contains(strtolower($e->getMessage()), 'duplicate')) {
+            if (! str_contains(strtolower($e->getMessage()), 'duplicate')) {
                 throw $e;
             }
         }
@@ -89,7 +89,7 @@ return new class extends Migration {
      */
     private function safeDrop(string $table, string $index): void
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             return;
         }
 

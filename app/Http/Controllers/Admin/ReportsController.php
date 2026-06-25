@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\School;
 use App\Models\Activity;
 use App\Models\ActivitySubmission;
+use App\Models\School;
+use App\Models\User;
 use App\Models\Value;
-use App\Models\Lesson;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class ReportsController extends Controller
 {
@@ -21,30 +20,30 @@ class ReportsController extends Controller
     protected function getSchoolFilter()
     {
         $user = auth()->user();
-        
+
         // إذا كان Super Admin يرى كل شيء
         if ($user->isSuperAdmin()) {
             return null;
         }
-        
+
         // باقي الأدوار يشوفون بيانات مدرستهم فقط
         return $user->school_id;
     }
-    
+
     /**
      * تطبيق فلتر المدرسة على Query
      */
     protected function applySchoolFilter($query)
     {
         $schoolId = $this->getSchoolFilter();
-        
+
         if ($schoolId) {
             $query->where('school_id', $schoolId);
         }
-        
+
         return $query;
     }
-    
+
     /**
      * الصفحة الرئيسية للتقارير
      */
@@ -52,7 +51,7 @@ class ReportsController extends Controller
     {
         return $this->dashboard($request);
     }
-    
+
     /**
      * لوحة التحكم الإحصائية الرئيسية
      */
@@ -82,18 +81,18 @@ class ReportsController extends Controller
             'total_teachers' => (clone $teachersQuery)->count(),
             'total_schools' => $schoolId ? 1 : School::count(),
             'total_activities' => Activity::query()
-                ->when($schoolId, fn($q) => $q->whereHas('creator', fn($cq) => $cq->where('school_id', $schoolId)))
+                ->when($schoolId, fn ($q) => $q->whereHas('creator', fn ($cq) => $cq->where('school_id', $schoolId)))
                 ->count(),
             'total_submissions' => ActivitySubmission::whereBetween('created_at', [$startDate, $endDate])
-                ->when($schoolId, function($q) use ($schoolId) {
-                    $q->whereHas('student', function($sq) use ($schoolId) {
+                ->when($schoolId, function ($q) use ($schoolId) {
+                    $q->whereHas('student', function ($sq) use ($schoolId) {
                         $sq->where('school_id', $schoolId);
                     });
                 })
                 ->count(),
             'active_students' => User::where('role', 'student')
                 ->where('status', 'active')
-                ->when($schoolId, function($q) use ($schoolId) {
+                ->when($schoolId, function ($q) use ($schoolId) {
                     $q->where('school_id', $schoolId);
                 })
                 ->whereBetween('created_at', [$startDate, $endDate])
@@ -102,10 +101,10 @@ class ReportsController extends Controller
 
         // أفضل 10 طلاب — النقاط ضمن الفترة المُختارة + tie-break ثابت
         $topStudents = User::where('role', 'student')
-            ->when($schoolId, function($q) use ($schoolId) {
+            ->when($schoolId, function ($q) use ($schoolId) {
                 $q->where('school_id', $schoolId);
             })
-            ->withSum(['points as total_points' => fn($q) => $q->whereBetween('created_at', [$startDate, $endDate])], 'points')
+            ->withSum(['points as total_points' => fn ($q) => $q->whereBetween('created_at', [$startDate, $endDate])], 'points')
             ->orderByDesc('total_points')
             ->orderBy('id')
             ->limit(10)
@@ -113,10 +112,10 @@ class ReportsController extends Controller
 
         // أنشط المدارس (فقط للـ Super Admin)
         $activeSchools = collect([]);
-        if (!$schoolId) {
-            $activeSchools = School::withCount(['users as active_students' => function($q) {
-                    $q->where('role', 'student')->where('status', 'active');
-                }])
+        if (! $schoolId) {
+            $activeSchools = School::withCount(['users as active_students' => function ($q) {
+                $q->where('role', 'student')->where('status', 'active');
+            }])
                 ->orderByDesc('active_students')
                 ->limit(10)
                 ->get();
@@ -127,7 +126,7 @@ class ReportsController extends Controller
             ->select('type', DB::raw('count(*) as count'))
             ->groupBy('type')
             ->get();
-        
+
         // معدل الإنجاز اليومي (آخر 30 يوم) — مع ملء الأيام الفارغة بـ 0 لمنع فجوات الرسم
         $rawDaily = ActivitySubmission::where('created_at', '>=', now()->subDays(30))
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
@@ -143,13 +142,13 @@ class ReportsController extends Controller
                 'count' => (int) ($rawDaily[$day]->count ?? 0),
             ]);
         }
-        
+
         // أكثر القيم تطبيقاً
         $topValues = Value::withCount('concepts')
             ->orderByDesc('concepts_count')
             ->limit(5)
             ->get();
-        
+
         return view('admin.reports.dashboard', compact(
             'stats',
             'topStudents',
@@ -158,27 +157,27 @@ class ReportsController extends Controller
             'dailyProgress',
             'topValues',
             'startDate',
-            'endDate'
+            'endDate',
         ));
     }
-    
+
     /**
      * تقارير الطلاب - محسّن
      */
     public function students(Request $request)
     {
         $query = User::where('role', 'student');
-        
+
         // فلتر حسب المدرسة
         if ($request->filled('school_id')) {
             $query->where('school_id', $request->school_id);
         }
-        
+
         // فلتر حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // فلتر حسب التاريخ
         if ($request->filled('start_date')) {
             $query->where('created_at', '>=', $request->start_date);
@@ -186,20 +185,20 @@ class ReportsController extends Controller
         if ($request->filled('end_date')) {
             $query->where('created_at', '<=', $request->end_date);
         }
-        
+
         // تحسين: تحديد الحقول المطلوبة فقط مع Eager Loading محسّن
         $students = $query->select(['id', 'name', 'email', 'school_id', 'status', 'created_at'])
             ->with(['school:id,name'])
             ->withSum('points as total_points', 'points')
             ->withCount('activitySubmissions')
             ->paginate(20);
-        
+
         // تحسين: جلب المدارس النشطة فقط
         $schools = School::select(['id', 'name'])->where('status', 'active')->get();
-        
+
         return view('admin.reports.students', compact('students', 'schools'));
     }
-    
+
     /**
      * تفاصيل طالب معين
      */
@@ -210,7 +209,7 @@ class ReportsController extends Controller
             ->withSum('points as total_points', 'points')
             ->withCount('activitySubmissions')
             ->findOrFail($id);
-        
+
         // إحصائيات الطالب
         $stats = [
             'total_points' => $student->total_points ?? 0,
@@ -224,14 +223,14 @@ class ReportsController extends Controller
                 ->whereNotNull('score')
                 ->avg('score'),
         ];
-        
+
         // آخر الأنشطة
         $recentActivities = $student->activitySubmissions()
             ->with('activity')
             ->latest()
             ->limit(10)
             ->get();
-        
+
         // التقدم حسب القيمة — تم إزالة values.emoji (العمود غير موجود)
         try {
             $progressByValue = DB::table('activity_submissions')
@@ -251,43 +250,43 @@ class ReportsController extends Controller
 
         return view('admin.reports.student-detail', compact('student', 'stats', 'recentActivities', 'progressByValue'));
     }
-    
+
     /**
      * تقارير المدارس
      */
     public function schools(Request $request)
     {
         $query = School::query();
-        
+
         // فلتر حسب المدينة
         if ($request->filled('city')) {
             $query->where('city', $request->city);
         }
-        
+
         // فلتر حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         $schools = $query->withCount([
-                'users as students_count' => function($q) {
-                    $q->where('role', 'student');
-                },
-                'users as teachers_count' => function($q) {
-                    $q->where('role', 'teacher');
-                },
-                'users as active_students_count' => function($q) {
-                    $q->where('role', 'student')->where('status', 'active');
-                }
-            ])
+            'users as students_count' => function ($q) {
+                $q->where('role', 'student');
+            },
+            'users as teachers_count' => function ($q) {
+                $q->where('role', 'teacher');
+            },
+            'users as active_students_count' => function ($q) {
+                $q->where('role', 'student')->where('status', 'active');
+            },
+        ])
             ->paginate(20);
-        
+
         // جمع المدن المتاحة
         $cities = School::distinct()->pluck('city');
-        
+
         return view('admin.reports.schools', compact('schools', 'cities'));
     }
-    
+
     /**
      * تفاصيل مدرسة معينة
      */
@@ -295,15 +294,15 @@ class ReportsController extends Controller
     {
         $school = School::with(['branches', 'users'])
             ->withCount([
-                'users as students_count' => function($q) {
+                'users as students_count' => function ($q) {
                     $q->where('role', 'student');
                 },
-                'users as teachers_count' => function($q) {
+                'users as teachers_count' => function ($q) {
                     $q->where('role', 'teacher');
-                }
+                },
             ])
             ->findOrFail($id);
-        
+
         // إحصائيات المدرسة
         $stats = [
             'total_students' => $school->students_count,
@@ -315,7 +314,7 @@ class ReportsController extends Controller
                 ->where('users.school_id', $id)
                 ->sum('points.points'),
         ];
-        
+
         // أفضل الطلاب في المدرسة
         $topStudents = User::where('role', 'student')
             ->where('school_id', $id)
@@ -323,42 +322,42 @@ class ReportsController extends Controller
             ->orderByDesc('total_points')
             ->limit(10)
             ->get();
-        
+
         // المعلمون
         $teachers = $school->users()->where('role', 'teacher')->get();
-        
+
         return view('admin.reports.school-detail', compact('school', 'stats', 'topStudents', 'teachers'));
     }
-    
+
     /**
      * تقارير الأنشطة
      */
     public function activities(Request $request)
     {
         $query = Activity::query();
-        
+
         // فلتر حسب النوع
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
-        
+
         // فلتر حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // متوسط الدرجة: يستبعد الـ rejected لمنع جرّ المتوسط نحو 0
         $activities = $query->with('lesson.concept.value')
             ->withCount('submissions')
             ->withAvg(['submissions as average_score' => function ($q) {
                 $q->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
-                  ->whereNotNull('score');
+                    ->whereNotNull('score');
             }], 'score')
             ->paginate(20);
-        
+
         return view('admin.reports.activities', compact('activities'));
     }
-    
+
     /**
      * تقارير القيم
      */
@@ -367,19 +366,19 @@ class ReportsController extends Controller
         $values = Value::with('concepts.lessons.activities')
             ->withCount([
                 'concepts',
-                'concepts as total_lessons' => function($q) {
+                'concepts as total_lessons' => function ($q) {
                     $q->join('lessons', 'concepts.id', '=', 'lessons.concept_id');
                 },
-                'concepts as total_activities' => function($q) {
+                'concepts as total_activities' => function ($q) {
                     $q->join('lessons', 'concepts.id', '=', 'lessons.concept_id')
                         ->join('activities', 'lessons.id', '=', 'activities.lesson_id');
-                }
+                },
             ])
             ->get();
-        
+
         return view('admin.reports.values', compact('values'));
     }
-    
+
     /**
      * تصدير التقرير بصيغة Excel
      */
@@ -392,27 +391,33 @@ class ReportsController extends Controller
         switch ($type) {
             case 'students':
                 return \Maatwebsite\Excel\Facades\Excel::download(
-                    new \App\Exports\StudentsExport($schoolId), $filename
+                    new \App\Exports\StudentsExport($schoolId),
+                    $filename,
                 );
             case 'teachers':
                 return \Maatwebsite\Excel\Facades\Excel::download(
-                    new \App\Exports\TeachersExport($schoolId), $filename
+                    new \App\Exports\TeachersExport($schoolId),
+                    $filename,
                 );
             case 'parents':
                 return \Maatwebsite\Excel\Facades\Excel::download(
-                    new \App\Exports\ParentsExport($schoolId), $filename
+                    new \App\Exports\ParentsExport($schoolId),
+                    $filename,
                 );
             case 'schools':
                 return \Maatwebsite\Excel\Facades\Excel::download(
-                    new \App\Exports\SchoolsExport(), $filename
+                    new \App\Exports\SchoolsExport,
+                    $filename,
                 );
             case 'activities':
                 return \Maatwebsite\Excel\Facades\Excel::download(
-                    new \App\Exports\ActivitiesExport($schoolId), $filename
+                    new \App\Exports\ActivitiesExport($schoolId),
+                    $filename,
                 );
             case 'values':
                 return \Maatwebsite\Excel\Facades\Excel::download(
-                    new \App\Exports\ValuesExport(), $filename
+                    new \App\Exports\ValuesExport,
+                    $filename,
                 );
             default:
                 return back()->with('error', 'نوع التقرير غير مدعوم');
@@ -433,7 +438,7 @@ class ReportsController extends Controller
         $data = match ($type) {
             'students' => [
                 'rows' => User::where('role', 'student')
-                    ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                    ->when($schoolId, fn ($q) => $q->where('school_id', $schoolId))
                     ->with('school:id,name')
                     ->withSum('points as total_points', 'points')
                     ->withCount('activitySubmissions')
@@ -443,7 +448,7 @@ class ReportsController extends Controller
             ],
             'teachers' => [
                 'rows' => User::where('role', 'teacher')
-                    ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                    ->when($schoolId, fn ($q) => $q->where('school_id', $schoolId))
                     ->with('school:id,name')
                     ->limit(500)
                     ->get(),
@@ -451,10 +456,10 @@ class ReportsController extends Controller
             ],
             'schools' => [
                 // مدير المدرسة يرى مدرسته فقط — منع تسرب بيانات مدارس أخرى
-                'rows' => School::when($schoolId, fn($q) => $q->where('id', $schoolId))
+                'rows' => School::when($schoolId, fn ($q) => $q->where('id', $schoolId))
                     ->withCount([
-                        'users as students_count' => fn($q) => $q->where('role', 'student'),
-                        'users as teachers_count' => fn($q) => $q->where('role', 'teacher'),
+                        'users as students_count' => fn ($q) => $q->where('role', 'student'),
+                        'users as teachers_count' => fn ($q) => $q->where('role', 'teacher'),
                     ])
                     ->limit(500)
                     ->get(),
@@ -463,9 +468,9 @@ class ReportsController extends Controller
             'activities' => [
                 // فلتر المدرسة: عرض فقط الأنشطة التي أنشأها معلمو نفس المدرسة
                 'rows' => Activity::with('lesson.concept.value:id,name')
-                    ->when($schoolId, fn($q) => $q->whereHas('creator', fn($cq) => $cq->where('school_id', $schoolId)))
+                    ->when($schoolId, fn ($q) => $q->whereHas('creator', fn ($cq) => $cq->where('school_id', $schoolId)))
                     ->withCount('submissions')
-                    ->withAvg(['submissions as average_score' => fn($q) => $q->whereIn('status', ['completed','approved'])->whereNotNull('score')], 'score')
+                    ->withAvg(['submissions as average_score' => fn ($q) => $q->whereIn('status', ['completed', 'approved'])->whereNotNull('score')], 'score')
                     ->limit(500)
                     ->get(),
                 'title' => 'تقرير الأنشطة',
@@ -477,20 +482,20 @@ class ReportsController extends Controller
             default => null,
         };
 
-        if (!$data) {
+        if (! $data) {
             return back()->with('error', 'نوع التقرير غير مدعوم');
         }
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.pdf.report', [
-            'type'       => $type,
-            'title'      => $data['title'],
-            'rows'       => $data['rows'],
-            'generatedAt'=> now()->format('Y-m-d H:i'),
-            'generatedBy'=> auth()->user()->name ?? '',
+            'type' => $type,
+            'title' => $data['title'],
+            'rows' => $data['rows'],
+            'generatedAt' => now()->format('Y-m-d H:i'),
+            'generatedBy' => auth()->user()->name ?? '',
         ]);
 
         $pdf->setPaper('a4', 'portrait');
+
         return $pdf->download($filename);
     }
 }
-

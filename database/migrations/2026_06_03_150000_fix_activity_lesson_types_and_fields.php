@@ -17,10 +17,10 @@ return new class extends Migration
     {
         Schema::table('activities', function (Blueprint $table) {
             $table->string('type', 30)->default('quiz')->change();
-            if (!Schema::hasColumn('activities', 'difficulty')) {
+            if (! Schema::hasColumn('activities', 'difficulty')) {
                 $table->string('difficulty', 20)->nullable()->after('question_type');
             }
-            if (!Schema::hasColumn('activities', 'coins')) {
+            if (! Schema::hasColumn('activities', 'coins')) {
                 $table->integer('coins')->default(0)->after('points');
             }
         });

@@ -21,11 +21,11 @@ class RegisterTest extends TestCase
     public function test_user_can_register_as_student(): void
     {
         $response = $this->post('/register', [
-            'name'                  => 'طالب جديد',
-            'email'                 => 'newstudent@example.com',
-            'phone'                 => '0501234567',
-            'role'                  => UserRole::Student->value,
-            'password'              => 'password123',
+            'name' => 'طالب جديد',
+            'email' => 'newstudent@example.com',
+            'phone' => '0501234567',
+            'role' => UserRole::Student->value,
+            'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
 
@@ -33,7 +33,7 @@ class RegisterTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'newstudent@example.com',
-            'role'  => UserRole::Student->value,
+            'role' => UserRole::Student->value,
             // الحساب يبدأ inactive (تنتظر اعتماد إدارة)
             'status' => 'inactive',
         ]);
@@ -45,12 +45,12 @@ class RegisterTest extends TestCase
     public function test_register_request_blocks_super_admin_role(): void
     {
         $validator = Validator::make([
-            'name'                  => 'مهاجم',
-            'email'                 => 'attacker@example.com',
-            'role'                  => UserRole::SuperAdmin->value,
-            'password'              => 'password123',
+            'name' => 'مهاجم',
+            'email' => 'attacker@example.com',
+            'role' => UserRole::SuperAdmin->value,
+            'password' => 'password123',
             'password_confirmation' => 'password123',
-        ], (new RegisterRequest())->rules());
+        ], (new RegisterRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('role', $validator->errors()->toArray());
@@ -59,12 +59,12 @@ class RegisterTest extends TestCase
     public function test_register_request_blocks_school_admin_role(): void
     {
         $validator = Validator::make([
-            'name'                  => 'مهاجم',
-            'email'                 => 'attacker@example.com',
-            'role'                  => UserRole::SchoolAdmin->value,
-            'password'              => 'password123',
+            'name' => 'مهاجم',
+            'email' => 'attacker@example.com',
+            'role' => UserRole::SchoolAdmin->value,
+            'password' => 'password123',
             'password_confirmation' => 'password123',
-        ], (new RegisterRequest())->rules());
+        ], (new RegisterRequest)->rules());
 
         $this->assertTrue($validator->fails());
     }
@@ -73,12 +73,12 @@ class RegisterTest extends TestCase
     {
         foreach ([UserRole::Student, UserRole::Teacher, UserRole::Parent] as $role) {
             $validator = Validator::make([
-                'name'                  => 'مستخدم',
-                'email'                 => 'user' . $role->value . '@example.com',
-                'role'                  => $role->value,
-                'password'              => 'password123',
+                'name' => 'مستخدم',
+                'email' => 'user' . $role->value . '@example.com',
+                'role' => $role->value,
+                'password' => 'password123',
                 'password_confirmation' => 'password123',
-            ], (new RegisterRequest())->rules());
+            ], (new RegisterRequest)->rules());
 
             $this->assertFalse($validator->fails(), "الدور {$role->value} يجب أن يكون مقبولاً");
         }
@@ -89,10 +89,10 @@ class RegisterTest extends TestCase
         User::factory()->create(['email' => 'taken@example.com']);
 
         $response = $this->from('/register')->post('/register', [
-            'name'                  => 'مستخدم',
-            'email'                 => 'taken@example.com',
-            'role'                  => UserRole::Student->value,
-            'password'              => 'password123',
+            'name' => 'مستخدم',
+            'email' => 'taken@example.com',
+            'role' => UserRole::Student->value,
+            'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
 
@@ -103,10 +103,10 @@ class RegisterTest extends TestCase
     public function test_register_requires_password_confirmation(): void
     {
         $response = $this->from('/register')->post('/register', [
-            'name'                  => 'مستخدم',
-            'email'                 => 'unique@example.com',
-            'role'                  => UserRole::Student->value,
-            'password'              => 'password123',
+            'name' => 'مستخدم',
+            'email' => 'unique@example.com',
+            'role' => UserRole::Student->value,
+            'password' => 'password123',
             'password_confirmation' => 'mismatch123',
         ]);
 

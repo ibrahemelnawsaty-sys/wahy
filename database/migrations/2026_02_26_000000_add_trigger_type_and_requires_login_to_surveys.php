@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('surveys', function (Blueprint $table) {
-            if (!Schema::hasColumn('surveys', 'trigger_type')) {
+            if (! Schema::hasColumn('surveys', 'trigger_type')) {
                 $table->string('trigger_type')->default('manual')->after('status');
                 // on_platform_open = عند فتح المنصة
                 // on_login = عند تسجيل الدخول
@@ -19,7 +19,7 @@ return new class extends Migration
                 // on_activity_complete = عند إتمام النشاط
                 // manual = يدوي (يظهر عند فتح الرابط مباشرة)
             }
-            if (!Schema::hasColumn('surveys', 'requires_login')) {
+            if (! Schema::hasColumn('surveys', 'requires_login')) {
                 $table->boolean('requires_login')->default(true)->after('trigger_type');
             }
         });

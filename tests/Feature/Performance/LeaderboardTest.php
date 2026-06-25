@@ -26,7 +26,7 @@ class LeaderboardTest extends TestCase
         Cache::flush();
     }
 
-    public function test_leaderboard_uses_withSum_correctly(): void
+    public function test_leaderboard_uses_with_sum_correctly(): void
     {
         $school = School::factory()->create();
         $s1 = User::factory()->student($school)->create();
@@ -55,7 +55,7 @@ class LeaderboardTest extends TestCase
         Cache::flush();
         DB::enableQueryLog();
 
-        $controller = new \App\Http\Controllers\LeaderboardController();
+        $controller = new \App\Http\Controllers\LeaderboardController;
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('getStudentLeaderboard');
         $method->setAccessible(true);
@@ -65,8 +65,11 @@ class LeaderboardTest extends TestCase
         DB::disableQueryLog();
 
         // مع 15 طالب × 3 مدارس = 15 طالب، لكن الـ query واحد فقط
-        $this->assertLessThanOrEqual(3, count($queries),
-            'Student leaderboard must use ≤ 3 queries (no N+1)');
+        $this->assertLessThanOrEqual(
+            3,
+            count($queries),
+            'Student leaderboard must use ≤ 3 queries (no N+1)',
+        );
         $this->assertNotEmpty($result, 'يجب إرجاع نتائج');
     }
 
@@ -84,7 +87,7 @@ class LeaderboardTest extends TestCase
         Cache::flush();
         DB::enableQueryLog();
 
-        $controller = new \App\Http\Controllers\LeaderboardController();
+        $controller = new \App\Http\Controllers\LeaderboardController;
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('getSchoolLeaderboard');
         $method->setAccessible(true);
@@ -94,8 +97,11 @@ class LeaderboardTest extends TestCase
         DB::disableQueryLog();
 
         // قبل refactor: ~150 query. بعد: 1 (subqueries مدمجة)
-        $this->assertLessThanOrEqual(3, count($queries),
-            'School leaderboard must use ≤ 3 queries');
+        $this->assertLessThanOrEqual(
+            3,
+            count($queries),
+            'School leaderboard must use ≤ 3 queries',
+        );
 
         $this->assertCount(2, $result);
     }
@@ -108,7 +114,7 @@ class LeaderboardTest extends TestCase
         Point::create(['user_id' => $teacher->id, 'points' => 200]);
 
         Cache::flush();
-        $controller = new \App\Http\Controllers\LeaderboardController();
+        $controller = new \App\Http\Controllers\LeaderboardController;
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('getTeacherLeaderboard');
         $method->setAccessible(true);
@@ -127,7 +133,7 @@ class LeaderboardTest extends TestCase
         Point::create(['user_id' => $parent->id, 'points' => 50]);
 
         Cache::flush();
-        $controller = new \App\Http\Controllers\LeaderboardController();
+        $controller = new \App\Http\Controllers\LeaderboardController;
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('getParentLeaderboard');
         $method->setAccessible(true);

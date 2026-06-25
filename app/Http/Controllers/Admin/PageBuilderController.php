@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\PageBuilder;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class PageBuilderController extends Controller
@@ -16,7 +15,7 @@ class PageBuilderController extends Controller
         $pages = PageBuilder::select('id', 'page_name', 'slug', 'meta_title', 'is_active', 'updated_at')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return view('admin.pages.index', compact('pages'));
     }
 
@@ -45,7 +44,7 @@ class PageBuilderController extends Controller
         try {
             // تحويل JSON وفحصه
             $jsonData = json_decode($request->json_data, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return redirect()->back()
                     ->with('error', 'بيانات JSON غير صالحة!')
@@ -64,10 +63,10 @@ class PageBuilderController extends Controller
 
             return redirect()->route('admin.pages.index')
                 ->with('success', 'تم إنشاء الصفحة بنجاح!');
-                
+
         } catch (\Exception $e) {
             \Log::error('Error creating page: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->with('error', 'حدث خطأ أثناء إنشاء الصفحة!')
                 ->withInput();
@@ -77,6 +76,7 @@ class PageBuilderController extends Controller
     public function edit($id)
     {
         $page = PageBuilder::findOrFail($id);
+
         return view('admin.pages.edit-pro', compact('page'));
     }
 
@@ -102,7 +102,7 @@ class PageBuilderController extends Controller
         try {
             // تحويل JSON وفحصه
             $jsonData = json_decode($request->json_data, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return redirect()->back()
                     ->with('error', 'بيانات JSON غير صالحة!')
@@ -121,10 +121,10 @@ class PageBuilderController extends Controller
 
             return redirect()->route('admin.pages.index')
                 ->with('success', 'تم تحديث الصفحة بنجاح!');
-                
+
         } catch (\Exception $e) {
             \Log::error('Error updating page: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->with('error', 'حدث خطأ أثناء تحديث الصفحة!')
                 ->withInput();
@@ -140,15 +140,15 @@ class PageBuilderController extends Controller
 
             return redirect()->route('admin.pages.index')
                 ->with('success', "تم حذف صفحة '{$pageName}' بنجاح!");
-                
+
         } catch (\Exception $e) {
             \Log::error('Error deleting page: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->with('error', 'حدث خطأ أثناء حذف الصفحة!');
         }
     }
-    
+
     /**
      * معاينة الصفحة قبل الحفظ (AJAX)
      */
@@ -156,11 +156,11 @@ class PageBuilderController extends Controller
     {
         try {
             $jsonData = json_decode($request->json_data, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'بيانات JSON غير صالحة!'
+                    'message' => 'بيانات JSON غير صالحة!',
                 ], 400);
             }
 
@@ -173,32 +173,31 @@ class PageBuilderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'preview_url' => route('admin.pages.preview.show')
+                'preview_url' => route('admin.pages.preview.show'),
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء إنشاء المعاينة!'
+                'message' => 'حدث خطأ أثناء إنشاء المعاينة!',
             ], 500);
         }
     }
-    
+
     /**
      * عرض المعاينة
      */
     public function showPreview()
     {
         $pageData = session('page_preview');
-        
-        if (!$pageData) {
+
+        if (! $pageData) {
             abort(404, 'لا توجد معاينة متاحة');
         }
-        
+
         // إنشاء object مؤقت للعرض
         $page = (object) $pageData;
-        
+
         return view('pages.show', compact('page'));
     }
 }
-

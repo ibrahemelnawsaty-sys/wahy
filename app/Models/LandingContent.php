@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class LandingContent extends Model
 {
     protected $table = 'landing_content';
-    
+
     protected $fillable = [
         'key',
         'value',
@@ -18,29 +18,30 @@ class LandingContent extends Model
         'order',
         'metadata',
         'version',
-        'updated_by'
+        'updated_by',
     ];
-    
+
     protected $casts = [
         'metadata' => 'array',
         'order' => 'integer',
         'version' => 'integer',
     ];
-    
+
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
-    
+
     /**
      * جلب محتوى معين بالـ key
      */
     public static function getValue(string $key, $default = null)
     {
         $content = self::where('key', $key)->first();
+
         return $content ? $content->value : $default;
     }
-    
+
     /**
      * تحديث أو إنشاء محتوى
      */
@@ -51,10 +52,10 @@ class LandingContent extends Model
             array_merge([
                 'value' => $value,
                 'updated_by' => auth()->id(),
-            ], $options)
+            ], $options),
         );
     }
-    
+
     /**
      * جلب كل محتوى قسم معين
      */
@@ -66,25 +67,25 @@ class LandingContent extends Model
             ->pluck('value', 'key')
             ->toArray();
     }
-    
+
     /**
      * حفظ نسخة احتياطية من المحتوى الحالي
      */
     public static function createSnapshot()
     {
         $content = self::all();
-        
+
         // لا تحفظ نسخة احتياطية إذا كان الجدول فارغاً
         if ($content->isEmpty()) {
             return false;
         }
-        
+
         DB::table('landing_content_versions')->insert([
             'content_snapshot' => json_encode($content),
             'created_by' => auth()->id(),
             'created_at' => now(),
         ]);
-        
+
         return true;
     }
 }

@@ -38,7 +38,7 @@ class QuickStats extends Component
         return Cache::remember(
             "student.quickstats.{$this->userId}",
             60,
-            fn () => $this->buildStats()
+            fn () => $this->buildStats(),
         );
     }
 
@@ -46,19 +46,19 @@ class QuickStats extends Component
     {
         $user = User::find($this->userId);
 
-        if (!$user) {
+        if (! $user) {
             return [
-                'total_points'        => 0,
-                'total_coins'         => 0,
-                'badges_count'        => 0,
+                'total_points' => 0,
+                'total_coins' => 0,
+                'badges_count' => 0,
                 'completed_activities' => 0,
             ];
         }
 
         return [
-            'total_points'         => $user->points()->sum('points'),
-            'total_coins'          => $user->coins()->sum('coins'),
-            'badges_count'         => $user->badges()->count(),
+            'total_points' => $user->points()->sum('points'),
+            'total_coins' => $user->coins()->sum('coins'),
+            'badges_count' => $user->badges()->count(),
             'completed_activities' => $user->activitySubmissions()->done()->count(),
         ];
     }

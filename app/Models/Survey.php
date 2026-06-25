@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Survey extends Model
 {
@@ -35,12 +35,12 @@ class Survey extends Model
      */
     public static function roleToTargetType(string $role): ?string
     {
-        return match($role) {
-            'school_admin'  => 'schools',
-            'teacher'       => 'teachers',
-            'student'       => 'students',
-            'parent'        => 'parents',
-            default         => null,
+        return match ($role) {
+            'school_admin' => 'schools',
+            'teacher' => 'teachers',
+            'student' => 'students',
+            'parent' => 'parents',
+            default => null,
         };
     }
 
@@ -97,8 +97,8 @@ class Survey extends Model
      * الحصول على بيانات المقارنة بين القبلي والبعدي.
      * يدعم فلترة حسب المدرسة (للـ school-admin) أو حسب IDs طلاب محددين (للمعلم/ولي الأمر).
      *
-     * @param int|null $schoolId  فلترة على طلاب مدرسة محددة
-     * @param array|null $userIds فلترة على قائمة users محددة (للمعلم: طلابه، لولي الأمر: أبناؤه)
+     * @param  int|null  $schoolId  فلترة على طلاب مدرسة محددة
+     * @param  array|null  $userIds  فلترة على قائمة users محددة (للمعلم: طلابه، لولي الأمر: أبناؤه)
      */
     public function getComparisonData(?int $schoolId = null, ?array $userIds = null): array
     {
@@ -111,7 +111,7 @@ class Survey extends Model
             $preSurvey = $this->linkedSurvey;
         }
 
-        if (!$preSurvey || !$postSurvey) {
+        if (! $preSurvey || ! $postSurvey) {
             return ['error' => 'لم يتم العثور على الاستبيان المرتبط'];
         }
 
@@ -120,8 +120,8 @@ class Survey extends Model
 
         // تطبيق فلترة حسب المدرسة (school-admin)
         if ($schoolId !== null) {
-            $preResponsesQ->whereHas('user', fn($q) => $q->where('school_id', $schoolId));
-            $postResponsesQ->whereHas('user', fn($q) => $q->where('school_id', $schoolId));
+            $preResponsesQ->whereHas('user', fn ($q) => $q->where('school_id', $schoolId));
+            $postResponsesQ->whereHas('user', fn ($q) => $q->where('school_id', $schoolId));
         }
 
         // تطبيق فلترة حسب user IDs (teacher/parent)
@@ -143,10 +143,14 @@ class Survey extends Model
         // حساب المقارنة لكل طالب أجاب على الاثنين
         foreach ($preResponses as $preResponse) {
             $userId = $preResponse->user_id;
-            if (!$userId) continue;
+            if (! $userId) {
+                continue;
+            }
 
             $postResponse = $postResponses->where('user_id', $userId)->first();
-            if (!$postResponse) continue;
+            if (! $postResponse) {
+                continue;
+            }
 
             $preAnswers = $preResponse->answers ?? [];
             $postAnswers = $postResponse->answers ?? [];
@@ -172,14 +176,14 @@ class Survey extends Model
                     $postScore += $postNum;
                 } elseif (in_array($question->question_type, ['radio', 'select'])) {
                     // كل طرف يُسجَّل بخيارات/درجات سؤاله الخاص
-                    if (!empty($question->option_scores)) {
+                    if (! empty($question->option_scores)) {
                         $preOptions = $question->options ?? [];
                         $preScores = $question->option_scores ?? [];
                         $preIdx = array_search($preVal, $preOptions, true);
                         $preScore += ($preIdx !== false && isset($preScores[$preIdx])) ? (int) $preScores[$preIdx] : 0;
                     }
                     $postScoreSource = $postQuestion ?: $question;
-                    if (!empty($postScoreSource->option_scores)) {
+                    if (! empty($postScoreSource->option_scores)) {
                         $postOptions = $postScoreSource->options ?? [];
                         $postScores = $postScoreSource->option_scores ?? [];
                         $postIdx = array_search($postVal, $postOptions, true);
@@ -299,7 +303,7 @@ class Survey extends Model
         $targetType = self::roleToTargetType($user->role);
 
         // إذا لم يوجد mapping (مثل super_admin)، لا نُظهر له استبيانات
-        if (!$targetType) {
+        if (! $targetType) {
             return collect();
         }
 
@@ -308,30 +312,30 @@ class Survey extends Model
         return self::where('status', 'active')
             ->where(function ($q) {
                 $q->where('is_mandatory', true)
-                  ->orWhere('is_popup', true);
+                    ->orWhere('is_popup', true);
             })
             // استبعاد استبيانات الدرس واليدوية من النافذة العامة — تُعرض في سياق الدرس لا كـ popup عام (Issue 19)
             ->where(function ($q) {
                 $q->whereNull('trigger_type')
-                  ->orWhereNotIn('trigger_type', ['on_lesson_start', 'on_lesson_complete', 'manual']);
+                    ->orWhereNotIn('trigger_type', ['on_lesson_start', 'on_lesson_complete', 'manual']);
             })
             ->where(function ($query) {
                 $query->whereNull('start_date')
-                      ->orWhere('start_date', '<=', now());
+                    ->orWhere('start_date', '<=', now());
             })
             ->where(function ($query) {
                 $query->whereNull('end_date')
-                      ->orWhere('end_date', '>=', now());
+                    ->orWhere('end_date', '>=', now());
             })
             ->where(function ($query) use ($user) {
                 $query->whereNull('school_id')
-                      ->orWhere('school_id', $user->school_id);
+                    ->orWhere('school_id', $user->school_id);
             })
             ->where(function ($query) use ($targetType, $user) {
                 // البحث بـ target_type (مثل 'teachers') أو بـ role مباشرة (مثل 'teacher')
                 // لدعم كلا تنسيقَي التخزين القديم والجديد
                 $query->whereJsonContains('target_roles', $targetType)
-                      ->orWhereJsonContains('target_roles', $user->role);
+                    ->orWhereJsonContains('target_roles', $user->role);
             })
             ->whereDoesntHave('responses', function ($query) use ($user) {
                 $query->where('user_id', $user->id);

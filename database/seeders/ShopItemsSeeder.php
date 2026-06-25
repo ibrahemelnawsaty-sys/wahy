@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ShopItem;
+use Illuminate\Database\Seeder;
 
 class ShopItemsSeeder extends Seeder
 {
@@ -41,7 +41,7 @@ class ShopItemsSeeder extends Seeder
                 'status' => 'active',
                 'order' => 3,
             ],
-            
+
             // Avatars - Rare
             [
                 'name' => 'النسر الحكيم',
@@ -63,7 +63,7 @@ class ShopItemsSeeder extends Seeder
                 'status' => 'active',
                 'order' => 5,
             ],
-            
+
             // Badges - Common
             [
                 'name' => 'شارة النجمة',
@@ -85,7 +85,7 @@ class ShopItemsSeeder extends Seeder
                 'status' => 'active',
                 'order' => 7,
             ],
-            
+
             // Badges - Epic
             [
                 'name' => 'شارة التاج الذهبي',
@@ -107,7 +107,7 @@ class ShopItemsSeeder extends Seeder
                 'status' => 'active',
                 'order' => 9,
             ],
-            
+
             // Themes - Rare
             [
                 'name' => 'ثيم الليل الساحر',
@@ -131,7 +131,7 @@ class ShopItemsSeeder extends Seeder
                 'order' => 11,
                 'metadata' => ['theme_id' => 'green_forest'],
             ],
-            
+
             // Power-ups - Epic
             [
                 'name' => 'مضاعفة النقاط',
@@ -155,7 +155,7 @@ class ShopItemsSeeder extends Seeder
                 'order' => 13,
                 'metadata' => ['duration_hours' => 1, 'bonus_percentage' => 50],
             ],
-            
+
             // Special - Legendary
             [
                 'name' => 'التاج الماسي',
@@ -177,7 +177,7 @@ class ShopItemsSeeder extends Seeder
                 'status' => 'active',
                 'order' => 15,
             ],
-            
+
             // Limited Time Items
             [
                 'name' => 'هدية العيد الخاصة',

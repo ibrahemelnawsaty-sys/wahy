@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamp('featured_at')->nullable()->after('featured_by');
             $table->text('featured_reason')->nullable()->after('featured_at');
             $table->boolean('is_family_activity')->default(false)->after('is_team_activity');
-            
+
             $table->foreign('featured_by')->references('id')->on('users')->onDelete('set null');
         });
     }

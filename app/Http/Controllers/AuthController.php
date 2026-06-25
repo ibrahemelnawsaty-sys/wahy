@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TwoFactorCodeMail;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Models\User;
-use App\Mail\TwoFactorCodeMail;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -22,6 +22,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.login');
     }
 
@@ -36,68 +37,68 @@ class AuthController extends Controller
         ]);
 
         $credentials = $request->only('email', 'password');
-        
+
         // التحقق من البيانات (بدون eager loading لتحسين الأداء)
         $user = User::where('email', $request->email)->first();
-        
+
         // تحديد المعرف (User ID أو IP)
         $identifier = $user ? $user->id : $request->ip();
         $cacheKey = 'login_attempts_' . $identifier;
         $lockoutKey = 'login_lockout_' . $identifier;
-        
+
         // فحص الحظر مرة واحدة فقط
         $lockoutUntil = cache()->get($lockoutKey);
-        
+
         if ($lockoutUntil && now()->timestamp < $lockoutUntil) {
             $remainingMinutes = ceil(($lockoutUntil - now()->timestamp) / 60);
             $remainingHours = floor($remainingMinutes / 60);
             $remainingMins = $remainingMinutes % 60;
-            
-            $timeMessage = $remainingHours > 0 
+
+            $timeMessage = $remainingHours > 0
                 ? "{$remainingHours} ساعة و {$remainingMins} دقيقة"
                 : "{$remainingMins} دقيقة";
-            
+
             return back()->withErrors([
                 'error' => "تم حظر محاولات تسجيل الدخول مؤقتاً. يرجى المحاولة بعد {$timeMessage}.",
             ])->onlyInput('email');
         }
-        
+
         // التحقق من صحة بيانات الدخول
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             // زيادة عدد المحاولات الفاشلة
             $attempts = cache()->get($cacheKey, 0) + 1;
             cache()->put($cacheKey, $attempts, now()->addHours(2));
-            
+
             // تطبيق Exponential Backoff بعد المحاولة الرابعة
             if ($attempts >= 4) {
                 $lockoutMinutes = 30 * ($attempts - 3);
                 $lockoutUntil = now()->addMinutes($lockoutMinutes)->timestamp;
                 cache()->put($lockoutKey, $lockoutUntil, now()->addMinutes($lockoutMinutes));
-                
+
                 $lockoutHours = floor($lockoutMinutes / 60);
                 $lockoutMins = $lockoutMinutes % 60;
-                
-                $timeMessage = $lockoutHours > 0 
-                    ? "{$lockoutHours} ساعة" . ($lockoutMins > 0 ? " و {$lockoutMins} دقيقة" : "")
+
+                $timeMessage = $lockoutHours > 0
+                    ? "{$lockoutHours} ساعة" . ($lockoutMins > 0 ? " و {$lockoutMins} دقيقة" : '')
                     : "{$lockoutMins} دقيقة";
-                
+
                 return back()->withErrors([
                     'error' => "عدد كبير من المحاولات الخاطئة. تم حظر تسجيل الدخول لمدة {$timeMessage}.",
                 ])->onlyInput('email');
             }
-            
+
             return back()->withErrors([
-                'error' => "بيانات الدخول غير صحيحة. لديك " . max(0, (3 - $attempts)) . " محاولات متبقية.",
+                'error' => 'بيانات الدخول غير صحيحة. لديك ' . max(0, (3 - $attempts)) . ' محاولات متبقية.',
             ])->onlyInput('email');
         }
-        
+
         // التحقق من حالة الحساب
         if ($user->status === 'inactive') {
             return back()->withErrors([
                 'error' => 'الحساب غير نشط حالياً. يرجى التواصل مع إدارة المنصة.',
             ])->onlyInput('email');
         }
-        
+
         // مسح محاولات الفشل عند النجاح (batch operation)
         cache()->deleteMultiple([$cacheKey, $lockoutKey]);
 
@@ -105,12 +106,12 @@ class AuthController extends Controller
         if ($user->two_factor_enabled && setting('enable_2fa', true)) {
             // توليد كود آمن من 6 أرقام باستخدام random_int
             $code = random_int(100000, 999999);
-            
+
             // حفظ الكود مع وقت انتهاء الصلاحية (10 دقائق)
             $user->two_factor_code = $code;
             $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
             $user->save();
-            
+
             // إرسال الكود عبر البريد الإلكتروني (في الخلفية - async)
             try {
                 Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
@@ -119,21 +120,21 @@ class AuthController extends Controller
                     'email' => 'حدث خطأ في إرسال كود التحقق. يرجى المحاولة لاحقاً.',
                 ])->withInput($request->except('password'));
             }
-            
+
             // حفظ بيانات المستخدم في الجلسة مؤقتاً
             $request->session()->put('two_factor_user_id', $user->id);
             $request->session()->put('two_factor_remember', $request->has('remember'));
-            
+
             return redirect()->route('two-factor.verify');
         }
 
         // تسجيل الدخول العادي
         $remember = $request->has('remember');
         Auth::login($user, $remember);
-        
+
         // تجديد الجلسة للأمان (منع Session Fixation)
         $request->session()->regenerate();
-        
+
         return redirect()->intended(route('dashboard'));
     }
 
@@ -142,14 +143,14 @@ class AuthController extends Controller
      */
     public function showTwoFactorVerify(Request $request)
     {
-        if (!session()->has('two_factor_user_id')) {
+        if (! session()->has('two_factor_user_id')) {
             return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى']);
         }
-        
+
         // تجديد الجلسة لضمان عدم انتهاء صلاحيتها أثناء إدخال الكود
         $request->session()->regenerateToken();
         $request->session()->put('two_factor_last_activity', now()->timestamp);
-        
+
         return view('auth.two-factor-verify');
     }
 
@@ -165,49 +166,50 @@ class AuthController extends Controller
         // التحقق من وجود الجلسة وعدم انتهاء صلاحيتها
         $userId = session('two_factor_user_id');
         $lastActivity = session('two_factor_last_activity');
-        
-        if (!$userId) {
+
+        if (! $userId) {
             return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى']);
         }
-        
+
         // التحقق من أن الجلسة لم تنته (15 دقيقة)
         if ($lastActivity && (now()->timestamp - $lastActivity) > 900) {
             $request->session()->flush();
+
             return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى']);
         }
 
         $user = User::find($userId);
-        
-        if (!$user) {
+
+        if (! $user) {
             return redirect()->route('login')->withErrors(['error' => 'المستخدم غير موجود']);
         }
 
         // نظام Exponential Backoff - التحقق من المحاولات الفاشلة
         $cacheKey = 'two_factor_attempts_' . $user->id;
         $attempts = cache()->get($cacheKey, 0);
-        
+
         // التحقق من وقت الحظر
         $lockoutKey = 'two_factor_lockout_' . $user->id;
         $lockoutUntil = cache()->get($lockoutKey);
-        
+
         if ($lockoutUntil && now()->timestamp < $lockoutUntil) {
             $remainingMinutes = ceil(($lockoutUntil - now()->timestamp) / 60);
             $remainingHours = floor($remainingMinutes / 60);
             $remainingMins = $remainingMinutes % 60;
-            
-            $timeMessage = $remainingHours > 0 
+
+            $timeMessage = $remainingHours > 0
                 ? "{$remainingHours} ساعة و {$remainingMins} دقيقة"
                 : "{$remainingMins} دقيقة";
-            
+
             return back()->withErrors(['code' => "عدد كبير من المحاولات الخاطئة. الرجاء المحاولة بعد {$timeMessage}."])->withInput();
         }
 
         // التحقق من الكود وانتهاء الصلاحية (مقارنة آمنة)
-        if (!hash_equals((string) $user->two_factor_code, (string) $request->code)) {
+        if (! hash_equals((string) $user->two_factor_code, (string) $request->code)) {
             // زيادة عدد المحاولات الفاشلة
             $attempts++;
             cache()->put($cacheKey, $attempts, now()->addHour());
-            
+
             // تطبيق Exponential Backoff بعد المحاولة الرابعة
             if ($attempts >= 4) {
                 // المحاولة 4: 30 دقيقة
@@ -218,18 +220,19 @@ class AuthController extends Controller
                 $lockoutMinutes = 30 * ($attempts - 3);
                 $lockoutUntil = now()->addMinutes($lockoutMinutes)->timestamp;
                 cache()->put($lockoutKey, $lockoutUntil, now()->addMinutes($lockoutMinutes));
-                
+
                 $lockoutHours = floor($lockoutMinutes / 60);
                 $lockoutMins = $lockoutMinutes % 60;
-                
-                $timeMessage = $lockoutHours > 0 
-                    ? "{$lockoutHours} ساعة" . ($lockoutMins > 0 ? " و {$lockoutMins} دقيقة" : "")
+
+                $timeMessage = $lockoutHours > 0
+                    ? "{$lockoutHours} ساعة" . ($lockoutMins > 0 ? " و {$lockoutMins} دقيقة" : '')
                     : "{$lockoutMins} دقيقة";
-                
+
                 return back()->withErrors(['code' => "كود التحقق غير صحيح. تم حظر المحاولات لمدة {$timeMessage}."]);
             }
-            
+
             $remaining = 3 - $attempts;
+
             return back()->withErrors(['code' => "كود التحقق غير صحيح. لديك {$remaining} محاولة متبقية."]);
         }
 
@@ -241,17 +244,17 @@ class AuthController extends Controller
         $user->two_factor_code = null;
         $user->two_factor_expires_at = null;
         $user->save();
-        
+
         cache()->forget($cacheKey);
         cache()->forget($lockoutKey);
 
         // تسجيل الدخول
         $remember = session('two_factor_remember', false);
         Auth::login($user, $remember);
-        
+
         // تجديد الجلسة للأمان
         $request->session()->regenerate();
-        
+
         // مسح بيانات الجلسة المؤقتة
         $request->session()->forget(['two_factor_user_id', 'two_factor_remember', 'two_factor_last_activity']);
         $request->session()->regenerate();
@@ -266,13 +269,13 @@ class AuthController extends Controller
     public function resendTwoFactorCode(Request $request)
     {
         $userId = session('two_factor_user_id');
-        if (!$userId) {
+        if (! $userId) {
             return redirect()->route('login')->withErrors(['error' => 'انتهت صلاحية الجلسة']);
         }
 
         $user = User::find($userId);
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login')->withErrors(['error' => 'المستخدم غير موجود']);
         }
 
@@ -292,15 +295,17 @@ class AuthController extends Controller
         $user->save();
 
         // إرسال الكود
-        if (empty($user->email) || !filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+        if (empty($user->email) || ! filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
             return back()->withErrors(['error' => 'البريد الإلكتروني غير صالح']);
         }
 
         try {
             Mail::to($user->email)->send(new TwoFactorCodeMail($code, $user->name));
+
             return back()->with('success', 'تم إرسال كود جديد إلى بريدك الإلكتروني');
         } catch (\Exception $e) {
             \Log::error('فشل إرسال 2FA code', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+
             return back()->withErrors(['error' => 'حدث خطأ في إرسال الكود']);
         }
     }
@@ -311,7 +316,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         // احترام مفتاح enable_registration (كان مُعرَّفاً بلا أثر) — الافتراضي مفعّل
-        if (!setting('enable_registration', true)) {
+        if (! setting('enable_registration', true)) {
             return back()->with('error', 'التسجيل مغلق حالياً. يرجى التواصل مع الإدارة.');
         }
 
@@ -362,6 +367,7 @@ class AuthController extends Controller
             return redirect()->route('register')->with('registration_success', true)->with('user_name', $user->name);
         } catch (\Exception $e) {
             Log::error('Registration error: ' . $e->getMessage());
+
             return back()->withErrors(['error' => 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة لاحقاً.'])->withInput();
         }
     }
@@ -374,7 +380,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect()->route('login');
     }
 
@@ -383,12 +389,12 @@ class AuthController extends Controller
      */
     public function dashboard()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
         $user = Auth::user();
-        
+
         // التحقق من كلمة المرور المؤقتة
         if ($user->password_change_required) {
             return redirect()->route('password.change');
@@ -410,31 +416,32 @@ class AuthController extends Controller
                 return redirect()->route('parent.dashboard');
             default:
                 Auth::logout();
+
                 return redirect()->route('login')->withErrors(['error' => 'نوع الحساب غير صحيح']);
         }
     }
-    
+
     /**
      * عرض صفحة تغيير كلمة المرور
      */
     public function showPasswordChange()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
-        
+
         return view('auth.change-password');
     }
-    
+
     /**
      * تحديث كلمة المرور
      */
     public function updatePassword(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
-        
+
         $request->validate([
             'current_password' => 'required|string',
             'password' => 'required|string|min:8|confirmed|different:current_password',
@@ -445,11 +452,11 @@ class AuthController extends Controller
             'password.confirmed' => 'كلمة المرور غير متطابقة',
             'password.different' => 'يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية',
         ]);
-        
+
         $user = Auth::user();
 
         // التحقق من كلمة المرور الحالية
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
         }
 
@@ -501,7 +508,7 @@ class AuthController extends Controller
             $token = bin2hex(random_bytes(32));
             DB::table('password_reset_tokens')->updateOrInsert(
                 ['email' => $request->email],
-                ['token' => Hash::make($token), 'created_at' => now()]
+                ['token' => Hash::make($token), 'created_at' => now()],
             );
             try {
                 Mail::to($request->email)->send(new \App\Mail\ResetPasswordMail($token, $request->email));
@@ -520,7 +527,7 @@ class AuthController extends Controller
     {
         return view('auth.reset-password', [
             'token' => $token,
-            'email' => request('email')
+            'email' => request('email'),
         ]);
     }
 
@@ -546,18 +553,19 @@ class AuthController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        if (!$resetRecord) {
+        if (! $resetRecord) {
             return back()->withErrors(['email' => 'رابط إعادة التعيين غير صحيح']);
         }
 
         // التحقق من أن الـ token لم ينته (60 دقيقة)
         if (Carbon::parse($resetRecord->created_at)->addMinutes(60)->isPast()) {
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
             return back()->withErrors(['email' => 'انتهت صلاحية رابط إعادة التعيين. يرجى طلب رابط جديد']);
         }
 
         // التحقق من الـ token
-        if (!Hash::check($request->token, $resetRecord->token)) {
+        if (! Hash::check($request->token, $resetRecord->token)) {
             return back()->withErrors(['email' => 'رابط إعادة التعيين غير صحيح']);
         }
 
@@ -581,4 +589,3 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'تم إعادة تعيين كلمة المرور بنجاح! يرجى تسجيل الدخول بكلمة المرور الجديدة');
     }
 }
-

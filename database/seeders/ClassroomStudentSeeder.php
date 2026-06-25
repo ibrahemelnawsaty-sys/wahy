@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
 use App\Models\Classroom;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class ClassroomStudentSeeder extends Seeder
@@ -16,9 +16,10 @@ class ClassroomStudentSeeder extends Seeder
     {
         // إنشاء فصول دراسية إذا لم تكن موجودة
         $school = \App\Models\School::first();
-        
-        if (!$school) {
+
+        if (! $school) {
             $this->command->error('لا توجد مدارس! قم بتشغيل UsersSeeder أولاً.');
+
             return;
         }
 
@@ -53,7 +54,7 @@ class ClassroomStudentSeeder extends Seeder
         foreach ($classrooms as $classroomData) {
             Classroom::updateOrCreate(
                 ['name' => $classroomData['name']],
-                $classroomData
+                $classroomData,
             );
         }
 
@@ -63,7 +64,7 @@ class ClassroomStudentSeeder extends Seeder
 
         foreach ($students as $index => $student) {
             $classroomId = $classroomIds[$index % count($classroomIds)];
-            
+
             DB::table('classroom_student')->updateOrInsert(
                 [
                     'student_id' => $student->id,
@@ -74,7 +75,7 @@ class ClassroomStudentSeeder extends Seeder
                     'status' => 'active',
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]
+                ],
             );
 
             $this->command->info("ربط الطالب {$student->name} بالفصل #{$classroomId}");

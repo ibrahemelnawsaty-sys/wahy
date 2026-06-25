@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ShopItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 class ShopManagementController extends Controller
@@ -13,14 +12,14 @@ class ShopManagementController extends Controller
     public function index()
     {
         $items = ShopItem::orderBy('order')->orderBy('created_at', 'desc')->paginate(20);
-        
+
         $stats = [
             'total_items' => ShopItem::count(),
             'active_items' => ShopItem::where('status', 'active')->count(),
             'sold_out' => ShopItem::where('status', 'sold_out')->count(),
             'total_purchases' => DB::table('user_purchases')->count(),
         ];
-        
+
         return view('admin.shop.index', compact('items', 'stats'));
     }
 
@@ -58,6 +57,7 @@ class ShopManagementController extends Controller
     public function edit($id)
     {
         $item = ShopItem::findOrFail($id);
+
         return view('admin.shop.edit', compact('item'));
     }
 
@@ -95,7 +95,7 @@ class ShopManagementController extends Controller
     public function destroy($id)
     {
         $item = ShopItem::findOrFail($id);
-        
+
         if ($item->image && \Storage::disk('public')->exists($item->image)) {
             \Storage::disk('public')->delete($item->image);
         }
@@ -105,4 +105,3 @@ class ShopManagementController extends Controller
         return response()->json(['success' => true, 'message' => 'تم حذف المنتج بنجاح']);
     }
 }
-

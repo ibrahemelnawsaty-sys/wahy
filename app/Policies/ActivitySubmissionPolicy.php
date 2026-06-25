@@ -30,7 +30,7 @@ class ActivitySubmissionPolicy
         }
 
         $student = $submission->student;
-        if (!$student) {
+        if (! $student) {
             return false;
         }
 
@@ -67,7 +67,7 @@ class ActivitySubmissionPolicy
         }
 
         $student = $submission->student;
-        if (!$student) {
+        if (! $student) {
             return false;
         }
 
@@ -88,7 +88,7 @@ class ActivitySubmissionPolicy
         }
 
         $student = $submission->student;
-        if (!$student) {
+        if (! $student) {
             return false;
         }
 

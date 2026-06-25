@@ -46,13 +46,13 @@ return new class extends Migration
 
     private function safeIndex(string $table, string $indexName, array $columns): void
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             return;
         }
 
         // تحقق أن كل الأعمدة موجودة
         foreach ($columns as $col) {
-            if (!Schema::hasColumn($table, $col)) {
+            if (! Schema::hasColumn($table, $col)) {
                 return;
             }
         }
@@ -60,10 +60,10 @@ return new class extends Migration
         try {
             $exists = collect(DB::select(
                 "SHOW INDEX FROM `{$table}` WHERE Key_name = ?",
-                [$indexName]
+                [$indexName],
             ))->isNotEmpty();
 
-            if (!$exists) {
+            if (! $exists) {
                 Schema::table($table, function (Blueprint $t) use ($columns, $indexName) {
                     $t->index($columns, $indexName);
                 });
@@ -75,7 +75,7 @@ return new class extends Migration
 
     private function dropIndex(string $table, string $indexName): void
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             return;
         }
         try {

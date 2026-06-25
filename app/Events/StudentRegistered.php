@@ -11,6 +11,7 @@ class StudentRegistered
     use Dispatchable, SerializesModels;
 
     public User $student;
+
     public ?User $approvedBy;
 
     /**

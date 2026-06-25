@@ -2,12 +2,12 @@
 
 namespace App\Mail;
 
+use App\Models\ActivitySubmission;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\ActivitySubmission;
 
 class ActivityGradedMail extends Mailable
 {

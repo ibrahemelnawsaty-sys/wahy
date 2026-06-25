@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::table('activities', function (Blueprint $table) {
             // تحديث نوع النشاط ليشمل الأنواع الجديدة
             $table->enum('type', ['quiz', 'exercise', 'project', 'upload', 'practical', 'discussion'])->default('quiz')->change();
-            
+
             // حقول خاصة بالاختبار
             $table->integer('quiz_duration')->nullable()->after('passing_score')->comment('مدة الاختبار بالدقائق');
             $table->integer('max_attempts')->nullable()->after('quiz_duration')->comment('عدد المحاولات المسموحة');
-            
+
             // حقول خاصة بالمشروع
             $table->json('allowed_file_types')->nullable()->after('max_attempts')->comment('أنواع الملفات المسموحة: document, image, video, audio');
             $table->integer('max_file_size')->nullable()->after('allowed_file_types')->comment('الحد الأقصى لحجم الملف بالميغابايت');
-            
+
             // تحديث status ليشمل draft
             $table->enum('status', ['active', 'inactive', 'draft'])->default('active')->change();
         });

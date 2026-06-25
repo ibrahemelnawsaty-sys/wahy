@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Security;
 
-use App\Enums\UserRole;
 use App\Models\Activity;
 use App\Models\ActivitySubmission;
 use App\Models\Coin;
@@ -10,7 +9,6 @@ use App\Models\Point;
 use App\Models\School;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -33,8 +31,10 @@ class HttpGuardsTest extends TestCase
     public function test_user_model_registers_saving_event(): void
     {
         $reflection = new \ReflectionClass(User::class);
-        $this->assertTrue($reflection->hasMethod('booted'),
-            'User model يجب أن يعرّف booted() method للـ saving guard');
+        $this->assertTrue(
+            $reflection->hasMethod('booted'),
+            'User model يجب أن يعرّف booted() method للـ saving guard',
+        );
     }
 
     public function test_activity_submission_registers_updating_event(): void
@@ -52,8 +52,10 @@ class HttpGuardsTest extends TestCase
     public function test_point_model_registers_updating_and_deleting_events(): void
     {
         $reflection = new \ReflectionClass(Point::class);
-        $this->assertTrue($reflection->hasMethod('booted'),
-            'Point model يجب أن يمنع UPDATE/DELETE خارج CLI');
+        $this->assertTrue(
+            $reflection->hasMethod('booted'),
+            'Point model يجب أن يمنع UPDATE/DELETE خارج CLI',
+        );
     }
 
     public function test_coin_model_registers_updating_and_deleting_events(): void
@@ -73,10 +75,10 @@ class HttpGuardsTest extends TestCase
         $student = User::factory()->student($school)->create();
         $activity = Activity::factory()->create();
         $submission = ActivitySubmission::factory()->create([
-            'student_id'  => $student->id,
+            'student_id' => $student->id,
             'activity_id' => $activity->id,
-            'score'       => null,
-            'status'      => 'pending',
+            'score' => null,
+            'status' => 'pending',
         ]);
 
         $this->actingAs($teacher);
@@ -97,10 +99,10 @@ class HttpGuardsTest extends TestCase
     public function test_school_admin_can_approve_activity(): void
     {
         $school = School::factory()->create();
-        $admin  = User::factory()->schoolAdmin($school)->create();
+        $admin = User::factory()->schoolAdmin($school)->create();
         $teacher = User::factory()->teacher($school)->create();
         $activity = Activity::factory()->create([
-            'created_by'      => $teacher->id,
+            'created_by' => $teacher->id,
             'approval_status' => 'pending',
         ]);
 
@@ -124,8 +126,8 @@ class HttpGuardsTest extends TestCase
 
         $point = Point::create([
             'user_id' => $student->id,
-            'points'  => 50,
-            'reason'  => 'test',
+            'points' => 50,
+            'reason' => 'test',
         ]);
 
         $this->assertNotNull($point->id);
@@ -137,10 +139,10 @@ class HttpGuardsTest extends TestCase
         $student = User::factory()->student()->create();
 
         $coin = Coin::create([
-            'user_id'          => $student->id,
-            'coins'            => 25,
+            'user_id' => $student->id,
+            'coins' => 25,
             'transaction_type' => 'earn',
-            'reason'           => 'test',
+            'reason' => 'test',
         ]);
 
         $this->assertNotNull($coin->id);

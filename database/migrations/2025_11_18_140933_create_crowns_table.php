@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('value_id')->constrained('values')->onDelete('cascade');
             $table->timestamp('earned_at')->useCurrent();
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'value_id']); // تاج واحد لكل قيمة
         });
     }

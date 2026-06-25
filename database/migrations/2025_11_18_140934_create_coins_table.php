@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('reason')->nullable(); // "إكمال 5 دروس"، "شراء خلفية"...
             $table->string('transaction_type')->nullable(); // earn, spend, bonus
             $table->timestamps();
-            
+
             $table->index('user_id');
         });
     }

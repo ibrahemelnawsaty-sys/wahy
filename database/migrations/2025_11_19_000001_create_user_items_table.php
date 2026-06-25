@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamp('expires_at')->nullable(); // For time-limited items
             $table->timestamps();
-            
+
             $table->index(['user_id', 'item_type', 'is_active']);
         });
     }

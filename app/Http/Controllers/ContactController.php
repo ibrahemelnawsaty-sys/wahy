@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use App\Models\ContactMessage;
 
 class ContactController extends Controller
 {
@@ -18,7 +18,7 @@ class ContactController extends Controller
         if ($request->filled('website')) {
             return response()->json([
                 'success' => true,
-                'message' => 'تم إرسال رسالتك بنجاح'
+                'message' => 'تم إرسال رسالتك بنجاح',
             ]);
         }
 
@@ -41,7 +41,7 @@ class ContactController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'يرجى التحقق من البيانات المدخلة',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -73,17 +73,16 @@ class ContactController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.'
+                'message' => 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.',
             ], 200);
 
         } catch (\Exception $e) {
             \Log::error('Contact form error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.'
+                'message' => 'حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.',
             ], 500);
         }
     }
 }
-

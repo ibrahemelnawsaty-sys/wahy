@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('enrollment_date')->default(now());
             $table->enum('status', ['active', 'transferred', 'graduated'])->default('active');
             $table->timestamps();
-            
+
             $table->unique(['classroom_id', 'student_id']);
         });
     }
