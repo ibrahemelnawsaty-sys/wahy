@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class Force2FAForAdmins
 {
-    /** المسارات المستثناة (Setup 2FA + Logout) */
+    /** المسارات المستثناة (Setup/Enroll 2FA + Logout) */
     private const EXEMPT_ROUTES = [
         'two-factor.verify',
         'two-factor.verify.post',
@@ -29,6 +29,10 @@ class Force2FAForAdmins
         'logout',
         'password.change',
         'password.change.update',
+        // مسار التفعيل الفعلي للـ 2FA (صفحة تعديل المستخدم + حفظها) —
+        // يجب أن يصل إليه الأدمن غير المفعِّل ليفعّل two_factor_enabled.
+        'admin.users.edit',
+        'admin.users.update',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -55,8 +59,11 @@ class Force2FAForAdmins
                 ], 403);
             }
 
+            // إعادة توجيه لصفحة التفعيل الفعلية (تعديل المستخدم نفسه) حيث يوجد
+            // مفتاح two_factor_enabled — وليس صفحة two-factor.verify التي تتطلب
+            // جلسة تسجيل دخول 2FA (two_factor_user_id) وتسبب حلقة مغلقة للأدمن المسجّل.
             return redirect()
-                ->route('two-factor.verify')
+                ->route('admin.users.edit', $user->getKey())
                 ->with('warning', 'يجب تفعيل المصادقة الثنائية أولاً للوصول كأدمن');
         }
 

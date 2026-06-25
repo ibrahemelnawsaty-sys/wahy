@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TwoFactorCodeMail;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * @group Authentication
@@ -56,9 +60,21 @@ class AuthApiController extends Controller
             'password' => 'required',
         ]);
 
+        // S5 — حد المعدّل: 5 محاولات/دقيقة لكل (ip|hash(email)) لمنع التخمين دون حظر المستخدم الشرعي
+        $throttleKey = 'api-login:' . $request->ip() . '|' . hash('sha256', mb_strtolower((string) $request->email));
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'عدد كبير من المحاولات. يرجى المحاولة بعد قليل',
+            ], 429);
+        }
+
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
+            RateLimiter::hit($throttleKey, 60);
+
             return response()->json([
                 'success' => false,
                 'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
@@ -73,7 +89,125 @@ class AuthApiController extends Controller
             ], 403);
         }
 
-        // Create token
+        // كلمة المرور صحيحة والحساب نشط: تصفير عدّاد المحاولات
+        RateLimiter::clear($throttleKey);
+
+        // S6 — مطابقة تدفّق 2FA للويب: لا تُصدر التوكن قبل التحقق من الكود
+        if ($user->two_factor_enabled && setting('enable_2fa', true)) {
+            $code = (string) random_int(100000, 999999);
+
+            $user->two_factor_code = $code;
+            $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
+            $user->save();
+
+            try {
+                Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'حدث خطأ في إرسال كود التحقق. يرجى المحاولة لاحقاً',
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => false,
+                'code' => '2fa_required',
+                'message' => 'تم إرسال كود التحقق إلى بريدك الإلكتروني',
+                'data' => [
+                    'user_id' => $user->id,
+                ],
+            ], 200);
+        }
+
+        // Create token (مستخدم بلا 2FA: خطوة واحدة)
+        $token = $user->createToken('mobile-app')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تسجيل الدخول بنجاح',
+            'data' => [
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'avatar' => $user->avatar,
+                    'school_id' => $user->school_id,
+                ],
+            ],
+        ], 200);
+    }
+
+    /**
+     * التحقق من كود 2FA وإصدار التوكن (Verify Two-Factor).
+     *
+     * يُستدعى بعد ردّ `2fa_required` من /login. يتحقق من الكود وانتهاء صلاحيته
+     * وعندها فقط يُصدر Bearer Token.
+     *
+     * @unauthenticated
+     *
+     * @bodyParam user_id integer required معرّف المستخدم المُعاد من /login. Example: 1
+     * @bodyParam code string required كود التحقق المكوّن من 6 أرقام. Example: 123456
+     *
+     * @response 200 {"success": true, "message": "تم تسجيل الدخول بنجاح", "data": {"token": "1|abc", "user": {}}}
+     * @response 401 {"success": false, "message": "كود التحقق غير صحيح"}
+     * @response 429 {"success": false, "message": "عدد كبير من المحاولات. يرجى المحاولة بعد قليل"}
+     */
+    public function verifyTwoFactor(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'code' => 'required|digits:6',
+        ]);
+
+        // حد المعدّل لمنع تخمين الكود: 5 محاولات/دقيقة لكل (ip|user_id)
+        $throttleKey = 'api-2fa:' . $request->ip() . '|' . $request->user_id;
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'عدد كبير من المحاولات. يرجى المحاولة بعد قليل',
+            ], 429);
+        }
+
+        $user = User::find($request->user_id);
+
+        // مستخدم غير صالح أو لا ينتظر تحققاً: ردّ عام دون كشف
+        if (! $user || ! $user->two_factor_enabled || $user->two_factor_code === null) {
+            RateLimiter::hit($throttleKey, 60);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'كود التحقق غير صحيح أو منتهي الصلاحية',
+            ], 401);
+        }
+
+        // انتهاء صلاحية الكود
+        if ($user->two_factor_expires_at === null || Carbon::now()->greaterThan($user->two_factor_expires_at)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'انتهت صلاحية كود التحقق. يرجى تسجيل الدخول مرة أخرى',
+            ], 401);
+        }
+
+        // مقارنة آمنة للكود
+        if (! hash_equals((string) $user->two_factor_code, (string) $request->code)) {
+            RateLimiter::hit($throttleKey, 60);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'كود التحقق غير صحيح',
+            ], 401);
+        }
+
+        // نجاح: مسح الكود وعدّاد المحاولات ثم إصدار التوكن
+        $user->two_factor_code = null;
+        $user->two_factor_expires_at = null;
+        $user->save();
+
+        RateLimiter::clear($throttleKey);
+
         $token = $user->createToken('mobile-app')->plainTextToken;
 
         return response()->json([
@@ -204,6 +338,11 @@ class AuthApiController extends Controller
 
         $user->password = Hash::make($request->new_password);
         $user->save();
+
+        // S7 — إبطال كل التوكنات الأخرى مع إبقاء التوكن الحالي حتى لا يُطرد المستخدم أثناء الطلب
+        $user->tokens()
+            ->where('id', '!=', $request->user()->currentAccessToken()->id)
+            ->delete();
 
         return response()->json([
             'success' => true,

@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
 
     // Authentication
     Route::post('/login', [AuthApiController::class, 'login']);
+    Route::post('/two-factor/verify', [AuthApiController::class, 'verifyTwoFactor']);
 
 });
 

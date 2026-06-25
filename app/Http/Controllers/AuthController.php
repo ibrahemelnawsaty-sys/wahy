@@ -41,8 +41,10 @@ class AuthController extends Controller
         // التحقق من البيانات (بدون eager loading لتحسين الأداء)
         $user = User::where('email', $request->email)->first();
 
-        // تحديد المعرف (User ID أو IP)
-        $identifier = $user ? $user->id : $request->ip();
+        // تحديد المعرف: (IP الطالب | بصمة البريد) — لا يمكن استهدافه ضد ضحية.
+        // مهاجم يفشل بريد ضحية من IP الخاص به يقفل (attackerIp|victimEmailHash) فقط؛
+        // الضحية من IP مختلف لها مفتاح مختلف فلا تتأثر. credential-stuffing من مصدر واحد لا يزال يُقفل بعد 4.
+        $identifier = $request->ip() . '|' . hash('sha256', strtolower((string) $request->email));
         $cacheKey = 'login_attempts_' . $identifier;
         $lockoutKey = 'login_lockout_' . $identifier;
 
@@ -87,8 +89,9 @@ class AuthController extends Controller
                 ])->onlyInput('email');
             }
 
+            // رسالة عامة موحّدة — لا تكشف وجود البريد ولا عدد المحاولات المتبقية (منع user enumeration)
             return back()->withErrors([
-                'error' => 'بيانات الدخول غير صحيحة. لديك ' . max(0, (3 - $attempts)) . ' محاولات متبقية.',
+                'error' => 'بيانات الدخول غير صحيحة.',
             ])->onlyInput('email');
         }
 
@@ -501,14 +504,18 @@ class AuthController extends Controller
         ]);
 
         // رسالة محايدة دائماً — لا نكشف ما إذا كان البريد مسجلاً (منع user enumeration)
-        $neutral = 'إن كان هذا البريد مسجلاً لدينا فستصلك رسالة بإعادة تعيين كلمة المرور';
+        $neutral = 'إن وُجد البريد، أُرسل رابط إعادة التعيين';
+
+        // نولّد الـ token دائماً قبل فرع الوجود حتى يكون كلفة الـ hash متماثلة
+        // في كلتا الحالتين (وجود/عدم وجود البريد) — منع timing oracle.
+        $token = bin2hex(random_bytes(32));
+        $hashedToken = Hash::make($token);
 
         // لا نرسل/ننشئ token إلا إذا كان المستخدم موجوداً فعلاً، لكن الرد يبقى محايداً في كل الحالات
         if (User::where('email', $request->email)->exists()) {
-            $token = bin2hex(random_bytes(32));
             DB::table('password_reset_tokens')->updateOrInsert(
                 ['email' => $request->email],
-                ['token' => Hash::make($token), 'created_at' => now()],
+                ['token' => $hashedToken, 'created_at' => now()],
             );
             try {
                 Mail::to($request->email)->send(new \App\Mail\ResetPasswordMail($token, $request->email));
@@ -536,13 +543,14 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request)
     {
+        // لا نستخدم exists:users,email — كان يكشف ما إذا كان البريد مسجلاً (user enumeration).
+        // غياب سجل token صالح يعطي نفس الرسالة العامة سواء وُجد البريد أم لا.
         $request->validate([
             'token' => 'required',
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email',
             'password' => 'required|string|min:8|confirmed',
         ], [
             'email.required' => 'يرجى إدخال البريد الإلكتروني',
-            'email.exists' => 'البريد الإلكتروني غير مسجل',
             'password.required' => 'يرجى إدخال كلمة المرور الجديدة',
             'password.min' => 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
             'password.confirmed' => 'كلمة المرور غير متطابقة',
@@ -571,6 +579,12 @@ class AuthController extends Controller
 
         // تحديث كلمة المرور + remember_token جديد لإبطال الـ remember-me القديم
         $user = User::where('email', $request->email)->first();
+        if (! $user) {
+            // سجل token بلا مستخدم — رسالة عامة موحّدة (لا تكشف الوجود)
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+            return back()->withErrors(['email' => 'رابط إعادة التعيين غير صحيح']);
+        }
         $user->password = Hash::make($request->password);
         $user->password_change_required = false;
         $user->setRememberToken(\Illuminate\Support\Str::random(60));

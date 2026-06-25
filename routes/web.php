@@ -82,11 +82,11 @@ Route::post('/contact', [ContactController::class, 'store'])
 // مسارات التسجيل العام للمدارس
 Route::prefix('register')->name('public.register.')->group(function () {
     Route::get('/teacher/{token}', [PublicRegistrationController::class, 'showTeacherForm'])->name('teacher');
-    Route::post('/teacher/{token}', [PublicRegistrationController::class, 'registerTeacher'])->name('teacher.submit');
+    Route::post('/teacher/{token}', [PublicRegistrationController::class, 'registerTeacher'])->name('teacher.submit')->middleware('throttle:6,1');
     Route::get('/student/{token}', [PublicRegistrationController::class, 'showStudentForm'])->name('student');
-    Route::post('/student/{token}', [PublicRegistrationController::class, 'registerStudent'])->name('student.submit');
+    Route::post('/student/{token}', [PublicRegistrationController::class, 'registerStudent'])->name('student.submit')->middleware('throttle:6,1');
     Route::get('/parent/{token}', [PublicRegistrationController::class, 'showParentForm'])->name('parent');
-    Route::post('/parent/{token}', [PublicRegistrationController::class, 'registerParent'])->name('parent.submit');
+    Route::post('/parent/{token}', [PublicRegistrationController::class, 'registerParent'])->name('parent.submit')->middleware('throttle:6,1');
 });
 
 // عرض الصفحات المبنية بـ Page Builder (alt URL)
@@ -165,7 +165,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Admin Panel Routes (Super Admin Only)
-    Route::prefix('admin')->name('admin.')->middleware('can:access-admin')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['can:access-admin', 'force-2fa'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // التقديمات المعلقة
@@ -381,6 +381,11 @@ Route::middleware('auth')->group(function () {
     });
 
     // School Admin
+    // NOTE (Pass-4 Batch 4): force-2fa intentionally NOT applied here. The only writer of
+    // two_factor_enabled is the super_admin-only admin.users.edit form, so a non-enrolled
+    // school_admin would be redirected to a 403 dead-end with no way to self-enroll = total
+    // lockout. HELD until a school_admin self-service 2FA enrollment route exists. See the
+    // super_admin 'admin' group above, which DOES enforce force-2fa (enrollment path exists).
     Route::prefix('school-admin')->name('school-admin.')->middleware(['role:school_admin', 'school.access'])->group(function () {
         Route::get('/dashboard', [SchoolAdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/parent-engagement', [SchoolAdminController::class, 'parentEngagement'])->name('parent-engagement');
