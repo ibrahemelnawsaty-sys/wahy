@@ -165,7 +165,13 @@ Route::middleware('auth')->group(function () {
     });
 
     // Admin Panel Routes (Super Admin Only)
-    Route::prefix('admin')->name('admin.')->middleware(['can:access-admin', 'force-2fa'])->group(function () {
+    // NOTE (Pass-4): force-2fa enforcement intentionally NOT applied (admin-lockout safety on
+    // shared hosting). A non-enrolled super_admin must never be redirect-trapped out of their
+    // own panel. The Force2FAForAdmins middleware + 'force-2fa' alias remain in place; to
+    // RE-ENABLE later (after confirming the self-enroll page works in prod), add 'force-2fa'
+    // back to this middleware array. 2FA still works opt-in (a user who enables two_factor_enabled
+    // is challenged on web + API login); only the MANDATORY enrollment enforcement is off.
+    Route::prefix('admin')->name('admin.')->middleware(['can:access-admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // التقديمات المعلقة
