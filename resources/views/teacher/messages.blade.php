@@ -449,6 +449,16 @@ document.getElementById('msgEditor').addEventListener('keydown', function(e) {
         sendMessage();
     }
 });
+
+// فتح محادثة ولي أمر تلقائياً عند القدوم من صفحة تفاعل أولياء الأمور (?parent_id=)
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('parent_id');
+    if (pid && typeof openConversation === 'function') {
+        const sid = params.get('student_id') || null;
+        openConversation(parseInt(pid, 10), sid ? parseInt(sid, 10) : null);
+    }
+})();
 </script>
 @endpush
 

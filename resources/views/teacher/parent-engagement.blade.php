@@ -82,10 +82,10 @@
                     <div class="v">🎁 {{ $row['gifts_count'] }}</div>
                     <div class="l">هدايا</div>
                 </div>
-                <div class="pe-metric">
+                <a href="{{ route('teacher.messages', ['parent_id' => $row['id']]) }}" class="pe-metric" style="text-decoration:none;color:inherit;cursor:pointer;" title="فتح محادثة ولي الأمر">
                     <div class="v">📨 {{ $row['messages_count'] }}</div>
-                    <div class="l">رسائل</div>
-                </div>
+                    <div class="l">رسائل ↗</div>
+                </a>
                 @if($row['gifts_points'] > 0)
                 <div class="pe-metric">
                     <div class="v">⭐ {{ $row['gifts_points'] }}</div>

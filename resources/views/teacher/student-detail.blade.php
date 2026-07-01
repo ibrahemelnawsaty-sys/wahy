@@ -115,16 +115,25 @@
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    @if($activity->status === 'completed')
+                    @php
+                        $st = $activity->status;
+                        $label = match($st) {
+                            'completed' => 'مكتمل',
+                            'approved'  => 'مُقيَّم',
+                            'pending'   => 'قيد المراجعة',
+                            'needs_review' => 'لم يجتَز',
+                            'rejected'  => 'مرفوض',
+                            default     => $st,
+                        };
+                        $badgeClass = in_array($st, ['completed','approved'], true) ? 'status-completed'
+                            : (in_array($st, ['pending','needs_review'], true) ? 'status-pending' : 'status-rejected');
+                    @endphp
+                    @if($activity->score !== null && in_array($st, ['completed','approved','needs_review','rejected'], true))
                         <span class="activity-score {{ ($activity->score ?? 0) >= 70 ? 'score-good' : (($activity->score ?? 0) >= 40 ? 'score-mid' : 'score-low') }}">
-                            {{ $activity->score ?? 0 }}%
+                            {{ $activity->score }}%
                         </span>
-                        <span class="status-badge status-completed">مكتمل</span>
-                    @elseif($activity->status === 'pending')
-                        <span class="status-badge status-pending">معلق</span>
-                    @else
-                        <span class="status-badge status-rejected">مرفوض</span>
                     @endif
+                    <span class="status-badge {{ $badgeClass }}">{{ $label }}</span>
                 </div>
             </div>
             @empty
