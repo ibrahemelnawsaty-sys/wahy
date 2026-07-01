@@ -35,6 +35,7 @@
                             'completed' => 'مكتمل',
                             'approved' => 'معتمد',
                             'pending' => 'قيد المراجعة',
+                            'needs_review' => 'لم يجتَز',
                             'rejected' => 'مرفوض',
                             default => $submission->status
                         };

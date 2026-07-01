@@ -1281,14 +1281,15 @@
         </div>
         @forelse($recentActivities as $submission)
         @php
+            // completed = اجتاز آلياً، approved = اعتمده المعلم → كلاهما ✅
             $statusIcon = match($submission->status) {
-                'completed' => 'completed',
-                'pending' => 'pending',
+                'completed', 'approved' => 'completed',
+                'pending', 'needs_review' => 'pending',
                 default => 'failed',
             };
             $statusEmoji = match($submission->status) {
-                'completed' => '✅',
-                'pending' => '⏳',
+                'completed', 'approved' => '✅',
+                'pending', 'needs_review' => '⏳',
                 default => '❌',
             };
             $scoreClass = ($submission->score ?? 0) >= 80 ? 'high' : (($submission->score ?? 0) >= 50 ? 'mid' : 'low');
