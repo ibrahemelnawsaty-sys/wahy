@@ -70,7 +70,7 @@
                 
                 <div style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); padding: 10px 20px; border-radius: 25px; display: inline-block;">
                     <span style="font-size: 12px; color: #2d3436; font-weight: 600;">
-                        🎉 أُتقنت في {{ $crown->earned_at ? $crown->earned_at->format('Y/m/d') : 'غير محدد' }}
+                        🎉 أُتقنت في {{ $crown->earned_at ? \Carbon\Carbon::parse($crown->earned_at)->format('Y/m/d') : 'غير محدد' }}
                     </span>
                 </div>
             </div>

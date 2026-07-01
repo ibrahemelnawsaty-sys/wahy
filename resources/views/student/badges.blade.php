@@ -84,7 +84,7 @@
                     <h3 style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 8px;">{{ $badge->name }}</h3>
                     <p style="font-size: 13px; color: rgba(255,255,255,0.9); margin-bottom: 12px;">{{ $badge->description }}</p>
                     <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 15px;">
-                        {{ $badge->earned_at->format('Y/m/d') }}
+                        {{ $badge->earned_at ? \Carbon\Carbon::parse($badge->earned_at)->format('Y/m/d') : 'جديد' }}
                     </div>
                     
                     <!-- Badge Rarity -->

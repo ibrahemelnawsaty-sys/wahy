@@ -472,7 +472,7 @@
             <div style="font-weight: 700; color: white; font-size: 16px; margin-bottom: 6px;">{{ $badge->name }}</div>
             <div style="font-size: 12px; color: rgba(255,255,255,0.95); line-height: 1.4;">{{ $badge->description }}</div>
             <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 12px; font-size: 10px; color: white; font-weight: 600;">
-                {{ $badge->pivot->earned_at ? $badge->pivot->earned_at->format('Y/m/d') : 'جديد' }}
+                {{ $badge->pivot->earned_at ? \Carbon\Carbon::parse($badge->pivot->earned_at)->format('Y/m/d') : 'جديد' }}
             </div>
         </div>
         @endforeach
