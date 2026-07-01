@@ -354,6 +354,24 @@
 <div class="container-wrapper" style="padding-top: 100px; padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">
 <div class="lesson-container fade-in">
 
+    {{-- استبيان التقييم القبلي/البعدي المرتبط بالدرس --}}
+    @php $__assessSurvey = ($preSurvey ?? null) ?: ($postSurvey ?? null); @endphp
+    @if($__assessSurvey)
+    <a href="{{ route('survey.show', $__assessSurvey->id) }}"
+       style="display:flex;align-items:center;gap:16px;text-decoration:none;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:white;border-radius:16px;padding:18px 22px;margin-bottom:20px;box-shadow:0 8px 24px rgba(109,40,217,.35);">
+        <span style="font-size:36px;">📊</span>
+        <div style="flex:1;">
+            <div style="font-weight:800;font-size:17px;margin-bottom:4px;">
+                @if($preSurvey ?? null) التقييم القبلي — أجب عليه قبل بدء الدرس
+                @else 🎉 أكملت الدرس! أجب على التقييم البعدي
+                @endif
+            </div>
+            <div style="font-size:13px;opacity:.9;">{{ $__assessSurvey->title }}</div>
+        </div>
+        <span style="background:rgba(255,255,255,.2);padding:10px 18px;border-radius:10px;font-weight:700;white-space:nowrap;">ابدأ الآن ←</span>
+    </a>
+    @endif
+
     <!-- Streak Progress Card -->
     @if($lesson->hasStreakEnabled() && isset($lessonStreak))
     <div class="streak-progress-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 2px solid #f59e0b;">

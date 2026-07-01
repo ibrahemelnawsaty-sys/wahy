@@ -553,6 +553,12 @@ class StudentController extends Controller
             $lessonStreak = $user->getOrCreateLessonStreak($lesson->id);
         }
 
+        // استبيانات التقييم (قبلي/بعدي) في سياق الدرس — تُعرض هنا لا كنافذة عامة
+        $preSurvey = \App\Models\Survey::pendingLessonSurveyFor($user, $lesson->id, 'pre');
+        $postSurvey = ($totalActivities > 0 && $completedActivities >= $totalActivities)
+            ? \App\Models\Survey::pendingLessonSurveyFor($user, $lesson->id, 'post')
+            : null;
+
         return view('student.lesson-view', compact(
             'lesson',
             'activities',
@@ -563,6 +569,8 @@ class StudentController extends Controller
             'stats',
             'streak',
             'lessonStreak',
+            'preSurvey',
+            'postSurvey',
         ));
     }
 

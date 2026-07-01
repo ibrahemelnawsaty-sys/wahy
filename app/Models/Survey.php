@@ -343,4 +343,39 @@ class Survey extends Model
             ->with('questions')
             ->get();
     }
+
+    /**
+     * استبيان تقييم (قبلي/بعدي) مُعلَّق لدرس معيّن — يُعرَض في سياق الدرس لا كنافذة عامة.
+     * يُرجع الاستبيان النشط لهذا الدرس والطور (pre/post) الذي يستهدف دور المستخدم ولم يُجب عليه بعد.
+     */
+    public static function pendingLessonSurveyFor($user, int $lessonId, string $phase): ?self
+    {
+        $targetType = self::roleToTargetType($user->role);
+        if (! $targetType) {
+            return null;
+        }
+
+        return self::where('status', 'active')
+            ->where('survey_type', 'pre_post_assessment')
+            ->where('assessment_phase', $phase)
+            ->where('lesson_id', $lessonId)
+            ->where(function ($q) use ($user) {
+                $q->whereNull('school_id')->orWhere('school_id', $user->school_id);
+            })
+            ->where(function ($q) use ($targetType, $user) {
+                $q->whereJsonContains('target_roles', $targetType)
+                    ->orWhereJsonContains('target_roles', $user->role);
+            })
+            ->where(function ($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->whereDoesntHave('responses', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->orderByDesc('id')
+            ->first();
+    }
 }
