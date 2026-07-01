@@ -13,7 +13,10 @@
       "Bash(grep -nE \"messages.index|messages\\\\\\\\.show|message-icon|font-family\" \"c:/Users/b.maher/Downloads/wahy \\(2\\)/resources/views/messages/\" -r)",
       "Bash(sed -i 's/\\\\r$//' used.txt defined_routes.txt)",
       "Bash(sort -u used.txt -o used.txt)",
-      "Bash(sort -u defined_routes.txt -o defined_routes.txt)"
+      "Bash(sort -u defined_routes.txt -o defined_routes.txt)",
+      "PowerShell(& php artisan test tests/Feature/Security/CsvInjectionTest.php --no-ansi)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git stash *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\B70C7~1.MAH\\AppData\\Local\\Temp\\claude"

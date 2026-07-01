@@ -231,7 +231,11 @@
                 <a href="{{ route('notifications.index') }}" class="status-badge status-badge-notifications" style="cursor: pointer; text-decoration: none; position: relative;" title="الإشعارات">
                     <span class="status-badge-icon">🔔</span>
                     @php
-                        $unreadCount = \App\Services\NotificationService::getUnreadCount(auth()->id());
+                        try {
+                            $unreadCount = \App\Services\NotificationService::getUnreadCount(auth()->id());
+                        } catch (\Throwable $e) {
+                            $unreadCount = 0;
+                        }
                     @endphp
                     @if($unreadCount > 0)
                     <span style="position: absolute; top: -6px; left: -6px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: 700; min-width: 18px; text-align: center; border: 2px solid white;">
@@ -300,7 +304,11 @@
                 </div>
                 <div class="nav-item-label">الرسائل</div>
                 @php
-                    $unreadMessages = \App\Models\Message::where('receiver_id', auth()->id())->where('is_read', false)->count();
+                    try {
+                        $unreadMessages = \App\Models\Message::where('receiver_id', auth()->id())->where('is_read', false)->count();
+                    } catch (\Throwable $e) {
+                        $unreadMessages = 0;
+                    }
                 @endphp
                 @if($unreadMessages > 0)
                 <span class="nav-item-badge">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>

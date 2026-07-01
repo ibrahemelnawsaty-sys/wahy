@@ -1010,7 +1010,14 @@
     const activityId = {{ $activity->id ?? 0 }};
     const lessonId = {{ $lesson->id ?? 0 }};
     const activityType = '{{ $activity->type ?? "quiz" }}';
-    
+
+    // تهريب HTML لعرض محتوى من إنشاء المعلم بأمان (منع XSS في الإجابة الصحيحة)
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, s => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[s]);
+    }
+
     function selectOption(element, questionIndex) {
         // Remove selected from siblings
         const parent = element.closest('.quiz-question');
@@ -1357,6 +1364,14 @@
                     msgHtml += `<br><span style="font-size: 14px; opacity: .8;">${xpEarned} من ${data.activity_points} نقطة</span>`;
                 } else {
                     msgHtml = 'سيتم احتساب نقاطك بعد مراجعة المعلم.';
+                }
+
+                // عرض الإجابة الصحيحة تعليمياً بعد محاولة خاطئة/جزئية (يرسلها الخادم فقط عند score < 100)
+                if (data.correct_answer) {
+                    msgHtml += `<div style="margin-top:16px;padding:14px 16px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.45);border-radius:12px;text-align:center;">
+                        <div style="font-size:13px;color:#10B981;font-weight:800;margin-bottom:6px;">✅ الإجابة الصحيحة</div>
+                        <div style="font-size:17px;color:#fff;font-weight:700;line-height:1.9;">${escapeHtml(String(data.correct_answer))}</div>
+                    </div>`;
                 }
 
                 if (data.streak_bonus > 0) {

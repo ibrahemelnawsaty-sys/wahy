@@ -393,6 +393,16 @@
                 @enderror
             </div>
 
+            <div class="form-group full-width">
+                <label style="display:flex;align-items:center;gap:12px;padding:16px;background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;cursor:pointer;">
+                    <input type="checkbox" name="manual_review" value="1" {{ old('manual_review') ? 'checked' : '' }} style="width:20px;height:20px;cursor:pointer;accent-color:#f59e0b;">
+                    <span>
+                        <span style="font-weight:700;color:#92400e;">👨‍🏫 يتطلب موافقة/تصحيح المعلم يدوياً</span>
+                        <small style="display:block;color:#a16207;font-size:13px;margin-top:2px;">عند تفعيله لا يُصحَّح النشاط آلياً — يذهب تسليم الطالب للمعلم لاعتماد الدرجة</small>
+                    </span>
+                </label>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">الترتيب</label>
                 <input type="number" name="order" class="form-input" value="{{ old('order', 0) }}" min="0" placeholder="0">

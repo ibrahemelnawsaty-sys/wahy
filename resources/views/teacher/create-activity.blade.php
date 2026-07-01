@@ -142,6 +142,24 @@
         transition: all 0.3s;
     }
     .btn-cancel:hover { background: #e2e8f0; }
+
+    /* ===== منشئ الأسئلة ===== */
+    .q-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .q-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .q-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+    .q-type-select { padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-family: inherit; font-size: 14px; background: white; }
+    .q-fields { display: flex; flex-direction: column; gap: 12px; }
+    .q-field-row { display: grid; grid-template-columns: 1fr 120px; gap: 12px; }
+    @media (max-width: 768px) { .q-field-row { grid-template-columns: 1fr; } }
+    .q-options { display: flex; flex-direction: column; gap: 8px; }
+    .q-option-row { display: flex; gap: 8px; align-items: center; }
+    .q-option-input { flex: 1; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-family: inherit; font-size: 14px; }
+    .q-correct { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 2px solid #e2e8f0; background: white; flex-shrink: 0; font-weight: 700; }
+    .q-correct.selected { background: #dcfce7; border-color: #16a34a; color: #16a34a; }
+    .q-btn-sm { padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .q-btn-add { background: #eef2ff; color: #4338ca; }
+    .q-btn-del { background: #fee2e2; color: #dc2626; }
+    .q-label { font-weight: 700; font-size: 13px; color: #475569; }
 </style>
 @endpush
 
@@ -273,6 +291,14 @@
             </div>
         </div>
 
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label">درجة النجاح (%)</label>
+                <input type="number" name="passing_score" class="form-input" value="{{ old('passing_score', 70) }}" min="0" max="100">
+                <div class="form-hint">النسبة المطلوبة لاجتياز النشاط</div>
+            </div>
+        </div>
+
         <div class="creative-toggle">
             <input type="checkbox" name="is_creative" id="isCreative" value="1" {{ old('is_creative') ? 'checked' : '' }}>
             <div>
@@ -280,6 +306,14 @@
                 <div style="font-size: 13px; color: #a16207; margin-top: 4px;">يتطلب تحديد فصل دراسي</div>
             </div>
         </div>
+
+        <label style="display:flex;align-items:center;gap:15px;padding:20px;background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border-radius:16px;margin-top:20px;cursor:pointer;">
+            <input type="checkbox" name="manual_review" value="1" {{ old('manual_review') ? 'checked' : '' }} style="width:22px;height:22px;cursor:pointer;accent-color:#f59e0b;flex-shrink:0;">
+            <div>
+                <div style="font-weight:700;color:#92400e;font-size:16px;">👨‍🏫 يتطلب موافقة/تصحيح المعلم يدوياً</div>
+                <div style="font-size:13px;color:#a16207;margin-top:4px;">عند تفعيله لا يُصحَّح النشاط آلياً — يذهب تسليم الطالب للمعلم لاعتماد الدرجة</div>
+            </div>
+        </label>
     </div>
 
     <!-- قسم بناء الصور (لنشاط ترتيب الصور) -->
@@ -292,6 +326,18 @@
         
         <button type="button" onclick="addImageItem()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px;">
             + إضافة صورة
+        </button>
+    </div>
+
+    <!-- قسم بناء الأسئلة (لاختبار/تمرين) -->
+    <div class="form-card fade-in" id="questionsBuilderSection" style="display: {{ in_array(old('type', 'quiz'), ['quiz','exercise']) ? 'block' : 'none' }};">
+        <h3>❓ الأسئلة</h3>
+        <p class="form-hint" style="margin-bottom: 20px;">أضف أسئلة النشاط. يمكنك اختيار نوع كل سؤال (اختيار متعدد، صح/خطأ، إجابة قصيرة، اختيار حروف، ترتيب كلمات/جمل).</p>
+
+        <div id="questionsList"></div>
+
+        <button type="button" onclick="addQuestion()" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px;">
+            ➕ إضافة سؤال
         </button>
     </div>
 
@@ -355,11 +401,31 @@ function selectType(card, type) {
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
     currentType = type;
-    
+
     // Show/hide image builder section
     const imageSection = document.getElementById('imageBuilderSection');
     if (imageSection) {
         imageSection.style.display = type === 'image_order' ? 'block' : 'none';
+    }
+
+    // Show/hide general questions builder (quiz/exercise)
+    const qSection = document.getElementById('questionsBuilderSection');
+    if (qSection) {
+        qSection.style.display = (type === 'quiz' || type === 'exercise') ? 'block' : 'none';
+    }
+
+    // Rewrite hidden field with the correct shape for the selected type
+    serializeQuestions();
+}
+
+// موزّع تسلسل موحّد: يكتب الشكل الصحيح إلى #questionsData حسب نوع النشاط
+function serializeQuestions() {
+    if (currentType === 'image_order') {
+        updateImageData();
+    } else if (currentType === 'quiz' || currentType === 'exercise') {
+        updateJson();
+    } else {
+        document.getElementById('questionsData').value = '';
     }
 }
 
@@ -438,6 +504,7 @@ function previewImg(input) {
 }
 
 function updateImageData() {
+    if (currentType !== 'image_order') return;
     const items = document.querySelectorAll('#imagesList .form-card');
     const imgs = [];
     items.forEach((item, i) => {
@@ -448,6 +515,218 @@ function updateImageData() {
         }
     });
     document.getElementById('questionsData').value = imgs.length > 0 ? JSON.stringify(imgs) : '';
+}
+
+// ==================================================================
+// منشئ الأسئلة العام (اختبار/تمرين) — نفس عقد JSON الخاص بلوحة المشرف
+// ==================================================================
+let questions = [];
+
+// تحميل الأسئلة القديمة (عند فشل التحقق) إن كان النشاط اختباراً/تمريناً
+(function loadOldQuestions() {
+    if (currentType !== 'quiz' && currentType !== 'exercise') return;
+    const raw = document.getElementById('questionsData').value;
+    if (!raw) return;
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) { questions = parsed; renderQuestions(); }
+    } catch (e) { /* ليست أسئلة صالحة — تجاهل */ }
+})();
+
+function addQuestion() {
+    questions.push({ type: 'multiple_choice', question: '', options: ['', ''], answer: '', points: 10 });
+    renderQuestions();
+}
+
+function removeQuestion(index) {
+    if (confirm('هل أنت متأكد من حذف هذا السؤال؟')) {
+        questions.splice(index, 1);
+        renderQuestions();
+    }
+}
+
+function addOption(index) {
+    if (!questions[index].options) questions[index].options = [];
+    questions[index].options.push('');
+    renderQuestions();
+}
+
+function removeOption(qIndex, oIndex) {
+    if (questions[qIndex].options.length > 2) {
+        questions[qIndex].options.splice(oIndex, 1);
+        renderQuestions();
+    } else {
+        alert('يجب أن يكون هناك خيارين على الأقل');
+    }
+}
+
+function updateOption(qIndex, oIndex, value) {
+    questions[qIndex].options[oIndex] = value;
+    updateJson();
+}
+
+function setCorrectAnswer(qIndex, answer) {
+    // نخزّن الاثنين: نص الخيار (للتوافق الخلفي) + الفهرس (المعتمد في التصحيح)
+    questions[qIndex].answer = questions[qIndex].options[answer];
+    questions[qIndex].correct_index = answer;
+    renderQuestions();
+}
+
+function updateQuestion(index, field, value) {
+    const oldType = questions[index].type;
+    questions[index][field] = value;
+
+    if (field === 'type' && oldType !== value) {
+        if (value === 'true_false') {
+            questions[index].options = ['صح', 'خطأ'];
+            questions[index].answer = '';
+            delete questions[index].correct_index;
+            delete questions[index].word;
+        } else if (value === 'letter_choice') {
+            questions[index].options = ['أ', 'ب'];
+            questions[index].answer = '';
+            delete questions[index].correct_index;
+        } else if (value === 'word_order') {
+            questions[index].options = ['كلمة', 'ثانية'];
+            delete questions[index].answer;
+            delete questions[index].correct_index;
+            delete questions[index].word;
+        } else if (value === 'sentence_order') {
+            questions[index].options = ['الجملة الأولى', 'الجملة الثانية'];
+            delete questions[index].answer;
+            delete questions[index].correct_index;
+            delete questions[index].word;
+        } else if (value === 'multiple_choice') {
+            if (!questions[index].options || questions[index].options.length < 2) {
+                questions[index].options = ['', ''];
+            }
+            questions[index].answer = '';
+            delete questions[index].word;
+        } else if (value === 'short_answer') {
+            delete questions[index].options;
+            delete questions[index].correct_index;
+            delete questions[index].word;
+            questions[index].answer = '';
+        }
+        renderQuestions();
+    }
+    updateJson();
+}
+
+function renderQuestions() {
+    const container = document.getElementById('questionsList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    questions.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = 'q-card';
+
+        const isOrderingType = ['word_order', 'sentence_order'].includes(q.type);
+        let optionsHtml = '';
+
+        if (q.options) {
+            q.options.forEach((option, oIndex) => {
+                const isCorrect = (q.correct_index !== undefined && q.correct_index !== null)
+                    ? Number(q.correct_index) === oIndex
+                    : (q.answer === option);
+                optionsHtml += `
+                    <div class="q-option-row">
+                        ${!isOrderingType ? `
+                            <div class="q-correct ${isCorrect ? 'selected' : ''}"
+                                 onclick="setCorrectAnswer(${index}, ${oIndex})" title="اختر كإجابة صحيحة">
+                                ${isCorrect ? '✓' : '○'}
+                            </div>
+                        ` : `
+                            <span style="width:34px;text-align:center;font-weight:700;color:#64748b;">${oIndex + 1}</span>
+                        `}
+                        <input type="text" class="q-option-input" value="${escAttr(option)}"
+                               onchange="updateOption(${index}, ${oIndex}, this.value)"
+                               placeholder="${q.type === 'letter_choice' ? 'الحرف' : (q.type === 'word_order' ? 'الكلمة' : (q.type === 'sentence_order' ? 'الجملة' : 'الخيار'))} ${oIndex + 1}">
+                        <button type="button" class="q-btn-sm q-btn-del" onclick="removeOption(${index}, ${oIndex})">🗑️</button>
+                    </div>`;
+            });
+        }
+
+        card.innerHTML = `
+            <div class="q-head">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="q-num">${index + 1}</span>
+                    <select class="q-type-select" onchange="updateQuestion(${index}, 'type', this.value)">
+                        <option value="multiple_choice" ${q.type === 'multiple_choice' ? 'selected' : ''}>اختيار متعدد</option>
+                        <option value="true_false" ${q.type === 'true_false' ? 'selected' : ''}>صح / خطأ</option>
+                        <option value="short_answer" ${q.type === 'short_answer' ? 'selected' : ''}>إجابة قصيرة</option>
+                        <option value="letter_choice" ${q.type === 'letter_choice' ? 'selected' : ''}>اختيار حروف</option>
+                        <option value="word_order" ${q.type === 'word_order' ? 'selected' : ''}>ترتيب كلمات</option>
+                        <option value="sentence_order" ${q.type === 'sentence_order' ? 'selected' : ''}>ترتيب جمل</option>
+                    </select>
+                </div>
+                <button type="button" class="q-btn-sm q-btn-del" onclick="removeQuestion(${index})">🗑️ حذف</button>
+            </div>
+
+            <div class="q-fields">
+                <div class="q-field-row">
+                    <input type="text" class="form-input" value="${escAttr(q.question)}"
+                           onchange="updateQuestion(${index}, 'question', this.value)"
+                           placeholder="نص السؤال...">
+                    <input type="number" class="form-input" value="${q.points ?? 10}"
+                           onchange="updateQuestion(${index}, 'points', parseInt(this.value))"
+                           placeholder="الدرجة" min="1">
+                </div>
+
+                ${q.type === 'letter_choice' ? `
+                    <div class="q-field-row">
+                        <input type="text" class="form-input" value="${escAttr(q.word || '')}"
+                               onchange="updateQuestion(${index}, 'word', this.value)"
+                               placeholder="الكلمة المستهدفة (مثال: صلاة)">
+                    </div>
+                ` : ''}
+
+                ${(q.type === 'multiple_choice' || q.type === 'true_false' || q.type === 'letter_choice') ? `
+                    <div class="q-options">
+                        <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (اضغط على ○ لتحديد الإجابة الصحيحة)' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}</label>
+                        ${optionsHtml}
+                        ${(q.type === 'multiple_choice' || q.type === 'letter_choice') ? `
+                            <button type="button" class="q-btn-sm q-btn-add" onclick="addOption(${index})">➕ إضافة ${q.type === 'letter_choice' ? 'حرف' : 'خيار'}</button>
+                        ` : ''}
+                    </div>
+                ` : ''}
+
+                ${q.type === 'short_answer' ? `
+                    <div class="q-options">
+                        <label class="q-label" style="margin-bottom:6px;display:block;">الإجابة الصحيحة (يقارَن بها نص الطالب بعد تطبيع المسافات والتشكيل)</label>
+                        <input type="text" class="form-input" value="${escAttr(q.answer || '')}"
+                               onchange="updateQuestion(${index}, 'answer', this.value)"
+                               placeholder="مثال: الصلاة الوسطى">
+                    </div>
+                ` : ''}
+
+                ${(q.type === 'word_order' || q.type === 'sentence_order') ? `
+                    <div class="q-options">
+                        <label class="q-label">${q.type === 'word_order' ? 'الكلمات (سيتم ترتيبها عشوائياً للطالب)' : 'الجمل (سيتم ترتيبها عشوائياً للطالب)'}</label>
+                        ${optionsHtml}
+                        <button type="button" class="q-btn-sm q-btn-add" onclick="addOption(${index})">➕ إضافة ${q.type === 'word_order' ? 'كلمة' : 'جملة'}</button>
+                        <small class="form-hint">الترتيب الحالي هو الترتيب الصحيح</small>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    updateJson();
+}
+
+function updateJson() {
+    if (currentType !== 'quiz' && currentType !== 'exercise') return;
+    document.getElementById('questionsData').value = JSON.stringify(questions);
+}
+
+// تهريب القيم داخل سمات HTML
+function escAttr(v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 </script>
 

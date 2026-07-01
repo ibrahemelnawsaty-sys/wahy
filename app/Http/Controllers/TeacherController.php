@@ -650,6 +650,7 @@ class TeacherController extends Controller
             'questions' => 'nullable|string',
             'points' => 'required|integer|min:1|max:100',
             'passing_score' => 'nullable|integer|min:0|max:100',
+            'manual_review' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,draft',
             'order' => 'nullable|integer|min:0',
             'quiz_duration' => 'nullable|integer|min:1',
@@ -663,6 +664,9 @@ class TeacherController extends Controller
 
         // إضافة المعلم الحالي كمنشئ
         $validated['created_by'] = $user->id;
+
+        // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
+        $validated['manual_review'] = $request->boolean('manual_review');
 
         // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR / تسرب بين المدارس)
         if (! empty($validated['classroom_id'])) {
@@ -762,6 +766,7 @@ class TeacherController extends Controller
             'questions' => 'nullable|string',
             'points' => 'required|integer|min:1|max:100',
             'passing_score' => 'nullable|integer|min:0|max:100',
+            'manual_review' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,draft',
             'order' => 'nullable|integer|min:0',
             'quiz_duration' => 'nullable|integer|min:1',
@@ -772,6 +777,9 @@ class TeacherController extends Controller
             'is_homework' => 'nullable|boolean',
             'due_date' => 'nullable|date',
         ]);
+
+        // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
+        $validated['manual_review'] = $request->boolean('manual_review');
 
         // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR)
         if (! empty($validated['classroom_id'])) {

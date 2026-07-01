@@ -14,6 +14,12 @@
     .btn-remove { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
     .image-thumb { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #e2e8f0; }
     .qbuilder { background: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 16px; padding: 25px; margin-top: 15px; }
+    /* منشئ الأسئلة المتقدم */
+    .q-type-select { max-width: 200px; }
+    .q-correct { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid #e2e8f0; background: white; flex-shrink: 0; font-weight: 700; }
+    .q-correct.selected { background: #dcfce7; border-color: #16a34a; color: #16a34a; }
+    .q-opt-num { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; font-weight:700; color:#64748b; flex-shrink:0; }
+    .q-label { font-weight: 700; font-size: 13px; color: #475569; margin-bottom: 6px; display:block; }
 </style>
 @endpush
 
@@ -131,55 +137,28 @@
                                 </h6>
                             </div>
 
-                            @if($activity->questions && count($activity->questions) > 0)
+                            {{-- معاينة صور image_order المحفوظة (تُعرض فقط لهذا النوع) --}}
+                            @if($activity->type === 'image_order' && $activity->questions && count($activity->questions) > 0)
                                 <div class="alert alert-success mb-3">
-                                    ✅ يوجد <strong>{{ count($activity->questions) }}</strong> عناصر محفوظة وستُحفظ تلقائياً.
+                                    ✅ يوجد <strong>{{ count($activity->questions) }}</strong> صور محفوظة. إضافة صور جديدة ستستبدلها.
                                 </div>
-
-                                @if($activity->type === 'image_order')
-                                    <div class="d-flex flex-wrap gap-3 mb-3">
-                                        @foreach($activity->questions as $img)
-                                            @if(isset($img['image_url']))
-                                                <img src="{{ $img['image_url'] }}" class="image-thumb"
-                                                     alt="{{ $img['caption'] ?? 'صورة' }}"
-                                                     onerror="this.style.border='2px solid #ef4444'; this.title='صورة غير متاحة';">
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                @else
-                                    @foreach($activity->questions as $qi => $q)
-                                        <div class="question-item">
-                                            <div class="mb-1">
-                                                <span class="question-num">{{ $qi+1 }}</span>
-                                                <strong>{{ $q['question'] ?? $q['text'] ?? 'سؤال '.($qi+1) }}</strong>
-                                            </div>
-                                            @if(!empty($q['options']))
-                                                <ul class="mb-0 mt-2 ps-4" style="font-size:14px;">
-                                                    @foreach($q['options'] as $oi => $opt)
-                                                        <li style="color:{{ ($q['correct_answer']??-1)===$oi ? '#16a34a' : '#64748b' }};">
-                                                            {{ $opt }}
-                                                            @if(($q['correct_answer']??-1)===$oi) <strong>✓</strong> @endif
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
-                                            @endif
-                                        </div>
+                                <div class="d-flex flex-wrap gap-3 mb-3">
+                                    @foreach($activity->questions as $img)
+                                        @if(isset($img['image_url']))
+                                            <img src="{{ $img['image_url'] }}" class="image-thumb"
+                                                 alt="{{ $img['caption'] ?? 'صورة' }}"
+                                                 onerror="this.style.border='2px solid #ef4444'; this.title='صورة غير متاحة';">
+                                        @endif
                                     @endforeach
-                                @endif
-
-                                <button type="button" class="btn btn-outline-warning btn-sm mb-2"
-                                        onclick="document.getElementById('qbuilder').style.display='block'; this.style.display='none';">
-                                    ✏️ استبدال الأسئلة بأسئلة جديدة
-                                </button>
+                                </div>
                             @endif
 
-                            <div id="qbuilder" class="qbuilder"
-                                 style="{{ ($activity->questions && count($activity->questions)>0) ? 'display:none;' : '' }}">
-                                @if($activity->questions && count($activity->questions) > 0)
-                                    <div class="alert alert-warning mb-3 py-2">⚠️ الأسئلة أدناه ستستبدل الأسئلة الحالية عند الحفظ.</div>
-                                @endif
+                            <div id="qbuilder" class="qbuilder">
                                 <div id="questionsList"></div>
                                 <button type="button" class="btn-add-q" onclick="addQuestion()">+ إضافة سؤال</button>
+                                <p class="text-muted small mt-2 mb-0" id="qbuilderHint">
+                                    عدّل الأسئلة الحالية أو أضف أسئلة جديدة. ما تراه هنا هو ما سيُحفظ.
+                                </p>
                             </div>
                         </div>
                         {{-- End Questions --}}
@@ -247,6 +226,18 @@
                                 <option value="inactive" {{ old('status',$activity->status)=='inactive' ?'selected':'' }}>⏸️ غير نشط</option>
                             </select>
                         </div>
+
+                        <div class="mb-1" style="padding:14px;background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="manual_review" id="manualReview" value="1"
+                                       style="accent-color:#f59e0b;"
+                                       {{ old('manual_review', $activity->manual_review) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="manualReview" style="font-weight:700;color:#92400e;">
+                                    👨‍🏫 يتطلب موافقة/تصحيح المعلم يدوياً
+                                </label>
+                            </div>
+                            <small class="d-block" style="color:#a16207;margin-top:6px;">عند تفعيله لا يُصحَّح النشاط آلياً — يذهب تسليم الطالب للمعلم لاعتماد الدرجة</small>
+                        </div>
                     </div>
                 </div>
 
@@ -271,88 +262,250 @@ document.getElementById('isHomework').addEventListener('change', function() {
     document.getElementById('dueDateField').style.display = this.checked ? 'block' : 'none';
 });
 
-document.getElementById('activityType').addEventListener('change', function() {
+const activityTypeEl = document.getElementById('activityType');
+
+activityTypeEl.addEventListener('change', function() {
     const t = this.value;
     document.getElementById('quizSettings').style.display    = ['quiz','exercise'].includes(t) ? 'block' : 'none';
     document.getElementById('questionsSection').style.display = ['quiz','exercise','image_order'].includes(t) ? 'block' : 'none';
     document.getElementById('qSectionTitle').textContent = t === 'image_order' ? '🖼️ صور النشاط' : '❓ الأسئلة';
-    // تحديث زر إضافة
     const btn = document.querySelector('#qbuilder .btn-add-q');
     if (btn) btn.textContent = t === 'image_order' ? '+ إضافة صورة' : '+ إضافة سؤال';
+    const hint = document.getElementById('qbuilderHint');
+    if (hint) hint.style.display = t === 'image_order' ? 'none' : 'block';
+    // إعادة رسم المنشئ بحسب النوع الجديد
+    if (t === 'image_order') {
+        document.getElementById('questionsList').innerHTML = '';
+    } else {
+        renderQuestions();
+    }
 });
 
-function addQuestion() {
-    const type = document.getElementById('activityType').value;
-    if (type === 'image_order') {
-        addImageItem();
-        return;
-    }
-    const list = document.getElementById('questionsList');
-    const i = list.children.length;
-    const letters = ['أ','ب','ج','د'];
-    const div = document.createElement('div');
-    div.className = 'question-item';
-    div.dataset.index = i;
-    div.innerHTML = `
-        <div class="d-flex justify-content-between mb-2">
-            <label class="fw-bold"><span class="question-num">${i+1}</span> نص السؤال</label>
-            <button type="button" class="btn-remove" onclick="this.closest('.question-item').remove(); updateQData();">✕ حذف</button>
-        </div>
-        <input type="text" class="form-control mb-3 q-text" placeholder="أدخل نص السؤال..." oninput="updateQData()">
-        <small class="text-muted d-block mb-2">حدّد ○ بجوار الإجابة الصحيحة</small>
-        <div class="options-list">
-            ${letters.map((l,j)=>`
-            <div class="option-item">
-                <input type="radio" name="c_${i}" value="${j}" class="option-radio" onchange="updateQData()">
-                <span style="font-weight:700;min-width:22px;">${l}</span>
-                <input type="text" class="option-text" placeholder="خيار ${l}..." oninput="updateQData()">
-                <button type="button" onclick="this.closest('.option-item').remove();updateQData();"
-                        style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:18px;">×</button>
-            </div>`).join('')}
-        </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="addOpt(this, ${i})">+ خيار إضافي</button>
-    `;
-    list.appendChild(div);
-}
+function currentActivityType() { return activityTypeEl.value; }
 
-function addOpt(btn, i) {
-    const opts = btn.previousElementSibling;
-    const j = opts.children.length;
-    const letters = ['أ','ب','ج','د','هـ','و','ز'];
-    const d = document.createElement('div');
-    d.className = 'option-item';
-    d.innerHTML = `
-        <input type="radio" name="c_${i}" value="${j}" class="option-radio" onchange="updateQData()">
-        <span style="font-weight:700;min-width:22px;">${letters[j]||j+1}</span>
-        <input type="text" class="option-text" placeholder="خيار جديد..." oninput="updateQData()">
-        <button type="button" onclick="this.closest('.option-item').remove();updateQData();"
-                style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:18px;">×</button>
-    `;
-    opts.appendChild(d);
-}
+// ==================================================================
+// منشئ الأسئلة العام (اختبار/تمرين) — نفس عقد JSON الخاص بلوحة المشرف
+// ==================================================================
+let questions = [];
 
-function updateQData() {
-    const type = document.getElementById('activityType').value;
-    if (type === 'image_order') {
-        updateImageData();
-        return;
-    }
-    const items = document.querySelectorAll('#questionsList .question-item');
-    const qs = [];
-    items.forEach(item => {
-        const text = item.querySelector('.q-text')?.value?.trim();
-        if (!text) return;
-        const opts = [...item.querySelectorAll('.option-text')].map(o=>o.value.trim()).filter(Boolean);
-        const sel  = item.querySelector('.option-radio:checked');
-        qs.push({ question: text, options: opts, correct_answer: sel ? parseInt(sel.value) : 0 });
+// تحميل الأسئلة المحفوظة إلى المحرّرات المصنّفة (مع الحفاظ على مفاتيح مثل word/hint)
+(function loadExistingQuestions() {
+    if (currentActivityType() === 'image_order') return;
+    const raw = document.getElementById('questionsData').value;
+    if (!raw) return;
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { return; }
+    if (!Array.isArray(parsed)) return;
+    questions = parsed.map(q => {
+        // نُبقِي كل المفاتيح الأصلية ثم نطبّعها (mirror admin edit reload)
+        const nq = { ...q };
+        nq.type = nq.type || (Array.isArray(nq.options) ? 'multiple_choice' : 'short_answer');
+        nq.points = nq.points ?? 10;
+        // دعم قيمة قديمة correct_answer (فهرس) الناتجة عن المنشئ السابق
+        if (nq.correct_index === undefined && nq.correct_answer !== undefined && Array.isArray(nq.options)) {
+            const idx = parseInt(nq.correct_answer);
+            if (!isNaN(idx)) {
+                nq.correct_index = idx;
+                if (nq.answer === undefined) nq.answer = nq.options[idx];
+            }
+        }
+        return nq;
     });
-    if (qs.length > 0) {
-        document.getElementById('questionsData').value = JSON.stringify(qs);
+    renderQuestions();
+})();
+
+function addQuestion() {
+    if (currentActivityType() === 'image_order') { addImageItem(); return; }
+    questions.push({ type: 'multiple_choice', question: '', options: ['', ''], answer: '', points: 10 });
+    renderQuestions();
+}
+
+function removeQuestion(index) {
+    if (confirm('هل أنت متأكد من حذف هذا السؤال؟')) {
+        questions.splice(index, 1);
+        renderQuestions();
     }
+}
+
+function addOption(index) {
+    if (!questions[index].options) questions[index].options = [];
+    questions[index].options.push('');
+    renderQuestions();
+}
+
+function removeOption(qIndex, oIndex) {
+    if (questions[qIndex].options.length > 2) {
+        questions[qIndex].options.splice(oIndex, 1);
+        renderQuestions();
+    } else {
+        alert('يجب أن يكون هناك خيارين على الأقل');
+    }
+}
+
+function updateOption(qIndex, oIndex, value) {
+    questions[qIndex].options[oIndex] = value;
+    updateJson();
+}
+
+function setCorrectAnswer(qIndex, answer) {
+    questions[qIndex].answer = questions[qIndex].options[answer];
+    questions[qIndex].correct_index = answer;
+    renderQuestions();
+}
+
+function updateQuestion(index, field, value) {
+    const oldType = questions[index].type;
+    questions[index][field] = value;
+
+    if (field === 'type' && oldType !== value) {
+        if (value === 'true_false') {
+            questions[index].options = ['صح', 'خطأ'];
+            questions[index].answer = '';
+            delete questions[index].correct_index;
+            delete questions[index].word;
+        } else if (value === 'letter_choice') {
+            questions[index].options = ['أ', 'ب'];
+            questions[index].answer = '';
+            delete questions[index].correct_index;
+        } else if (value === 'word_order') {
+            questions[index].options = ['كلمة', 'ثانية'];
+            delete questions[index].answer;
+            delete questions[index].correct_index;
+            delete questions[index].word;
+        } else if (value === 'sentence_order') {
+            questions[index].options = ['الجملة الأولى', 'الجملة الثانية'];
+            delete questions[index].answer;
+            delete questions[index].correct_index;
+            delete questions[index].word;
+        } else if (value === 'multiple_choice') {
+            if (!questions[index].options || questions[index].options.length < 2) {
+                questions[index].options = ['', ''];
+            }
+            questions[index].answer = '';
+            delete questions[index].word;
+        } else if (value === 'short_answer') {
+            delete questions[index].options;
+            delete questions[index].correct_index;
+            delete questions[index].word;
+            questions[index].answer = '';
+        }
+        renderQuestions();
+    }
+    updateJson();
+}
+
+function renderQuestions() {
+    const container = document.getElementById('questionsList');
+    if (!container || currentActivityType() === 'image_order') return;
+    container.innerHTML = '';
+
+    questions.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-item';
+
+        const isOrderingType = ['word_order', 'sentence_order'].includes(q.type);
+        let optionsHtml = '';
+
+        if (q.options) {
+            q.options.forEach((option, oIndex) => {
+                const isCorrect = (q.correct_index !== undefined && q.correct_index !== null)
+                    ? Number(q.correct_index) === oIndex
+                    : (q.answer === option);
+                optionsHtml += `
+                    <div class="option-item">
+                        ${!isOrderingType ? `
+                            <div class="q-correct ${isCorrect ? 'selected' : ''}"
+                                 onclick="setCorrectAnswer(${index}, ${oIndex})" title="اختر كإجابة صحيحة">
+                                ${isCorrect ? '✓' : '○'}
+                            </div>
+                        ` : `<span class="q-opt-num">${oIndex + 1}</span>`}
+                        <input type="text" value="${escAttr(option)}"
+                               onchange="updateOption(${index}, ${oIndex}, this.value)"
+                               placeholder="${q.type === 'letter_choice' ? 'الحرف' : (q.type === 'word_order' ? 'الكلمة' : (q.type === 'sentence_order' ? 'الجملة' : 'الخيار'))} ${oIndex + 1}">
+                        <button type="button" onclick="removeOption(${index}, ${oIndex})"
+                                style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:18px;">×</button>
+                    </div>`;
+            });
+        }
+
+        card.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="question-num">${index + 1}</span>
+                    <select class="form-select form-select-sm q-type-select" onchange="updateQuestion(${index}, 'type', this.value)">
+                        <option value="multiple_choice" ${q.type === 'multiple_choice' ? 'selected' : ''}>اختيار متعدد</option>
+                        <option value="true_false" ${q.type === 'true_false' ? 'selected' : ''}>صح / خطأ</option>
+                        <option value="short_answer" ${q.type === 'short_answer' ? 'selected' : ''}>إجابة قصيرة</option>
+                        <option value="letter_choice" ${q.type === 'letter_choice' ? 'selected' : ''}>اختيار حروف</option>
+                        <option value="word_order" ${q.type === 'word_order' ? 'selected' : ''}>ترتيب كلمات</option>
+                        <option value="sentence_order" ${q.type === 'sentence_order' ? 'selected' : ''}>ترتيب جمل</option>
+                    </select>
+                </div>
+                <button type="button" class="btn-remove" onclick="removeQuestion(${index})">✕ حذف</button>
+            </div>
+
+            <div class="row g-2 mb-2">
+                <div class="col-9">
+                    <input type="text" class="form-control" value="${escAttr(q.question)}"
+                           onchange="updateQuestion(${index}, 'question', this.value)"
+                           placeholder="نص السؤال...">
+                </div>
+                <div class="col-3">
+                    <input type="number" class="form-control" value="${q.points ?? 10}"
+                           onchange="updateQuestion(${index}, 'points', parseInt(this.value))"
+                           placeholder="الدرجة" min="1">
+                </div>
+            </div>
+
+            ${q.type === 'letter_choice' ? `
+                <div class="mb-2">
+                    <input type="text" class="form-control" value="${escAttr(q.word || '')}"
+                           onchange="updateQuestion(${index}, 'word', this.value)"
+                           placeholder="الكلمة المستهدفة (مثال: صلاة)">
+                </div>
+            ` : ''}
+
+            ${(q.type === 'multiple_choice' || q.type === 'true_false' || q.type === 'letter_choice') ? `
+                <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (اضغط على ○ لتحديد الإجابة الصحيحة)' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}</label>
+                <div class="options-list">${optionsHtml}</div>
+                ${(q.type === 'multiple_choice' || q.type === 'letter_choice') ? `
+                    <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="addOption(${index})">+ إضافة ${q.type === 'letter_choice' ? 'حرف' : 'خيار'}</button>
+                ` : ''}
+            ` : ''}
+
+            ${q.type === 'short_answer' ? `
+                <label class="q-label">الإجابة الصحيحة (يقارَن بها نص الطالب بعد تطبيع المسافات والتشكيل)</label>
+                <input type="text" class="form-control" value="${escAttr(q.answer || '')}"
+                       onchange="updateQuestion(${index}, 'answer', this.value)"
+                       placeholder="مثال: الصلاة الوسطى">
+            ` : ''}
+
+            ${(q.type === 'word_order' || q.type === 'sentence_order') ? `
+                <label class="q-label">${q.type === 'word_order' ? 'الكلمات (سيتم ترتيبها عشوائياً للطالب)' : 'الجمل (سيتم ترتيبها عشوائياً للطالب)'}</label>
+                <div class="options-list">${optionsHtml}</div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="addOption(${index})">+ إضافة ${q.type === 'word_order' ? 'كلمة' : 'جملة'}</button>
+                <small class="text-muted d-block mt-2">الترتيب الحالي هو الترتيب الصحيح</small>
+            ` : ''}
+        `;
+        container.appendChild(card);
+    });
+
+    updateJson();
+}
+
+function updateJson() {
+    if (currentActivityType() === 'image_order') return;
+    document.getElementById('questionsData').value = JSON.stringify(questions);
+}
+
+function escAttr(v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ================================
-// وظائف image_order
+// وظائف image_order (كما هي)
 // ================================
 function addImageItem() {
     const list = document.getElementById('questionsList');
@@ -404,7 +557,10 @@ function updateImageData() {
             imgs.push({ image_url: url, caption: caption, order: i + 1 });
         }
     });
-    document.getElementById('questionsData').value = imgs.length > 0 ? JSON.stringify(imgs) : '';
+    // نكتب فقط عند وجود صور جديدة حتى لا نمسح الصور المحفوظة إن لم يلمسها المعلم
+    if (imgs.length > 0) {
+        document.getElementById('questionsData').value = JSON.stringify(imgs);
+    }
 }
 </script>
 @endpush

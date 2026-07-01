@@ -1061,6 +1061,12 @@ class StudentController extends Controller
             Log::error('Post-submission processing failed [activity_id=' . $id . ']: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
         }
 
+        // الإجابة الصحيحة تُعرض تعليمياً للطالب فقط عند إجابة خاطئة/جزئية مُصحَّحة آلياً
+        // (لا تُكشف قبل الإرسال، ولا للأنشطة اليدوية التي ينتظر تصحيحها المعلم).
+        $correctAnswer = ($score !== null && $score < 100)
+            ? \App\Services\ActivityGradingService::correctAnswerText($activity)
+            : null;
+
         return response()->json([
             'success' => true,
             'xp_earned' => $xp,
@@ -1069,6 +1075,8 @@ class StudentController extends Controller
             'streak_message' => $streakMessage,
             'total_xp' => $xp + $streakBonus,
             'score' => $score ?? null,
+            'passing_score' => \App\Services\ActivityGradingService::passingScoreFor($activity),
+            'correct_answer' => $correctAnswer,
         ]);
     }
 

@@ -49,6 +49,7 @@ class Activity extends Model
         'attachment',
         'points',
         'passing_score',
+        'manual_review',
         'duration_minutes',
         'quiz_duration',
         'max_attempts',
@@ -74,6 +75,7 @@ class Activity extends Model
         'is_creative' => 'boolean',
         'is_activity_bank' => 'boolean',
         'is_featured' => 'boolean',
+        'manual_review' => 'boolean',
         'bonus_points' => 'integer',
         'allow_team_formation' => 'boolean',
     ];

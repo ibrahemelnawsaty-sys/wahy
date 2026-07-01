@@ -62,6 +62,7 @@ class ActivityManagementController extends Controller
             'questions' => 'nullable|json',
             'points' => 'nullable|integer|min:0',
             'passing_score' => 'nullable|integer|min:0|max:100',
+            'manual_review' => 'nullable|boolean',
             'order' => 'nullable|integer|min:0',
             'status' => 'required|in:active,inactive,draft',
 
@@ -79,6 +80,9 @@ class ActivityManagementController extends Controller
         if (! $request->filled('order')) {
             $validated['order'] = Activity::where('lesson_id', $validated['lesson_id'])->max('order') + 1;
         }
+
+        // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
+        $validated['manual_review'] = $request->boolean('manual_review');
 
         // Parse questions JSON
         if ($request->filled('questions')) {
@@ -123,6 +127,7 @@ class ActivityManagementController extends Controller
             'questions' => 'nullable|json',
             'points' => 'nullable|integer|min:0',
             'passing_score' => 'nullable|integer|min:0|max:100',
+            'manual_review' => 'nullable|boolean',
             'order' => 'nullable|integer|min:0',
             'status' => 'required|in:active,inactive,draft',
 
@@ -135,6 +140,9 @@ class ActivityManagementController extends Controller
             'allowed_file_types.*' => 'in:document,image,video,audio',
             'max_file_size' => 'nullable|integer|min:1|max:100',
         ]);
+
+        // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
+        $validated['manual_review'] = $request->boolean('manual_review');
 
         // Parse questions JSON
         if ($request->filled('questions')) {

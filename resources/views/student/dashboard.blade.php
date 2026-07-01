@@ -727,6 +727,8 @@
         
         <div style="display: grid; gap: 20px;">
             @foreach($recentActivities as $submission)
+            {{-- تخطّي أي تسليم يتيم (نشاطه محذوف) حتى لا تُسقِط سلسلة null الصفحة كاملةً (خطأ 500) --}}
+            @continue(! $submission->activity)
             @php
                 $statusConfig = match($submission->status) {
                     'completed' => ['color' => '#48bb78', 'bg' => '#f0fff4', 'icon' => '✅', 'text' => 'مكتمل', 'glow' => 'rgba(72, 187, 120, 0.3)'],
@@ -762,7 +764,9 @@
                             </span>
                             <div>
                                 <div style="font-weight: 700; color: #2d3748; font-size: 18px;">{{ $submission->activity->title }}</div>
+                                @if($submission->activity->lesson)
                                 <div style="font-size: 14px; color: #718096; margin-top: 3px;">📖 {{ $submission->activity->lesson->title }}</div>
+                                @endif
                             </div>
                         </div>
                         

@@ -31,6 +31,12 @@ class ActivityGradingService
         $answer = self::normalizeAnswer($rawAnswer);
         $questions = is_array($activity->questions) ? $activity->questions : [];
 
+        // مفتاح المُنشئ: "يتطلب مراجعة/موافقة المعلم يدوياً" → لا تصحيح آلي إطلاقاً،
+        // ينتظر التسليم موافقة المعلم مهما كان نوع النشاط.
+        if (! empty($activity->manual_review)) {
+            return null;
+        }
+
         // أنواع نشاط تتطلب مراجعة يدوية دائماً (بحسب نوع النشاط نفسه)
         if (in_array($activity->type, ['essay', 'upload', 'creative', 'project', 'practical', 'discussion'], true)) {
             return null;
@@ -40,6 +46,22 @@ class ActivityGradingService
         // إجابة الطالب: [{image_url, selected_order}] — يقارن selected_order بـ order الأصلي.
         if (in_array($activity->type, ['image_order', 'image_ordering'], true)) {
             return self::gradeImageOrder($activity, $answer);
+        }
+
+        // نشاط أحادي السؤال من نوع خاص (اختيار حروف / ترتيب كلمات أو جمل / إجابة قصيرة):
+        // واجهة الطالب توجّهه لواجهة مفردة تُرسل نصاً أو مصفوفة مجرّدة — لا خريطة {index: answer} —
+        // لذا يجب تصحيحه عبر مُصحِّحه المخصّص حتى لو كان نوع النشاط quiz (وهو الافتراضي).
+        // بدون هذا يذهب لـ gradeQuiz فيسيء تفسير الإجابة ويمنح صفراً دائماً (عطل ترتيب/حروف).
+        if (count($questions) === 1) {
+            $singleType = self::normalizeType($questions[0]['type'] ?? $questions[0]['question_type'] ?? null);
+            if (in_array($singleType, ['letter_choice', 'word_ordering', 'sentence_ordering', 'short_answer'], true)) {
+                return match ($singleType) {
+                    'letter_choice' => self::gradeLetterChoice($activity, $answer),
+                    'word_ordering', 'sentence_ordering' => self::gradeOrdering($activity, $answer),
+                    'short_answer' => self::gradeShortAnswer($activity, $answer),
+                    default => null,
+                };
+            }
         }
 
         // النشاط من نوع quiz أو أي نشاط متعدد الأسئلة → تصحيح لكل سؤال حسب نوعه
@@ -76,6 +98,138 @@ class ActivityGradingService
     public static function passingScoreFor(Activity $activity): int
     {
         return (int) ($activity->passing_score ?? 50);
+    }
+
+    /**
+     * الإجابة الصحيحة بصيغة نصّية مقروءة، لعرضها للطالب تعليمياً بعد محاولة خاطئة.
+     * تُرجع null إن لم توجد إجابة مرجعية واحدة قابلة للعرض
+     * (الأنواع اليدوية، أو كويز حقيقي متعدد الأسئلة).
+     */
+    public static function correctAnswerText(Activity $activity): ?string
+    {
+        $questions = is_array($activity->questions) ? $activity->questions : [];
+
+        // أنواع بلا إجابة مرجعية واحدة (تُصحَّح يدوياً)
+        if (in_array($activity->type, ['essay', 'upload', 'creative', 'project', 'practical', 'discussion'], true)) {
+            return null;
+        }
+
+        // ترتيب صور مستقل: التسلسل الصحيح بالوصف/الرابط
+        if (in_array($activity->type, ['image_order', 'image_ordering'], true)) {
+            return self::imageOrderCorrectText($questions);
+        }
+
+        // كويز حقيقي متعدد الأسئلة → لا نُلخّص إجابة واحدة
+        if (count($questions) > 1 && ($activity->type === 'quiz' || $activity->type === 'exercise')) {
+            return null;
+        }
+
+        $first = self::firstQuestion($activity);
+        $type = self::normalizeType($first['type'] ?? $first['question_type'] ?? null)
+            ?: ($activity->question_type ?: $activity->type);
+
+        return match ($type) {
+            'letter_choice' => self::nonEmptyOrNull(
+                $first['word'] ?? $first['target_word'] ?? $first['correct_answer'] ?? $first['answer'] ?? null,
+            ),
+            'word_ordering', 'sentence_ordering', 'word_order', 'sentence_order' => self::orderingCorrectText($activity, $first),
+            'short_answer' => self::nonEmptyOrNull(
+                $first['correct_answer'] ?? $first['answer'] ?? $first['correct'] ?? self::correctAnswerOf($activity),
+            ),
+            'true_false', 'multiple_choice' => self::optionCorrectText($first),
+            default => null,
+        };
+    }
+
+    private static function nonEmptyOrNull($value): ?string
+    {
+        return ($value !== null && $value !== '') ? (string) $value : null;
+    }
+
+    /**
+     * التسلسل الصحيح لترتيب الكلمات/الجمل مرقّماً للعرض.
+     */
+    private static function orderingCorrectText(Activity $activity, array $first): ?string
+    {
+        $seq = self::correctAnswerOf($activity);
+        if ($seq === null && ! empty($first['options']) && is_array($first['options'])) {
+            $seq = array_map(
+                fn ($o) => is_array($o) ? ($o['text'] ?? $o['label'] ?? '') : (string) $o,
+                $first['options'],
+            );
+        }
+        if (is_string($seq)) {
+            $seq = preg_split('/[,،|]\s*/u', $seq);
+        }
+        if (! is_array($seq) || empty($seq)) {
+            return null;
+        }
+
+        $parts = [];
+        foreach (array_values($seq) as $i => $s) {
+            $parts[] = ($i + 1) . ') ' . $s;
+        }
+
+        return implode('   ', $parts);
+    }
+
+    /**
+     * نص الخيار الصحيح لسؤال اختيار متعدد / صح-خطأ.
+     */
+    private static function optionCorrectText(array $q): ?string
+    {
+        $key = self::resolveKey($q);
+        $options = is_array($q['options'] ?? null) ? $q['options'] : [];
+
+        if ($key['index'] !== null && isset($options[$key['index']])) {
+            $opt = $options[$key['index']];
+
+            return self::nonEmptyOrNull(is_array($opt) ? ($opt['text'] ?? $opt['label'] ?? null) : $opt);
+        }
+
+        if ($key['text'] !== null && $key['text'] !== '') {
+            if (is_numeric($key['text']) && isset($options[(int) $key['text']])) {
+                $opt = $options[(int) $key['text']];
+
+                return self::nonEmptyOrNull(is_array($opt) ? ($opt['text'] ?? $opt['label'] ?? null) : $opt);
+            }
+
+            return (string) $key['text'];
+        }
+
+        return null;
+    }
+
+    /**
+     * التسلسل الصحيح لترتيب الصور (وصف الصورة أو رابطها) مرقّماً.
+     */
+    private static function imageOrderCorrectText(array $questions): ?string
+    {
+        $items = [];
+        foreach ($questions as $q) {
+            if (isset($q['image_url'], $q['order'])) {
+                $items[(int) $q['order']] = $q['caption'] ?? $q['image_url'];
+            }
+            if (isset($q['type']) && $q['type'] === 'image_order' && ! empty($q['images'])) {
+                foreach ($q['images'] as $i => $img) {
+                    $order = (int) ($img['order'] ?? $i + 1);
+                    $items[$order] = $img['description'] ?? $img['url'] ?? $img['image_url'] ?? ('صورة ' . $order);
+                }
+            }
+        }
+
+        if (empty($items)) {
+            return null;
+        }
+
+        ksort($items);
+        $parts = [];
+        $n = 1;
+        foreach ($items as $label) {
+            $parts[] = ($n++) . ') ' . $label;
+        }
+
+        return implode('   ', $parts);
     }
 
     /**
