@@ -135,12 +135,14 @@ class LeaderboardController extends Controller
         $cacheKey = 'lb:students:' . $this->lbVersion() . ':' . md5("$limit|$schoolId|$classroomId|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit, $schoolId, $classroomId, $scope) {
+            // مهم: select() يجب أن يسبق withSum() — وإلا مسح select عمود total_points
+            // (subquery الذي يضيفه withSum) فتعود النقاط 0. (اللوحات الأخرى تستعمل selectSub بعد select.)
             $query = User::query()
                 ->where('users.role', 'student')
                 ->where('users.status', 'active')
+                ->select('users.id', 'users.name', 'users.avatar', 'users.school_id')
                 ->withSum('points as total_points', 'points')
-                ->with('school:id,name')
-                ->select('users.id', 'users.name', 'users.avatar', 'users.school_id');
+                ->with('school:id,name');
 
             if ($scope === 'school' && $schoolId) {
                 $query->where('users.school_id', $schoolId);
