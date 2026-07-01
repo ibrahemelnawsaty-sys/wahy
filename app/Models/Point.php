@@ -26,14 +26,19 @@ class Point extends Model
             }
         });
 
-        // إبطال الـ leaderboard cache عند منح نقاط جديدة لمنع عرض ترتيب قديم
+        // إبطال كاش لوحات الصدارة عند منح نقاط جديدة — عبر رفع «إصدار» يُبطل كل المفاتيح
+        // القديمة فوراً (المفاتيح الفعلية تحوي md5 لمعاملاتها فيصعب حذفها فرادى؛ رفع الإصدار
+        // يعمل مع أي مخزن كاش، بما فيه database).
         static::created(function (self $point) {
             try {
                 $userId = $point->user_id;
-                \Illuminate\Support\Facades\Cache::forget('leaderboard:students:all');
-                \Illuminate\Support\Facades\Cache::forget('leaderboard:students:week');
-                \Illuminate\Support\Facades\Cache::forget('leaderboard:students:month');
-                \Illuminate\Support\Facades\Cache::forget("lb:rank:student:{$userId}");
+                \Illuminate\Support\Facades\Cache::forever(
+                    'lb:ver',
+                    ((int) \Illuminate\Support\Facades\Cache::get('lb:ver', 1)) + 1,
+                );
+                // إحصائيات الطالب الفورية (هيدر/كويك-ستاتس) كي تُحدَّث النقاط مباشرة
+                \Illuminate\Support\Facades\Cache::forget("student_stats_{$userId}");
+                \Illuminate\Support\Facades\Cache::forget("student.quickstats.{$userId}");
                 \Illuminate\Support\Facades\Cache::forget("parent_dashboard:ranks:{$userId}");
             } catch (\Throwable $e) {
                 // عدم كسر التدفق لو فشل cache

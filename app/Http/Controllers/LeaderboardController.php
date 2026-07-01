@@ -11,8 +11,16 @@ use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
-    /** Cache TTL — 15 دقيقة (متوازنة بين الطزاجة والأداء) */
-    private const CACHE_TTL = 900;
+    /** Cache TTL — دقيقتان كسقف أمان (الطزاجة الفورية تأتي من رفع الإصدار عند منح النقاط) */
+    private const CACHE_TTL = 120;
+
+    /**
+     * إصدار كاش الصدارة — يُرفَع في Point::created عند منح نقاط، فتُبطَل كل المفاتيح القديمة فوراً.
+     */
+    private function lbVersion(): string
+    {
+        return (string) Cache::get('lb:ver', 1);
+    }
 
     /**
      * لوحة الصدارة الرئيسية - جميع الفئات
@@ -124,7 +132,7 @@ class LeaderboardController extends Controller
      */
     private function getStudentLeaderboard(int $limit, ?int $schoolId = null, ?int $classroomId = null, string $scope = 'school'): array
     {
-        $cacheKey = 'lb:students:' . md5("$limit|$schoolId|$classroomId|$scope");
+        $cacheKey = 'lb:students:' . $this->lbVersion() . ':' . md5("$limit|$schoolId|$classroomId|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit, $schoolId, $classroomId, $scope) {
             $query = User::query()
@@ -165,7 +173,7 @@ class LeaderboardController extends Controller
      */
     private function getTeacherLeaderboard(int $limit, ?int $schoolId = null, string $scope = 'school'): array
     {
-        $cacheKey = 'lb:teachers:' . md5("$limit|$schoolId|$scope");
+        $cacheKey = 'lb:teachers:' . $this->lbVersion() . ':' . md5("$limit|$schoolId|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit, $schoolId, $scope) {
             // عدد طلاب المعلم عبر subquery (يدعم MySQL)
@@ -215,7 +223,7 @@ class LeaderboardController extends Controller
      */
     private function getParentLeaderboard(int $limit, ?int $schoolId = null, string $scope = 'school'): array
     {
-        $cacheKey = 'lb:parents:' . md5("$limit|$schoolId|$scope");
+        $cacheKey = 'lb:parents:' . $this->lbVersion() . ':' . md5("$limit|$schoolId|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit, $schoolId, $scope) {
             $childrenCountSub = DB::table('parent_student')
@@ -261,7 +269,7 @@ class LeaderboardController extends Controller
      */
     private function getSchoolLeaderboard(int $limit, string $scope = 'all'): array
     {
-        $cacheKey = 'lb:schools:' . md5("$limit|$scope");
+        $cacheKey = 'lb:schools:' . $this->lbVersion() . ':' . md5("$limit|$scope");
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($limit) {
             // SUM(points) عبر join على points + users داخل subquery
@@ -322,12 +330,15 @@ class LeaderboardController extends Controller
      */
     private function getUserRankInCategory(int $userId, string $role, ?int $schoolId = null): array
     {
-        $cacheKey = "lb:rank:{$role}:{$userId}:" . ($schoolId ?? 'all');
+        $cacheKey = 'lb:rank:' . $this->lbVersion() . ":{$role}:{$userId}:" . ($schoolId ?? 'all');
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($userId, $role, $schoolId) {
             $userPoints = (int) DB::table('points')->where('user_id', $userId)->sum('points');
 
+            // نختار العمود المُجمَّع فقط (users.id) لتفادي خطأ ONLY_FULL_GROUP_BY (1055)
+            // على MySQL الصارم عند دمج SELECT * مع GROUP BY.
             $query = DB::table('users')
+                ->select('users.id')
                 ->leftJoin('points', 'points.user_id', '=', 'users.id')
                 ->where('users.role', $role)
                 ->where('users.status', 'active')
@@ -353,7 +364,7 @@ class LeaderboardController extends Controller
 
     private function getSchoolRank(int $schoolId): array
     {
-        $cacheKey = "lb:school_rank:{$schoolId}";
+        $cacheKey = 'lb:school_rank:' . $this->lbVersion() . ":{$schoolId}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($schoolId) {
             $school = School::select('id', 'name')->find($schoolId);
