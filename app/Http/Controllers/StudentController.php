@@ -110,9 +110,9 @@ class StudentController extends Controller
             $currentLesson->progress = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
         }
 
-        // جلب القيم المفعّلة لمدرسة الطالب (Issue 11/105)
+        // جلب القيم المفعّلة لمدرسة الطالب (Issue 11/105) — أنشطة نشطة فقط
         $values = Value::visibleForSchool($user->school_id)
-            ->with(['concepts.lessons.activities'])
+            ->with(['concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')])
             ->orderBy('order')
             ->get();
 
@@ -477,8 +477,8 @@ class StudentController extends Controller
             abort(404);
         }
 
-        // جلب الأنشطة مرة واحدة مرتّبة
-        $activities = $lesson->activities()->orderBy('order')->get();
+        // جلب الأنشطة النشطة فقط مرتّبة — لا تُعرض الأنشطة غير النشطة للطالب
+        $activities = $lesson->activities()->where('status', 'active')->orderBy('order')->get();
 
         // ✅ استعلام واحد فقط لكل تسليمات الطالب على هذه الأنشطة (إصلاح N+1)
         $submissionsByActivity = ActivitySubmission::where('student_id', $user->id)
@@ -772,6 +772,11 @@ class StudentController extends Controller
      */
     private function isActivityAccessibleByStudent(Activity $activity, $student): bool
     {
+        // النشاط غير النشط لا يُتاح للطالب إطلاقاً (لا فتحاً مباشراً بالرابط ولا تسليماً)
+        if (($activity->status ?? 'active') !== 'active') {
+            return false;
+        }
+
         $lesson = $activity->lesson;
         if (! $lesson) {
             return true; // نشاط منفصل بدون درس → نسمح به (نشاط مخصص للفصل)
@@ -1749,9 +1754,9 @@ class StudentController extends Controller
             ->whereIn('status', ActivitySubmission::DONE_STATUSES)
             ->pluck('activity_id')->unique()->all();
 
-        // جلب القيم المرئية لمدرسة الطالب فقط (Issue #105)
+        // جلب القيم المرئية لمدرسة الطالب فقط (Issue #105) — أنشطة نشطة فقط
         $values = Value::visibleForSchool($user->school_id)
-            ->with(['concepts.lessons.activities'])
+            ->with(['concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')])
             ->orderBy('order')
             ->get();
 
