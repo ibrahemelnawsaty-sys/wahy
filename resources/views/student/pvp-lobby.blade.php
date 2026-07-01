@@ -52,11 +52,11 @@
 
     <div class="pvp-stats">
         <div class="pvp-stat">
-            <div class="pvp-stat-val">{{ $stats['total_matches'] }}</div>
+            <div class="pvp-stat-val">{{ $pvpStats['total_matches'] ?? 0 }}</div>
             <div class="pvp-stat-lbl">مبارياتي</div>
         </div>
         <div class="pvp-stat">
-            <div class="pvp-stat-val">{{ $stats['wins'] }} 🏆</div>
+            <div class="pvp-stat-val">{{ $pvpStats['wins'] ?? 0 }} 🏆</div>
             <div class="pvp-stat-lbl">انتصارات</div>
         </div>
     </div>

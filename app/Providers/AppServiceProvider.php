@@ -111,7 +111,11 @@ class AppServiceProvider extends ServiceProvider
                     ];
                 });
 
-                $view->with('stats', $stats);
+                // ندمج إحصائيات التلعيب الأساسية (للهيدر) مع أي stats مرّرها المتحكّم
+                // بدل طمسها — كي لا تُفقَد مفاتيح خاصة بالصفحة مثل current_streak/average_score/
+                // completed_activities/total_matches. مفاتيح المتحكّم تفوز عند التعارض.
+                $existingStats = $view->getData()['stats'] ?? null;
+                $view->with('stats', array_merge($stats, is_array($existingStats) ? $existingStats : []));
                 $view->with('streak', $user->streak);
                 $view->with('badges', $user->badges);
             }

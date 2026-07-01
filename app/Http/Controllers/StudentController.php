@@ -2103,7 +2103,8 @@ class StudentController extends Controller
             return view('student.pvp-lobby', [
                 'challenges' => collect(),
                 'myMatches' => collect(),
-                'stats' => ['total_matches' => 0, 'wins' => 0],
+                // اسم مستقل عن 'stats' الذي يشاركه View composer لـ student.* (تضارب أسماء)
+                'pvpStats' => ['total_matches' => 0, 'wins' => 0],
             ]);
         }
 
@@ -2128,14 +2129,15 @@ class StudentController extends Controller
             ->limit(10)
             ->get();
 
-        $stats = [
+        // اسم مستقل عن 'stats' الذي يشاركه View composer لـ student.* (تفادي تضارب الأسماء)
+        $pvpStats = [
             'total_matches' => \App\Models\PvpMatch::where(function ($q) use ($student) {
                 $q->where('player1_id', $student->id)->orWhere('player2_id', $student->id);
             })->where('status', 'completed')->count(),
             'wins' => \App\Models\PvpMatch::where('winner_id', $student->id)->count(),
         ];
 
-        return view('student.pvp-lobby', compact('challenges', 'myMatches', 'stats'));
+        return view('student.pvp-lobby', compact('challenges', 'myMatches', 'pvpStats'));
     }
 
     /**
