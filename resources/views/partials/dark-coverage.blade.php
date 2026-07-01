@@ -365,6 +365,52 @@
         color: var(--w-text, #f1f5f9) !important;
     }
 
+    /* (6d) شارات/حالات مُعرّفة بكلاس (chips) — تعتيم الخلفية + تفتيح النص كزوج متّسق يحفظ الدلالة */
+    html[data-theme="dark"] .badge-archived,
+    html[data-theme="dark"] .badge-quiet,
+    html[data-theme="dark"] .modal-btn-cancel {
+        background-color: rgba(148,163,184,0.14) !important;
+        background-image: none !important;
+        color: var(--w-text-muted, #94a3b8) !important;
+        border-color: var(--w-border, rgba(255,255,255,0.1)) !important;
+    }
+    html[data-theme="dark"] .badge-active,
+    html[data-theme="dark"] .status-completed,
+    html[data-theme="dark"] .status-approved {
+        background-color: rgba(16,185,129,0.15) !important;
+        background-image: none !important;
+        color: #6ee7b7 !important;
+    }
+    html[data-theme="dark"] .status-pending,
+    html[data-theme="dark"] .badge-pending {
+        background-color: rgba(245,158,11,0.15) !important;
+        background-image: none !important;
+        color: #fcd34d !important;
+    }
+    html[data-theme="dark"] .status-rejected,
+    html[data-theme="dark"] .stat-badge,
+    html[data-theme="dark"] .badge-rejected {
+        background-color: rgba(239,68,68,0.15) !important;
+        background-image: none !important;
+        color: #fca5a5 !important;
+    }
+    html[data-theme="dark"] .pe-metric,
+    html[data-theme="dark"] .fa-value-badge:not(.empty) {
+        background-color: rgba(99,102,241,0.16) !important;
+        background-image: none !important;
+        color: #a5b4fc !important;
+    }
+    html[data-theme="dark"] .member-badge {
+        background-color: rgba(139,92,246,0.16) !important;
+        background-image: none !important;
+        color: #c4b5fd !important;
+    }
+    html[data-theme="dark"] .online-student-item:hover,
+    html[data-theme="dark"] .list-hover-row:hover {
+        background-image: none !important;
+        background-color: rgba(148,163,184,0.10) !important;
+    }
+
     /* (7) استثناءات إلزامية */
     html[data-theme="dark"] .qr-code-wrapper,
     html[data-theme="dark"] [class*="qr-code"],
