@@ -2274,16 +2274,63 @@ class TeacherController extends Controller
     public function surveyComparisonsList()
     {
         $user = Auth::user();
-        $surveys = \App\Models\Survey::where('survey_type', 'pre_post_assessment')
-            ->where(function ($q) use ($user) {
-                $q->whereNull('school_id')
-                    ->orWhere('school_id', $user->school_id);
-            })
+
+        // طلاب فصول المعلم — لفلترة المقارنة على طلابه فقط
+        $studentIds = DB::table('classroom_student')
+            ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
+            ->where('classrooms.teacher_id', $user->id)
+            ->where('classroom_student.status', 'active')
+            ->distinct()
+            ->pluck('classroom_student.student_id')
+            ->toArray();
+
+        // نعتمد الاستبيان البعدي كمرساة (يرتبط بالقبلي عبر linkedSurvey)
+        $postSurveys = \App\Models\Survey::where('survey_type', 'pre_post_assessment')
             ->where('assessment_phase', 'post')
+            ->where(function ($q) use ($user) {
+                $q->whereNull('school_id')->orWhere('school_id', $user->school_id);
+            })
             ->with(['lesson.concept.value', 'linkedSurvey'])
             ->latest()
-            ->paginate(20);
+            ->get();
 
-        return view('teacher.surveys.comparisons-list', compact('surveys'));
+        $rows = $postSurveys->map(function ($post) use ($studentIds) {
+            // نفلتر على طلاب المعلم فقط (مصفوفة فارغة → لا نتائج، لا نعرض طلاب غيره)
+            $data = $post->getComparisonData(null, $studentIds);
+            $stats = is_array($data) && ! isset($data['error'])
+                ? $data['stats']
+                : [
+                    'total_pre_responses' => 0,
+                    'total_post_responses' => 0,
+                    'completed_both' => 0,
+                    'avg_improvement' => 0,
+                    'improved_count' => 0,
+                    'declined_count' => 0,
+                    'same_count' => 0,
+                ];
+
+            return [
+                'pre' => $post->linkedSurvey,
+                'post' => $post,
+                'lesson' => $post->lesson,
+                'stats' => $stats,
+            ];
+        })->values();
+
+        // KPIs إجمالية للقبلي والبعدي والمقارنة
+        $withBoth = $rows->filter(fn ($r) => ($r['stats']['completed_both'] ?? 0) > 0);
+        $kpis = [
+            'pairs' => $rows->count(),
+            'total_pre' => (int) $rows->sum(fn ($r) => $r['stats']['total_pre_responses'] ?? 0),
+            'total_post' => (int) $rows->sum(fn ($r) => $r['stats']['total_post_responses'] ?? 0),
+            'completed_both' => (int) $rows->sum(fn ($r) => $r['stats']['completed_both'] ?? 0),
+            'avg_improvement' => $withBoth->count() > 0
+                ? round($withBoth->avg(fn ($r) => $r['stats']['avg_improvement'] ?? 0), 1)
+                : 0,
+            'improved' => (int) $rows->sum(fn ($r) => $r['stats']['improved_count'] ?? 0),
+            'declined' => (int) $rows->sum(fn ($r) => $r['stats']['declined_count'] ?? 0),
+        ];
+
+        return view('teacher.surveys.comparisons-list', compact('rows', 'kpis'));
     }
 }
