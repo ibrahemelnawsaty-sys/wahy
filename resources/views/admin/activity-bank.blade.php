@@ -51,7 +51,7 @@
         <h1 style="font-size: 26px; font-weight: 800; color: white; margin-bottom: 4px;">📚 بنك الأنشطة</h1>
         <p style="color: rgba(255,255,255,0.85); font-size: 14px;">إدارة الأنشطة والأسئلة — موافقة، رفض، وإضافة جديدة</p>
     </div>
-    <button onclick="openAddModal()" class="add-btn">➕ إضافة نشاط جديد</button>
+    <a href="{{ route('admin.activities.create') }}" class="add-btn" style="text-decoration:none;">➕ إضافة نشاط جديد</a>
 </div>
 
 {{-- Alerts --}}
@@ -143,7 +143,7 @@
     <div style="text-align:center;padding:60px;background:white;border-radius:16px;color:#94a3b8;">
         <div style="font-size:60px;margin-bottom:16px;">📭</div>
         <p style="font-size:16px;font-weight:600;">لا توجد أنشطة في البنك</p>
-        <button onclick="openAddModal()" class="add-btn" style="margin:16px auto 0;">➕ أضف أول نشاط</button>
+        <a href="{{ route('admin.activities.create') }}" class="add-btn" style="margin:16px auto 0;text-decoration:none;display:inline-flex;">➕ أضف أول نشاط</a>
     </div>
     @endforelse
 
