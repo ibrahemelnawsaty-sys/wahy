@@ -59,6 +59,15 @@ function initMobileMenu() {
             document.body.style.overflow = '';
         }
     });
+
+    // شبكة أمان: لا تدع قفل التمرير يعلق — أعد الضبط عند تكبير/تدوير الشاشة للحاسوب
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
+            menuToggle.setAttribute('aria-expanded', 'false');
+            navLinks.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
 }
 
 // ==================== Smooth Scroll ====================

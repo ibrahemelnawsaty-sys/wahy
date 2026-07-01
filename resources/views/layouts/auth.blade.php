@@ -47,7 +47,11 @@
         <link rel="stylesheet" href="{{ asset('css/auth-glass.css') }}">
         <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
     </noscript>
-    
+
+    {{-- توحيد الهيدر/الفوتر مع الصفحة الرئيسية «ابدأ الآن» (نفس التصميم) --}}
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/glass-luxury.css') }}">
+
     <!-- تم استبدال Font Awesome بأيقونات SVG مباشرة في الصفحات -->
     @yield('extra_css')
     
@@ -128,6 +132,7 @@
     @include('components.footer')
 
     <script src="{{ asset('js/theme.min.js') }}" defer></script>
+    <script src="{{ asset('js/landing.js') }}" defer></script>
     @stack('scripts')
 </body>
 </html>

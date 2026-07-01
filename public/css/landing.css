@@ -1779,6 +1779,22 @@ svg.icon,
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    /* تثبيت التخطيط عمودياً: الأيقونة ثم العنوان ثم الوصف — دائماً بنفس الترتيب */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* الأيقونة دائماً أعلى البطاقة مهما اختلف ترتيب DOM (مثل حقن أدوات التحرير) */
+.benefit-card > [data-editable-icon] {
+    order: -1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--space-3);
+    position: relative;
+    z-index: 1;
 }
 
 .benefit-card::before {
@@ -2695,6 +2711,20 @@ svg.icon,
         height: 40px;
         font-size: 18px;
         margin-right: var(--space-2);
+    }
+
+    /* منع «تحرّك/دوران» زر الثيم والأسهم عند اللمس على الجوال
+       (اللمس يُبقي حالة :hover عالقة فيُطبَّق التحويل ويبدو أن العنصر يتحرك) */
+    .theme-toggle:hover,
+    .theme-toggle:active,
+    .theme-toggle:focus {
+        transform: none !important;
+    }
+
+    .flow-arrow,
+    .flow-arrow * {
+        animation: none !important;
+        transition: none !important;
     }
 
     .hero-actions {

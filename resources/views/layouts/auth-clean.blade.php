@@ -23,8 +23,13 @@
         <link rel="stylesheet" href="{{ asset('css/auth-glass.css') }}">
         <link rel="stylesheet" href="{{ asset('css/auth-enhancements.css') }}">
     </noscript>
-    
+
+    {{-- توحيد الهيدر/الفوتر مع الصفحة الرئيسية «ابدأ الآن» (نفس التصميم) --}}
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/glass-luxury.css') }}">
+
     <script src="{{ asset('js/theme.min.js') }}" defer></script>
+    <script src="{{ asset('js/landing.js') }}" defer></script>
     @yield('extra_css')
 </head>
 <body>
