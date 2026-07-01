@@ -563,7 +563,11 @@
                     @php
                         $noteText = $answerData['note'] ?? null;
                         if (is_array($noteText)) { $noteText = implode(' ', array_filter($noteText, 'is_scalar')); }
-                        $fileUrl = $answerData['file_url'] ?? ($answerData['file'] ?? null);
+                        // نبني الرابط من مسار الملف بالاصطلاح العامل (نتجاهل file_url القديم/القصير)
+                        $filePath = $answerData['file'] ?? null;
+                        $fileUrl = $filePath
+                            ? (\Illuminate\Support\Str::startsWith((string) $filePath, 'http') ? $filePath : asset('storage/app/public/data/' . ltrim((string) $filePath, '/')))
+                            : ($answerData['file_url'] ?? null);
                         $ext = $fileUrl ? strtolower(pathinfo(parse_url($fileUrl, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION)) : '';
                         $isImg = in_array($ext, ['jpg','jpeg','png','gif','webp','bmp']);
                     @endphp

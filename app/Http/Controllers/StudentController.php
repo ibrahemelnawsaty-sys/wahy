@@ -890,7 +890,8 @@ class StudentController extends Controller
                 $answerToStore = json_encode([
                     'note' => $rawAnswer,
                     'file' => $uploadedPath,
-                    'file_url' => \Illuminate\Support\Facades\Storage::url($uploadedPath),
+                    // نفس اصطلاح رفع صور الأنشطة العامل (القرص العام جذره storage/app/public/data)
+                    'file_url' => asset('storage/app/public/data/' . ltrim($uploadedPath, '/')),
                 ], JSON_UNESCAPED_UNICODE);
             }
 

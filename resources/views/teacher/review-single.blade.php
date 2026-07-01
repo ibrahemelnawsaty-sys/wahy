@@ -99,7 +99,7 @@
                     if (array_key_exists('note', $decoded) || array_key_exists('file', $decoded)) {
                         $answerNote = is_scalar($decoded['note'] ?? null) ? $decoded['note'] : null;
                         $answerFile = $decoded['file'] ?? null;
-                        $answerFileUrl = $decoded['file_url'] ?? null;
+                        // نتجاهل file_url المخزّن — قد يكون قديماً/قصيراً؛ نبني الرابط الصحيح أدناه
                     } else {
                         // إجابة منظّمة (ترتيب/حروف/كويز) — اعرضها بصيغة مقروءة
                         $answerNote = implode('، ', array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE), $decoded));
@@ -112,8 +112,11 @@
                 if (! $answerFile && $submission->file_path) {
                     $answerFile = $submission->file_path;
                 }
-                if ($answerFile && ! $answerFileUrl) {
-                    $answerFileUrl = asset('storage/app/public/data/' . ltrim($answerFile, '/'));
+                // بناء رابط الملف بالاصطلاح العامل (نفس رفع صور الأنشطة: storage/app/public/data/…)
+                if ($answerFile) {
+                    $answerFileUrl = \Illuminate\Support\Str::startsWith((string) $answerFile, 'http')
+                        ? $answerFile
+                        : asset('storage/app/public/data/' . ltrim((string) $answerFile, '/'));
                 }
             @endphp
             <div class="info-section">
