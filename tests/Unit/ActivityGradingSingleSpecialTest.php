@@ -85,6 +85,40 @@ class ActivityGradingSingleSpecialTest extends TestCase
         $this->assertNull(Grader::grade($activity, json_encode(['أ', 'ب', 'ج'])));
     }
 
+    public function test_short_answer_ignores_invisible_and_hamza_differences(): void
+    {
+        $activity = $this->activity([
+            'type' => 'quiz',
+            'questions' => [[
+                'type' => 'short_answer',
+                'question' => 'أكمل',
+                'answer' => 'الصلاة',
+                'points' => 10,
+            ]],
+        ]);
+
+        // مطابقة تامة
+        $this->assertSame(100, Grader::grade($activity, 'الصلاة'));
+        // محرف اتجاه غير مرئي (RLM U+200F) يحقنه لوحة RTL/النسخ — يجب أن يبقى صحيحاً
+        $this->assertSame(100, Grader::grade($activity, "الصلاة\u{200F}"));
+        // محرف ZWNJ غير مرئي
+        $this->assertSame(100, Grader::grade($activity, "\u{200C}الصلاة"));
+
+        // توحيد الكاف الفارسية (ک U+06A9) مع العربية (ك U+0643)
+        $kaf = $this->activity([
+            'type' => 'quiz',
+            'questions' => [['type' => 'short_answer', 'answer' => 'كتاب']],
+        ]);
+        $this->assertSame(100, Grader::grade($kaf, "\u{06A9}تاب")); // کتاب بالكاف الفارسية
+
+        // توحيد الهمزة على واو (ؤ→و): المخزَّن «لؤلؤ» وإجابة الطالب «لولو»
+        $hamza = $this->activity([
+            'type' => 'quiz',
+            'questions' => [['type' => 'short_answer', 'answer' => 'لؤلؤ']],
+        ]);
+        $this->assertSame(100, Grader::grade($hamza, 'لولو'));
+    }
+
     public function test_correct_answer_text_for_reveal(): void
     {
         $letter = $this->activity([

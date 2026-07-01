@@ -302,6 +302,13 @@
                             <span class="type-name">مشروع</span>
                         </label>
                     </div>
+                    <div class="type-option">
+                        <input type="radio" name="type" value="image_order" id="type_image_order" {{ old('type') == 'image_order' ? 'checked' : '' }} onchange="handleTypeChange()">
+                        <label for="type_image_order" class="type-label">
+                            <span class="type-icon">🖼️</span>
+                            <span class="type-name">ترتيب صور</span>
+                        </label>
+                    </div>
                 </div>
                 @error('type')
                     <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
@@ -434,6 +441,26 @@
 <script>
 let questions = [];
 
+// تهريب القيم داخل سمات HTML — يمنع كسر السمة وفقدان/تشويه البيانات عند إعادة الرسم
+function escAttr(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// مزامنة نهائية قبل الإرسال: أطلق change المعلّق (blur) ثم أعد بناء JSON — يعالج مسار Enter
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form[action*="activities"]');
+    if (form) {
+        form.addEventListener('submit', function () {
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+            updateJson();
+        });
+    }
+});
+
 // Load old questions if exists
 const oldQuestions = document.getElementById('questionsJson').value;
 if (oldQuestions) {
@@ -458,10 +485,15 @@ function handleTypeChange() {
     if (questionsSection) questionsSection.style.display = 'none';
     
     // إظهار الحقول المناسبة
-    if (type === 'quiz' || type === 'exercise') {
+    if (type === 'quiz' || type === 'exercise' || type === 'image_order') {
         if (questionsSection) questionsSection.style.display = 'block';
         if (type === 'quiz' && quizFields) {
             quizFields.style.display = 'block';
+        }
+        // نشاط ترتيب صور على مستوى النشاط: ابذر سؤال صور واحداً إن كانت القائمة فارغة
+        if (type === 'image_order' && questions.length === 0) {
+            questions.push({ type: 'image_order', question: '', images: [{ url: '', description: '' }, { url: '', description: '' }], points: 10 });
+            renderQuestions();
         }
     } else if (type === 'project') {
         if (projectFields) projectFields.style.display = 'block';
@@ -531,8 +563,8 @@ function renderQuestions() {
         
         let optionsHtml = '';
         
-        // For ordering questions, don't show correct indicator
-        const isOrderingType = ['word_order', 'sentence_order', 'image_order'].includes(q.type);
+        // أنواع الترتيب لا تُظهر مؤشّر «إجابة صحيحة» — اختيار الحروف منها (ترتيب حروف)
+        const isOrderingType = ['word_order', 'sentence_order', 'image_order', 'letter_choice'].includes(q.type);
         
         if (q.type !== 'image_order' && q.options) {
             q.options.forEach((option, oIndex) => {
@@ -550,8 +582,8 @@ function renderQuestions() {
                         ` : `
                             <span style="width: 32px; text-align: center; font-weight: 600; color: #64748b;">${oIndex + 1}</span>
                         `}
-                        <input type="text" class="option-input" 
-                               value="${option}" 
+                        <input type="text" class="option-input"
+                               value="${escAttr(option)}"
                                onchange="updateOption(${index}, ${oIndex}, this.value)"
                                placeholder="${q.type === 'letter_choice' ? 'الحرف' : (q.type === 'word_order' ? 'الكلمة' : (q.type === 'sentence_order' ? 'الجملة' : 'الخيار'))} ${oIndex + 1}">
                         <button type="button" class="btn-small btn-danger" onclick="removeOption(${index}, ${oIndex})">🗑️</button>
@@ -583,25 +615,25 @@ function renderQuestions() {
             
             <div class="question-fields">
                 <div class="field-row">
-                    <input type="text" class="form-input" value="${q.question}" 
+                    <input type="text" class="form-input" value="${escAttr(q.question)}"
                            onchange="updateQuestion(${index}, 'question', this.value)"
                            placeholder="نص السؤال..." required>
-                    <input type="number" class="form-input" value="${q.points}" 
+                    <input type="number" class="form-input" value="${q.points}"
                            onchange="updateQuestion(${index}, 'points', parseInt(this.value))"
                            placeholder="الدرجة" min="1" required>
                 </div>
-                
+
+                ${mediaRowHtml(q, index)}
+
                 ${q.type === 'letter_choice' ? `
-                    <div class="field-row" style="margin-top:10px;">
-                        <input type="text" class="form-input" value="${q.word || ''}"
-                               onchange="updateQuestion(${index}, 'word', this.value)"
-                               placeholder="الكلمة المستهدفة (مثال: صلاة)" required>
+                    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:13px;color:#0369a1;">
+                        🔤 أدخل حروف الكلمة <b>بالترتيب الصحيح</b> — كل الحروف صحيحة والطالب يعيد ترتيبها لتكوين الكلمة. الكلمة المُكوَّنة: <b>${escAttr((q.options || []).map(o => (typeof o === 'string' ? o : '')).join(''))}</b>
                     </div>
                 ` : ''}
                 ${q.type === 'multiple_choice' || q.type === 'true_false' || q.type === 'letter_choice' ? `
                     <div class="options-container">
                         <label style="font-weight: 600; font-size: 13px; color: #475569;">
-                            ${q.type === 'letter_choice' ? 'الحروف (اضغط على ○ لتحديد الإجابة الصحيحة)' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}
+                            ${q.type === 'letter_choice' ? 'الحروف بالترتيب الصحيح' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}
                         </label>
                         ${optionsHtml}
                         ${q.type === 'multiple_choice' || q.type === 'letter_choice' ? `
@@ -612,8 +644,8 @@ function renderQuestions() {
                 
                 ${q.type === 'short_answer' ? `
                     <div class="options-container">
-                        <label style="font-weight: 600; font-size: 13px; color: #475569; margin-bottom: 6px; display:block;">الإجابة الصحيحة (يقارَن بها نص الطالب بعد تطبيع المسافات والتشكيل)</label>
-                        <input type="text" class="form-input" value="${q.answer || ''}"
+                        <label style="font-weight: 600; font-size: 13px; color: #475569; margin-bottom: 6px; display:block;">الإجابة الصحيحة (يقارَن بها نص الطالب بعد تطبيع المسافات والتشكيل والمحارف الخفية)</label>
+                        <input type="text" class="form-input" value="${escAttr(q.answer || '')}"
                                onchange="updateQuestion(${index}, 'answer', this.value)"
                                placeholder="مثال: الصلاة الوسطى" required>
                     </div>
@@ -637,7 +669,7 @@ function renderQuestions() {
                                 <span style="width: 32px; text-align: center; font-weight: 600; color: #64748b;">${imgIndex + 1}</span>
                                 <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
                                     <div style="display: flex; gap: 8px; align-items: center;">
-                                        <input type="url" class="form-input" value="${img.url || ''}" 
+                                        <input type="url" class="form-input" value="${escAttr(img.url || '')}"
                                                onchange="updateImageUrl(${index}, ${imgIndex}, this.value)"
                                                placeholder="رابط الصورة (URL)" style="flex: 1;">
                                         <label style="padding: 10px 16px; background: #f0f9ff; border: 2px dashed #3b82f6; border-radius: 8px; cursor: pointer; color: #1e40af; font-weight: 600; font-size: 13px; white-space: nowrap; transition: all 0.2s;"
@@ -647,10 +679,10 @@ function renderQuestions() {
                                                    onchange="uploadActivityImage(this, ${index}, ${imgIndex})">
                                         </label>
                                     </div>
-                                    <input type="text" class="form-input" value="${img.description || ''}" 
+                                    <input type="text" class="form-input" value="${escAttr(img.description || '')}"
                                            onchange="updateImageDescription(${index}, ${imgIndex}, this.value)"
                                            placeholder="وصف الصورة (اختياري)">
-                                    ${img.url ? `<img src="${img.url}" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #e2e8f0;" onerror="this.style.display='none'">` : ''}
+                                    ${img.url ? `<img src="${escAttr(img.url)}" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #e2e8f0;" onerror="this.style.display='none'">` : ''}
                                 </div>
                                 <button type="button" class="btn-small btn-danger" onclick="removeImage(${index}, ${imgIndex})">🗑️</button>
                             </div>
@@ -660,11 +692,6 @@ function renderQuestions() {
                     </div>
                 ` : ''}
                 
-                ${q.type === 'short_answer' ? `
-                    <input type="text" class="form-input" value="${q.answer || ''}" 
-                           onchange="updateQuestion(${index}, 'answer', this.value)"
-                           placeholder="الإجابة الصحيحة...">
-                ` : ''}
             </div>
         `;
         
@@ -675,7 +702,71 @@ function renderQuestions() {
 }
 
 function updateJson() {
+    // اختيار الحروف: الكلمة المستهدفة = الحروف بترتيبها الحالي (كلها صحيحة، الترتيب هو المطلوب)
+    questions.forEach(q => {
+        if (q.type === 'letter_choice') {
+            q.word = (q.options || []).map(o => (typeof o === 'string' ? o : '')).join('');
+        }
+    });
     document.getElementById('questionsJson').value = JSON.stringify(questions);
+}
+
+// ===== وسائط لكل سؤال (صورة/فيديو/صوت) =====
+function mediaRowHtml(q, index) {
+    const mtype = q.media_type || '';
+    const label = mtype === 'image' ? 'الصورة' : (mtype === 'video' ? 'الفيديو' : 'الصوت');
+    return `
+        <div class="options-container" style="margin-top:10px;background:#fafbff;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 12px;">
+            <label style="font-weight:600;font-size:13px;color:#475569;display:block;margin-bottom:6px;">🎬 وسائط للسؤال (اختياري)</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <select class="form-input" style="max-width:150px;" onchange="updateQuestionMedia(${index}, 'media_type', this.value)">
+                    <option value="" ${mtype === '' ? 'selected' : ''}>لا شيء</option>
+                    <option value="image" ${mtype === 'image' ? 'selected' : ''}>🖼️ صورة</option>
+                    <option value="video" ${mtype === 'video' ? 'selected' : ''}>🎬 فيديو</option>
+                    <option value="audio" ${mtype === 'audio' ? 'selected' : ''}>🎵 صوت</option>
+                </select>
+                ${mtype ? `
+                    <input type="url" class="form-input" style="flex:1;min-width:200px;" value="${escAttr(q.media_url || '')}"
+                           onchange="updateQuestionMedia(${index}, 'media_url', this.value)"
+                           placeholder="رابط ${label} (URL)">
+                    ${mtype === 'image' ? `
+                        <label style="padding:8px 12px;background:#f0f9ff;border:2px dashed #3b82f6;border-radius:8px;cursor:pointer;color:#1e40af;font-weight:600;font-size:12px;white-space:nowrap;">
+                            📤 رفع
+                            <input type="file" accept="image/*" style="display:none;" onchange="uploadQuestionImage(this, ${index})">
+                        </label>` : ''}
+                ` : ''}
+            </div>
+            ${mtype === 'image' && q.media_url ? `<img src="${escAttr(q.media_url)}" style="max-width:160px;max-height:120px;border-radius:8px;margin-top:8px;border:2px solid #e2e8f0;" onerror="this.style.display='none'">` : ''}
+            ${mtype === 'video' && q.media_url ? `<video src="${escAttr(q.media_url)}" controls style="max-width:220px;max-height:130px;border-radius:8px;margin-top:8px;"></video>` : ''}
+            ${mtype === 'audio' && q.media_url ? `<audio src="${escAttr(q.media_url)}" controls style="margin-top:8px;width:100%;"></audio>` : ''}
+        </div>
+    `;
+}
+
+function updateQuestionMedia(index, field, value) {
+    questions[index][field] = value;
+    if (field === 'media_type' && !value) {
+        delete questions[index].media_url;
+    }
+    renderQuestions();
+}
+
+function uploadQuestionImage(input, index) {
+    var file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('يرجى اختيار ملف صورة فقط'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('حجم الصورة يجب أن يكون أقل من 5 ميجابايت'); return; }
+    var fd = new FormData();
+    fd.append('image', file);
+    fd.append('_token', '{{ csrf_token() }}');
+    fetch('{{ route("admin.activities.upload-image") }}', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+    })
+    .then(function (r) { if (!r.ok) throw new Error('فشل رفع الصورة'); return r.json(); })
+    .then(function (d) { questions[index].media_url = d.url; renderQuestions(); })
+    .catch(function (e) { alert('حدث خطأ أثناء الرفع: ' + e.message); });
 }
 
 // Initialize if type is true_false
@@ -705,8 +796,9 @@ function updateQuestion(index, field, value) {
             questions[index].options = ['صح', 'خطأ'];
             questions[index].answer = '';
         } else if (value === 'letter_choice') {
-            questions[index].options = ['أ', 'ب'];
-            questions[index].answer = '';
+            questions[index].options = ['ص', 'ل', 'ا', 'ة'];
+            delete questions[index].answer;
+            delete questions[index].correct_index;
         } else if (value === 'word_order') {
             questions[index].options = ['كلمة', 'ثانية'];
             delete questions[index].answer; // Answer is the order itself

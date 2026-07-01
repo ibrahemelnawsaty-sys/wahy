@@ -87,6 +87,7 @@ class ActivityManagementController extends Controller
         // Parse questions JSON
         if ($request->filled('questions')) {
             $validated['questions'] = json_decode($validated['questions'], true);
+            $this->validateActivityQuestions($validated['questions']);
         }
 
         // تحويل أنواع الملفات المسموحة إلى JSON
@@ -147,6 +148,7 @@ class ActivityManagementController extends Controller
         // Parse questions JSON
         if ($request->filled('questions')) {
             $validated['questions'] = json_decode($validated['questions'], true);
+            $this->validateActivityQuestions($validated['questions']);
         }
 
         // تحويل أنواع الملفات المسموحة إلى JSON
@@ -159,6 +161,49 @@ class ActivityManagementController extends Controller
         return redirect()
             ->route('admin.activities.index', ['lesson_id' => $validated['lesson_id']])
             ->with('success', 'تم تحديث النشاط بنجاح!');
+    }
+
+    /**
+     * حارس خادمي لسلامة الأسئلة — يمنع تخزين نشاط بلا مفتاح إجابة صالح
+     * (خصوصاً الإجابة القصيرة التي قد تُرسَل فارغة إن لم يُطلَق onchange قبل الحفظ).
+     */
+    private function validateActivityQuestions($questions): void
+    {
+        if (! is_array($questions)) {
+            return;
+        }
+
+        foreach ($questions as $i => $q) {
+            if (! is_array($q)) {
+                continue;
+            }
+            $type = $q['type'] ?? $q['question_type'] ?? null;
+            $n = $i + 1;
+
+            if ($type === 'short_answer') {
+                $answer = trim((string) ($q['correct_answer'] ?? $q['answer'] ?? ''));
+                if ($answer === '') {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'questions' => "السؤال رقم {$n}: يجب إدخال الإجابة الصحيحة لسؤال الإجابة القصيرة.",
+                    ]);
+                }
+            }
+
+            if ($type === 'letter_choice') {
+                $word = trim((string) ($q['word'] ?? $q['target_word'] ?? ''));
+                $letters = is_array($q['options'] ?? null)
+                    ? array_filter(array_map(
+                        fn ($o) => trim((string) (is_array($o) ? ($o['text'] ?? $o['label'] ?? '') : $o)),
+                        $q['options'],
+                    ))
+                    : [];
+                if ($word === '' && empty($letters)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'questions' => "السؤال رقم {$n}: أدخل حروف الكلمة لسؤال اختيار الحروف.",
+                    ]);
+                }
+            }
+        }
     }
 
     public function destroy(Activity $activity)

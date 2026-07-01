@@ -22,7 +22,7 @@ class ActivitySubmission extends Model
 
     protected $fillable = [
         'activity_id', 'student_id', 'answer', 'file_path',
-        'score', 'status', 'reviewed_by', 'feedback',
+        'score', 'status', 'attempts', 'reviewed_by', 'feedback',
         'submitted_at', 'reviewed_at',
     ];
 
@@ -51,6 +51,13 @@ class ActivitySubmission extends Model
             }
 
             $actor = auth()->user();
+
+            // الطالب يعيد إرسال نشاطه (محاولة جديدة) — الدرجة والحالة تُحسبان خادمياً في
+            // StudentController::submitActivity ولا يتحكّم بهما العميل، فالتحديث مشروع لمالك التسليم.
+            if ($actor && ($actor->role ?? null) === 'student' && (int) $actor->getKey() === (int) $submission->student_id) {
+                return;
+            }
+
             if ($actor && in_array($actor->role, ['teacher', 'school_admin', 'super_admin'], true)) {
                 return;
             }

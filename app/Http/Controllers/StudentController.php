@@ -747,11 +747,21 @@ class StudentController extends Controller
             ->where('activity_id', $id)
             ->first();
 
-        // Find next activity in same lesson
-        $nextActivity = Activity::where('lesson_id', $lesson->id)
-            ->where('id', '>', $id)
-            ->orderBy('id')
-            ->first();
+        // بدء مؤقّت الاختبار الموقوت خادمياً (مرة واحدة لكل جلسة/نشاط) — أساس فرض الحد الزمني
+        if (($activity->quiz_duration ?? null) && $activity->type === 'quiz' && ! $submission) {
+            $key = "quiz_started_{$activity->id}";
+            if (! session()->has($key)) {
+                session()->put($key, now()->timestamp);
+            }
+        }
+
+        // Find next activity in same lesson (النشاط قد يكون بلا درس)
+        $nextActivity = $lesson
+            ? Activity::where('lesson_id', $lesson->id)
+                ->where('id', '>', $id)
+                ->orderBy('id')
+                ->first()
+            : null;
 
         return view('student.activity-view', compact('activity', 'lesson', 'nextActivity', 'stats', 'streak', 'submission'));
     }
@@ -804,6 +814,19 @@ class StudentController extends Controller
                 ], 403);
             }
 
+            // حدّ زمني للاختبار الموقوت — يُفرَض بوقت الجلسة الخادمي (لا يتحكّم به العميل)
+            if (($activity->quiz_duration ?? null) && $activity->type === 'quiz') {
+                $startedAt = session("quiz_started_{$activity->id}");
+                if ($startedAt && (now()->timestamp - (int) $startedAt) > (((int) $activity->quiz_duration) * 60 + 10)) {
+                    session()->forget("quiz_started_{$activity->id}");
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'انتهى الوقت المحدد لهذا الاختبار.',
+                    ], 422);
+                }
+            }
+
             // التحقق + دعم رفع الملفات (Issue 55)
             $rules = [
                 'answer' => 'required',
@@ -834,8 +857,17 @@ class StudentController extends Controller
             // حساب الدرجة عبر الـ Service الموحّد لمنطق التصحيح
             $score = \App\Services\ActivityGradingService::grade($activity, $rawAnswer);
 
-            // تحديد حالة التسليم
-            $status = $score !== null ? 'completed' : 'pending';
+            // تطبيق حقول النشاط: درجة النجاح وعدد المحاولات
+            $passing = \App\Services\ActivityGradingService::passingScoreFor($activity);
+            $passed = ($score !== null && $score >= $passing);
+            $maxAttempts = max(1, (int) ($activity->max_attempts ?? 1));
+
+            // حالة التسليم:
+            //  - score === null → pending (مراجعة/تصحيح يدوي من المعلم)
+            //  - اجتاز درجة النجاح → completed (إنجاز نهائي)
+            //  - لم يجتَز → needs_review: خارج حالات الإنجاز (لا يُضخّم الإتقان)،
+            //    وقابل لإعادة المحاولة ضمن max_attempts، وليس ضمن طابور مراجعة المعلم (pending).
+            $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
 
             // تخزين مسار الملف ضمن الإجابة كـ JSON إن وجد
             $answerToStore = is_array($rawAnswer) ? json_encode($rawAnswer, JSON_UNESCAPED_UNICODE) : $rawAnswer;
@@ -850,7 +882,7 @@ class StudentController extends Controller
             // تنفيذ ذرّي: فحص duplicate تحت قفل + إنشاء submission
             // يسمح بإعادة الإرسال إذا كان السابق needs_revision/rejected (لكن ليس completed/approved/pending)
             try {
-                $submissionResult = \Illuminate\Support\Facades\DB::transaction(function () use ($student, $id, $answerToStore, $status, $score) {
+                $submissionResult = \Illuminate\Support\Facades\DB::transaction(function () use ($student, $id, $answerToStore, $status, $score, $maxAttempts) {
                     // فحص duplicate تحت قفل صفّي — يمنع double-submit race
                     $existing = ActivitySubmission::where('student_id', $student->id)
                         ->where('activity_id', $id)
@@ -858,21 +890,30 @@ class StudentController extends Controller
                         ->first();
 
                     if ($existing) {
-                        // يُسمح بإعادة الإرسال فقط إذا كان السابق مرفوضًا/يحتاج تعديل
-                        if (in_array($existing->status, ['needs_review', 'rejected'], true)) {
+                        $attemptsUsed = (int) ($existing->attempts ?? 1);
+                        $resubmittable = in_array($existing->status, ['needs_review', 'rejected'], true);
+
+                        // إعادة المحاولة مسموحة إن لم يُعتمد بعد ولم تُستنفد المحاولات
+                        if ($resubmittable && $attemptsUsed < $maxAttempts) {
                             $existing->update([
                                 'answer' => $answerToStore,
                                 'status' => $status,
                                 'score' => $score,
+                                'attempts' => $attemptsUsed + 1,
                                 'submitted_at' => now(),
                                 'feedback' => null,
-                                'teacher_feedback' => null,
                             ]);
 
-                            return ['duplicate' => false, 'submission' => $existing];
+                            return ['duplicate' => false, 'submission' => $existing, 'exhausted' => false];
                         }
 
-                        return ['duplicate' => true, 'submission' => null];
+                        // استُنفدت المحاولات دون اجتياز
+                        if ($resubmittable && $attemptsUsed >= $maxAttempts) {
+                            return ['duplicate' => true, 'submission' => null, 'exhausted' => true];
+                        }
+
+                        // مُعتمد/مكتمل/بانتظار مراجعة يدوية → لا إعادة إرسال
+                        return ['duplicate' => true, 'submission' => null, 'exhausted' => false];
                     }
 
                     $submission = ActivitySubmission::create([
@@ -881,10 +922,11 @@ class StudentController extends Controller
                         'answer' => $answerToStore,
                         'status' => $status,
                         'score' => $score,
+                        'attempts' => 1,
                         'submitted_at' => now(),
                     ]);
 
-                    return ['duplicate' => false, 'submission' => $submission];
+                    return ['duplicate' => false, 'submission' => $submission, 'exhausted' => false];
                 }, 3);
             } catch (\Throwable $e) {
                 if ($uploadedPath) {
@@ -906,8 +948,15 @@ class StudentController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'تم إرسال هذا النشاط مسبقاً',
+                    'message' => ! empty($submissionResult['exhausted'])
+                        ? 'استنفدت عدد محاولاتك لهذا النشاط (' . $maxAttempts . ').'
+                        : 'تم إرسال هذا النشاط مسبقاً',
                 ]);
+            }
+
+            // اجتياز موقوت مكتمل → امسح مؤقّت الجلسة
+            if (($activity->quiz_duration ?? null) && $activity->type === 'quiz') {
+                session()->forget("quiz_started_{$activity->id}");
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
@@ -1075,7 +1124,8 @@ class StudentController extends Controller
             'streak_message' => $streakMessage,
             'total_xp' => $xp + $streakBonus,
             'score' => $score ?? null,
-            'passing_score' => \App\Services\ActivityGradingService::passingScoreFor($activity),
+            'passing_score' => $passing,
+            'passed' => $passed,
             'correct_answer' => $correctAnswer,
         ]);
     }

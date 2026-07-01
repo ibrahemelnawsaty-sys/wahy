@@ -416,6 +416,16 @@
             </div>
         </div>
         <div class="activity-title-header">{{ $activity->title ?? 'نشاط تعليمي' }}</div>
+        @php
+            $__timedQuiz = ($activity->quiz_duration ?? null) && $activity->type === 'quiz'
+                && ! (isset($submission) && $submission && ! in_array($submission->status ?? '', ['needs_review', 'rejected'], true));
+        @endphp
+        @if($__timedQuiz)
+        <div id="quizTimer" data-duration="{{ (int) $activity->quiz_duration }}"
+             style="text-align:center;margin-top:10px;font-weight:800;font-size:18px;color:#FCD34D;">
+            ⏱ <span id="quizTimerText">{{ (int) $activity->quiz_duration }}:00</span>
+        </div>
+        @endif
     </div>
 
     <div class="activity-content-card fade-in">
@@ -665,7 +675,9 @@
                         <span class="quiz-question-number">{{ $qIndex + 1 }}</span>
                         {{ $question['question'] ?? $question['text'] ?? 'سؤال' }}
                     </div>
-                    
+
+                    @include('partials.question-media', ['q' => $question])
+
                     @if(isset($question['type']) && $question['type'] === 'image_order' && !empty($question['images']))
                         {{-- سؤال ترتيب صور داخل الاختبار --}}
                         <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:12px;">اختر الرقم المناسب لكل صورة</p>
@@ -697,6 +709,11 @@
                             @endforeach
                         </div>
                         <input type="hidden" name="question_{{ $qIndex }}" class="quiz-image-order-answer" value="">
+                    @elseif(($question['type'] ?? null) === 'short_answer')
+                        {{-- إجابة قصيرة داخل الاختبار --}}
+                        <textarea class="text-input-field exercise-answer" data-index="{{ $qIndex }}"
+                                  rows="2" placeholder="اكتب إجابتك هنا..."
+                                  style="width:100%;padding:12px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:white;"></textarea>
                     @else
                         <div class="quiz-options">
                             @foreach($question['options'] ?? $question['choices'] ?? [] as $oIndex => $option)
@@ -852,6 +869,7 @@
                     }
                 </style>
                 <div class="question-section">
+                    @include('partials.question-media', ['q' => $firstQ])
                     <div class="question-text">
                         @if(in_array($effType, ['word_ordering', 'word_order'])) 🔤 رتّب الكلمات بالترتيب الصحيح
                         @else 📝 رتّب الجمل بالترتيب الصحيح
@@ -893,6 +911,7 @@
                     }
                 @endphp
                 <div class="question-section">
+                    @include('partials.question-media', ['q' => $firstQ])
                     <div class="question-text">🔤 كوّن الكلمة الصحيحة من الحروف</div>
                     @if(!empty($firstQ['hint']))
                         <p style="color:rgba(255,255,255,.7);font-size:14px;text-align:center;margin-bottom:12px;">💡 {{ $firstQ['hint'] }}</p>
@@ -922,6 +941,7 @@
                     $promptText = $firstQ['question'] ?? $firstQ['text'] ?? $activity->description;
                 @endphp
                 <div class="question-section">
+                    @include('partials.question-media', ['q' => $firstQ])
                     <div class="question-text">✍️ {{ $promptText ?: 'أكمل الفراغ بالإجابة الصحيحة' }}</div>
                     <input type="text" name="answer" id="shortAnswerInput"
                            class="text-input-field"
@@ -1189,6 +1209,31 @@
         });
     })();
 
+    // ===== مؤقّت الاختبار الموقوت =====
+    (function () {
+        const el = document.getElementById('quizTimer');
+        if (!el) return;
+        let remaining = parseInt(el.dataset.duration, 10) * 60;
+        const txt = document.getElementById('quizTimerText');
+        const render = () => {
+            const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+            const s = String(remaining % 60).padStart(2, '0');
+            if (txt) txt.textContent = `${m}:${s}`;
+            if (remaining <= 60) el.style.color = '#FCA5A5';
+        };
+        render();
+        const iv = setInterval(() => {
+            remaining--;
+            render();
+            if (remaining <= 0) {
+                clearInterval(iv);
+                showToast('⏱ انتهى وقت الاختبار — يتم إرسال إجابتك', 'warning');
+                const f = document.getElementById('activityForm');
+                if (f) f.requestSubmit(document.getElementById('submitBtn'));
+            }
+        }, 1000);
+    })();
+
     document.getElementById('activityForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -1329,16 +1374,19 @@
                 let titleColor = '#3b82f6';
 
                 if (score !== null) {
-                    if (score >= 80) {
-                        title = 'ممتاز!';
+                    // العتبة الفاصلة هي درجة النجاح التي حدّدها المعلم (لا عتبات ثابتة)
+                    const passing = (data.passing_score === null || data.passing_score === undefined) ? 50 : Number(data.passing_score);
+                    const passed = (data.passed === true) || (score >= passing);
+                    if (passed && score >= 90) {
+                        title = 'ممتاز! 🎉';
                         icon = '🎉';
                         titleColor = '#10B981';
-                    } else if (score >= 50) {
-                        title = 'جيد';
-                        icon = '👍';
-                        titleColor = '#F59E0B';
+                    } else if (passed) {
+                        title = 'أحسنت — اجتزت النشاط';
+                        icon = '✅';
+                        titleColor = '#10B981';
                     } else {
-                        title = 'إجابة غير صحيحة';
+                        title = 'لم تبلغ درجة النجاح (' + passing + '%)';
                         icon = '❌';
                         titleColor = '#EF4444';
                     }

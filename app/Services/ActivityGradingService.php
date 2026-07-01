@@ -611,9 +611,10 @@ class ActivityGradingService
             $isCorrect = match ($type) {
                 'short_answer' => is_string($student) && $key['text'] !== null
                     && self::textEquals($student, (string) $key['text']),
+                // اختيار حروف داخل كويز: الهدف هو الكلمة (word/target_word) لا الحرف المفرد
                 'letter_choice' => self::textEquals(
                     is_array($student) ? implode('', $student) : (string) $student,
-                    (string) ($key['text'] ?? ''),
+                    (string) ($question['word'] ?? $question['target_word'] ?? $key['text'] ?? ''),
                 ),
                 default => ! empty($options)
                     ? self::optionMatches($student, $key['text'], $options, $key['index'])
@@ -749,20 +750,34 @@ class ActivityGradingService
     private static function normalizeText(string $value): string
     {
         $value = mb_strtolower(trim($value), 'UTF-8');
+        // توحيد Unicode NFC (توحيد الأشكال المركّبة/المفكّكة) إن توفّر امتداد intl
+        if (class_exists(\Normalizer::class)) {
+            $normalized = \Normalizer::normalize($value, \Normalizer::FORM_C);
+            if ($normalized !== false) {
+                $value = $normalized;
+            }
+        }
+        // إزالة محارف الاتجاه/العرض-صفري غير المرئية (تحقنها لوحات RTL/النسخ-اللصق/المتصفح)
+        // — كانت تُفشِل مطابقة إجابة قصيرة/حروف مطابقة بصرياً 100% فتُمنح صفراً.
+        $value = preg_replace('/[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u', '', $value);
         // إزالة التشكيل العربي
         $value = preg_replace('/[\x{064B}-\x{0652}\x{0670}\x{0640}]/u', '', $value);
-        // توحيد الألف والياء والتاء المربوطة
+        // توحيد الألف والياء والتاء المربوطة وحوامل الهمزة والأحرف الفارسية المشابهة بصرياً
         $value = strtr($value, [
             'أ' => 'ا',
             'إ' => 'ا',
             'آ' => 'ا',
             'ى' => 'ي',
             'ة' => 'ه',
+            'ؤ' => 'و',   // همزة على واو → واو (U+0624 → U+0648)
+            'ئ' => 'ي',   // همزة على ياء → ياء (U+0626 → U+064A)
+            'ک' => 'ك',   // كاف فارسية → كاف عربية (U+06A9 → U+0643)
+            'ی' => 'ي',   // ياء فارسية → ياء عربية (U+06CC → U+064A)
         ]);
         // ضغط المسافات المتعددة
         $value = preg_replace('/\s+/u', ' ', $value);
 
-        return $value;
+        return trim($value);
     }
 
     /**
