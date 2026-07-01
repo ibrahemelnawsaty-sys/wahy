@@ -1487,14 +1487,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 family: 'Cairo, sans-serif',
                                 size: 13
                             },
-                            color: '#718096',
+                            color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#cbd5e1' : '#718096',
                             padding: 10,
                             callback: function(value) {
                                 return value;
                             }
                         },
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.05)',
+                            color: document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.05)',
                             drawBorder: false,
                         },
                         border: {
@@ -1507,7 +1507,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 family: 'Cairo, sans-serif',
                                 size: 12
                             },
-                            color: '#718096',
+                            color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#cbd5e1' : '#718096',
                             maxRotation: 0,
                             autoSkip: true,
                             maxTicksLimit: 10,

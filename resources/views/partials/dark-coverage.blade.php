@@ -331,6 +331,7 @@
     /* (6b) حالات مؤكّدة مُعرّفة بكلاس (أسماء/قيَم كنصوص div لا عناوين) على بطاقات مُعتَّمة */
     html[data-theme="dark"] .meaning-name,
     html[data-theme="dark"] .ml-user-name,
+    html[data-theme="dark"] .ml-stat-value,
     html[data-theme="dark"] .av-title,
     html[data-theme="dark"] .value-name,
     html[data-theme="dark"] .section-head-title,
@@ -376,16 +377,29 @@
     }
     html[data-theme="dark"] .badge-active,
     html[data-theme="dark"] .status-completed,
-    html[data-theme="dark"] .status-approved {
+    html[data-theme="dark"] .status-approved,
+    html[data-theme="dark"] .ml-badge-read {
         background-color: rgba(16,185,129,0.15) !important;
         background-image: none !important;
         color: #6ee7b7 !important;
     }
     html[data-theme="dark"] .status-pending,
-    html[data-theme="dark"] .badge-pending {
+    html[data-theme="dark"] .badge-pending,
+    html[data-theme="dark"] .ml-badge-unread {
         background-color: rgba(245,158,11,0.15) !important;
         background-image: none !important;
         color: #fcd34d !important;
+    }
+    /* استثناء: نقاط مفتاح شجرة القيم (student) تستخدم .status-* كسواتش لونية صلبة بلا نص —
+       نستعيد ألوانها الصلبة كي لا تتحوّل إلى شارات باهتة (تصادم اسم صنف مع شارات الحالة). */
+    html[data-theme="dark"] .values-tree-legend .status-completed {
+        background-color: #48bb78 !important; color: transparent !important;
+    }
+    html[data-theme="dark"] .values-tree-legend .status-progress {
+        background-color: #ecc94b !important;
+    }
+    html[data-theme="dark"] .values-tree-legend .status-locked {
+        background-color: #cbd5e0 !important;
     }
     html[data-theme="dark"] .status-rejected,
     html[data-theme="dark"] .stat-badge,
