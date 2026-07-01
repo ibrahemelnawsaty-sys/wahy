@@ -377,3 +377,55 @@
         background-color: transparent !important;
     }
 </style>
+
+<script>
+    // Chart.js dark-mode: تسميات المحاور/الأسطورة وخطوط الشبكة الافتراضية (#666 / أسود شفّاف) تختفي على السطح الداكن.
+    // نعترض إسناد window.Chart لنضبط الافتراضيات *قبل* إنشاء أي مخطّط (المخططات تُنشأ في سكربتات نهاية الصفحة)،
+    // ونعيد ضبطها + نُحدّث المخططات القائمة عند تبديل الثيم.
+    (function () {
+        function palette() {
+            var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                text: dark ? '#cbd5e1' : '#666666',
+                grid: dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.1)',
+            };
+        }
+        function applyDefaults(C) {
+            if (!C || !C.defaults) return;
+            var p = palette();
+            C.defaults.color = p.text;
+            C.defaults.borderColor = p.grid;
+            try {
+                if (C.defaults.scale && C.defaults.scale.grid) C.defaults.scale.grid.color = p.grid;
+                if (C.defaults.scales) {
+                    ['x', 'y', 'r', 'linear', 'category', 'radialLinear'].forEach(function (k) {
+                        if (C.defaults.scales[k]) {
+                            if (C.defaults.scales[k].grid) C.defaults.scales[k].grid.color = p.grid;
+                            if (C.defaults.scales[k].ticks) C.defaults.scales[k].ticks.color = p.text;
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
+        var _c = window.Chart;
+        if (_c) applyDefaults(_c);
+        try {
+            Object.defineProperty(window, 'Chart', {
+                configurable: true,
+                get: function () { return _c; },
+                set: function (v) { _c = v; applyDefaults(v); },
+            });
+        } catch (e) {
+            var n = 0, id = setInterval(function () {
+                if (window.Chart) { applyDefaults(window.Chart); clearInterval(id); }
+                if (++n > 100) clearInterval(id);
+            }, 50);
+        }
+        document.addEventListener('wahy:themechange', function () {
+            if (!window.Chart) return;
+            applyDefaults(window.Chart);
+            var inst = window.Chart.instances || {};
+            Object.keys(inst).forEach(function (k) { try { inst[k].update(); } catch (e) {} });
+        });
+    })();
+</script>
