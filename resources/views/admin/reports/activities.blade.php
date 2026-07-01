@@ -53,7 +53,7 @@
                 <tr>
                     <td><strong>{{ $activity->title }}</strong></td>
                     <td><span class="badge badge-{{ $activity->type }}">{{ $activity->type == 'quiz' ? 'اختبار' : ($activity->type == 'exercise' ? 'تمرين' : 'مشروع') }}</span></td>
-                    <td>{{ $activity->lesson->concept->value->emoji }} {{ $activity->lesson->concept->value->name }}</td>
+                    <td>{{ $activity->lesson?->concept?->value?->icon ?? '💎' }} {{ $activity->lesson?->concept?->value?->name ?? '—' }}</td>
                     <td>{{ $activity->submissions_count }}</td>
                     <td>{{ number_format($activity->average_score ?? 0, 1) }}%</td>
                     <td><span class="badge badge-{{ $activity->status }}">{{ $activity->status == 'active' ? 'نشط' : 'غير نشط' }}</span></td>

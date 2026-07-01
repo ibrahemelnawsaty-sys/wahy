@@ -298,7 +298,7 @@ class LeaderboardController extends Controller
                     'rank' => $rank++,
                     'id' => $s->id,
                     'name' => $s->name,
-                    'logo' => $s->logo ? asset('storage/' . $s->logo) : asset('images/default-school.png'),
+                    'logo' => $s->logo ? asset('storage/app/public/data/' . ltrim($s->logo, '/')) : asset('images/default-school.png'),
                     'points' => (int) ($s->total_points ?? 0),
                     'students_count' => (int) ($s->students_count ?? 0),
                     'teachers_count' => (int) ($s->teachers_count ?? 0),
@@ -387,8 +387,14 @@ class LeaderboardController extends Controller
     private function avatarUrl(?string $path, ?string $name = null): string
     {
         if ($path) {
-            // إن وُجد مسار، إرجاعه عبر storage URL
-            return asset('storage/' . ltrim($path, '/'));
+            // رابط خارجي مباشر
+            if (str_starts_with($path, 'http')) {
+                return $path;
+            }
+
+            // المسار المحفوظ نسبي لجذر قرص public المخصّص (storage/app/public/data/)
+            // — نفس اصطلاح User::getAvatarUrlAttribute، وإلا كسرت كل الصور المرفوعة.
+            return asset('storage/app/public/data/' . ltrim($path, '/'));
         }
 
         // fallback إلى SVG data URI (لا يحتاج ملف فعلي على القرص)

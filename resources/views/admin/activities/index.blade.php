@@ -300,14 +300,18 @@
                     @endif
                 </td>
                 <td>
+                    @if($activity->lesson)
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <span class="lesson-badge">
                             📚 {{ $activity->lesson->title }}
                         </span>
                         <span class="lesson-badge">
-                            {{ $activity->lesson->concept->value->icon }} {{ $activity->lesson->concept->name }}
+                            {{ $activity->lesson->concept?->value?->icon }} {{ $activity->lesson->concept?->name }}
                         </span>
                     </div>
+                    @else
+                    <span class="lesson-badge">🏦 بنك الأنشطة</span>
+                    @endif
                 </td>
                 <td>
                     <span class="status-badge status-{{ $activity->status }}">

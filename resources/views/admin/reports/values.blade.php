@@ -20,7 +20,7 @@
         @forelse($values as $value)
         <div class="value-card">
             <div class="value-header">
-                <div class="value-emoji">{{ $value->emoji }}</div>
+                <div class="value-emoji">{{ $value->icon ?? '💎' }}</div>
                 <h3>{{ $value->name }}</h3>
             </div>
             

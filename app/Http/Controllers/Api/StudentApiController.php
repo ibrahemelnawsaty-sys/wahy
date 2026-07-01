@@ -134,8 +134,8 @@ class StudentApiController extends Controller
     {
         $user = $request->user();
 
+        // ملاحظة: جدول activities لا يملك عمود school_id — عزل المدرسة يتم عبر فصول الطالب أدناه
         $query = Activity::with(['lesson.concept.value'])
-            ->where('school_id', $user->school_id)
             ->where('status', 'active');
 
         // Filter by classroom if student
@@ -205,8 +205,9 @@ class StudentApiController extends Controller
 
         $activity = Activity::with(['lesson.concept.value', 'creator'])->findOrFail($id);
 
-        // Check access
-        if ($activity->school_id !== $user->school_id) {
+        // Check access: النشاط يجب أن يكون ضمن فصول الطالب (activities بلا عمود school_id)
+        $classroomIds = $user->classrooms->pluck('id')->toArray();
+        if (! in_array($activity->classroom_id, $classroomIds, true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول لهذا النشاط',
@@ -232,13 +233,13 @@ class StudentApiController extends Controller
                 'attachments' => $activity->attachments,
                 'is_team_activity' => $activity->is_team_activity,
                 'due_date' => $activity->due_date,
-                'lesson' => [
+                'lesson' => $activity->lesson ? [
                     'id' => $activity->lesson->id,
                     'title' => $activity->lesson->title,
                     'content' => $activity->lesson->content,
-                ],
+                ] : null,
                 'creator' => [
-                    'name' => $activity->creator->name,
+                    'name' => $activity->creator?->name,
                 ],
                 'submission' => $submission ? [
                     'id' => $submission->id,
@@ -259,8 +260,9 @@ class StudentApiController extends Controller
         $user = $request->user();
         $activity = Activity::findOrFail($id);
 
-        // Check access
-        if ($activity->school_id !== $user->school_id) {
+        // Check access: النشاط يجب أن يكون ضمن فصول الطالب (activities بلا عمود school_id)
+        $classroomIds = $user->classrooms->pluck('id')->toArray();
+        if (! in_array($activity->classroom_id, $classroomIds, true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول لهذا النشاط',
@@ -287,7 +289,8 @@ class StudentApiController extends Controller
         $data = [
             'activity_id' => $id,
             'student_id' => $user->id,
-            'answers' => $request->answers,
+            // العمود الفعلي 'answer' (مفرد، نصّي) — نُرمّزه JSON بنفس اصطلاح الويب
+            'answer' => json_encode($request->answers, JSON_UNESCAPED_UNICODE),
             'status' => 'pending',
         ];
 

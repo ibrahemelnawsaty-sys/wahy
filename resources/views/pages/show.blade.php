@@ -620,6 +620,7 @@
                                                         $alertColors = ['info' => '#3b82f6', 'success' => '#10b981', 'warning' => '#f59e0b', 'error' => '#ef4444'];
                                                         $bgColors = ['info' => '#dbeafe', 'success' => '#d1fae5', 'warning' => '#fef3c7', 'error' => '#fee2e2'];
                                                         $type = $component['content']['type'] ?? 'info';
+                                                        $type = in_array($type, ['info', 'success', 'warning', 'error'], true) ? $type : 'info';
                                                     @endphp
                                                     <div class="component-alert" style="background:{{ $bgColors[$type] }};border-right:4px solid {{ $alertColors[$type] }};">
                                                         <span class="alert-icon">{{ $component['content']['icon'] ?? 'ℹ️' }}</span>
@@ -688,6 +689,9 @@
         <div style="min-height: 100vh; padding: 80px 0;">
             <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
         @foreach($page->json_data as $block)
+            @if(!is_array($block) || !isset($block['type']))
+                @continue
+            @endif
             @switch($block['type'])
                 @case('hero')
                     <section style="text-align: center; padding: 80px 24px; background: linear-gradient(135deg, {{ setting('primary_color', '#3CCB8A') }} 0%, #2fb577 100%); border-radius: 16px; color: white; margin-bottom: 48px;">

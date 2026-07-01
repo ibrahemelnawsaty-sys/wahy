@@ -154,7 +154,7 @@
                                     <td>
                                         @if($activity->lesson)
                                             <small class="text-muted">
-                                                {{ $activity->lesson->concept->value->name }} → 
+                                                {{ $activity->lesson->concept?->value?->name }} →
                                                 {{ $activity->lesson->title }}
                                             </small>
                                         @else

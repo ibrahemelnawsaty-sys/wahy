@@ -151,7 +151,7 @@
                 <label for="role" class="form-label form-label-required">نوع الحساب</label>
                 <select id="role" name="role" class="form-select @error('role') error @enderror" required>
                     <option value="">اختر نوع الحساب</option>
-                    <option value="school_admin" {{ old('role') == 'school_admin' ? 'selected' : '' }}>مدير مدرسة</option>
+                    {{-- إزالة تسجيل «مدير مدرسة» ذاتياً: دور إداري يُنشئه السوبر أدمن فقط (منع رفض النموذج وتصعيد الصلاحيات) --}}
                     <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>معلم</option>
                     <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>طالب</option>
                     <option value="parent" {{ old('role') == 'parent' ? 'selected' : '' }}>ولي أمر</option>

@@ -371,9 +371,9 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @if($activity->lesson && $activity->lesson->concept && $activity->lesson->concept->meaning && $activity->lesson->concept->meaning->value)
+                                        @if($activity->lesson?->concept?->value)
                                             <span class="fa-value-badge">
-                                                {{ $activity->lesson->concept->meaning->value->name }}
+                                                {{ $activity->lesson->concept->value->name }}
                                             </span>
                                         @else
                                             <span class="fa-value-badge empty">غير محدد</span>

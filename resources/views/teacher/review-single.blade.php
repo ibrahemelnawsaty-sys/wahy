@@ -52,19 +52,19 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">القيمة:</span>
-                        <span class="info-value">{{ $submission->activity->lesson->concept->value->title }}</span>
+                        <span class="info-value">{{ $submission->activity?->lesson?->concept?->value?->name ?? '-' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">المفهوم:</span>
-                        <span class="info-value">{{ $submission->activity->lesson->concept->title }}</span>
+                        <span class="info-value">{{ $submission->activity?->lesson?->concept?->name ?? '-' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">الدرس:</span>
-                        <span class="info-value">{{ $submission->activity->lesson->title }}</span>
+                        <span class="info-value">{{ $submission->activity?->lesson?->title ?? '-' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">النشاط:</span>
-                        <span class="info-value">{{ $submission->activity->title }}</span>
+                        <span class="info-value">{{ $submission->activity?->title ?? 'نشاط محذوف' }}</span>
                     </div>
                 </div>
             </div>
@@ -72,7 +72,7 @@
             <!-- Activity Description -->
             <div class="info-section">
                 <h3 class="section-title">وصف النشاط</h3>
-                <div class="activity-description">{{ $submission->activity->description }}</div>
+                <div class="activity-description">{{ $submission->activity?->description }}</div>
             </div>
 
             <!-- Student Answer -->

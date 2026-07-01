@@ -160,7 +160,7 @@
         <div class="values-grid">
             @forelse($topValues as $value)
             <div class="value-card">
-                <div class="value-emoji">{{ $value->emoji }}</div>
+                <div class="value-emoji">{{ $value->icon ?? '💎' }}</div>
                 <h4>{{ $value->name }}</h4>
                 <div class="value-meta">
                     <span>{{ $value->concepts_count }} مفهوم</span>
