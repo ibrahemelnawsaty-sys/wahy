@@ -482,6 +482,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/review', [TeacherController::class, 'reviewSubmissions'])->name('review');
         Route::get('/review/{id}', [TeacherController::class, 'reviewSubmission'])->name('review.single');
         Route::post('/review/{id}', [TeacherController::class, 'submitReview'])->name('review.submit');
+        Route::post('/review/{id}/allow-retry', [TeacherController::class, 'allowRetry'])->name('review.allow-retry');
         Route::get('/students', [TeacherController::class, 'studentReports'])->name('students');
         Route::get('/students/{id}', [TeacherController::class, 'studentDetail'])->name('students.detail');
         Route::get('/classrooms', [TeacherController::class, 'classrooms'])->name('classrooms');

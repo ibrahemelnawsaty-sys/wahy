@@ -131,8 +131,10 @@ class TeacherController extends Controller
             ->distinct()
             ->pluck('student_id');
 
+        // pending = بانتظار تصحيح يدوي (رفع/مقالي)، needs_review = لم يجتَز التصحيح الآلي
+        // (إجابة خاطئة) — كلاهما يظهر للمعلم ليصحّح أو يسمح بإعادة المحاولة.
         $submissions = ActivitySubmission::whereIn('student_id', $studentIds)
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'needs_review'])
             ->with(['student', 'activity.lesson.concept.value'])
             ->latest('submitted_at')
             ->paginate(20);
@@ -273,6 +275,61 @@ class TeacherController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم تقييم النشاط بنجاح',
+        ]);
+    }
+
+    /**
+     * السماح للطالب بإعادة محاولة النشاط — يعيد التسليم لحالة قابلة لإعادة الإرسال
+     * ويصفّر عدّاد المحاولات ليحصل على مجموعة محاولات جديدة.
+     */
+    public function allowRetry(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        try {
+            $submission = DB::transaction(function () use ($id, $user, $request) {
+                $submission = ActivitySubmission::lockForUpdate()->findOrFail($id);
+
+                $hasAccess = DB::table('classroom_student')
+                    ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
+                    ->where('classrooms.teacher_id', $user->id)
+                    ->where('classroom_student.student_id', $submission->student_id)
+                    ->exists();
+
+                if (! $hasAccess) {
+                    throw new \Illuminate\Auth\Access\AuthorizationException('ليس لديك صلاحية');
+                }
+
+                $submission->update([
+                    'status' => 'needs_review',
+                    'attempts' => 0,
+                    'feedback' => $request->input('feedback') ?: 'سمح لك المعلم بإعادة المحاولة.',
+                    'reviewed_by' => $user->id,
+                    'reviewed_at' => now(),
+                ]);
+
+                return $submission;
+            }, 3);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return response()->json(['error' => 'غير مصرح بهذا الإجراء'], 403);
+        }
+
+        try {
+            $activityTitle = optional($submission->activity)->title ?? 'نشاط';
+            NotificationService::create(
+                $submission->student_id,
+                'activity_retry',
+                '🔄 يمكنك إعادة المحاولة',
+                "سمح لك المعلم بإعادة محاولة نشاط: {$activityTitle}",
+                ['activity_id' => $submission->activity_id],
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('retry notification failed: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم السماح للطالب بإعادة المحاولة',
         ]);
     }
 

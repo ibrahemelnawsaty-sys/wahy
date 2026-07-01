@@ -42,7 +42,7 @@
                 </div>
                 <div>
                     <div class="student-name-large">{{ $submission->student->name }}</div>
-                    <div class="submission-date">تم التقديم: {{ $submission->submitted_at->format('Y-m-d H:i') }}</div>
+                    <div class="submission-date">تم التقديم: {{ $submission->submitted_at?->format('Y-m-d H:i') ?? '-' }}</div>
                 </div>
             </div>
 
@@ -66,6 +66,10 @@
                         <span class="info-label">النشاط:</span>
                         <span class="info-value">{{ $submission->activity?->title ?? 'نشاط محذوف' }}</span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">عدد المحاولات:</span>
+                        <span class="info-value">{{ $submission->attempts ?? 1 }}@if($submission->activity?->max_attempts) / {{ $submission->activity->max_attempts }} مسموحة@endif</span>
+                    </div>
                 </div>
             </div>
 
@@ -76,25 +80,59 @@
             </div>
 
             <!-- Student Answer -->
+            @php
+                // إجابة الطالب مخزّنة في العمود answer؛ وعند رفع ملف تكون JSON: {note, file, file_url}
+                $raw = $submission->answer;
+                $decoded = null;
+                if (is_string($raw)) {
+                    $tmp = json_decode($raw, true);
+                    if (json_last_error() === JSON_ERROR_NONE) { $decoded = $tmp; }
+                } elseif (is_array($raw)) {
+                    $decoded = $raw;
+                }
+
+                $answerNote = null;
+                $answerFile = null;
+                $answerFileUrl = null;
+
+                if (is_array($decoded)) {
+                    if (array_key_exists('note', $decoded) || array_key_exists('file', $decoded)) {
+                        $answerNote = is_scalar($decoded['note'] ?? null) ? $decoded['note'] : null;
+                        $answerFile = $decoded['file'] ?? null;
+                        $answerFileUrl = $decoded['file_url'] ?? null;
+                    } else {
+                        // إجابة منظّمة (ترتيب/حروف/كويز) — اعرضها بصيغة مقروءة
+                        $answerNote = implode('، ', array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE), $decoded));
+                    }
+                } else {
+                    $answerNote = is_string($raw) ? $raw : null;
+                }
+
+                // احتياط للعمود القديم file_path
+                if (! $answerFile && $submission->file_path) {
+                    $answerFile = $submission->file_path;
+                }
+                if ($answerFile && ! $answerFileUrl) {
+                    $answerFileUrl = asset('storage/app/public/data/' . ltrim($answerFile, '/'));
+                }
+            @endphp
             <div class="info-section">
                 <h3 class="section-title">إجابة الطالب</h3>
-                @if($submission->content)
-                    <div class="student-answer">{{ html_excerpt($submission->content, 2000) }}</div>
+                @if($answerNote !== null && $answerNote !== '')
+                    <div class="student-answer">{{ html_excerpt($answerNote, 2000) }}</div>
                 @endif
 
-                @if($submission->file_path)
+                @if($answerFile)
                     <div class="attached-file">
                         <span class="file-icon-large">📎</span>
                         <div>
-                            <div class="file-label">ملف مرفق</div>
-                            <a href="{{ asset('storage/app/public/data/' . $submission->file_path) }}" target="_blank" class="file-link">
-                                فتح الملف
-                            </a>
+                            <div class="file-label">ملف مرفق من الطالب</div>
+                            <a href="{{ $answerFileUrl }}" target="_blank" class="file-link">فتح / تحميل الملف</a>
                         </div>
                     </div>
                 @endif
 
-                @if(!$submission->content && !$submission->file_path)
+                @if(($answerNote === null || $answerNote === '') && ! $answerFile)
                     <div class="no-content">لم يقدم الطالب إجابة نصية أو ملف</div>
                 @endif
             </div>
@@ -170,6 +208,13 @@
                     حفظ التقييم
                 </button>
 
+                <!-- Allow Retry Button -->
+                <button type="button" id="allowRetryBtn" class="submit-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);margin-top:12px;">
+                    <span class="btn-icon">🔄</span>
+                    السماح للطالب بإعادة المحاولة
+                </button>
+                <div class="help-text" style="text-align:center;margin-top:6px;">يعيد النشاط للطالب بمجموعة محاولات جديدة</div>
+
                 <div id="submitMessage" class="submit-message" style="display: none;"></div>
             </form>
         </div>
@@ -228,5 +273,37 @@ document.getElementById('gradingForm').addEventListener('submit', async function
         messageEl.style.display = 'block';
     }
 });
+
+// السماح بإعادة المحاولة
+const allowRetryBtn = document.getElementById('allowRetryBtn');
+if (allowRetryBtn) {
+    allowRetryBtn.addEventListener('click', async function () {
+        if (!confirm('السماح للطالب بإعادة محاولة هذا النشاط من جديد؟')) return;
+        const messageEl = document.getElementById('submitMessage');
+        const fd = new FormData();
+        fd.append('_token', '{{ csrf_token() }}');
+        fd.append('feedback', document.querySelector('textarea[name="feedback"]')?.value || '');
+        try {
+            const response = await fetch('{{ route("teacher.review.allow-retry", $submission->id) }}', {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                messageEl.textContent = '🔄 ' + data.message;
+                messageEl.className = 'submit-message success';
+                messageEl.style.display = 'block';
+                setTimeout(() => { window.location.href = '{{ route("teacher.review") }}'; }, 1500);
+            } else {
+                throw new Error(data.error || data.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            messageEl.textContent = '❌ ' + error.message;
+            messageEl.className = 'submit-message error';
+            messageEl.style.display = 'block';
+        }
+    });
+}
 </script>
 @endsection
