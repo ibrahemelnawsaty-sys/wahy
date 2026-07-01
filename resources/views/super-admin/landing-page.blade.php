@@ -425,6 +425,52 @@
     border: 2px solid #e2e8f0;
     cursor: pointer;
 }
+
+/* ===================================================================
+   Wahy dark-mode coverage — تغطية الوضع الليلي لتصميم محرر الصفحة (classes مُصلَّبة)
+   جراحي: يُبقي البانرات المتدرّجة كما هي، ويحوّل الأسطح البيضاء إلى داكنة والنص إلى فاتح.
+   ملاحظة: .modal-content / .form-label / .empty-state يغطّيها بلوك الأدمن مركزياً فلا نكرّرها.
+   =================================================================== */
+html[data-theme="dark"] .tabs-container,
+html[data-theme="dark"] .block-type-item,
+html[data-theme="dark"] .page-preview {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+html[data-theme="dark"] .tabs-header,
+html[data-theme="dark"] .blocks-panel,
+html[data-theme="dark"] .page-block {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+html[data-theme="dark"] .page-block:hover { background: rgba(255, 255, 255, 0.05); }
+html[data-theme="dark"] .tab-btn:hover,
+html[data-theme="dark"] .tab-btn.active { background: rgba(30, 41, 59, 0.9); }
+html[data-theme="dark"] .blocks-panel h3,
+html[data-theme="dark"] .block-type-info h4,
+html[data-theme="dark"] .page-preview-header h3,
+html[data-theme="dark"] .block-title { color: #F1F5F9; }
+html[data-theme="dark"] .tab-btn,
+html[data-theme="dark"] .block-type-info p,
+html[data-theme="dark"] .block-content { color: #94A3B8; }
+html[data-theme="dark"] .btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #CBD5E1;
+}
+html[data-theme="dark"] .block-header,
+html[data-theme="dark"] .page-preview-header,
+html[data-theme="dark"] .modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+html[data-theme="dark"] .form-input,
+html[data-theme="dark"] .form-textarea,
+html[data-theme="dark"] .setting-input {
+    background: rgba(15, 23, 42, 0.6);
+    color: #F1F5F9;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+html[data-theme="dark"] .setting-label { color: #CBD5E1; }
 </style>
 @endpush
 

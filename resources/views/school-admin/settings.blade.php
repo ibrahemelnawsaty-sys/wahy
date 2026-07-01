@@ -7,8 +7,21 @@
     <a href="{{ route('school-admin.dashboard') }}">الرئيسية</a> / الإعدادات
 @endsection
 
+@push('styles')
+<style>
+    /* Wahy dark-mode coverage — عناوين/نصوص البطاقات هنا بألوان inline مُصلَّبة */
+    html[data-theme="dark"] .sa-settings-page [style*="color: #1a202c"],
+    html[data-theme="dark"] .sa-settings-page [style*="color: #2d3748"],
+    html[data-theme="dark"] .sa-settings-page [style*="color: #4a5568"] { color: var(--w-text) !important; }
+    html[data-theme="dark"] .sa-settings-page [style*="color: #718096"],
+    html[data-theme="dark"] .sa-settings-page [style*="color: #a0aec0"] { color: var(--w-text-muted) !important; }
+    html[data-theme="dark"] .sa-settings-page [style*="background: #f7fafc"] { background: rgba(255,255,255,0.05) !important; }
+    html[data-theme="dark"] .sa-settings-page hr { border-color: var(--w-border); }
+</style>
+@endpush
+
 @section('content')
-<div style="max-width: 900px; margin: 0 auto;">
+<div class="sa-settings-page" style="max-width: 900px; margin: 0 auto;">
     
     <!-- بيانات المدرسة -->
     <div class="card mb-4">

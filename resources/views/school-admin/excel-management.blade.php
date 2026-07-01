@@ -411,6 +411,29 @@
 .modern-card-body {
     padding: 30px;
 }
+
+/* Wahy dark-mode coverage — رؤوس/نصوص وبطاقات القوالب ذات الخلفيات الفاتحة inline */
+html[data-theme="dark"] .modern-card { background: var(--w-card); border-color: var(--w-border); box-shadow: var(--w-shadow); }
+html[data-theme="dark"] .modern-card-header:not([style*="gradient"]) { border-bottom-color: var(--w-border); }
+html[data-theme="dark"] .card-title { color: var(--w-text); }
+html[data-theme="dark"] .card-subtitle { color: var(--w-text-muted); }
+/* صناديق القوالب/التصدير: خلفيات فاتحة inline → داكنة، ونصوصها الداكنة → فاتحة */
+html[data-theme="dark"] .modern-card-body [style*="linear-gradient(135deg, #f7fafc"],
+html[data-theme="dark"] .modern-card-body [style*="linear-gradient(135deg, #f0f9ff"],
+html[data-theme="dark"] .modern-card-body [style*="linear-gradient(135deg, #faf5ff"],
+html[data-theme="dark"] .modern-card-body [style*="linear-gradient(135deg, #f0fdfa"],
+html[data-theme="dark"] .modern-card-body [style*="linear-gradient(135deg, #fff7ed"] {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .modern-card-body [style*="color: #1a202c"] { color: var(--w-text) !important; }
+html[data-theme="dark"] .modern-card-body [style*="color: #718096"] { color: var(--w-text-muted) !important; }
+html[data-theme="dark"] .modern-card-body select,
+html[data-theme="dark"] .modern-card-body input[type="file"] {
+    background: rgba(255,255,255,0.05) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
 </style>
 
 @endsection

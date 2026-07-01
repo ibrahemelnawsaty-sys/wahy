@@ -3,8 +3,30 @@
 @section('title', 'تحديات PvP')
 @section('page-title', 'إدارة تحديات PvP')
 
+@push('styles')
+<style>
+/* Wahy dark-mode coverage — pvp-challenges/index (ألوان inline مُصلَّبة) */
+html[data-theme="dark"] #sa-pvp-index h2[style*="#1e293b"] { color: #F1F5F9 !important; }
+html[data-theme="dark"] #sa-pvp-index div[style*="background: #fff"],
+html[data-theme="dark"] #sa-pvp-index div[style*="background:#fff"] {
+    background: rgba(30, 41, 59, 0.85) !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+html[data-theme="dark"] #sa-pvp-index thead[style*="#f8fafc"] { background: rgba(15, 23, 42, 0.6) !important; }
+html[data-theme="dark"] #sa-pvp-index th[style*="#475569"] { color: #CBD5E1 !important; }
+html[data-theme="dark"] #sa-pvp-index tr[style*="border-top: 1px solid #f1f5f9"] { border-top-color: rgba(255, 255, 255, 0.06) !important; }
+html[data-theme="dark"] #sa-pvp-index td { color: #E2E8F0; }
+html[data-theme="dark"] #sa-pvp-index td[style*="#64748b"] { color: #94A3B8 !important; }
+html[data-theme="dark"] #sa-pvp-index button[style*="background: #fff"] {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    color: #E2E8F0 !important;
+}
+</style>
+@endpush
+
 @section('content')
-<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+<div id="sa-pvp-index" style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
         <h2 style="margin: 0; font-size: 22px; font-weight: 700; color: #1e293b;">
             <i class="fas fa-fist-raised" aria-hidden="true"></i> تحديات PvP

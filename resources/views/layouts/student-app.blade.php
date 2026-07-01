@@ -160,6 +160,140 @@
         }
 
         /* كلا الوضعين (فاتح=بنفسجي / ليلي=داكن) خلفيتهما ملوّنة، فالأصفر الذهبي يوفّر تبايناً عالياً في الاثنين */
+
+        /* ============================================================
+           Wahy dark-mode coverage — بلوك مُجمَّع يغطّي كل صفحات الطالب
+           يعالج الألوان المُصلَّبة inline (بطاقات بيضاء + نصوص داكنة)
+           التي لا تستجيب للوضع الليلي. جراحي/مضاف فقط — لا يمسّ التخطيط.
+           ============================================================ */
+
+        /* 1) البطاقات ذات الخلفية البيضاء الثابتة → سطح داكن في الوضع الليلي */
+        html[data-theme="dark"] .student-app [style*="background: white"],
+        html[data-theme="dark"] .student-app [style*="background:#fff"],
+        html[data-theme="dark"] .student-app [style*="background: #fff"],
+        html[data-theme="dark"] .student-app [style*="background: #ffffff"],
+        html[data-theme="dark"] .student-app [style*="background-color: white"],
+        html[data-theme="dark"] .student-app [style*="background-color: #fff"] {
+            background: var(--color-card) !important;
+            border-color: var(--color-border) !important;
+        }
+
+        /* بطاقات/كبسولات بيضاء نصف-شفافة شبه معتمة (0.78+) → سطح داكن
+           (تغطّي .crown-card وغيرها؛ نمرّر كل تنويعات المسافات المستخدمة) */
+        html[data-theme="dark"] .student-app [style*="background: rgba(255,255,255,0.7"],
+        html[data-theme="dark"] .student-app [style*="background: rgba(255,255,255,0.8"],
+        html[data-theme="dark"] .student-app [style*="background: rgba(255,255,255,0.9"],
+        html[data-theme="dark"] .student-app [style*="background: rgba(255, 255, 255, 0.7"],
+        html[data-theme="dark"] .student-app [style*="background: rgba(255, 255, 255, 0.8"],
+        html[data-theme="dark"] .student-app [style*="background: rgba(255, 255, 255, 0.9"],
+        html[data-theme="dark"] .student-app [style*="background:rgba(255,255,255,0.9"] {
+            background: var(--color-card) !important;
+            border-color: var(--color-border) !important;
+        }
+
+        /* بطاقات بخلفية متدرّجة "فاتحة/بيضاء/وردية باهتة" (نوافذ نتائج، بطاقات مدح)
+           → سطح داكن. هذه ليست بطاقات ملوّنة زاهية بل بيضاء تزيينية، فيجب أن تستجيب
+           للوضع الليلي؛ نصوصها الداكنة تُفتَّح لاحقاً فتبقى مقروءة. */
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #ffffff"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg,#fff "],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #fff "],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #fff5f5"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #f8fafc"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #f9fafb"] {
+            background: var(--color-card) !important;
+            border-color: var(--color-border) !important;
+        }
+
+        /* خلفيات رمادية فاتحة صلبة (لوحات داخلية/أزرار ثانوية/مسارات تقدّم/عناصر نائبة)
+           → سطح داكن مُرتفع قليلاً، حتى يبقى النص الداكن (المُفتَّح لاحقاً) مقروءاً */
+        html[data-theme="dark"] .student-app [style*="background: #f7fafc"],
+        html[data-theme="dark"] .student-app [style*="background:#f7fafc"],
+        html[data-theme="dark"] .student-app [style*="background: #edf2f7"],
+        html[data-theme="dark"] .student-app [style*="background: #e2e8f0"],
+        html[data-theme="dark"] .student-app [style*="background:#e2e8f0"],
+        html[data-theme="dark"] .student-app [style*="background: #cbd5e0"],
+        html[data-theme="dark"] .student-app [style*="background: #f1f5f9"],
+        html[data-theme="dark"] .student-app [style*="background: #e5e7eb"] {
+            background: #334155 !important;
+            border-color: var(--color-border) !important;
+        }
+
+        /* Wahy dark-mode round2 — كبسولات إحصاء teams بخلفيات باستيل صلبة فاتحة
+           (#f0fff4 أخضر / #ebf4ff أزرق / #faf5ff بنفسجي). أرقامها color:#2d3748 والنص
+           الثانوي #718096 يُفتَّحان في البلوك أعلاه، فبدون تعتيم الخلفية = فاتح-على-فاتح
+           مخفي. نعتّمها لسطح داكن حتى يبقى النص المُفتَّح مقروءاً. نغطّي صيغتَي المسافة. */
+        html[data-theme="dark"] .student-app [style*="background: #f0fff4"],
+        html[data-theme="dark"] .student-app [style*="background:#f0fff4"],
+        html[data-theme="dark"] .student-app [style*="background: #ebf4ff"],
+        html[data-theme="dark"] .student-app [style*="background:#ebf4ff"],
+        html[data-theme="dark"] .student-app [style*="background: #faf5ff"],
+        html[data-theme="dark"] .student-app [style*="background:#faf5ff"] {
+            background: #334155 !important;
+            border-color: var(--color-border) !important;
+        }
+
+        /* 2) النصوص الداكنة المُصلَّبة → نص فاتح مقروء (WCAG AA) */
+        html[data-theme="dark"] .student-app [style*="color: #1a202c"],
+        html[data-theme="dark"] .student-app [style*="color:#1a202c"],
+        html[data-theme="dark"] .student-app [style*="color: #2d3748"],
+        html[data-theme="dark"] .student-app [style*="color:#2d3748"],
+        html[data-theme="dark"] .student-app [style*="color: #2d3436"],
+        html[data-theme="dark"] .student-app [style*="color: #1e293b"],
+        html[data-theme="dark"] .student-app [style*="color:#1e293b"],
+        html[data-theme="dark"] .student-app [style*="color: #0f172a"],
+        html[data-theme="dark"] .student-app [style*="color: #000"],
+        html[data-theme="dark"] .student-app [style*="color:#000"] {
+            color: #f1f5f9 !important;  /* نص أساسي فاتح */
+        }
+
+        /* نصوص ثانوية داكنة (رمادية متوسطة) → رمادي فاتح */
+        html[data-theme="dark"] .student-app [style*="color: #4a5568"],
+        html[data-theme="dark"] .student-app [style*="color:#4a5568"],
+        html[data-theme="dark"] .student-app [style*="color: #718096"],
+        html[data-theme="dark"] .student-app [style*="color:#718096"],
+        html[data-theme="dark"] .student-app [style*="color: #64748b"],
+        html[data-theme="dark"] .student-app [style*="color: #64748B"],
+        html[data-theme="dark"] .student-app [style*="color: #475569"],
+        html[data-theme="dark"] .student-app [style*="color: #334155"],
+        html[data-theme="dark"] .student-app [style*="color: #a0aec0"] {
+            color: #cbd5e1 !important;  /* نص ثانوي فاتح */
+        }
+
+        /* حارس تباين: النص الداكن الجالس مباشرةً على بطاقة بخلفية متدرّجة "دافئة/زاهية"
+           (ذهبي/أصفر/برتقالي — تبقى ملوّنة في الوضع الليلي) يجب أن يبقى داكناً؛
+           تفتيحه يكسر التباين (نص فاتح على أصفر). نستهدف ألوان التدرّج الدافئة تحديداً
+           حتى لا نلمس التدرّجات البيضاء/الوردية التي عتّمناها أعلاه. */
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #ffd700"] > [style*="color: #2d3436"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #ffd700"] > [style*="color: #718096"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #ffeaa7"] > [style*="color: #2d3436"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #ffe"] > [style*="color: #2d3436"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #fbbf24"] > [style*="color: #2d3436"],
+        html[data-theme="dark"] .student-app [style*="linear-gradient(135deg, #fef"] > [style*="color: #2d3436"] {
+            color: #1e293b !important;  /* يبقى داكناً فوق الخلفية الدافئة الثابتة */
+        }
+
+        /* 3) عناوين البطاقات البيضاء (h2/h3 داخلها) — احتياط لو لم تحمل style مباشراً */
+        html[data-theme="dark"] .student-app [style*="background: white"] h2,
+        html[data-theme="dark"] .student-app [style*="background: white"] h3 {
+            color: #f1f5f9 !important;
+        }
+
+        /* 4) شريط التنقّل السفلي — زجاج داكن بدل الأبيض الثابت في glass.css */
+        html[data-theme="dark"] .student-app .bottom-nav {
+            background: rgba(17, 24, 39, 0.92) !important;
+            border-color: var(--color-border) !important;
+        }
+        html[data-theme="dark"] .student-app .nav-item {
+            color: #94a3b8;
+        }
+
+        /* 5) الحدود الفاتحة الثابتة (#e2e8f0 وشبيهاتها) → حدّ داكن خفيف */
+        html[data-theme="dark"] .student-app [style*="border: 2px solid #e2e8f0"],
+        html[data-theme="dark"] .student-app [style*="border: 1px solid #e2e8f0"],
+        html[data-theme="dark"] .student-app [style*="border: 2px solid #edf2f7"],
+        html[data-theme="dark"] .student-app [style*="border-color: #e2e8f0"] {
+            border-color: rgba(255, 255, 255, 0.12) !important;
+        }
     </style>
 
     <script>
@@ -174,6 +308,9 @@
     </script>
     
     @stack('styles')
+
+    {{-- التغطية الشاملة المتّسقة للوضع الليلي (نفس مصدر باقي الأدوار) — يعمل هنا لأول مرة على صفحات الطالب --}}
+    @include('partials.dark-coverage')
 </head>
 <body class="student-app">
     @include('partials.flash')

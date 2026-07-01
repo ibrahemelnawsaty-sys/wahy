@@ -143,6 +143,51 @@
 }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
 .btn-cancel { background: #edf2f7; color: #2d3748; border: none; border-radius: 10px; padding: 10px 24px; cursor: pointer; font-weight: 600; }
+
+/* ===== Wahy dark-mode coverage — صفحة المراسلات =====
+   يعالج الفئات المخصّصة ذات الألوان المُصلَّبة (background:white / #f7fafc / نص داكن)
+   اعتماداً على متغيّرات النظام الموحّد (--w-*). */
+html[data-theme="dark"] .msg-wrap,
+html[data-theme="dark"] .modal-box,
+html[data-theme="dark"] .form-modal-box {
+    background: var(--w-card) !important;
+    box-shadow: var(--w-shadow) !important;
+}
+html[data-theme="dark"] .msg-header h2,
+html[data-theme="dark"] .modal-head h3 { color: var(--w-text) !important; }
+html[data-theme="dark"] .modal-head,
+html[data-theme="dark"] .compose-area,
+html[data-theme="dark"] .conv-item { border-color: var(--w-border) !important; }
+html[data-theme="dark"] .conv-item:hover { background: rgba(255,255,255,0.05) !important; }
+html[data-theme="dark"] .conv-snippet { color: var(--w-text-muted) !important; }
+html[data-theme="dark"] .msg-bubble.other {
+    background: rgba(255,255,255,0.06) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .rte-toolbar { background: rgba(255,255,255,0.04) !important; border-color: var(--w-border) !important; }
+html[data-theme="dark"] .rte-btn-mini {
+    background: rgba(255,255,255,0.06) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .rte-btn-mini:hover { background: rgba(255,255,255,0.12) !important; }
+html[data-theme="dark"] .rte-sep { background: var(--w-border) !important; }
+html[data-theme="dark"] .rte-editor-msg,
+html[data-theme="dark"] .new-msg-editor,
+html[data-theme="dark"] .form-select-field,
+html[data-theme="dark"] .form-field {
+    background: rgba(255,255,255,0.05) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .rte-editor-msg:empty::before,
+html[data-theme="dark"] .new-msg-editor:empty::before { color: var(--w-text-muted) !important; }
+html[data-theme="dark"] .form-label { color: var(--w-text-muted) !important; }
+html[data-theme="dark"] .btn-cancel {
+    background: rgba(255,255,255,0.08) !important;
+    color: var(--w-text) !important;
+}
 </style>
 @endpush
 

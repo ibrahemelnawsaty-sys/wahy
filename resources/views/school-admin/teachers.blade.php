@@ -1,7 +1,28 @@
 @extends('layouts.school-admin')
 
+@push('styles')
+<style>
+    /* Wahy dark-mode coverage — الصفحة تستخدم أنماطاً inline مُصلَّبة (بلا كلاسات)
+       فنستهدف قيمها الحرفية بمحددات attribute جراحية تعدّل الألوان فقط. */
+    html[data-theme="dark"] .sa-teachers-page [style*="background: white"],
+    html[data-theme="dark"] .sa-teachers-page [style*="background:#fff"],
+    html[data-theme="dark"] .sa-teachers-page [style*="background: #f7fafc"] {
+        background: var(--w-card) !important;
+    }
+    html[data-theme="dark"] .sa-teachers-page [style*="color: #1a202c"],
+    html[data-theme="dark"] .sa-teachers-page [style*="color: #2d3748"] { color: var(--w-text) !important; }
+    html[data-theme="dark"] .sa-teachers-page [style*="color: #718096"] { color: var(--w-text-muted) !important; }
+    html[data-theme="dark"] .sa-teachers-page input[type="text"],
+    html[data-theme="dark"] .sa-teachers-page select {
+        background: rgba(255,255,255,0.05) !important;
+        color: var(--w-text) !important;
+        border-color: var(--w-border) !important;
+    }
+</style>
+@endpush
+
 @section('content')
-<div style="padding: 30px;">
+<div class="sa-teachers-page" style="padding: 30px;">
     <!-- Page Header -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px;">
         <div>

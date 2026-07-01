@@ -312,6 +312,265 @@
                 transition-duration: 0.01ms !important;
             }
         }
+
+        /* =========================================================
+           Wahy dark-mode coverage — بلوك موحّد لدور ولي الأمر.
+           يغطّي الفجوات التي لا يلمسها الـ partial المشترك: الهيدر
+           الزجاجي، البطاقات ذات الأصناف الخاصة (premium-*/cd-*/msg-*)،
+           والحاويات المرسومة بألوان مُصلَّبة inline (background:white
+           / #fff / rgba(255,255,255,...)). الهدف: كل خلفية فاتحة
+           تصير داكنة وكل نص داكن يصير فاتحاً ليحقق تباين WCAG AA.
+           جراحي/مضاف فقط — لا يغيّر تخطيطاً ولا مسافات.
+           ========================================================= */
+
+        /* الهيدر الزجاجي وروابط التنقل */
+        html[data-theme="dark"] .parent-header {
+            background: rgba(17, 24, 39, 0.92) !important;
+            border-bottom-color: var(--w-border) !important;
+            box-shadow: var(--w-shadow) !important;
+        }
+        html[data-theme="dark"] .nav-link {
+            color: var(--w-text-muted) !important;
+        }
+        html[data-theme="dark"] .nav-link:hover,
+        html[data-theme="dark"] .nav-link.active {
+            color: #a5b4fc !important;
+            background: rgba(165, 180, 252, 0.12) !important;
+        }
+        html[data-theme="dark"] .parent-menu-toggle {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .role-switcher-menu {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+            box-shadow: var(--w-shadow) !important;
+        }
+        html[data-theme="dark"] .role-menu-item {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .role-menu-item:hover {
+            background: rgba(165, 180, 252, 0.12) !important;
+        }
+
+        /* البطاقات الزجاجية البيضاء العامة للدور */
+        html[data-theme="dark"] .premium-stat-card,
+        html[data-theme="dark"] .premium-empty-state,
+        html[data-theme="dark"] .premium-child-card,
+        html[data-theme="dark"] .cd-hero,
+        html[data-theme="dark"] .cd-stat,
+        html[data-theme="dark"] .cd-card,
+        html[data-theme="dark"] .cd-modal,
+        html[data-theme="dark"] .cd-success-popup,
+        html[data-theme="dark"] .msg-wrap,
+        html[data-theme="dark"] .modal-box,
+        html[data-theme="dark"] .form-modal-box {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+            box-shadow: var(--w-shadow) !important;
+        }
+
+        /* النصوص الداكنة داخل البطاقات → فاتحة */
+        html[data-theme="dark"] .stat-value,
+        html[data-theme="dark"] .empty-title,
+        html[data-theme="dark"] .info-value,
+        html[data-theme="dark"] .stat-mini-value,
+        html[data-theme="dark"] .cd-stat-value,
+        html[data-theme="dark"] .cd-card-title,
+        html[data-theme="dark"] .cd-value-name,
+        html[data-theme="dark"] .cd-activity-title,
+        html[data-theme="dark"] .cd-badge-name,
+        html[data-theme="dark"] .cd-teacher-name,
+        html[data-theme="dark"] .cd-week-count,
+        html[data-theme="dark"] .cd-success-title,
+        html[data-theme="dark"] .cd-praise-cat-label,
+        html[data-theme="dark"] .msg-header h2,
+        html[data-theme="dark"] .modal-head h3 {
+            color: var(--w-text) !important;
+            -webkit-text-fill-color: var(--w-text) !important;
+        }
+        /* عناوين ذات gradient-clip: نلغي القص لإظهار اللون الفاتح */
+        html[data-theme="dark"] .stat-value,
+        html[data-theme="dark"] .stat-mini-value {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            background-clip: initial !important;
+        }
+        html[data-theme="dark"] .stat-label,
+        html[data-theme="dark"] .empty-text,
+        html[data-theme="dark"] .info-label,
+        html[data-theme="dark"] .stat-mini-label,
+        html[data-theme="dark"] .cd-stat-label,
+        html[data-theme="dark"] .cd-value-count,
+        html[data-theme="dark"] .cd-activity-lesson,
+        html[data-theme="dark"] .cd-activity-time,
+        html[data-theme="dark"] .cd-badge-date,
+        html[data-theme="dark"] .cd-teacher-email,
+        html[data-theme="dark"] .cd-week-name,
+        html[data-theme="dark"] .cd-week-date,
+        html[data-theme="dark"] .cd-rank-label,
+        html[data-theme="dark"] .cd-rank-total,
+        html[data-theme="dark"] .cd-success-text,
+        html[data-theme="dark"] .cd-suggest-title {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* حاويات فرعية بخلفيات فاتحة مُصلَّبة */
+        html[data-theme="dark"] .school-info-premium,
+        html[data-theme="dark"] .info-item-premium,
+        html[data-theme="dark"] .child-stat-mini,
+        html[data-theme="dark"] .activity-item-premium,
+        html[data-theme="dark"] .cd-rank-item,
+        html[data-theme="dark"] .cd-week-day,
+        html[data-theme="dark"] .cd-activity,
+        html[data-theme="dark"] .cd-badge,
+        html[data-theme="dark"] .cd-teacher,
+        html[data-theme="dark"] .cd-praise-cat,
+        html[data-theme="dark"] .cd-suggest-item,
+        html[data-theme="dark"] .cd-hero-bottom,
+        html[data-theme="dark"] .conv-item,
+        html[data-theme="dark"] .msg-bubble.other {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border-color: var(--w-border) !important;
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .cd-rank-item:hover,
+        html[data-theme="dark"] .cd-teacher:hover,
+        html[data-theme="dark"] .conv-item:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+        html[data-theme="dark"] .activity-title,
+        html[data-theme="dark"] .conv-item h3,
+        html[data-theme="dark"] .msg-bubble.other {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .activity-date {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* محرّرات النص الغني ومدخلات النموذج في صفحة الرسائل */
+        html[data-theme="dark"] .rte-toolbar {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .rte-btn-mini {
+            background: var(--w-card) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .rte-editor-msg,
+        html[data-theme="dark"] .new-msg-editor,
+        html[data-theme="dark"] .form-select-field,
+        html[data-theme="dark"] .cd-praise-textarea {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .btn-cancel {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: var(--w-text) !important;
+        }
+
+        /* حاويات مرسومة بألوان بيضاء/فاتحة عبر style inline (تقارير/استبيانات/تفاصيل) */
+        html[data-theme="dark"] [style*="background: white"],
+        html[data-theme="dark"] [style*="background:#fff"],
+        html[data-theme="dark"] [style*="background: #fff"],
+        html[data-theme="dark"] [style*="rgba(255,255,255,0.9"],
+        html[data-theme="dark"] [style*="rgba(255, 255, 255, 0.9"],
+        html[data-theme="dark"] [style*="rgba(255,255,255,0.95"],
+        html[data-theme="dark"] [style*="rgba(255, 255, 255, 0.95"] {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] [style*="background:#f7fafc"],
+        html[data-theme="dark"] [style*="background: #f7fafc"],
+        html[data-theme="dark"] [style*="background:#f8fafc"],
+        html[data-theme="dark"] [style*="background: #f8fafc"] {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: var(--w-text) !important;
+        }
+        /* بطاقات المقارنة الباستيل (لوحة الرئيسية): خضراء/زرقاء/صفراء فاتحة →
+           خلفية شفافة داكنة مع إبقاء نصوصها الملوّنة مقروءة */
+        html[data-theme="dark"] [style*="linear-gradient(135deg, #f0fdf4"],
+        html[data-theme="dark"] [style*="linear-gradient(135deg, #eff6ff"],
+        html[data-theme="dark"] [style*="linear-gradient(135deg, #fefce8"] {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: var(--w-border) !important;
+        }
+        /* نصوص داكنة مضبوطة inline (#1a202c/#2d3748/#1e293b) → فاتحة */
+        html[data-theme="dark"] [style*="color: #1a202c"],
+        html[data-theme="dark"] [style*="color:#1a202c"],
+        html[data-theme="dark"] [style*="color: #2d3748"],
+        html[data-theme="dark"] [style*="color:#2d3748"],
+        html[data-theme="dark"] [style*="color: #1e293b"],
+        html[data-theme="dark"] [style*="color:#1e293b"] {
+            color: var(--w-text) !important;
+        }
+        /* نصوص رمادية inline (#718096/#64748b/#94a3b8/#4a5568/#6b7280) → رمادي فاتح */
+        html[data-theme="dark"] [style*="color: #718096"],
+        html[data-theme="dark"] [style*="color:#718096"],
+        html[data-theme="dark"] [style*="color: #64748b"],
+        html[data-theme="dark"] [style*="color:#64748b"],
+        html[data-theme="dark"] [style*="color: #4a5568"],
+        html[data-theme="dark"] [style*="color:#4a5568"],
+        html[data-theme="dark"] [style*="color: #6b7280"],
+        html[data-theme="dark"] [style*="color:#6b7280"] {
+            color: var(--w-text-muted) !important;
+        }
+        /* عناوين ملوّنة داكنة في بطاقات المقارنة الباستيل → تفتيحها للتباين */
+        html[data-theme="dark"] [style*="color: #065f46"],
+        html[data-theme="dark"] [style*="color:#065f46"] { color: #6ee7b7 !important; }
+        html[data-theme="dark"] [style*="color: #1e40af"],
+        html[data-theme="dark"] [style*="color:#1e40af"] { color: #93c5fd !important; }
+        html[data-theme="dark"] [style*="color: #854d0e"],
+        html[data-theme="dark"] [style*="color:#854d0e"] { color: #fcd34d !important; }
+
+        /* =========================================================
+           Wahy dark-mode round2 — إصلاح ارتدادات مؤكّدة كشفها مُدقّق خصمي.
+           كل زوج (خلفية+نص) عولج معاً وفق القاعدة الذهبية:
+           لا نص فاتح على خلفية فاتحة، ولا نص داكن على خلفية داكنة.
+           ========================================================= */
+
+        /* dashboard: .activities-title (#374151) داخل .premium-child-card
+           المُعتَّمة (خلفية داكنة) → كانت داكن-على-داكن، نفتّحها. */
+        html[data-theme="dark"] .activities-title {
+            color: var(--w-text) !important;
+        }
+
+        /* dashboard: جزيرة "الترتيب والإنجازات" — .rankings-premium تدرّج
+           فاتح (#fff7ed→#ffedd5) و.rank-item-premium خلفية white؛ نعتّمهما
+           بمحدّد الكلاس (يتغلّب على التدرّج وعلى white). نصوصهما الملوّنة
+           (rank-value) تبقى كما هي لأنها مقروءة على خلفية داكنة. */
+        html[data-theme="dark"] .rankings-premium {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .rank-item-premium {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: var(--w-border) !important;
+        }
+        /* عنوان الجزيرة (#9a3412 داكن على خلفية داكنة الآن) + تسمية الرتبة
+           (#6b7280) → نفتّحهما للتباين على الخلفية الداكنة الجديدة. */
+        html[data-theme="dark"] .rankings-title {
+            color: #fdba74 !important;
+        }
+        html[data-theme="dark"] .rank-label {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* messages: .conv-snippet (#4a5568) داخل .conv-item المُعتَّمة،
+           و.form-label (#4a5568) داخل .form-modal-box المُعتَّمة →
+           كلاهما داكن-على-داكن، نفتّحهما إلى رمادي فاتح. */
+        html[data-theme="dark"] .conv-snippet,
+        html[data-theme="dark"] .form-label {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* child-detail: .cd-level-text (var(--gray-600)=#718096) على
+           .cd-hero-bottom المُعتَّمة — تباين حدّي؛ نفتّحه قليلاً. */
+        html[data-theme="dark"] .cd-level-text {
+            color: var(--w-text-muted) !important;
+        }
     </style>
 
     @include('partials.theme-toggle')

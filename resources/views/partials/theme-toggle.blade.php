@@ -1,5 +1,9 @@
-{{-- Wahy Theme System — مكوّن مشترك لكل الـ layouts (admin/teacher/parent/school-admin)
-     يضع زر تبديل عائم + إدارة Light/Dark Mode عبر localStorage. --}}
+{{-- Wahy Theme System — المصدر الموحّد الوحيد لتبديل الوضع الليلي/النهاري لكل الـ layouts.
+     يفرض الدستور مفتاحاً واحداً: localStorage['wahy-theme'] (فاتح افتراضي، الليلي اختياري عبر الزر).
+     يربط أي زر تبديل موجود: #wahyThemeFab (العائم) + #sidebarThemeToggle (الشريط الجانبي) + [data-theme-toggle].
+     التغطية اللونية الشاملة مُستخرجة في partials/dark-coverage (تُضمَّن هنا وفي student-app).
+     ملاحظة معمارية: هذا الـ partial هو الوحيد المسموح له بإدارة data-theme — أي سكربت آخر يقرأ/يكتب مفتاحاً مختلفاً
+     (admin-theme/theme) يُعدّ مخالفة ويكسر استمرارية التبديل عبر الصفحات. --}}
 
 <style>
     /* CSS Variables الموحدة للوضعَين */
@@ -24,16 +28,28 @@
         color-scheme: dark;
     }
 
-    /* تطبيق الـ Dark Mode على عناصر الـ Admin/Teacher/Parent layouts */
+    /* تطبيق الـ Dark Mode على عناصر الـ Admin/Teacher/Parent/SchoolAdmin layouts (حاويات بأسماء أصناف شائعة). */
     html[data-theme="dark"] body {
         background: var(--w-bg) !important;
+        color: var(--w-text);
     }
     html[data-theme="dark"] .admin-card,
     html[data-theme="dark"] .form-card,
     html[data-theme="dark"] .stat-card,
     html[data-theme="dark"] .data-table,
     html[data-theme="dark"] .info-card,
-    html[data-theme="dark"] .filters-bar {
+    html[data-theme="dark"] .filters-bar,
+    html[data-theme="dark"] .card,
+    html[data-theme="dark"] .box,
+    html[data-theme="dark"] .panel,
+    html[data-theme="dark"] .widget,
+    html[data-theme="dark"] .content-card,
+    html[data-theme="dark"] .dashboard-card,
+    html[data-theme="dark"] .section-card,
+    html[data-theme="dark"] .modal-content,
+    html[data-theme="dark"] .dropdown-menu,
+    html[data-theme="dark"] .admin-topbar,
+    html[data-theme="dark"] .admin-header {
         background: var(--w-card) !important;
         color: var(--w-text) !important;
         border-color: var(--w-border) !important;
@@ -43,13 +59,28 @@
     html[data-theme="dark"] .admin-card h2,
     html[data-theme="dark"] .admin-card h3,
     html[data-theme="dark"] .admin-card h4,
-    html[data-theme="dark"] table th {
+    html[data-theme="dark"] .card h1,
+    html[data-theme="dark"] .card h2,
+    html[data-theme="dark"] .card h3,
+    html[data-theme="dark"] .card h4,
+    html[data-theme="dark"] .card h5,
+    html[data-theme="dark"] table th,
+    html[data-theme="dark"] .page-title,
+    html[data-theme="dark"] .section-title,
+    html[data-theme="dark"] .card-title {
         color: var(--w-text) !important;
+    }
+    html[data-theme="dark"] .text-muted,
+    html[data-theme="dark"] .text-secondary,
+    html[data-theme="dark"] .subtitle,
+    html[data-theme="dark"] small {
+        color: var(--w-text-muted) !important;
     }
     html[data-theme="dark"] table td,
     html[data-theme="dark"] table tr {
         border-color: var(--w-border) !important;
         background: transparent !important;
+        color: var(--w-text) !important;
     }
     html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
     html[data-theme="dark"] select,
@@ -62,7 +93,7 @@
     html[data-theme="dark"] textarea::placeholder {
         color: var(--w-text-muted) !important;
     }
-    html[data-theme="dark"] a:not(.btn):not(.btn-primary):not(.btn-secondary) {
+    html[data-theme="dark"] a:not(.btn):not(.btn-primary):not(.btn-secondary):not(.admin-btn):not(.admin-nav-link) {
         color: #93c5fd;
     }
     html[data-theme="dark"] .btn-secondary {
@@ -97,16 +128,61 @@
     }
 </style>
 
+{{-- التغطية الشاملة المتّسقة (خلفيات فاتحة ← داكنة + نصوص داكنة ← فاتحة + استثناءات) --}}
+@include('partials.dark-coverage')
+
 <script>
-    // تطبيق الثيم المحفوظ قبل العرض لمنع FOUC
+    // FOUC guard: يُطبّق الثيم قبل الرسم.
+    // الأولوية: تفضيل المستخدم المحفوظ (wahy-theme) ← ثم الافتراضي الخادمي المرسوم على <html> ← ثم فاتح.
     (function () {
         try {
+            var root = document.documentElement;
             var saved = localStorage.getItem('wahy-theme');
-            if (!saved) {
-                saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
-            document.documentElement.setAttribute('data-theme', saved);
+            var fallback = root.getAttribute('data-theme') || 'light';
+            root.setAttribute('data-theme', saved || fallback);
         } catch (e) {}
+    })();
+</script>
+
+<script>
+    // موحّد التبديل: يربط كل أزرار التبديل الموجودة في الصفحة إلى نفس المفتاح والحالة.
+    (function () {
+        function initWahyTheme() {
+            var root = document.documentElement;
+            var toggles = document.querySelectorAll('#wahyThemeFab, #sidebarThemeToggle, [data-theme-toggle]');
+
+            function isDark() { return root.getAttribute('data-theme') === 'dark'; }
+            function refreshIcons() {
+                var dark = isDark();
+                var fabIcon = document.getElementById('wahyThemeFabIcon');
+                if (fabIcon) fabIcon.textContent = dark ? '☀️' : '🌙';
+                toggles.forEach(function (t) {
+                    t.setAttribute('aria-pressed', dark ? 'true' : 'false');
+                    var lbl = t.querySelector('[data-theme-label]');
+                    if (lbl) lbl.textContent = dark ? 'الوضع النهاري' : 'الوضع الليلي';
+                });
+            }
+            function toggle() {
+                var next = isDark() ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                try { localStorage.setItem('wahy-theme', next); } catch (e) {}
+                refreshIcons();
+                document.dispatchEvent(new CustomEvent('wahy:themechange', { detail: { theme: next } }));
+            }
+            refreshIcons();
+            toggles.forEach(function (t) { t.addEventListener('click', toggle); });
+            window.addEventListener('storage', function (e) {
+                if (e.key === 'wahy-theme' && e.newValue) {
+                    root.setAttribute('data-theme', e.newValue);
+                    refreshIcons();
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initWahyTheme);
+        } else {
+            initWahyTheme();
+        }
     })();
 </script>
 
@@ -118,23 +194,4 @@
             title="تبديل الوضع الليلي/النهاري">
         <span id="wahyThemeFabIcon">🌙</span>
     </button>
-    <script>
-        (function () {
-            var root = document.documentElement;
-            var btn = document.getElementById('wahyThemeFab');
-            var icon = document.getElementById('wahyThemeFabIcon');
-            function refreshIcon() {
-                var dark = root.getAttribute('data-theme') === 'dark';
-                if (icon) icon.textContent = dark ? '☀️' : '🌙';
-                if (btn) btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
-            }
-            refreshIcon();
-            btn?.addEventListener('click', function () {
-                var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                root.setAttribute('data-theme', next);
-                try { localStorage.setItem('wahy-theme', next); } catch (e) {}
-                refreshIcon();
-            });
-        })();
-    </script>
 @endpush

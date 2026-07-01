@@ -894,3 +894,97 @@
 .btn-export-pdf:active {
     transform: translateY(0);
 }
+
+/* ============================================================
+   Wahy dark-mode coverage — نظام Teacher Glass
+   يعتمد متغيّرات النظام الموحّد (--w-*) من partials/theme-toggle.
+   يعالج البطاقات الزجاجية والجداول والحقول والنصوص الداكنة التي تختفي
+   في الوضع الليلي. الألوان العلامية/الحالة تبقى كما هي (تباين كافٍ).
+   ============================================================ */
+
+/* الحاويات الزجاجية والبطاقات: تعتيم الزجاج ليقرأ النص بوضوح */
+html[data-theme="dark"] .page-header,
+html[data-theme="dark"] .glass-card,
+html[data-theme="dark"] .empty-state {
+    background: rgba(30, 41, 59, 0.72) !important;
+    border-color: var(--w-border) !important;
+    box-shadow: var(--w-shadow) !important;
+}
+
+html[data-theme="dark"] .back-btn,
+html[data-theme="dark"] .filter-select,
+html[data-theme="dark"] .form-input,
+html[data-theme="dark"] .form-textarea,
+html[data-theme="dark"] .quick-btn {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--w-border) !important;
+    color: var(--w-text) !important;
+}
+
+/* العناوين والقيم: نص فاتح */
+html[data-theme="dark"] .header-title,
+html[data-theme="dark"] .activity-title,
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .student-name,
+html[data-theme="dark"] .student-name-large,
+html[data-theme="dark"] .student-name-cell,
+html[data-theme="dark"] .info-value,
+html[data-theme="dark"] .form-label,
+html[data-theme="dark"] .summary-value,
+html[data-theme="dark"] .score-text,
+html[data-theme="dark"] .empty-title {
+    color: var(--w-text) !important;
+}
+
+/* النصوص الثانوية: نص خافت */
+html[data-theme="dark"] .header-subtitle,
+html[data-theme="dark"] .submission-time,
+html[data-theme="dark"] .submission-date,
+html[data-theme="dark"] .activity-path,
+html[data-theme="dark"] .content-label,
+html[data-theme="dark"] .info-label,
+html[data-theme="dark"] .file-label,
+html[data-theme="dark"] .slider-labels,
+html[data-theme="dark"] .help-text,
+html[data-theme="dark"] .quick-label,
+html[data-theme="dark"] .summary-label,
+html[data-theme="dark"] .empty-text,
+html[data-theme="dark"] .activities-count,
+html[data-theme="dark"] .content-preview,
+html[data-theme="dark"] .no-content {
+    color: var(--w-text-muted) !important;
+}
+
+/* الحقول المضمّنة ذات الخلفية الفاتحة داخل البطاقات */
+html[data-theme="dark"] .submission-content,
+html[data-theme="dark"] .info-item,
+html[data-theme="dark"] .activity-description,
+html[data-theme="dark"] .quick-feedback {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+html[data-theme="dark"] .student-answer {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--w-text) !important;
+}
+html[data-theme="dark"] .activity-description {
+    color: var(--w-text-muted) !important;
+}
+
+/* الجدول */
+html[data-theme="dark"] .students-table thead tr {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+html[data-theme="dark"] .students-table th {
+    color: var(--w-text-muted) !important;
+}
+html[data-theme="dark"] .students-table td {
+    border-top-color: var(--w-border) !important;
+    color: var(--w-text) !important;
+}
+
+/* الفواصل والحدود الداكنة داخل البطاقات */
+html[data-theme="dark"] .activity-info,
+html[data-theme="dark"] .student-header {
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .path-separator { color: var(--w-text-muted) !important; }

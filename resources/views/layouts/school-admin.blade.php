@@ -629,6 +629,172 @@
             border-color: var(--color-primary, #667eea);
         }
 
+        /* ==================== Wahy dark-mode coverage ====================
+           بلوك مُجمَّع واحد يغطّي كل عناصر لوحة مدير المدرسة في الوضع الليلي.
+           يعتمد متغيّرات --w-* الموحّدة من partial theme-toggle. جراحي: يعدّل الألوان فقط
+           دون المساس بالتخطيط/المسافات/المنطق. لا يلمس الشريط الجانبي الملوّن (يبقى بالتدرّج). */
+        html[data-theme="dark"] body { background: var(--w-bg); color: var(--w-text); }
+
+        /* الهيدر العلوي + العناوين وفتات الخبز */
+        html[data-theme="dark"] .top-header {
+            background: var(--w-bg-elevated);
+            box-shadow: var(--w-shadow);
+        }
+        html[data-theme="dark"] .page-title { color: var(--w-text); }
+        html[data-theme="dark"] .page-breadcrumb { color: var(--w-text-muted); }
+        html[data-theme="dark"] .header-btn {
+            background: rgba(255,255,255,0.06);
+            color: var(--w-text-muted);
+        }
+        html[data-theme="dark"] .header-btn:hover { background: rgba(255,255,255,0.12); }
+
+        /* بطاقات Bootstrap + رؤوسها + الجداول + النماذج */
+        html[data-theme="dark"] .card {
+            background: var(--w-card);
+            color: var(--w-text);
+            box-shadow: var(--w-shadow);
+        }
+        html[data-theme="dark"] .card-header {
+            background: var(--w-card);
+            color: var(--w-text);
+            border-bottom-color: var(--w-border);
+        }
+        html[data-theme="dark"] .table thead th {
+            background: rgba(255,255,255,0.04);
+            color: var(--w-text-muted);
+        }
+        html[data-theme="dark"] .table tbody td { border-bottom-color: var(--w-border); color: var(--w-text); }
+        html[data-theme="dark"] .table tbody tr:hover { background: rgba(255,255,255,0.04); }
+        html[data-theme="dark"] .form-label { color: var(--w-text); }
+        html[data-theme="dark"] .form-control,
+        html[data-theme="dark"] .form-select {
+            background: rgba(255,255,255,0.05);
+            color: var(--w-text);
+            border-color: var(--w-border);
+        }
+        html[data-theme="dark"] .form-control::placeholder { color: var(--w-text-muted); }
+        html[data-theme="dark"] .page-link {
+            background: var(--w-card);
+            border-color: var(--w-border);
+            color: #93c5fd;
+        }
+
+        /* القوائم المنسدلة: صورة المستخدم + الإشعارات (خلفيات بيضاء inline) */
+        html[data-theme="dark"] #schAvatarDropdownMenu,
+        html[data-theme="dark"] #notificationsPanel { background: var(--w-card) !important; }
+        html[data-theme="dark"] #schAvatarDropdownMenu a,
+        html[data-theme="dark"] #schAvatarDropdownMenu label { color: var(--w-text) !important; }
+
+        /* بطاقات الداشبورد ذات الخلفية البيضاء + النصوص الداكنة */
+        html[data-theme="dark"] .stat-card,
+        html[data-theme="dark"] .achievement-card,
+        html[data-theme="dark"] .modern-card,
+        html[data-theme="dark"] .quick-actions-card,
+        html[data-theme="dark"] .ranking-card {
+            background: var(--w-card) !important;
+            color: var(--w-text);
+            border-color: var(--w-border) !important;
+            box-shadow: var(--w-shadow) !important;
+        }
+        html[data-theme="dark"] .stat-number,
+        html[data-theme="dark"] .achievement-number,
+        html[data-theme="dark"] .card-title,
+        html[data-theme="dark"] .actions-title,
+        html[data-theme="dark"] .student-name,
+        html[data-theme="dark"] .classroom-name,
+        html[data-theme="dark"] .request-name,
+        html[data-theme="dark"] .action-label { color: var(--w-text); }
+        html[data-theme="dark"] .stat-label,
+        html[data-theme="dark"] .achievement-label,
+        html[data-theme="dark"] .card-subtitle,
+        html[data-theme="dark"] .actions-subtitle,
+        html[data-theme="dark"] .request-role,
+        html[data-theme="dark"] .classroom-teacher,
+        html[data-theme="dark"] .empty-state { color: var(--w-text-muted); }
+
+        /* رؤوس/فواصل البطاقات الحديثة + عناصر القوائم */
+        html[data-theme="dark"] .modern-card-header,
+        html[data-theme="dark"] .modern-card-footer,
+        html[data-theme="dark"] .requests-footer,
+        html[data-theme="dark"] .request-item,
+        html[data-theme="dark"] .leaderboard-item,
+        html[data-theme="dark"] .classroom-item,
+        html[data-theme="dark"] .online-student-item { border-color: var(--w-border) !important; }
+        html[data-theme="dark"] .modern-card-header:not([style*="gradient"]) { border-bottom-color: var(--w-border); }
+        html[data-theme="dark"] .request-item:hover,
+        html[data-theme="dark"] .leaderboard-item:hover,
+        html[data-theme="dark"] .classroom-item:hover { background: rgba(255,255,255,0.04); }
+        html[data-theme="dark"] .btn-icon { background: rgba(255,255,255,0.06); color: var(--w-text-muted); }
+        html[data-theme="dark"] .students-count,
+        html[data-theme="dark"] .rank-num:not(.top) { background: rgba(255,255,255,0.08); color: var(--w-text); }
+        html[data-theme="dark"] .action-btn {
+            background: var(--w-card);
+            border-color: var(--w-border);
+        }
+
+        /* صفحة الإحصائيات: بطاقات التصنيف + التبويبات */
+        html[data-theme="dark"] .ranking-position { border-bottom-color: var(--w-border); }
+        html[data-theme="dark"] .position-total,
+        html[data-theme="dark"] .rank-points small { color: var(--w-text-muted); }
+        html[data-theme="dark"] .rank-name { color: var(--w-text); }
+        html[data-theme="dark"] .ranking-item:hover { background: rgba(255,255,255,0.04); }
+        html[data-theme="dark"] #statsTabs {
+            background: var(--w-card) !important;
+            box-shadow: var(--w-shadow);
+        }
+        html[data-theme="dark"] #statsTabs .nav-link:not(.active) {
+            background: rgba(255,255,255,0.06) !important;
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] #statsTabs .nav-link:hover:not(.active) {
+            background: rgba(255,255,255,0.12) !important;
+            color: var(--w-text) !important;
+        }
+
+        /* رؤوس البطاقات المفروضة بيضاء عبر Bootstrap (.bg-white) في صفحات النماذج */
+        html[data-theme="dark"] .card-header.bg-white {
+            background: var(--w-card) !important;
+            color: var(--w-text);
+        }
+        /* حاويات اختيار الطلاب/الأبناء وبطاقاتها (نماذج الفصول + أولياء الأمور) */
+        html[data-theme="dark"] .students-selection-wrapper,
+        html[data-theme="dark"] .children-selection-wrapper { background: rgba(255,255,255,0.04) !important; }
+        html[data-theme="dark"] .student-checkbox-label:not(:has(input:checked)),
+        html[data-theme="dark"] .child-checkbox-label:not(:has(input:checked)) {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+            color: var(--w-text);
+        }
+
+        /* صفحة تفاعل أولياء الأمور: بطاقات pe-* */
+        html[data-theme="dark"] .pe-card-light { background: var(--w-card) !important; box-shadow: var(--w-shadow); }
+        html[data-theme="dark"] .pe-stat { background: rgba(255,255,255,0.05) !important; }
+        html[data-theme="dark"] .pe-stat .num,
+        html[data-theme="dark"] .pe-info h4 { color: var(--w-text) !important; }
+        html[data-theme="dark"] .pe-stat .lbl,
+        html[data-theme="dark"] .pe-info p { color: var(--w-text-muted) !important; }
+        html[data-theme="dark"] .pe-row { border-bottom-color: var(--w-border) !important; }
+
+        /* ==================== Wahy dark-mode round2 ====================
+           إصلاحات موجَّهة لأعطال ثيم مؤكّدة (بعضها ارتدادات جولة أولى: نص فاتح على خلفية فاتحة).
+           لكل عنصر عُولج الزوج (خلفية+نص) معاً. */
+
+        /* (3) رؤوس الجداول Bootstrap ذات .bg-light (#f8f9fa!important) في صفحات
+           الفصول/الطلبات: تبقى فاتحة فيصبح نص الرأس الفاتح فاتحاً-على-فاتح ويختفي.
+           نعتّم الخلفية بـ!important ونلوّن نص الرأس فاتحاً واضحاً. */
+        /* مقصور على رؤوس الجداول فقط: المُحدّد المُجرّد .bg-light كان يعتّم أغلفة أكواد QR
+           (.qr-code-wrapper.bg-light) فتصير وحداتها السوداء غير مرئية/غير قابلة للمسح. */
+        html[data-theme="dark"] thead.bg-light {
+            background-color: var(--w-card) !important;
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] thead.bg-light th,
+        html[data-theme="dark"] .table thead.bg-light th {
+            background-color: var(--w-card) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+
         @stack('styles')
     </style>
 

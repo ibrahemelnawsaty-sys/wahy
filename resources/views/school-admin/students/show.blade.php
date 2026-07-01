@@ -25,6 +25,20 @@
     .btn { padding: 11px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 14px; }
     .btn-edit    { background: #fbbf24; color: #92400e; }
     .btn-back    { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+
+    /* Wahy dark-mode coverage — بطاقات هذه الصفحة بألوان مُصلَّبة داخل style الصفحة */
+    html[data-theme="dark"] .student-show-page .student-card { background: var(--w-card); box-shadow: var(--w-shadow); }
+    html[data-theme="dark"] .student-show-page .student-meta h1,
+    html[data-theme="dark"] .student-show-page .stat-tile .v,
+    html[data-theme="dark"] .student-show-page [style*="color:#0f172a"] { color: var(--w-text); }
+    html[data-theme="dark"] .student-show-page .student-meta p,
+    html[data-theme="dark"] .student-show-page .stat-tile .l,
+    html[data-theme="dark"] .student-show-page [style*="color:#94a3b8"] { color: var(--w-text-muted); }
+    html[data-theme="dark"] .student-show-page .stat-tile { background: rgba(255,255,255,0.05); }
+    html[data-theme="dark"] .student-show-page .recent-table th { background: rgba(255,255,255,0.04); color: var(--w-text); }
+    html[data-theme="dark"] .student-show-page .recent-table th,
+    html[data-theme="dark"] .student-show-page .recent-table td { border-bottom-color: var(--w-border); color: var(--w-text); }
+    html[data-theme="dark"] .student-show-page .btn-back { background: rgba(255,255,255,0.08); color: var(--w-text); border-color: var(--w-border); }
 </style>
 
 <div class="student-show-page">

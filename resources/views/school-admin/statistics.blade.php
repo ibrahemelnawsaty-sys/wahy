@@ -31,7 +31,7 @@
 <div class="row mb-4 g-3">
     @foreach($allBadges as $badge)
     <div class="col-md-4">
-        <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); border-right: 5px solid {{ $badge['color'] }}; display: flex; align-items: center; gap: 15px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 35px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.08)'">
+        <div class="badge-card-white" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); border-right: 5px solid {{ $badge['color'] }}; display: flex; align-items: center; gap: 15px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 35px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.08)'">
             <div style="font-size: 40px; line-height: 1;">{{ $badge['icon'] }}</div>
             <div>
                 <div style="font-weight: 700; color: #1a202c; font-size: 15px;">{{ $badge['label'] }}</div>
@@ -43,7 +43,7 @@
 @endif
 
 <!-- Tabs -->
-<ul class="nav nav-pills mb-4" id="statsTabs" role="tablist" style="background: white; padding: 8px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+<ul class="nav nav-pills mb-4 stats-tabs-bar" id="statsTabs" role="tablist" style="background: white; padding: 8px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
     <li class="nav-item" role="presentation" style="flex: 1;">
         <button class="nav-link active w-100" id="school-tab" data-bs-toggle="pill" data-bs-target="#school-pane" type="button" role="tab" style="border-radius: 12px; font-weight: 700; font-size: 16px; padding: 14px;">
             <i class="fas fa-school me-2"></i>المدرسة
@@ -292,6 +292,12 @@
 
 @push('styles')
 <style>
+    /* Wahy dark-mode coverage — بطاقات الشارات والتبويبات ذات الخلفية البيضاء inline
+       (بطاقات .ranking-card و.rank-name و#statsTabs مُغطّاة مركزياً في لايوت الدور). */
+    html[data-theme="dark"] .badge-card-white,
+    html[data-theme="dark"] .stats-tabs-bar { background: var(--w-card) !important; box-shadow: var(--w-shadow); }
+    html[data-theme="dark"] .badge-card-white [style*="color: #1a202c"] { color: var(--w-text) !important; }
+
     #statsTabs {
         --bs-nav-link-color: #334155;
         --bs-nav-link-hover-color: #1e293b;
@@ -445,5 +451,15 @@
         color: #94a3b8;
         font-size: 11px;
     }
+
+    /* Wahy dark-mode round2: صفّ المستخدم الحالي .ranking-item.current خلفيته تدرّج فاتح
+       (#eff6ff→#dbeafe) بينما .rank-name يُفتَّح في اللايوت => فاتح-على-فاتح ويختفي.
+       نعتّم الخلفية بـ!important (يتغلّب على linear-gradient) ونثبّت نصّاً فاتحاً واضحاً. */
+    html[data-theme="dark"] .ranking-item.current {
+        background: rgba(96, 165, 250, 0.16) !important;
+        border-color: rgba(96, 165, 250, 0.45) !important;
+    }
+    html[data-theme="dark"] .ranking-item.current .rank-name { color: var(--w-text) !important; }
+    html[data-theme="dark"] .ranking-item.current .rank-points { color: #93c5fd !important; }
 </style>
 @endpush

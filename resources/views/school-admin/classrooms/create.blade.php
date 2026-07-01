@@ -92,6 +92,8 @@
 .students-selection-wrapper::-webkit-scrollbar { width: 8px; }
 .students-selection-wrapper::-webkit-scrollbar-track { background: #e0e0e0; border-radius: 10px; }
 .students-selection-wrapper::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; }
+/* تغطية الوضع الليلي لهذه الصفحة مُوفَّرة مركزياً في لايوت الدور (card-header.bg-white +
+   students-selection-wrapper + student-checkbox-label). لا حاجة لتكرارها هنا. */
 </style>
 
 <script>

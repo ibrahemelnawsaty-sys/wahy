@@ -42,6 +42,16 @@
         font-size: 20px;
     }
 }
+
+/* Wahy dark-mode coverage: تباين حقول رمز التحقق في الوضع النهاري */
+html[data-theme="light"] .code-input {
+    background: rgba(15, 23, 42, 0.04) !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+    color: #0F172A !important;
+}
+html[data-theme="light"] .code-input:focus {
+    background: rgba(60, 203, 138, 0.06) !important;
+}
 </style>
 @endsection
 

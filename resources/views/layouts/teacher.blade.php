@@ -254,6 +254,246 @@
                 display: none;
             }
         }
+
+        /* ============================================================
+           Wahy dark-mode coverage — لوحة المعلّم
+           بلوك مُجمَّع جراحي: يجعل "كل العناصر تتغيّر" في الوضع الليلي دون
+           لمس أي partial مشترك ولا إضافة سكربت جديد. يعتمد متغيّرات النظام
+           الموحّد (--w-*) القادمة من partials/theme-toggle.
+           يعالج: خلفية الـ body المتدرّجة، والبطاقات ذات background:white/فاتح
+           المضمَّنة inline، والنصوص الداكنة (slate/gray) التي تختفي على خلفية
+           داكنة، وحقول الإدخال. الألوان العلامية (بنفسجي/أخضر/برتقالي) تبقى
+           كما هي لأنها تحقّق تبايناً كافياً على الداكن.
+           ============================================================ */
+
+        /* خلفية الصفحة: نُلغي المتدرّج ونستبدله بلون داكن صلب */
+        html[data-theme="dark"] body {
+            background: var(--w-bg) !important;
+            color: var(--w-text);
+        }
+        html[data-theme="dark"] body::before { opacity: .35; }
+
+        /* الشريط الجانبي الزجاجي: تعتيمه ليقرأ نصّه الأبيض بوضوح */
+        html[data-theme="dark"] .teacher-sidebar {
+            background: rgba(17, 24, 39, 0.72) !important;
+            border-left-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .sidebar-logo,
+        html[data-theme="dark"] .sidebar-user {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .nav-item.active {
+            background: rgba(255, 255, 255, 0.14) !important;
+        }
+
+        /* البطاقات ذات الخلفية البيضاء/الفاتحة المضمَّنة inline */
+        html[data-theme="dark"] [style*="background: white"],
+        html[data-theme="dark"] [style*="background:white"],
+        html[data-theme="dark"] [style*="background: #fff"],
+        html[data-theme="dark"] [style*="background:#fff"],
+        html[data-theme="dark"] [style*="background: #ffffff"],
+        html[data-theme="dark"] [style*="background:#ffffff"],
+        html[data-theme="dark"] [style*="background: #f8fafc"],
+        html[data-theme="dark"] [style*="background: #f7fafc"],
+        html[data-theme="dark"] [style*="background: #fafbfc"],
+        html[data-theme="dark"] [style*="background: #fafafa"],
+        html[data-theme="dark"] [style*="background: #f1f5f9"],
+        html[data-theme="dark"] [style*="background: #edf2f7"],
+        html[data-theme="dark"] [style*="background: #f0f2f5"],
+        html[data-theme="dark"] [style*="background: #f0f0f0"] {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+        }
+        /* حدود/فواصل رمادية فاتحة مضمَّنة inline */
+        html[data-theme="dark"] [style*="#e2e8f0"] {
+            border-color: var(--w-border) !important;
+        }
+
+        /* النصوص الداكنة (slate/gray) التي تختفي على البطاقات الداكنة */
+        html[data-theme="dark"] [style*="color: #0f172a"],
+        html[data-theme="dark"] [style*="color: #1a202c"],
+        html[data-theme="dark"] [style*="color: #1e293b"],
+        html[data-theme="dark"] [style*="color: #2d3748"],
+        html[data-theme="dark"] [style*="color: #334155"] {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] [style*="color: #475569"],
+        html[data-theme="dark"] [style*="color: #4a5568"],
+        html[data-theme="dark"] [style*="color: #64748b"],
+        html[data-theme="dark"] [style*="color: #718096"],
+        html[data-theme="dark"] [style*="color: #94a3b8"],
+        html[data-theme="dark"] [style*="color: #a0aec0"] {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* حقول الإدخال المضمَّنة inline بحدود فاتحة */
+        html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] input::placeholder,
+        html[data-theme="dark"] textarea::placeholder {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* قائمة الأفاتار المنسدلة (خلفية بيضاء صريحة) */
+        html[data-theme="dark"] #tchAvatarDropdownMenu {
+            background: var(--w-card) !important;
+            box-shadow: var(--w-shadow) !important;
+        }
+
+        /* ---- فئات المكوّنات المشتركة عبر صفحات المعلّم (معرّفة في <style> كل صفحة
+           بألوان مُصلَّبة) — تغطية مُجمَّعة بدل تكرار البلوك في كل ملف صفحة. ---- */
+        html[data-theme="dark"] .form-card,
+        html[data-theme="dark"] .type-card,
+        html[data-theme="dark"] .stat-mini,
+        html[data-theme="dark"] .team-card,
+        html[data-theme="dark"] .modal-box,
+        html[data-theme="dark"] .modal-card,
+        html[data-theme="dark"] .ab-modal-card,
+        html[data-theme="dark"] .question-item,
+        html[data-theme="dark"] .section-card,
+        html[data-theme="dark"] .report-card,
+        html[data-theme="dark"] .preview-card,
+        html[data-theme="dark"] .back-link,
+        html[data-theme="dark"] .btn-back {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+            box-shadow: var(--w-shadow) !important;
+            color: var(--w-text) !important;
+        }
+        /* أسطح داخلية أفتح (حقول/بطاقات ثانوية) */
+        html[data-theme="dark"] .q-card,
+        html[data-theme="dark"] .qbuilder,
+        html[data-theme="dark"] .media-upload,
+        html[data-theme="dark"] .member-item,
+        html[data-theme="dark"] .member-tile,
+        html[data-theme="dark"] .q-type-select,
+        html[data-theme="dark"] .q-correct,
+        html[data-theme="dark"] .info-item {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: var(--w-border) !important;
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .member-item:hover,
+        html[data-theme="dark"] .member-item.selected,
+        html[data-theme="dark"] .back-link:hover,
+        html[data-theme="dark"] .btn-back:hover {
+            background: rgba(255, 255, 255, 0.10) !important;
+        }
+        /* أزرار/شرائح ثانوية بخلفية رمادية فاتحة ونص داكن */
+        html[data-theme="dark"] .btn-secondary,
+        html[data-theme="dark"] .ab-btn-secondary,
+        html[data-theme="dark"] .chip,
+        html[data-theme="dark"] .bank-tab {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .bank-tab.active {
+            background: var(--w-card) !important;
+            color: #a5b4fc !important;
+        }
+        /* عناوين/تسميات هذه المكوّنات */
+        html[data-theme="dark"] .form-card h1,
+        html[data-theme="dark"] .form-card h2,
+        html[data-theme="dark"] .type-card .title,
+        html[data-theme="dark"] .team-name,
+        html[data-theme="dark"] .stat-mini .value,
+        html[data-theme="dark"] .member-name,
+        html[data-theme="dark"] .section-head-title,
+        html[data-theme="dark"] .modal-title,
+        html[data-theme="dark"] .field label,
+        html[data-theme="dark"] .ab-field label,
+        html[data-theme="dark"] .q-label {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .stat-mini .label,
+        html[data-theme="dark"] .team-desc,
+        html[data-theme="dark"] .modal-text,
+        html[data-theme="dark"] .media-upload .text,
+        html[data-theme="dark"] .image-caption,
+        html[data-theme="dark"] .q-opt-num,
+        html[data-theme="dark"] .member-role,
+        html[data-theme="dark"] .stat-label {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* ============================================================
+           Wahy dark-mode round2 — إصلاح ارتدادات مؤكّدة (جولة ثانية)
+           كل عنصر هنا يُعالَج كزوج (خلفية داكنة + نص فاتح) معاً حتى لا
+           يبقى نص فاتح على خلفية فاتحة ولا نص داكن على خلفية داكنة.
+           ============================================================ */
+
+        /* (1) عناوين/تسميات .form-card:
+           البطاقة نفسها معتَّمة (var(--w-card)) أعلاه، لكن h3/h4 كانت #1a202c
+           والتسميات #334155 = نص داكن على خلفية داكنة = مخفي. نُفتّحها. */
+        html[data-theme="dark"] .form-card h3,
+        html[data-theme="dark"] .form-card h4 {
+            color: var(--w-text) !important;
+            border-bottom-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] .form-card .form-label,
+        html[data-theme="dark"] .form-card label {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* (2) create-activity: .type-card.active خلفيتها #eff6ff فاتحة تبقى
+           فاتحة و.type-card .title مُفتَّح أعلاه = فاتح على فاتح. نُعتّم البطاقة
+           النشطة فيصبح النص الفاتح على خلفية داكنة. */
+        html[data-theme="dark"] .type-card.active {
+            background: rgba(129, 140, 248, 0.14) !important;
+            border-color: #818cf8 !important;
+        }
+
+        /* (3)+(4)+(5) الحاويات ذات خلفية inline بتدرّج فاتح
+           linear-gradient(135deg,#f7fafc … #edf2f7) — بطاقات dashboard/بنك
+           الأسئلة/الأنشطة/تفاصيل الفصل وصف رأس جداول الصدارة. نُعتّمها بمطابقة
+           بداية سلسلة التدرّج بصيغتَي المسافة. نصوصها الداكنة تُفتَّح أصلاً عبر
+           بلوكات color أعلاه، فيتكوّن الزوج (خلفية داكنة + نص فاتح). */
+        html[data-theme="dark"] [style*="linear-gradient(135deg, #f7fafc"],
+        html[data-theme="dark"] [style*="linear-gradient(135deg,#f7fafc"],
+        html[data-theme="dark"] [style*="linear-gradient(135deg, #f8fafc"],
+        html[data-theme="dark"] [style*="linear-gradient(135deg,#f8fafc"] {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+        }
+
+        /* (3) dashboard: بطاقة "تحتاج مراجعة" بتدرّج برتقالي فاتح
+           #fff7ed → #fffaf0 ونصوصها #2d3748/#4a5568 (تُفتَّح أعلاه). نُعتّمها. */
+        html[data-theme="dark"] [style*="linear-gradient(135deg, #fff7ed"],
+        html[data-theme="dark"] [style*="linear-gradient(135deg,#fff7ed"] {
+            background: var(--w-card) !important;
+            border-color: var(--w-border) !important;
+        }
+
+        /* (4) leaderboard + student-leaderboard: صف الرأس <tr> بتدرّج فاتح
+           (يُغطّى بمطابقة #f7fafc أعلاه) وصف المستخدم الحالي بتدرّج أزرق فاتح
+           #eff6ff → #dbeafe. th مُفتَّح أعلاه، فنُعتّم صف المستخدم الحالي. */
+        html[data-theme="dark"] [style*="linear-gradient(135deg, #eff6ff"],
+        html[data-theme="dark"] [style*="linear-gradient(135deg,#eff6ff"] {
+            background: rgba(129, 140, 248, 0.12) !important;
+        }
+
+        /* (6-a) teams: .team-desc خلفيته تدرّج فاتح (#f8fafc,#f1f5f9) ونصّه
+           مُفتَّح خافت أعلاه = فاتح على فاتح. نُعتّم خلفيته (الكلاس معرّف في
+           <style> الصفحة فيُطابق هنا مع !important). */
+        html[data-theme="dark"] .team-desc {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-right-color: #818cf8 !important;
+        }
+
+        /* (6-b) show-team: .team-description داخل هيدر بنفسجي — خلفيته تدرّج
+           فاتح ونصّه #64748b داكن. نعالجه كزوج: خلفية داكنة + نص فاتح خافت. */
+        html[data-theme="dark"] .team-description {
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: var(--w-text-muted) !important;
+            border-right-color: #818cf8 !important;
+        }
     </style>
     
     <!-- Glass Notifications CSS -->

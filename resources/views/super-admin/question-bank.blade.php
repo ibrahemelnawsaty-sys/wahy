@@ -11,12 +11,58 @@
     .animate-up { animation: slideInUp 0.6s ease-out; }
     .hover-lift { transition: all 0.3s ease; }
     .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+
+    /* Wahy dark-mode coverage — question-bank (ألوان inline مُصلَّبة) */
+    html[data-theme="dark"] #sa-qbank div[style*="background: white"],
+    html[data-theme="dark"] #sa-qbank div[style*="background:white"],
+    html[data-theme="dark"] #sa-qbank div[style*="background: #f7fafc"] {
+        background: rgba(30, 41, 59, 0.85) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+    }
+    html[data-theme="dark"] #sa-qbank div[style*="linear-gradient(135deg, #f7fafc"] {
+        background: rgba(30, 41, 59, 0.7) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html[data-theme="dark"] #sa-qbank [style*="color: #1a202c"],
+    html[data-theme="dark"] #sa-qbank [style*="color:#1a202c"],
+    html[data-theme="dark"] #sa-qbank [style*="color: #14532d"],
+    html[data-theme="dark"] #sa-qbank [style*="color: #4a5568"] { color: #F1F5F9 !important; }
+    html[data-theme="dark"] #sa-qbank [style*="color: #718096"],
+    html[data-theme="dark"] #sa-qbank [style*="color:#718096"] { color: #94A3B8 !important; }
+    html[data-theme="dark"] #sa-qbank input[style*="border"],
+    html[data-theme="dark"] #sa-qbank select[style*="border"],
+    html[data-theme="dark"] #sa-qbank textarea[style*="border"] {
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #F1F5F9 !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+    html[data-theme="dark"] #sa-qbank input::placeholder,
+    html[data-theme="dark"] #sa-qbank textarea::placeholder { color: #94A3B8 !important; }
+    html[data-theme="dark"] #sa-qbank div[style*="border-right: 4px solid #667eea"],
+    html[data-theme="dark"] #sa-qbank div[style*="background: #f7fafc"][style*="border-radius: 8px"] {
+        background: rgba(15, 23, 42, 0.55) !important;
+    }
+
+    /* Wahy dark-mode round2 — عتّم الحاويات الفاتحة التي فُتِّح نصّها (منع أبيض-على-فاتح) */
+    /* شارة نوع السؤال: خلفية #e2e8f0 فاتحة والنص #4a5568 صار أبيض → عتِّم الخلفية */
+    html[data-theme="dark"] #sa-qbank [style*="background:#e2e8f0"],
+    html[data-theme="dark"] #sa-qbank [style*="background: #e2e8f0"] {
+        background: rgba(51, 65, 85, 0.85) !important;
+    }
+    /* صندوقا الإجابة الصحيحة والشرح: خلفية #f0fdf4 فاتحة والنص #14532d/#166534 صار أبيض → عتِّم */
+    html[data-theme="dark"] #sa-qbank [style*="background:#f0fdf4"],
+    html[data-theme="dark"] #sa-qbank [style*="background: #f0fdf4"] {
+        background: rgba(6, 78, 59, 0.55) !important;
+    }
+    /* لون العنوان الأخضر #166534 داخل تلك الصناديق يُفتَّح ليتوازن مع الخلفية الداكنة الجديدة */
+    html[data-theme="dark"] #sa-qbank [style*="color: #166534"],
+    html[data-theme="dark"] #sa-qbank [style*="color:#166534"] { color: #6EE7B7 !important; }
 </style>
 @endpush
 
 @section('content')
 
-<div class="container-fluid py-4">
+<div id="sa-qbank" class="container-fluid py-4">
     <!-- Header Section -->
     <div class="animate-up" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 25px; padding: 35px; margin-bottom: 30px; box-shadow: 0 15px 50px rgba(102, 126, 234, 0.3); position: relative; overflow: hidden;">
         <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>

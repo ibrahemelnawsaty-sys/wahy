@@ -19,6 +19,11 @@
     .pe-metric { background:#eef2ff; color:#4338ca; padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; }
     .badge-active { background:#ecfdf5; color:#047857; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; margin-inline-start:6px; }
     .badge-quiet { background:#f1f5f9; color:#64748b; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; margin-inline-start:6px; }
+
+    /* Wahy dark-mode round2: عنوان h2 داخل .pe-card-light مُعتَّمة (var(--w-card)) في اللايوت
+       => النص المُصلَّب inline #0f172a يصبح داكن-على-داكن. نفتّحه بمطابقة كلتا صيغتي المسافة. */
+    html[data-theme="dark"] .pe-card-light [style*="color:#0f172a"],
+    html[data-theme="dark"] .pe-card-light [style*="color: #0f172a"] { color: var(--w-text) !important; }
 </style>
 
 <div class="pe-card-light">

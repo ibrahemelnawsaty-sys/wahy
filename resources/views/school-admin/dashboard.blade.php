@@ -1364,6 +1364,41 @@
     .achievement-number { font-size: 2rem; }
     .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ==================== Wahy dark-mode round2 (Dashboard) ====================
+   إصلاح ارتدادات: نص فاتح على خلفية فاتحة داخل داشبورد مدير المدرسة.
+   كل زوج (خلفية+نص) عُولج معاً. */
+
+/* (4a) رأس بطاقة الطلبات: خلفيته تدرّج فاتح (#fef5e7→#ffe4e1) بينما .card-title
+   يُفتَّح في اللايوت => فاتح-على-فاتح. نعتّم الخلفية بـ!important (يتغلّب على linear-gradient). */
+html[data-theme="dark"] .requests-card .modern-card-header {
+    background: var(--w-card) !important;
+    border-bottom: 1px solid var(--w-border);
+}
+
+/* (4b) قسم استيراد/تصدير Excel: صناديق القوالب inline بخلفية تدرّج فاتح
+   (#f7fafc→#edf2f7) وعناوينها المُصلَّبة #1a202c. نعتّم الصندوق ونفتّح نصّه معاً
+   حفاظاً على الزوج (خلفية داكنة + نص فاتح). نطابق بداية التدرّج بصيغتَي المسافة. */
+html[data-theme="dark"] div[style*="linear-gradient(135deg, #f7fafc"],
+html[data-theme="dark"] div[style*="linear-gradient(135deg,#f7fafc"] {
+    background: var(--w-card) !important;
+    border-color: var(--w-border) !important;
+}
+/* عناوين/تسميات داكنة (#1a202c) داخل صناديق Excel المُعتَّمة أعلاه => نفتّحها.
+   نستثني الزرّ ذا الخلفية الملوّنة الفاتحة (button) فلا نلمس نصّه. */
+html[data-theme="dark"] h6[style*="color: #1a202c"],
+html[data-theme="dark"] h6[style*="color:#1a202c"],
+html[data-theme="dark"] label[style*="color: #1a202c"],
+html[data-theme="dark"] label[style*="color:#1a202c"] { color: var(--w-text) !important; }
+/* وصف القوالب الثانوي (#718096) داخل صناديق Excel المُعتَّمة => نص ثانوي فاتح. */
+html[data-theme="dark"] p[style*="color: #718096"] { color: var(--w-text-muted) !important; }
+/* حقول select/input المرفوعة داخل قسم Excel (خلفية بيضاء افتراضية + حد فاتح #e2e8f0) */
+html[data-theme="dark"] select[style*="border: 2px solid #e2e8f0"],
+html[data-theme="dark"] input[type="file"][style*="border: 2px solid #e2e8f0"] {
+    background: rgba(255,255,255,0.05) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
 </style>
 
 

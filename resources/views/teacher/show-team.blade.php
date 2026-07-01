@@ -65,6 +65,18 @@
         box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         border: 1px solid rgba(0,0,0,0.04);
     }
+    /* الوضع الليلي: البطاقة مُعرّفة بكلاس (لا inline) فلا يلتقطها البلوك المركزي — نعتّمها هنا
+       لتوازن عناوينها التي يُفتّحها اللايوت (وإلا فاتح-على-أبيض مخفي). */
+    html[data-theme="dark"] .detail-section {
+        background: var(--w-card, #1e293b) !important;
+        border-color: var(--w-border, rgba(255,255,255,0.1)) !important;
+    }
+    html[data-theme="dark"] .section-head-title,
+    html[data-theme="dark"] .member-name {
+        color: var(--w-text, #f1f5f9) !important;
+    }
+    html[data-theme="dark"] .section-head { border-bottom-color: var(--w-border, rgba(255,255,255,0.1)) !important; }
+    html[data-theme="dark"] .member-item { border-bottom-color: var(--w-border, rgba(255,255,255,0.1)) !important; }
     .section-head {
         display: flex; align-items: center; gap: 12px;
         margin-bottom: 20px; padding-bottom: 14px;

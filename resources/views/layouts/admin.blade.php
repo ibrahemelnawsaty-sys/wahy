@@ -683,21 +683,9 @@
     @stack('scripts')
     
     <script>
-        // Theme Toggle
-        const html = document.documentElement;
-        const themeToggle = document.getElementById('sidebarThemeToggle');
-        
-        // Load saved theme
-        const savedTheme = localStorage.getItem('admin-theme') || 'dark';
-        html.setAttribute('data-theme', savedTheme);
-        
-        // Toggle theme
-        themeToggle?.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('admin-theme', newTheme);
-        });
+        // ملاحظة: تبديل الثيم يُدار مركزياً عبر partials/theme-toggle (مفتاح wahy-theme).
+        // زر الشريط الجانبي #sidebarThemeToggle يُربط تلقائياً هناك — أي سكربت admin-theme هنا كان يكسر
+        // استمرارية التبديل عبر الصفحات (كان يعود للثيم القديم عند كل تنقّل).
 
         // Avatar Dropdown Toggle
         (function() {
@@ -1044,7 +1032,267 @@
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
     }
     </style>
-    
+
+    {{-- =========================================================================
+         Wahy dark-mode coverage (Admin) — بلوك مركزي مُجمَّع
+         يعالج الألوان المُصلَّبة (background: white / #fff / نصوص داكنة) في صفحات
+         الأدمن التي تستخدم <style> inline بكلاسات متكرّرة (form-card / filters-card /
+         stat-card / *-table / page-header / empty-state / modal ...) وكذلك أدوات
+         Tailwind (bg-white / bg-gray-50 / text-gray-* ...). لا يمسّ الشارات الملوّنة
+         (gradient banners) لأن خلفياتها تدرّجات وليست أبيض. WCAG AA مضمون بألوان --w-*.
+         مصدر متغيّرات --w-* هو partial المشترك theme-toggle (لا يُلمَس هنا).
+         ========================================================================= --}}
+    <style>
+        /* --- حاويات البطاقات/الجداول/اللوحات ذات الخلفية البيضاء المُصلَّبة --- */
+        html[data-theme="dark"] .form-card,
+        html[data-theme="dark"] .filters-card,
+        html[data-theme="dark"] .filter-bar,
+        html[data-theme="dark"] .filters-form,
+        html[data-theme="dark"] .stat-card,
+        html[data-theme="dark"] .stats-grid > *,
+        html[data-theme="dark"] .item-card,
+        html[data-theme="dark"] .card-item,
+        html[data-theme="dark"] .chart-card,
+        html[data-theme="dark"] .info-box,
+        html[data-theme="dark"] .info-card,
+        html[data-theme="dark"] .page-header,
+        html[data-theme="dark"] .section-card,
+        html[data-theme="dark"] .concept-header,
+        html[data-theme="dark"] .concept-item,
+        html[data-theme="dark"] .value-header,
+        html[data-theme="dark"] .activity-header,
+        html[data-theme="dark"] .activity-item,
+        html[data-theme="dark"] .questions-section,
+        html[data-theme="dark"] .meanings-list,
+        html[data-theme="dark"] .concepts-section,
+        html[data-theme="dark"] .concepts-list,
+        html[data-theme="dark"] .modal-box,
+        html[data-theme="dark"] .modal-content,
+        html[data-theme="dark"] .av-card,
+        html[data-theme="dark"] .av-tile,
+        html[data-theme="dark"] .comp-container,
+        html[data-theme="dark"] .builder-wrapper,
+        html[data-theme="dark"] [class*="-card"],
+        html[data-theme="dark"] [class*="-table"],
+        html[data-theme="dark"] [class*="-panel"] {
+            background: var(--w-card) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+
+        /* رؤوس الجداول ذات الخلفية الفاتحة (#f8fafc / #f1f5f9 / bg-gray-50) */
+        html[data-theme="dark"] [class*="-table"] th,
+        html[data-theme="dark"] .users-table th,
+        html[data-theme="dark"] .concepts-table th,
+        html[data-theme="dark"] .activities-table th,
+        html[data-theme="dark"] .data-table th {
+            background: rgba(255, 255, 255, 0.04) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+        html[data-theme="dark"] [class*="-table"] td,
+        html[data-theme="dark"] [class*="-table"] tr {
+            border-color: var(--w-border) !important;
+            color: var(--w-text) !important;
+        }
+
+        /* النصوص الداكنة المُصلَّبة (#1e293b / #334155 / #0f172a / #475569 ...) */
+        html[data-theme="dark"] .form-label,
+        html[data-theme="dark"] .filter-label,
+        html[data-theme="dark"] .section-title,
+        html[data-theme="dark"] .page-title,
+        html[data-theme="dark"] .card-title,
+        html[data-theme="dark"] .stat-value,
+        html[data-theme="dark"] .value-title,
+        html[data-theme="dark"] .meta-value,
+        html[data-theme="dark"] .user-name,
+        html[data-theme="dark"] .empty-title,
+        html[data-theme="dark"] .empty-state h3,
+        html[data-theme="dark"] .concept-header h1,
+        html[data-theme="dark"] .concept-header h2 {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .stat-label,
+        html[data-theme="dark"] .meta-label,
+        html[data-theme="dark"] .user-email,
+        html[data-theme="dark"] .empty-desc,
+        html[data-theme="dark"] .value-description,
+        html[data-theme="dark"] .form-help,
+        html[data-theme="dark"] .filter-help {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* حالات فارغة/صناديق ذات خلفية بيضاء */
+        html[data-theme="dark"] .empty-state,
+        html[data-theme="dark"] .empty-canvas {
+            background: var(--w-card) !important;
+            color: var(--w-text-muted) !important;
+            border-color: var(--w-border) !important;
+        }
+
+        /* التبويبات (bank-tab.active خلفيتها بيضاء) */
+        html[data-theme="dark"] .bank-tab.active,
+        html[data-theme="dark"] .type-option.active {
+            background: var(--w-card) !important;
+            color: var(--color-primary) !important;
+        }
+
+        /* --- أدوات Tailwind الشائعة (CDN) في صفحات الأدمن --- */
+        html[data-theme="dark"] .bg-white {
+            background-color: var(--w-card) !important;
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .bg-gray-50,
+        html[data-theme="dark"] .bg-gray-100,
+        html[data-theme="dark"] .bg-slate-50,
+        html[data-theme="dark"] .bg-slate-100 {
+            background-color: rgba(255, 255, 255, 0.04) !important;
+        }
+        html[data-theme="dark"] .text-gray-900,
+        html[data-theme="dark"] .text-gray-800,
+        html[data-theme="dark"] .text-gray-700,
+        html[data-theme="dark"] .text-slate-900,
+        html[data-theme="dark"] .text-slate-800,
+        html[data-theme="dark"] .text-slate-700 {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] .text-gray-600,
+        html[data-theme="dark"] .text-gray-500,
+        html[data-theme="dark"] .text-gray-400,
+        html[data-theme="dark"] .text-slate-600,
+        html[data-theme="dark"] .text-slate-500,
+        html[data-theme="dark"] .text-slate-400 {
+            color: var(--w-text-muted) !important;
+        }
+        html[data-theme="dark"] .border,
+        html[data-theme="dark"] .border-gray-100,
+        html[data-theme="dark"] .border-gray-200,
+        html[data-theme="dark"] .border-slate-100,
+        html[data-theme="dark"] .border-slate-200,
+        html[data-theme="dark"] .divide-gray-100 > * + *,
+        html[data-theme="dark"] .divide-gray-200 > * + * {
+            border-color: var(--w-border) !important;
+        }
+        /* صفوف الجداول hover في Tailwind */
+        html[data-theme="dark"] .hover\:bg-gray-50:hover {
+            background-color: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        /* الحفاظ على النص الأبيض فوق البانرات المتدرّجة (لا نلمسها) */
+        html[data-theme="dark"] [class*="bg-gradient"] .text-white,
+        html[data-theme="dark"] [class*="bg-gradient"] {
+            color: #ffffff;
+        }
+
+        /* --- قائمة الأفاتار المنسدلة في الهيدر (خلفية بيضاء inline) --- */
+        html[data-theme="dark"] #avatarDropdownMenu {
+            background: var(--w-card) !important;
+        }
+        html[data-theme="dark"] #avatarDropdownMenu a,
+        html[data-theme="dark"] #avatarDropdownMenu label,
+        html[data-theme="dark"] #avatarDropdownMenu button {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] #avatarDropdownMenu a:hover,
+        html[data-theme="dark"] #avatarDropdownMenu label:hover {
+            background: rgba(255, 255, 255, 0.06) !important;
+        }
+        /* الفاصل داخل القائمة (كان #e2e8f0) */
+        html[data-theme="dark"] #avatarDropdownMenu > div > div[style*="height: 1px"] {
+            background: var(--w-border) !important;
+        }
+
+        /* --- (school-admin round2) مقارنة الاستبيانات عبر layouts.admin ---
+           صفحة school-admin/surveys/comparison تُضمّن partials.survey-comparison المشترك.
+           .cmp-card تُعتَّم أصلاً عبر قاعدة [class*="-card"] أعلاه (خلفيتها من كلاس white)
+           => عناوين h2/h3 المُصلَّبة inline (#1e293b) تصبح داكنة-على-داكنة وتختفي.
+           نفتّحها من هنا (لا نلمس الـpartial المشترك). نطابق كلتا صيغتي المسافة. */
+        html[data-theme="dark"] .cmp-card [style*="color: #1e293b"],
+        html[data-theme="dark"] .cmp-card [style*="color:#1e293b"] { color: var(--w-text) !important; }
+    </style>
+
+    {{-- =========================================================================
+         Wahy dark-mode round2 — إصلاح ارتدادات مؤكّدة (مُدقّق خصمي)
+         المبدأ: لا نص فاتح على خلفية فاتحة، ولا نص داكن على خلفية داكنة.
+         نعالج كل زوج (خلفية+نص) معاً. الأولوية للجزر الفاتحة التي أخفت عناصرها.
+         ========================================================================= --}}
+    <style>
+        /* --- (0) الحل الأمثل: متغيّرات الاحتياطي التي تستعملها صفحات الأدمن ---
+           عشرات المواضع تكتب var(--text-primary, #1e293b) / var(--card-bg, white)
+           بدون تعريف المتغيّر، فيسقط على الاحتياطي الداكن/الأبيض. نعرّفها هنا داكنةً
+           فيُحلّ education-levels + online-users + المودالات دفعةً واحدة، مع بقاء
+           كل زوج متّسقاً: خلفية --card-bg داكنة + نص --text-* فاتح. */
+        html[data-theme="dark"] {
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --card-bg: #1e293b;
+        }
+
+        /* --- (1) صناديق بخلفية بيضاء/فاتحة مُصلَّبة inline (values/index 244+248، landing 283/295/308) ---
+           نعتّم الحاوية ونفتّح نصّها معاً. ونفتّح النصوص الداكنة inline *داخل هذه الصناديق فقط*
+           (لا نلمس النص الداكن على خلفيات تبقى فاتحة في مكان آخر = منع ارتداد فاتح-على-فاتح). */
+        html[data-theme="dark"] [style*="background: white"],
+        html[data-theme="dark"] [style*="background:white"],
+        html[data-theme="dark"] [style*="background: #fff"],
+        html[data-theme="dark"] [style*="background:#fff"],
+        html[data-theme="dark"] [style*="background: #f8fafc"],
+        html[data-theme="dark"] [style*="background:#f8fafc"] {
+            background: var(--w-card) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+        /* نصوص العناوين/الفقرات داخل هذه الصناديق المعتَّمة (كانت داكنة inline أو ترث) */
+        html[data-theme="dark"] [style*="background: white"] h3,
+        html[data-theme="dark"] [style*="background:white"] h3,
+        html[data-theme="dark"] [style*="background: white"] h4,
+        html[data-theme="dark"] [style*="background: #f8fafc"] h4,
+        html[data-theme="dark"] [style*="background: white"] [style*="color: #1e293b"],
+        html[data-theme="dark"] [style*="background: white"] [style*="color:#1e293b"],
+        html[data-theme="dark"] [style*="background: #f8fafc"] [style*="color: #475569"],
+        html[data-theme="dark"] [style*="background: #f8fafc"] [style*="color:#475569"] {
+            color: var(--w-text) !important;
+        }
+        html[data-theme="dark"] [style*="background: white"] p,
+        html[data-theme="dark"] [style*="background: white"] [style*="color: #64748b"],
+        html[data-theme="dark"] [style*="background: white"] [style*="color:#64748b"],
+        html[data-theme="dark"] [style*="background: #f8fafc"] ul,
+        html[data-theme="dark"] [style*="background: #f8fafc"] [style*="color: #64748b"],
+        html[data-theme="dark"] [style*="background: #f8fafc"] [style*="color:#64748b"] {
+            color: var(--w-text-muted) !important;
+        }
+
+        /* --- (2) landing-page: كلاسات داخلية بخلفية فاتحة في <style> الصفحة --- */
+        html[data-theme="dark"] .tabs-container,
+        html[data-theme="dark"] .tabs-header,
+        html[data-theme="dark"] .tab-content {
+            background: var(--w-card) !important;
+            color: var(--w-text) !important;
+            border-color: var(--w-border) !important;
+        }
+
+        /* --- (4) صناديق التنبيه الصفراء الشاحبة (#fffbeb=theme:22، #fff3cd=badges) ---
+           هذه هويّة تنبيه تبقى صفراء فاتحة، لكن قاعدة (1) قد تلتقطها عبر النمط الجزئي
+           "#fff" فتُعتّمها وتترك نصّها الداكن inline (مثل #856404) داكناً على داكن.
+           لذا نُعيد تثبيت خلفيتها الصفراء ونُثبّت نصّها داكناً (زوج: أصفر فاتح + نص داكن).
+           هذه القاعدة *بعد* (1) في ترتيب المصدر فتتغلّب عند تساوي التخصيص. */
+        html[data-theme="dark"] [style*="background: #fffbeb"],
+        html[data-theme="dark"] [style*="background:#fffbeb"] {
+            background: #fffbeb !important;
+            color: #1e293b !important;
+        }
+        html[data-theme="dark"] [style*="background: #fff3cd"],
+        html[data-theme="dark"] [style*="background:#fff3cd"] {
+            background: #fff3cd !important;
+            color: #856404 !important;
+        }
+        html[data-theme="dark"] [style*="background: #fffbeb"] *,
+        html[data-theme="dark"] [style*="background:#fffbeb"] *,
+        html[data-theme="dark"] [style*="background: #fff3cd"] *,
+        html[data-theme="dark"] [style*="background:#fff3cd"] * {
+            color: #1e293b !important;
+        }
+    </style>
+
     <!-- Real-Time Messages System -->
     <script src="{{ asset('js/messages-realtime.js') }}"></script>
 

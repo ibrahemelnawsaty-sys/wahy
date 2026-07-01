@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const html = document.documentElement;
     const themeToggle = document.getElementById('themeToggle');
 
-    // Get saved theme or default to dark
-    const savedTheme = localStorage.getItem('theme') || 'dark';
+    // Get saved theme or default to dark (المفتاح الموحّد wahy-theme)
+    const savedTheme = localStorage.getItem('wahy-theme') || 'dark';
     html.setAttribute('data-theme', savedTheme);
 
     // Theme toggle button click event
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
             html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+            localStorage.setItem('wahy-theme', newTheme);
 
             // Smooth rotation animation
             this.style.transform = `rotate(${currentTheme === 'dark' ? '180deg' : '0deg'})`;

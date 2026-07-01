@@ -8,6 +8,82 @@
     <title>@yield('title', 'لوحة المدير العام - بناء القيم')</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/super-admin-glass.css') }}">
+    <style>
+        /* ===================================================================
+           Wahy dark-mode coverage (super-admin)
+           بلوك مُجمَّع يعالج فجوات الوضع الليلي للصفحات التي تستخدم هذا اللايوت
+           (schools / content-management) والتي تكتب ألواناً مُصلَّبة inline.
+           جراحي: مقصور على #sa-main-content فقط ولا يمسّ الشريط/الهيدر (يستعملان var).
+           =================================================================== */
+        html[data-theme="dark"] #sa-main-content {
+            /* عناوين ونصوص الصفحة المكتوبة inline بألوان داكنة تصبح غير مرئية على الخلفية الداكنة */
+            --sa-dark-heading: #F1F5F9;
+            --sa-dark-body: #CBD5E1;
+            --sa-dark-muted: #94A3B8;
+        }
+
+        /* العناوين الرئيسية والفرعية للصفحة (h1/h2/h3/h4) الموضوعة مباشرة فوق خلفية اللايوت الداكنة */
+        html[data-theme="dark"] #sa-main-content > div > .d-flex h1,
+        html[data-theme="dark"] #sa-main-content > div > div > div > h1,
+        html[data-theme="dark"] #sa-main-content h1[style*="#1a202c"],
+        html[data-theme="dark"] #sa-main-content h2[style*="#1a202c"],
+        html[data-theme="dark"] #sa-main-content h3[style*="#2d3748"],
+        html[data-theme="dark"] #sa-main-content h3[style*="#1a202c"],
+        html[data-theme="dark"] #sa-main-content h4[style*="#2d3748"] {
+            color: var(--sa-dark-heading) !important;
+        }
+
+        /* الفقرات الوصفية المكتوبة بلون رمادي فاتح (#718096) تحت العنوان مباشرة على الخلفية الداكنة */
+        html[data-theme="dark"] #sa-main-content > div > div > div > p[style*="#718096"] {
+            color: var(--sa-dark-muted) !important;
+        }
+
+        /* البطاقات البيضاء / الرمادية الفاتحة (background: white | #f7fafc) تبقى فاتحة في الوضع الليلي
+           فتكسر اتساق الثيم؛ نحوّلها إلى أسطح داكنة زجاجية مع إبقاء تباين النص سليماً. */
+        html[data-theme="dark"] #sa-main-content div[style*="background: white"],
+        html[data-theme="dark"] #sa-main-content div[style*="background:#fff"],
+        html[data-theme="dark"] #sa-main-content div[style*="background: #f7fafc"],
+        html[data-theme="dark"] #sa-main-content div[style*="background:#f7fafc"] {
+            background: rgba(30, 41, 59, 0.75) !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        /* النصوص الداكنة داخل تلك البطاقات (عناوين/نصوص/رمادي) تصبح فاتحة لتحقيق تباين AA */
+        html[data-theme="dark"] #sa-main-content [style*="color: #1a202c"],
+        html[data-theme="dark"] #sa-main-content [style*="color:#1a202c"],
+        html[data-theme="dark"] #sa-main-content [style*="color: #2d3748"],
+        html[data-theme="dark"] #sa-main-content [style*="color:#2d3748"] {
+            color: var(--sa-dark-heading) !important;
+        }
+        html[data-theme="dark"] #sa-main-content [style*="color: #718096"],
+        html[data-theme="dark"] #sa-main-content [style*="color:#718096"],
+        html[data-theme="dark"] #sa-main-content [style*="color: #4a5568"],
+        html[data-theme="dark"] #sa-main-content [style*="color:#4a5568"],
+        html[data-theme="dark"] #sa-main-content [style*="color: #475569"],
+        html[data-theme="dark"] #sa-main-content [style*="color:#475569"] {
+            color: var(--sa-dark-muted) !important;
+        }
+
+        /* حقول الإدخال/القوائم البيضاء ذات الحدود الفاتحة تُوحَّد مع السطح الداكن */
+        html[data-theme="dark"] #sa-main-content input[style*="border"],
+        html[data-theme="dark"] #sa-main-content select[style*="border"],
+        html[data-theme="dark"] #sa-main-content textarea[style*="border"] {
+            background: rgba(15, 23, 42, 0.6) !important;
+            color: var(--sa-dark-heading) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+        html[data-theme="dark"] #sa-main-content input::placeholder,
+        html[data-theme="dark"] #sa-main-content textarea::placeholder {
+            color: var(--sa-dark-muted) !important;
+        }
+
+        /* الحدود الفاصلة الفاتحة (#f7fafc / #e2e8f0) داخل البطاقات تُخفَّف لتناسب الوضع الليلي */
+        html[data-theme="dark"] #sa-main-content [style*="border-bottom: 3px solid #f7fafc"],
+        html[data-theme="dark"] #sa-main-content [style*="border-top: 2px solid #e2e8f0"] {
+            border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+    </style>
+    @include('partials.theme-toggle')
 </head>
 <body>
     @include('partials.flash')
@@ -56,7 +132,7 @@
                     </ul>
                     <div style="padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; margin: 10px 15px; border-right: 3px solid var(--color-primary, #667eea);">
                         <p style="margin: 0 0 8px; font-size: 13px; color: var(--color-primary, #667eea); font-weight: 600;">💡 كيف تستخدم المحرر؟</p>
-                        <ol style="margin: 0; padding-right: 20px; font-size: 12px; color: #666; line-height: 1.6;">
+                        <ol style="margin: 0; padding-right: 20px; font-size: 12px; color: var(--text-secondary, #cbd5e1); line-height: 1.6;">
                             <li>اضغط على "افتح المحرر" أعلاه</li>
                             <li>اضغط على الزر العائم ✏️ أسفل اليسار</li>
                             <li>ابدأ التعديل مباشرة!</li>
@@ -250,22 +326,10 @@
     </div>
     
     <script>
-        // Theme Toggle
-        const html = document.documentElement;
-        const themeToggle = document.getElementById('sidebarThemeToggle');
-        
-        // Load saved theme
-        const savedTheme = localStorage.getItem('admin-theme') || 'dark';
-        html.setAttribute('data-theme', savedTheme);
-        
-        // Toggle theme
-        themeToggle?.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('admin-theme', newTheme);
-        });
-        
+        // تبديل الثيم يُدار مركزياً عبر partials/theme-toggle (مفتاح wahy-theme).
+        // زر #sidebarThemeToggle يُربط هناك تلقائياً. الافتراضي هنا داكن (data-theme="dark" على <html>)
+        // ويحترمه الـ FOUC guard عند غياب تفضيل محفوظ.
+
         // Mobile menu toggle
         const menuToggle = document.querySelector('.menu-toggle');
         const sidebar = document.querySelector('.admin-sidebar');

@@ -58,6 +58,8 @@
     color: #1e293b;
     margin-bottom: 8px;
 }
+/* الوضع الليلي: العنوان مُعرّف بكلاس على بطاقة يعتّمها اللايوت — نفتّحه وإلا داكن-على-داكن مخفي. */
+html[data-theme="dark"] .value-name { color: var(--w-text, #f1f5f9) !important; }
 
 .value-description {
     color: #64748b;

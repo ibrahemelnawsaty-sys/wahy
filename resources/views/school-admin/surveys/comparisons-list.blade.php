@@ -2,8 +2,20 @@
 @section('title', 'مقارنات الاستبيانات')
 @section('page-title', '📊 مقارنات الاستبيانات القبلية / البعدية')
 
+@push('styles')
+<style>
+    /* Wahy dark-mode coverage — بطاقات هذه الصفحة بألوان inline مُصلَّبة (تعتمد --w-* الموحّدة). */
+    html[data-theme="dark"] .sa-surveys-list [style*="background: white"] {
+        background: var(--w-card) !important;
+        box-shadow: var(--w-shadow) !important;
+    }
+    html[data-theme="dark"] .sa-surveys-list [style*="color: #1e293b"] { color: var(--w-text) !important; }
+    html[data-theme="dark"] .sa-surveys-list [style*="color: #64748b"] { color: var(--w-text-muted) !important; }
+</style>
+@endpush
+
 @section('content')
-<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+<div class="sa-surveys-list" style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <p style="color: #64748b; margin-bottom: 24px;">
         اعرض مقارنة نتائج طلاب مدرستك في الاستبيانات القبلية مقابل البعدية لقياس مدى تحسّنهم.
     </p>

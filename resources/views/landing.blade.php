@@ -43,7 +43,7 @@
 <html lang="ar" dir="rtl">
 <head>
     {{-- Theme init - prevents flash of wrong theme (FOUC) --}}
-    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');</script>
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('wahy-theme') || 'dark');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{ $siteDescription }}">

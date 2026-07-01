@@ -286,6 +286,47 @@
 .fa-modal-btn-cancel { background: #f1f5f9; color: #475569; }
 .fa-modal-btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 14px rgba(239,68,68,0.3); }
 .fa-modal-btn-danger:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(239,68,68,0.4); }
+
+/* ===================================================================
+   Wahy dark-mode coverage — تغطية الوضع الليلي لتصميم .fa-* المُصلَّب
+   جراحي: يقلب الأسطح البيضاء إلى داكنة والنصوص الداكنة إلى فاتحة (تباين AA).
+   =================================================================== */
+html[data-theme="dark"] .fa-stat,
+html[data-theme="dark"] .fa-card {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+html[data-theme="dark"] .fa-stat:hover { border-color: rgba(255, 255, 255, 0.16); }
+html[data-theme="dark"] .fa-stat-value,
+html[data-theme="dark"] .fa-card-header h3,
+html[data-theme="dark"] .fa-activity-title { color: #F1F5F9; }
+html[data-theme="dark"] .fa-stat-label,
+html[data-theme="dark"] .fa-activity-desc,
+html[data-theme="dark"] .fa-reason,
+html[data-theme="dark"] .fa-date { color: #94A3B8; }
+html[data-theme="dark"] .fa-table thead th {
+    color: #CBD5E1;
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+html[data-theme="dark"] .fa-table tbody td { border-bottom-color: rgba(255, 255, 255, 0.06); }
+html[data-theme="dark"] .fa-action-btn {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #CBD5E1;
+}
+html[data-theme="dark"] .fa-value-badge.empty {
+    background: rgba(255, 255, 255, 0.06);
+    color: #94A3B8;
+}
+html[data-theme="dark"] .fa-modal-btn-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: #CBD5E1;
+}
+/* Wahy dark-mode round2 — اسم المعلم inline color:#1e293b داخل .fa-card المُعتَّمة = داكن-على-داكن */
+html[data-theme="dark"] .fa-card [style*="color:#1e293b"],
+html[data-theme="dark"] .fa-card [style*="color: #1e293b"] { color: #F1F5F9 !important; }
 </style>
 
 <div class="fa-page">

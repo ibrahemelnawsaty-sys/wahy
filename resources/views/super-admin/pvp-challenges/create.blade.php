@@ -3,8 +3,36 @@
 @section('title', 'إنشاء تحدي PvP')
 @section('page-title', 'إنشاء تحدي PvP')
 
+@push('styles')
+<style>
+/* Wahy dark-mode coverage — pvp-challenges/create (ألوان inline مُصلَّبة) */
+html[data-theme="dark"] #sa-pvp-create div[style*="background: #fff"],
+html[data-theme="dark"] #sa-pvp-create div[style*="background:#fff"] {
+    background: rgba(30, 41, 59, 0.85) !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+html[data-theme="dark"] #sa-pvp-create h2[style*="#1e293b"],
+html[data-theme="dark"] #sa-pvp-create label[style*="#1e293b"],
+html[data-theme="dark"] #sa-pvp-create span[style*="#1e293b"] { color: #F1F5F9 !important; }
+html[data-theme="dark"] #sa-pvp-create small[style*="#94a3b8"],
+html[data-theme="dark"] #sa-pvp-create a[style*="#64748b"] { color: #94A3B8 !important; }
+html[data-theme="dark"] #sa-pvp-create input[type="text"],
+html[data-theme="dark"] #sa-pvp-create input[type="number"],
+html[data-theme="dark"] #sa-pvp-create select,
+html[data-theme="dark"] #sa-pvp-create textarea {
+    background: rgba(15, 23, 42, 0.6) !important;
+    color: #F1F5F9 !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #CBD5E1 !important;
+}
+</style>
+@endpush
+
 @section('content')
-<div style="padding: 24px; max-width: 900px; margin: 0 auto;">
+<div id="sa-pvp-create" style="padding: 24px; max-width: 900px; margin: 0 auto;">
     <a href="{{ route('admin.pvp-challenges.index') }}"
        style="display: inline-flex; align-items: center; gap: 6px; color: #64748b; text-decoration: none; margin-bottom: 18px; font-size: 14px;">
         <i class="fas fa-arrow-right" aria-hidden="true"></i> رجوع إلى التحديات
