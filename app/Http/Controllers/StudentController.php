@@ -83,12 +83,13 @@ class StudentController extends Controller
         }
 
         // الدرس الحالي (آخر درس بدأ فيه)
-        $currentLesson = Lesson::whereHas('activities', function ($query) use ($user) {
-            $query->whereHas('submissions', function ($q) use ($user) {
-                $q->where('student_id', $user->id)
-                    ->where('status', '!=', 'completed');
-            });
-        })
+        $currentLesson = Lesson::where('status', 'active')
+            ->whereHas('activities', function ($query) use ($user) {
+                $query->whereHas('submissions', function ($q) use ($user) {
+                    $q->where('student_id', $user->id)
+                        ->where('status', '!=', 'completed');
+                });
+            })
             ->with(['concept.value'])
             ->first();
 
@@ -110,9 +111,12 @@ class StudentController extends Controller
             $currentLesson->progress = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
         }
 
-        // جلب القيم المفعّلة لمدرسة الطالب (Issue 11/105) — أنشطة نشطة فقط
+        // جلب القيم المفعّلة لمدرسة الطالب (Issue 11/105) — دروس وأنشطة نشطة فقط
         $values = Value::visibleForSchool($user->school_id)
-            ->with(['concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')])
+            ->with([
+                'concepts.lessons' => fn ($q) => $q->where('status', 'active'),
+                'concepts.lessons.activities' => fn ($q) => $q->where('status', 'active'),
+            ])
             ->orderBy('order')
             ->get();
 
@@ -477,6 +481,11 @@ class StudentController extends Controller
             abort(404);
         }
 
+        // درس غير نشط لا يُفتح للطالب (حتى بالرابط المباشر)
+        if (($lesson->status ?? 'active') !== 'active') {
+            abort(404);
+        }
+
         // جلب الأنشطة النشطة فقط مرتّبة — لا تُعرض الأنشطة غير النشطة للطالب
         $activities = $lesson->activities()->where('status', 'active')->orderBy('order')->get();
 
@@ -755,9 +764,10 @@ class StudentController extends Controller
             }
         }
 
-        // Find next activity in same lesson (النشاط قد يكون بلا درس)
+        // Find next active activity in same lesson (النشاط قد يكون بلا درس)
         $nextActivity = $lesson
             ? Activity::where('lesson_id', $lesson->id)
+                ->where('status', 'active')
                 ->where('id', '>', $id)
                 ->orderBy('id')
                 ->first()
@@ -1701,12 +1711,13 @@ class StudentController extends Controller
         $streak = $user->streak;
 
         // جلب الدرس الحالي
-        $currentLesson = Lesson::whereHas('activities', function ($query) use ($user) {
-            $query->whereHas('submissions', function ($q) use ($user) {
-                $q->where('student_id', $user->id)
-                    ->where('status', '!=', 'completed');
-            });
-        })
+        $currentLesson = Lesson::where('status', 'active')
+            ->whereHas('activities', function ($query) use ($user) {
+                $query->whereHas('submissions', function ($q) use ($user) {
+                    $q->where('student_id', $user->id)
+                        ->where('status', '!=', 'completed');
+                });
+            })
             ->with(['concept.value'])
             ->first();
 
@@ -1754,9 +1765,12 @@ class StudentController extends Controller
             ->whereIn('status', ActivitySubmission::DONE_STATUSES)
             ->pluck('activity_id')->unique()->all();
 
-        // جلب القيم المرئية لمدرسة الطالب فقط (Issue #105) — أنشطة نشطة فقط
+        // جلب القيم المرئية لمدرسة الطالب فقط (Issue #105) — دروس وأنشطة نشطة فقط
         $values = Value::visibleForSchool($user->school_id)
-            ->with(['concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')])
+            ->with([
+                'concepts.lessons' => fn ($q) => $q->where('status', 'active'),
+                'concepts.lessons.activities' => fn ($q) => $q->where('status', 'active'),
+            ])
             ->orderBy('order')
             ->get();
 
