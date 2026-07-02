@@ -2916,8 +2916,10 @@ svg.icon,
     /* Teams Features Mobile */
     .teams-features li {
         padding: var(--space-3);
-        flex-direction: column;
-        text-align: center;
+        /* أبقِ الأيقونة بجانب النص (صفّ RTL: الأيقونة يميناً والنص يسارها) بدل تكديسها مركزةً فوقه */
+        flex-direction: row;
+        align-items: flex-start;
+        text-align: right;
     }
 
     .teams-features i {
@@ -3379,6 +3381,10 @@ svg.icon,
     display: flex !important;
     flex-direction: column;
     align-items: center;
+}
+/* بطاقات الفرق (كؤوس) داخل .teams-visual: هي نفسها editable-element فلا يجب أن تتحوّل contents */
+.team-card.editable-element {
+    display: block !important;
 }
 
 .flow-arrow.editable-element {
