@@ -20,28 +20,28 @@ class ShopExtrasSeeder extends Seeder
                 'description' => 'إطار ذهبي فاخر حول صورتك الرمزية',
                 'type' => 'theme', 'price' => 120, 'icon' => '🥇', 'rarity' => 'rare',
                 'status' => 'active', 'order' => 30,
-                'metadata' => ['kind' => 'frame', 'ring' => 'linear-gradient(135deg,#FFD700,#FFA500)', 'glow' => '0 0 14px rgba(255,193,7,.75)'],
+                'metadata' => ['kind' => 'frame', 'anim' => 'gold', 'ring' => 'linear-gradient(135deg,#FFD700,#FFA500)', 'glow' => '0 0 14px rgba(255,193,7,.75)'],
             ],
             [
                 'name' => 'برواز نيون',
-                'description' => 'إطار نيون متوهّج بلون سماوي',
+                'description' => 'إطار نيون متوهّج ودوّار بلون سماوي',
                 'type' => 'theme', 'price' => 160, 'icon' => '💠', 'rarity' => 'epic',
                 'status' => 'active', 'order' => 31,
-                'metadata' => ['kind' => 'frame', 'ring' => 'linear-gradient(135deg,#22d3ee,#3b82f6)', 'glow' => '0 0 16px rgba(34,211,238,.8)'],
+                'metadata' => ['kind' => 'frame', 'anim' => 'neon', 'ring' => 'linear-gradient(135deg,#22d3ee,#3b82f6)', 'glow' => '0 0 16px rgba(34,211,238,.8)'],
             ],
             [
                 'name' => 'برواز ملكي',
-                'description' => 'إطار ملكي بنفسجي ذهبي للأبطال',
+                'description' => 'إطار ملكي بنفسجي ذهبي دوّار للأبطال',
                 'type' => 'theme', 'price' => 220, 'icon' => '👑', 'rarity' => 'epic',
                 'status' => 'active', 'order' => 32,
-                'metadata' => ['kind' => 'frame', 'ring' => 'linear-gradient(135deg,#a855f7,#f59e0b)', 'glow' => '0 0 16px rgba(168,85,247,.8)'],
+                'metadata' => ['kind' => 'frame', 'anim' => 'royal', 'ring' => 'linear-gradient(135deg,#a855f7,#f59e0b)', 'glow' => '0 0 16px rgba(168,85,247,.8)'],
             ],
             [
                 'name' => 'برواز ناري',
-                'description' => 'إطار ناري متوهّج للجريئين',
+                'description' => 'إطار ناري متوهّج ودوّار للجريئين',
                 'type' => 'theme', 'price' => 200, 'icon' => '🔥', 'rarity' => 'epic',
                 'status' => 'active', 'order' => 33,
-                'metadata' => ['kind' => 'frame', 'ring' => 'linear-gradient(135deg,#ef4444,#f59e0b)', 'glow' => '0 0 16px rgba(239,68,68,.8)'],
+                'metadata' => ['kind' => 'frame', 'anim' => 'fire', 'ring' => 'linear-gradient(135deg,#ef4444,#f59e0b)', 'glow' => '0 0 16px rgba(239,68,68,.8)'],
             ],
 
             // ===== قوى (power-ups) ذات أثر فوري فعلي عند الاستخدام =====
@@ -69,7 +69,8 @@ class ShopExtrasSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            ShopItem::firstOrCreate(
+            // updateOrCreate: يُحدّث الموجود (مثل إضافة anim للمعادن السابقة) دون تكرار
+            ShopItem::updateOrCreate(
                 ['name' => $item['name'], 'type' => $item['type']],
                 $item,
             );

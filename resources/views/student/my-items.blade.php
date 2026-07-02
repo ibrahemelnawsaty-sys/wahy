@@ -64,9 +64,10 @@
                             $used = ! empty($item->pivot->used_at);
                             $action = $meta[2];
                         @endphp
+                        @php $__mfa = (is_array($item->metadata) && ! empty($item->metadata['anim'])) ? $item->metadata['anim'] : null; @endphp
                         <div class="mi-card {{ $action === 'equip' && $equipped ? 'equipped' : '' }}" id="mi-{{ $item->id }}">
                             @if($action === 'equip' && $equipped)<span class="mi-badge-tag">مُجهَّز</span>@endif
-                            <div class="mi-icon">
+                            <div class="mi-icon {{ $__mfa ? 'wahy-frame wahy-frame-' . $__mfa : '' }}">
                                 @if($item->image)
                                     <img src="{{ asset('storage/app/public/data/' . $item->image) }}" alt="{{ $item->name }}" onerror="this.parentNode.textContent='{{ $item->icon ?: '🎁' }}'">
                                 @else

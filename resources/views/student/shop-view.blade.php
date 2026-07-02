@@ -327,13 +327,14 @@
             @php
                 $hasPurchased = auth()->user()->hasPurchased($item->id);
                 $canAfford = $stats['total_coins'] >= $item->price;
+                $__sfa = (is_array($item->metadata) && ! empty($item->metadata['anim'])) ? $item->metadata['anim'] : null;
             @endphp
-            <div class="reward-card scale-in {{ !$canAfford || $hasPurchased ? 'disabled' : '' }}" 
+            <div class="reward-card scale-in {{ !$canAfford || $hasPurchased ? 'disabled' : '' }}"
                  style="animation-delay: {{ $index * 0.1 }}s;">
                 @if($item->image)
                     <img src="{{ asset('storage/app/public/data/' . $item->image) }}" alt="{{ $item->name }}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 12px; margin-bottom: 16px;">
                 @else
-                    <div class="reward-icon-large">{{ $item->icon }}</div>
+                    <div class="reward-icon-large {{ $__sfa ? 'wahy-frame wahy-frame-' . $__sfa : '' }}" style="{{ $__sfa ? 'width:96px;height:96px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;' : '' }}">{{ $item->icon }}</div>
                 @endif
                 
                 <!-- Rarity Badge -->
