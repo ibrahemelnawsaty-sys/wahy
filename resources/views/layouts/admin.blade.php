@@ -109,9 +109,7 @@
                     @php
                         $pendingSubmissionsCount = \App\Models\ActivitySubmission::where('status', 'pending')->count();
                     @endphp
-                    @if($pendingSubmissionsCount > 0)
-                        <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto;">{{ $pendingSubmissionsCount }}</span>
-                    @endif
+                    <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $pendingSubmissionsCount > 0 ? 'inline-flex' : 'none' }};" data-live="admin_pending_submissions" data-live-badge>{{ $pendingSubmissionsCount > 0 ? $pendingSubmissionsCount : 0 }}</span>
                 </a>
 
                 <a href="{{ route('messages.index') }}" class="admin-nav-item {{ request()->routeIs('messages.*') ? 'active' : '' }}">
@@ -120,9 +118,7 @@
                     @php
                         $unreadCount = \App\Models\Message::where('receiver_id', auth()->id())->where('is_read', false)->count();
                     @endphp
-                    @if($unreadCount > 0)
-                        <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto;">{{ $unreadCount }}</span>
-                    @endif
+                    <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $unreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="messages_unread" data-live-badge>{{ $unreadCount > 0 ? $unreadCount : 0 }}</span>
                 </a>
 
                 <div class="admin-nav-section">
@@ -293,9 +289,7 @@
                                 $pendingBankQuestions = \App\Models\QuestionBank::where('status', 'pending')->count();
                                 $totalBankPending = $pendingBankActivities + $pendingBankQuestions;
                             @endphp
-                            @if($totalBankPending > 0)
-                                <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto;">{{ $totalBankPending }}</span>
-                            @endif
+                            <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $totalBankPending > 0 ? 'inline-flex' : 'none' }};" data-live="activity_bank_pending" data-live-badge>{{ $totalBankPending > 0 ? $totalBankPending : 0 }}</span>
                         </a>
 
                         <a href="{{ route('admin.activity-approval.index') }}" class="admin-nav-item {{ request()->routeIs('admin.activity-approval.*') ? 'active' : '' }}">
@@ -304,9 +298,7 @@
                             @php
                                 $pendingActivities = \App\Models\Activity::where('is_activity_bank', true)->where('approval_status', 'pending')->count();
                             @endphp
-                            @if($pendingActivities > 0)
-                                <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto;">{{ $pendingActivities }}</span>
-                            @endif
+                            <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $pendingActivities > 0 ? 'inline-flex' : 'none' }};" data-live="activity_approval_pending" data-live-badge>{{ $pendingActivities > 0 ? $pendingActivities : 0 }}</span>
                         </a>
 
                         <a href="{{ route('admin.backups') }}" class="admin-nav-item {{ request()->routeIs('admin.backups') ? 'active' : '' }}">
@@ -432,11 +424,11 @@
                     <!-- Notification Counters -->
                     <a href="{{ route('admin.users.index') }}" style="text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(102, 126, 234, 0.1); padding: 8px 14px; border-radius: 10px; color: #667eea; font-weight: 600; font-size: 13px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(102,126,234,0.2)'" onmouseout="this.style.background='rgba(102,126,234,0.1)'">
                         <span>👥</span>
-                        <span>{{ $newUsersCount ?? 0 }} مستخدم جديد</span>
+                        <span><span data-live="header_new_users">{{ $newUsersCount ?? 0 }}</span> مستخدم جديد</span>
                     </a>
                     <a href="{{ route('admin.pending-submissions') }}" style="text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.1); padding: 8px 14px; border-radius: 10px; color: #f59e0b; font-weight: 600; font-size: 13px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(245,158,11,0.2)'" onmouseout="this.style.background='rgba(245,158,11,0.1)'">
                         <span>📝</span>
-                        <span>{{ $newSubmissionsCount ?? 0 }} تقديم جديد</span>
+                        <span><span data-live="header_new_submissions">{{ $newSubmissionsCount ?? 0 }}</span> تقديم جديد</span>
                     </a>
 
                     <!-- User Info + Avatar Dropdown -->
@@ -1301,6 +1293,8 @@
         window.WAHY_EDITOR_UPLOAD_URL = "{{ route('editor.upload-image') }}";
     </script>
     <script src="{{ asset('js/rich-editor.js') }}" defer></script>
+
+    @include('partials.live-updates')
 
     @stack('after-content')
 </body>

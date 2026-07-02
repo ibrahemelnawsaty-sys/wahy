@@ -915,9 +915,7 @@
                                     ->where('is_read', false)
                                     ->count();
                             @endphp
-                            @if($unreadMessages > 0)
-                                <span class="nav-badge">{{ $unreadMessages }}</span>
-                            @endif
+                            <span class="nav-badge" style="display: {{ $unreadMessages > 0 ? 'inline-flex' : 'none' }};" data-live="messages_unread" data-live-badge>{{ $unreadMessages > 0 ? $unreadMessages : 0 }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -929,9 +927,7 @@
                                     ->whereNull('read_at')
                                     ->count();
                             @endphp
-                            @if($bulkUnreadMessages > 0)
-                                <span class="nav-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);">{{ $bulkUnreadMessages }}</span>
-                            @endif
+                            <span class="nav-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4); display: {{ $bulkUnreadMessages > 0 ? 'inline-flex' : 'none' }};" data-live="bulk_messages_unread" data-live-badge>{{ $bulkUnreadMessages > 0 ? $bulkUnreadMessages : 0 }}</span>
                         </a>
                     </li>
                     {{-- Issue #109: إظهار رابط تفاعل أولياء الأمور في القائمة الجانبية --}}
@@ -990,9 +986,7 @@
                                     ->where('status', 'pending')
                                     ->count();
                             @endphp
-                            @if($pendingCount > 0)
-                                <span class="nav-badge">{{ $pendingCount }}</span>
-                            @endif
+                            <span class="nav-badge" style="display: {{ $pendingCount > 0 ? 'inline-flex' : 'none' }};" data-live="registration_requests_pending" data-live-badge>{{ $pendingCount > 0 ? $pendingCount : 0 }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -1082,9 +1076,7 @@
                     @endphp
                     <button class="header-btn" id="notificationBtn" title="الإشعارات" style="position: relative;">
                         <i class="fas fa-bell"></i>
-                        @if($adminUnreadCount > 0)
-                            <span class="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #f56565; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: 700; min-width: 18px; text-align: center;">{{ $adminUnreadCount > 9 ? '9+' : $adminUnreadCount }}</span>
-                        @endif
+                        <span class="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #f56565; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: 700; min-width: 18px; text-align: center; display: {{ $adminUnreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="notifications_unread" data-live-badge data-live-cap="9">{{ $adminUnreadCount > 0 ? ($adminUnreadCount > 9 ? '9+' : $adminUnreadCount) : 0 }}</span>
                     </button>
                     
                     <!-- Notifications Dropdown Panel -->
@@ -1297,6 +1289,9 @@
     
     <!-- Survey Popup Component -->
     @include('components.survey-popup')
+
+    <!-- Live Updates (polling) -->
+    @include('partials.live-updates')
 
     @stack('after-content')
 </body>

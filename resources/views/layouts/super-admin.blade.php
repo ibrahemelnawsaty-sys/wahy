@@ -301,11 +301,11 @@
                         <!-- Notification Counters -->
                         <a href="{{ route('admin.users.index') }}" style="text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); padding: 8px 14px; border-radius: 10px; color: white; font-weight: 600; font-size: 13px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                             <span>👥</span>
-                            <span>{{ $newUsersCount ?? 0 }} مستخدم جديد</span>
+                            <span><span data-live="registration_requests_pending">{{ $newUsersCount ?? 0 }}</span> مستخدم جديد</span>
                         </a>
                         <a href="{{ route('admin.pending-submissions') }}" style="text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); padding: 8px 14px; border-radius: 10px; color: white; font-weight: 600; font-size: 13px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                             <span>📝</span>
-                            <span>{{ $newSubmissionsCount ?? 0 }} تقديم جديد</span>
+                            <span><span data-live="activity_submissions_pending">{{ $newSubmissionsCount ?? 0 }}</span> تقديم جديد</span>
                         </a>
 
                         <form method="POST" action="{{ route('logout') }}">
@@ -385,6 +385,8 @@
             }
         })();
     </script>
+
+    @include('partials.live-updates')
 </body>
 </html>
 

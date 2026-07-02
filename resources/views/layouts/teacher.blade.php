@@ -561,9 +561,7 @@
                     @php
                         $unreadCount = \App\Models\Message::where('receiver_id', auth()->id())->where('is_read', false)->count();
                     @endphp
-                    @if($unreadCount > 0)
-                        <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto;">{{ $unreadCount }}</span>
-                    @endif
+                    <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $unreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="messages_unread" data-live-badge>{{ $unreadCount > 0 ? $unreadCount : 0 }}</span>
                 </a>
                 <a href="{{ route('messages.bulk.inbox') }}" class="nav-item {{ request()->routeIs('messages.bulk.inbox') ? 'active' : '' }}">
                     <span class="nav-icon">📬</span>
@@ -571,9 +569,7 @@
                     @php
                         $bulkUnreadCount = \App\Models\BulkMessageRecipient::where('user_id', auth()->id())->whereNull('read_at')->count();
                     @endphp
-                    @if($bulkUnreadCount > 0)
-                        <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto;">{{ $bulkUnreadCount }}</span>
-                    @endif
+                    <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $bulkUnreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="bulk_messages_unread" data-live-badge>{{ $bulkUnreadCount > 0 ? $bulkUnreadCount : 0 }}</span>
                 </a>
                 <a href="{{ route('teacher.review') }}" class="nav-item {{ request()->is('teacher/review*') ? 'active' : '' }}">
                     <span class="nav-icon">📋</span>
@@ -725,6 +721,8 @@
     
     <!-- Survey Popup Component -->
     @include('components.survey-popup')
+
+    @include('partials.live-updates')
 
     @stack('after-content')
 </body>

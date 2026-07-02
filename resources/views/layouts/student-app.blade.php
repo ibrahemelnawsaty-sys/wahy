@@ -354,14 +354,14 @@
                 @if(isset($streak) && $streak && $streak->current_streak > 0)
                 <div class="status-badge status-badge-streak">
                     <span class="status-badge-icon">🔥</span>
-                    <span>{{ $streak->current_streak }}</span>
+                    <span data-live="streak_current">{{ $streak->current_streak }}</span>
                 </div>
                 @endif
                 
                 <!-- Coins Badge -->
                 <div class="status-badge status-badge-coins" onclick="openCoinsModal()" style="cursor: pointer;" title="اضغط لعرض سجل النقاط">
                     <span class="status-badge-icon">⭐</span>
-                    <span>{{ $stats['total_coins'] ?? 0 }}</span>
+                    <span data-live="coins_total">{{ $stats['total_coins'] ?? 0 }}</span>
                 </div>
                 
                 <!-- Notifications Badge -->
@@ -374,11 +374,9 @@
                             $unreadCount = 0;
                         }
                     @endphp
-                    @if($unreadCount > 0)
-                    <span style="position: absolute; top: -6px; left: -6px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: 700; min-width: 18px; text-align: center; border: 2px solid white;">
-                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                    <span style="position: absolute; top: -6px; left: -6px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: 700; min-width: 18px; text-align: center; border: 2px solid white;display: {{ $unreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="notifications_unread" data-live-badge data-live-cap="9">
+                        {{ $unreadCount > 0 ? ($unreadCount > 9 ? '9+' : $unreadCount) : 0 }}
                     </span>
-                    @endif
                 </a>
             </div>
         </div>
@@ -447,9 +445,7 @@
                         $unreadMessages = 0;
                     }
                 @endphp
-                @if($unreadMessages > 0)
-                <span class="nav-item-badge">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>
-                @endif
+                <span class="nav-item-badge" style="display: {{ $unreadMessages > 0 ? 'inline-flex' : 'none' }};" data-live="messages_unread" data-live-badge data-live-cap="9">{{ $unreadMessages > 0 ? ($unreadMessages > 9 ? '9+' : $unreadMessages) : 0 }}</span>
             </a>
             
             <!-- Profile -->
@@ -487,7 +483,7 @@
                 <div class="coins-stat-card">
                     <div class="coins-stat-icon">🎯</div>
                     <div class="coins-stat-info">
-                        <div class="coins-stat-value">{{ $stats['total_points'] ?? 0 }} XP</div>
+                        <div class="coins-stat-value"><span data-live="points_total">{{ $stats['total_points'] ?? 0 }}</span> XP</div>
                         <div class="coins-stat-label">نقاط الخبرة</div>
                     </div>
                 </div>
@@ -797,5 +793,7 @@
             });
         })();
     </script>
+
+    @include('partials.live-updates')
 </body>
 </html>

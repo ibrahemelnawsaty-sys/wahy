@@ -35,6 +35,10 @@ Route::get('/health/detailed', [\App\Http\Controllers\Health\HealthCheckControll
     ->middleware(['auth', 'role:super_admin'])
     ->name('health.detailed');
 
+// Live updates (Polling) — عدّادات لحظية موحّدة لكل الأدوار (تحديث الشارات دون refresh)
+Route::get('/live/summary', [\App\Http\Controllers\LiveUpdatesController::class, 'summary'])
+    ->middleware('auth')->name('live.summary');
+
 // الاستبيانات العامة
 Route::get('/survey/{survey}', [PagesController::class, 'showSurvey'])->name('survey.show');
 

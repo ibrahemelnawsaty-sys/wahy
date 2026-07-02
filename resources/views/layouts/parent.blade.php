@@ -605,7 +605,7 @@
                     <a href="{{ route('parent.family-activities.pending') }}" class="nav-link {{ request()->routeIs('parent.family-activities.*') ? 'active' : '' }}" style="position: relative;">
                         <i class="fas fa-hands-helping"></i>
                         <span>الأنشطة العائلية</span>
-                        @if($pendingFamily > 0)<span class="nav-badge" style="position:absolute;top:2px;left:6px;background:#ef4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:11px;display:flex;align-items:center;justify-content:center;">{{ $pendingFamily }}</span>@endif
+                        <span class="nav-badge" style="position:absolute;top:2px;left:6px;background:#ef4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:11px;align-items:center;justify-content:center;display:{{ $pendingFamily > 0 ? 'flex' : 'none' }};" data-live="family_activities_pending" data-live-badge>{{ $pendingFamily > 0 ? $pendingFamily : 0 }}</span>
                     </a>
                     <a href="{{ route('messages.index') }}" class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}" style="position: relative;">
                         <i class="fas fa-comments"></i>
@@ -613,9 +613,7 @@
                         @php
                             $unreadCount = \App\Models\Message::where('receiver_id', auth()->id())->where('is_read', false)->count();
                         @endphp
-                        @if($unreadCount > 0)
-                            <span class="badge-notification">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
-                        @endif
+                        <span class="badge-notification" style="display: {{ $unreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="messages_unread" data-live-badge data-live-cap="9">{{ $unreadCount > 0 ? ($unreadCount > 9 ? '9+' : $unreadCount) : 0 }}</span>
                     </a>
                     <a href="{{ route('parent.messages') }}" class="nav-link {{ request()->routeIs('parent.messages') ? 'active' : '' }}">
                         <i class="fas fa-envelope"></i>
@@ -627,9 +625,7 @@
                         @php
                             $bulkUnreadCount = \App\Models\BulkMessageRecipient::where('user_id', auth()->id())->whereNull('read_at')->count();
                         @endphp
-                        @if($bulkUnreadCount > 0)
-                            <span class="badge-notification">{{ $bulkUnreadCount > 9 ? '9+' : $bulkUnreadCount }}</span>
-                        @endif
+                        <span class="badge-notification" style="display: {{ $bulkUnreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="bulk_messages_unread" data-live-badge data-live-cap="9">{{ $bulkUnreadCount > 0 ? ($bulkUnreadCount > 9 ? '9+' : $bulkUnreadCount) : 0 }}</span>
                     </a>
                 </nav>
             </div>
@@ -696,6 +692,8 @@
     
     <!-- Survey Popup Component -->
     @include('components.survey-popup')
+
+    @include('partials.live-updates')
 
     @stack('after-content')
 </body>
