@@ -577,6 +577,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/shop', [StudentController::class, 'shop'])->name('shop');
         Route::post('/shop/purchase', [StudentController::class, 'purchaseItem'])->name('shop.purchase');
         Route::post('/shop/redeem', [StudentController::class, 'redeemReward'])->name('shop.redeem');
+        // مقتنياتي: عرض المشتريات + تجهيز/استخدام العناصر
+        Route::get('/my-items', [StudentController::class, 'myItems'])->name('my-items');
+        Route::post('/my-items/equip', [StudentController::class, 'equipItem'])->name('my-items.equip');
+        Route::post('/my-items/use', [StudentController::class, 'useItem'])->name('my-items.use');
         Route::get('/rate-teachers', [StudentController::class, 'rateTeachers'])->name('rate.teachers');
         Route::post('/rate-teacher', [StudentController::class, 'submitRating'])->name('rate.submit');
         Route::get('/analytics', [StudentController::class, 'analytics'])->name('analytics');

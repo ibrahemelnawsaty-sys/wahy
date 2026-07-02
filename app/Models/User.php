@@ -498,6 +498,11 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute(): string
     {
+        // أفاتار إيموجي مُجهَّز من المتجر (يُخزَّن كـ "emoji:🦁") → صورة SVG
+        if ($this->avatar && str_starts_with($this->avatar, 'emoji:')) {
+            return $this->emojiAvatarDataUri(mb_substr($this->avatar, strlen('emoji:')));
+        }
+
         if ($this->avatar) {
             // رابط خارجي مباشر
             if (str_starts_with($this->avatar, 'http')) {
@@ -534,6 +539,21 @@ class User extends Authenticatable
         $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'
             . '<circle cx="50" cy="50" r="50" fill="' . $color . '"/>'
             . '<text x="50" y="62" text-anchor="middle" font-family="Cairo, Arial, sans-serif" font-size="42" font-weight="800" fill="white">' . htmlspecialchars($letter, ENT_XML1) . '</text>'
+            . '</svg>';
+
+        return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
+    }
+
+    /**
+     * أفاتار من إيموجي (لصور المتجر الرمزية) — SVG data URI بخلفية متدرّجة.
+     */
+    private function emojiAvatarDataUri(string $emoji): string
+    {
+        $palette = ['#667eea', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+        $color = $palette[(int) ($this->id ?? 0) % count($palette)];
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'
+            . '<circle cx="50" cy="50" r="50" fill="' . $color . '"/>'
+            . '<text x="50" y="66" text-anchor="middle" font-size="52">' . htmlspecialchars($emoji, ENT_XML1) . '</text>'
             . '</svg>';
 
         return 'data:image/svg+xml;utf8,' . rawurlencode($svg);

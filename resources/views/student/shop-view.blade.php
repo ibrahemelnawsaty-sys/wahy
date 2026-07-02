@@ -307,7 +307,11 @@
     <div class="shop-header slide-up">
         <h1 class="shop-title">🛒 المتجر</h1>
         <p class="shop-subtitle">استبدل عملاتك بمكافآت رائعة!</p>
-        
+        <a href="{{ route('student.my-items') }}"
+           style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;background:rgba(255,255,255,.22);color:#fff;padding:10px 22px;border-radius:14px;text-decoration:none;font-weight:800;border:1px solid rgba(255,255,255,.35);">
+            🎒 مقتنياتي
+        </a>
+
         <div class="coins-balance-card">
             <div class="coins-icon-large">💰</div>
             <div class="coins-info">

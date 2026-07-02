@@ -1470,6 +1470,95 @@ class StudentController extends Controller
     }
 
     /**
+     * صفحة «مقتنياتي» — كل مشتريات الطالب مع حالة التجهيز/الاستخدام، مجمّعة حسب النوع.
+     */
+    public function myItems()
+    {
+        $user = Auth::user();
+
+        $purchases = $user->purchases()
+            ->orderBy('user_purchases.created_at', 'desc')
+            ->get()
+            ->groupBy('type');
+
+        return view('student.my-items', compact('purchases'));
+    }
+
+    /**
+     * تجهيز عنصر قابل للتجهيز (avatar/theme/badge) — عنصر واحد فعّال لكل نوع.
+     * إعادة الطلب على العنصر المُجهَّز نفسه = إلغاء التجهيز.
+     */
+    public function equipItem(Request $request)
+    {
+        $user = Auth::user();
+        $itemId = (int) $request->input('item_id');
+
+        $item = \App\Models\ShopItem::find($itemId);
+        if (! $item || ! $user->hasPurchased($itemId)) {
+            return response()->json(['success' => false, 'message' => 'لا تملك هذا العنصر']);
+        }
+        if (! in_array($item->type, ['avatar', 'theme', 'badge'], true)) {
+            return response()->json(['success' => false, 'message' => 'هذا النوع لا يُجهَّز']);
+        }
+
+        $current = $user->purchases()->where('shop_item_id', $itemId)->first();
+        $isEquipped = $current && $current->pivot->is_active;
+        $equipNow = ! $isEquipped;
+
+        // عنصر واحد فعّال لكل نوع: ألغِ تجهيز كل عناصر النوع نفسه أولاً
+        $sameTypeIds = \App\Models\ShopItem::where('type', $item->type)->pluck('id')->all();
+        DB::table('user_purchases')->where('user_id', $user->id)
+            ->whereIn('shop_item_id', $sameTypeIds)->update(['is_active' => false]);
+
+        if ($equipNow) {
+            DB::table('user_purchases')->where('user_id', $user->id)
+                ->where('shop_item_id', $itemId)->update(['is_active' => true]);
+        }
+
+        // أثر التجهيز: الأفاتار يصبح صورة الملف الشخصي فعلياً
+        if ($item->type === 'avatar') {
+            $user->avatar = $equipNow
+                ? ($item->image ?: ('emoji:' . ($item->icon ?: '🙂')))
+                : null; // إلغاء التجهيز → العودة للأفاتار الافتراضي
+            $user->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'equipped' => $equipNow,
+            'type' => $item->type,
+            'message' => $equipNow ? 'تم التجهيز ✓' : 'أُلغي التجهيز',
+        ]);
+    }
+
+    /**
+     * استخدام عنصر استهلاكي (power_up/special) — يُعلَّم بـ used_at (استخدام واحد).
+     */
+    public function useItem(Request $request)
+    {
+        $user = Auth::user();
+        $itemId = (int) $request->input('item_id');
+
+        $item = \App\Models\ShopItem::find($itemId);
+        if (! $item || ! $user->hasPurchased($itemId)) {
+            return response()->json(['success' => false, 'message' => 'لا تملك هذا العنصر']);
+        }
+
+        $current = $user->purchases()->where('shop_item_id', $itemId)->first();
+        if ($current && $current->pivot->used_at) {
+            return response()->json(['success' => false, 'message' => 'استخدمت هذا العنصر مسبقاً']);
+        }
+
+        DB::table('user_purchases')->where('user_id', $user->id)
+            ->where('shop_item_id', $itemId)->update(['used_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم استخدام «' . $item->name . '» 🎉',
+        ]);
+    }
+
+    /**
      * عرض صفحة تقييم المعلمين
      */
     public function rateTeachers()
