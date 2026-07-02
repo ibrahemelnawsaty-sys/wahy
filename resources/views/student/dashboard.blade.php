@@ -36,6 +36,33 @@
     .values-tree-section .concepts-container > div { margin-bottom: 20px; box-sizing: border-box; }
     .values-tree-section .concepts-container > div:last-child { margin-bottom: 0; }
 
+    /* أزرار الأنشطة: شبكة بطاقات مُوحّدة الحجم بشكل فاخر احترافي (بدل pills بأحجام مختلفة) */
+    .student-activities {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+        gap: 12px !important;
+    }
+    .student-activities .activity-chip {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center;
+        gap: 10px !important;
+        padding: 18px 12px !important;
+        border-radius: 18px !important;
+        min-height: 130px;
+        width: 100%;
+        box-sizing: border-box;
+        line-height: 1.35;
+    }
+    .student-activities .activity-chip:hover { filter: brightness(1.05); }
+    .student-activities .activity-chip > span:first-child { font-size: 30px !important; line-height: 1; }  /* الأيقونة */
+    .student-activities .activity-chip > span:nth-child(2) { font-weight: 700; overflow-wrap: break-word; }  /* العنوان */
+    @media (max-width: 480px) {
+        .student-activities { grid-template-columns: repeat(2, 1fr); }
+    }
+
     /* Current Value (قيد التقدم) - Full Width & Prominent */
     .value-card-current {
         grid-column: 1 / -1 !important;
@@ -683,7 +710,7 @@
                             
                             <!-- Activities -->
                             @if($lesson->activities->count() > 0)
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+                            <div class="student-activities" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
                                 @foreach($lesson->activities as $activity)
                                 @php
                                     // استخدام البيانات الحقيقية من Controller
@@ -697,7 +724,7 @@
                                     };
                                 @endphp
                                 
-                                <a href="{{ route('student.activity', $activity->id) }}" style="display: inline-flex; align-items: center; gap: 8px; background: {{ $activityCompleted ? 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}; color: white; padding: 10px 18px; border-radius: 25px; text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px {{ $activityCompleted ? 'rgba(72, 187, 120, 0.3)' : 'rgba(102, 126, 234, 0.3)' }}; position: relative;"
+                                <a href="{{ route('student.activity', $activity->id) }}" class="activity-chip" style="display: inline-flex; align-items: center; gap: 8px; background: {{ $activityCompleted ? 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}; color: white; padding: 10px 18px; border-radius: 25px; text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px {{ $activityCompleted ? 'rgba(72, 187, 120, 0.3)' : 'rgba(102, 126, 234, 0.3)' }}; position: relative;"
                                    onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 8px 25px {{ $activityCompleted ? 'rgba(72, 187, 120, 0.5)' : 'rgba(102, 126, 234, 0.5)' }}'"
                                    onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px {{ $activityCompleted ? 'rgba(72, 187, 120, 0.3)' : 'rgba(102, 126, 234, 0.3)' }}'">
                                     
