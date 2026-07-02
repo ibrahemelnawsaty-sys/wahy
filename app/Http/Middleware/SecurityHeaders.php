@@ -53,6 +53,20 @@ class SecurityHeaders
             $response->headers->set('Content-Security-Policy-Report-Only', $csp);
         }
 
+        // منع كاش المتصفح (bfcache) لصفحات المستخدم المُصادَق: بدونه يُقدَّم المتصفح صفحة قديمة برمز
+        // CSRF منتهٍ عند الرجوع/بعد المهلة → خطأ 419 عند تسجيل الخروج (وأي فورم) في كل الأدوار.
+        // وهو أيضاً ضروري أمنياً: المحتوى الخاص المُصادَق يجب ألا يُخزَّن في كاش مشترك/رجوع.
+        // مقصور على استجابات HTML (لا الأصول العامة تُخدَم من خادم الويب مباشرة).
+        if (auth()->check()) {
+            $contentType = (string) $response->headers->get('Content-Type');
+            $isHtml = $contentType === '' || str_contains($contentType, 'text/html');
+            if ($isHtml) {
+                $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
+                $response->headers->set('Pragma', 'no-cache');
+                $response->headers->set('Expires', '0');
+            }
+        }
+
         return $response;
     }
 }
