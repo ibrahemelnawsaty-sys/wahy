@@ -468,29 +468,48 @@ body::before {
 }
 
 /* ============================================================
-   حارس أجهزة اللمس/الجوال (يُحمَّل بعد landing.css فيتغلّب عليه)
-   المشكلة: على اللمس تعلق حالة :hover فيدور زر الثيم rotate(180deg) ويبدو "يتحرك بغرابة"،
-   والأسهم .flow-arrow والأيقونات (iconSpin/iconFloat) تنبض/تدور باستمرار = حركة مزعجة + jank.
-   الحل: على الأجهزة بلا تحويم فعلي نوقف تحوّل الزر وكل الأنيميشن (لا نلمس الـ transform الثابت
-   الخاص بتخطيط الأسهم على الجوال rotate(90deg) لأننا نوقف animation/transition فقط للأسهم).
+   حارس أجهزة اللمس/الجوال (يُحمَّل بعد landing.css فيتغلّب عليه بـ !important)
+   المشكلة: على اللمس تعلق حالة :hover فتتحرك عناصر، والأنيميشنات الدائمة (دوران/طفو/نبض/لمعان)
+   تعمل بلا توقف = حركة مزعجة و jank واستهلاك بطارية. الحل: على الأجهزة بلا تحويم فعلي نوقف
+   كل حركة زخرفية وكل :hover عالق. (نوقف animation/transition فقط — الـ transform الثابت الخاص
+   بتخطيط الأسهم على الجوال rotate(-90deg) للإشارة لأسفل يبقى سليماً.)
    ============================================================ */
 @media (hover: none), (pointer: coarse) {
+    /* إيقاف تحوّل زر الثيم وأي :hover عالق (زر/روابط الفوتر/رموز التواصل) */
     .theme-toggle,
     .theme-toggle:hover,
     .theme-toggle:active,
-    .theme-toggle:focus {
+    .theme-toggle:focus,
+    .social-link:hover,
+    .footer-links a:hover {
         transform: none !important;
     }
+    /* إيقاف كل الأنيميشن الزخرفي الدائم:
+       أيقونتا الزر، شعار النافبار، شارات ترتيب الفرق، الهيدر والهيرو وعناوينهما،
+       أشكال الخلفية المتحركة، قسم الحثّ، نبض خلفية body، والأسهم. */
     .theme-toggle .icon-sun,
-    .theme-toggle .icon-moon {
+    .theme-toggle .icon-moon,
+    .logo-icon,
+    .team-rank,
+    .header, .header::before,
+    .hero, .hero::before, .hero-title,
+    [class*="hero-bg-shape"],
+    .cta-section, .cta-section::before,
+    body,
+    .flow-arrow,
+    .flow-arrow * {
         animation: none !important;
         transition: none !important;
     }
-    .flow-arrow,
-    .flow-arrow *,
-    .flow-arrow .icon {
-        animation: none !important;
-        transition: none !important;
+}
+
+/* احترام تفضيل النظام "تقليل الحركة": يُلغي كل الأنيميشن/الانتقالات فوراً (نمط WCAG القياسي) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
     }
 }
 

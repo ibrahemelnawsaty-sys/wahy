@@ -888,8 +888,13 @@ svg.icon,
 .menu-toggle {
     display: none;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 6px;
     padding: var(--space-1);
+    /* هدف لمس ≥44px (كان ~34px ارتفاعاً) — زر التنقّل الوحيد على الجوال */
+    min-width: 44px;
+    min-height: 44px;
     background: none;
     border: none;
     cursor: pointer;
@@ -2682,7 +2687,8 @@ svg.icon,
         opacity: 0;
         visibility: hidden;
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        z-index: 999;
+        /* أعلى من الهيدر (z-index:1000) وإلا اختفى أول رابط خلف الهيدر عند فتح القائمة */
+        z-index: 1001;
     }
 
     .nav-links.active {
@@ -2761,7 +2767,8 @@ svg.icon,
     }
 
     .flow-arrow {
-        transform: rotate(90deg);
+        /* على الجوال (تخطيط عمودي): السهم الأيسر يجب أن يشير لأسفل لا لأعلى */
+        transform: rotate(-90deg);
         font-size: 24px;
     }
 
@@ -2796,7 +2803,8 @@ svg.icon,
     }
 
     .flow-arrow {
-        transform: rotate(90deg);
+        /* التخطيط العمودي للقيم: السهم يشير لأسفل */
+        transform: rotate(-90deg);
         margin: var(--space-2) 0;
     }
 
@@ -2822,7 +2830,8 @@ svg.icon,
     }
 
     .step-separator {
-        transform: rotate(90deg);
+        /* الجوال: الفاصل السهمي (←) يجب أن يشير لأسفل بين الخطوات المكدّسة عمودياً، لا لأعلى */
+        transform: rotate(-90deg);
         font-size: 20px;
         margin: var(--space-1) 0;
     }
@@ -2867,6 +2876,11 @@ svg.icon,
 
     .benefit-card i {
         font-size: 40px;
+    }
+    /* القالب يستخدم <svg class="icon"> لا <i> — نُصغّر الـ SVG الفعلي على الجوال */
+    .benefit-card svg.icon {
+        width: 40px;
+        height: 40px;
     }
 
     /* Partners Grid Mobile */
@@ -3027,7 +3041,8 @@ svg.icon,
 
 [data-theme="light"] .theme-toggle .icon-sun {
     display: block;
-    animation: iconSpin 20s linear infinite;
+    /* أُزيل الدوران الدائم (iconSpin) — كان يجعل الأيقونة تتحرك باستمرار ويزعج على الجوال */
+    animation: none;
 }
 
 [data-theme="light"] .theme-toggle .icon-moon {
@@ -3040,7 +3055,8 @@ svg.icon,
 
 [data-theme="dark"] .theme-toggle .icon-moon {
     display: block;
-    animation: iconFloat 3s ease-in-out infinite;
+    /* أُزيل الاهتزاز العمودي الدائم (iconFloat) — كان يجعل الأيقونة تتحرك لأعلى/أسفل باستمرار */
+    animation: none;
 }
 
 @keyframes iconSpin {
@@ -3185,6 +3201,10 @@ svg.icon,
     .benefit-card i {
         font-size: 36px;
     }
+    .benefit-card svg.icon {
+        width: 36px;
+        height: 36px;
+    }
 
     /* Partners Extra Small */
     .partners-grid {
@@ -3224,8 +3244,9 @@ svg.icon,
     }
 
     .social-link {
-        width: 36px;
-        height: 36px;
+        /* هدف لمس ≥40px (كان 36px) */
+        width: 40px;
+        height: 40px;
         font-size: 16px;
     }
 
