@@ -73,6 +73,7 @@
                                 @else
                                     {{ $item->icon ?: '🎁' }}
                                 @endif
+                                @if($__mfa)@include('partials.wf-particles')@endif
                             </div>
                             <div class="mi-name">{{ $item->name }}</div>
                             <div class="mi-rarity">{{ ['common'=>'عادي','rare'=>'نادر','epic'=>'ملحمي','legendary'=>'خرافي'][$item->rarity] ?? $item->rarity }}</div>

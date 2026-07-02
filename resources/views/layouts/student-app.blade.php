@@ -338,6 +338,7 @@
                      style="cursor: pointer;{{ (! $__anim && $__ring) ? ' background:' . $__ring . '; padding:3px;' : '' }}{{ (! $__anim && $__glow) ? ' box-shadow:' . $__glow . ';' : '' }}">
                     <img src="{{ $__su->avatar_url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <span style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-weight:700;">{{ mb_substr($__su->name, 0, 1) }}</span>
+                    @if($__anim)@include('partials.wf-particles')@endif
                 </div>
                 <div class="status-info">
                     <div class="status-name">
