@@ -525,6 +525,23 @@ body::before {
         display: none !important;
         animation: none !important;
     }
+
+    /* حسم نهائي: أوقِف كل أنيميشن في الهيدر والهيرو (القسم العلوي) وكل أبنائهما وعناصرهما الوهمية
+       على الجوال — يشمل تدرّج الهيدر المتحرّك (headerGradient/headerGlow)، الوميض (headerShimmer)،
+       الحدود المتدفّقة (borderFlow)، تدرّج/أشكال/لمعان عنوان الهيرو (heroGradient/heroShapes/titleShine)
+       وأي أنيميشن آخر مضاف لاحقاً. */
+    .header,
+    .header *,
+    .header::before,
+    .header::after,
+    .header *::before,
+    .header *::after,
+    .hero,
+    .hero *,
+    .hero *::before,
+    .hero *::after {
+        animation: none !important;
+    }
 }
 
 /* ==================== Premium Team Cards ==================== */
