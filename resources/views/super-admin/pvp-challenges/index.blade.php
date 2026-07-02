@@ -90,7 +90,12 @@ html[data-theme="dark"] #sa-pvp-index button[style*="background: #fff"] {
                     </td>
                     <td style="padding: 14px; font-size: 13px; color: #64748b;">{{ $challenge->creator->name ?? '—' }}</td>
                     <td style="padding: 14px;">
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <a href="{{ route('admin.pvp-challenges.edit', $challenge->id) }}"
+                               aria-label="تعديل التحدي {{ $challenge->title }}"
+                               style="background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; padding: 6px 12px; border-radius: 8px; text-decoration: none; min-height: 36px; display: inline-flex; align-items: center; font-weight: 600;">
+                                ✏️ تعديل
+                            </a>
                             <form method="POST" action="{{ route('admin.pvp-challenges.toggle', $challenge->id) }}" style="display: inline; margin: 0;">
                                 @csrf
                                 <button type="submit" aria-label="تبديل حالة التحدي {{ $challenge->title }}"

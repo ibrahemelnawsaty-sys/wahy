@@ -40,7 +40,7 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
 
     <div style="background: #fff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 18px rgba(0,0,0,0.06);">
         <h2 style="margin: 0 0 24px; font-size: 22px; font-weight: 700; color: #1e293b;">
-            ⚔️ إنشاء تحدي PvP جديد
+            ⚔️ {{ isset($challenge) ? 'تعديل تحدي PvP' : 'إنشاء تحدي PvP جديد' }}
         </h2>
 
         @if($errors->any())
@@ -54,15 +54,16 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
         </div>
         @endif
 
-        <form method="POST" action="{{ route('admin.pvp-challenges.store') }}">
+        <form method="POST" action="{{ isset($challenge) ? route('admin.pvp-challenges.update', $challenge->id) : route('admin.pvp-challenges.store') }}">
             @csrf
+            @isset($challenge) @method('PUT') @endisset
 
             <div style="margin-bottom: 20px;">
                 <label for="title" style="display: block; font-weight: 700; margin-bottom: 8px; color: #1e293b;">
                     عنوان التحدي *
                 </label>
                 <input type="text" id="title" name="title" required maxlength="255"
-                       value="{{ old('title') }}"
+                       value="{{ old('title', $challenge->title ?? '') }}"
                        style="width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px;">
             </div>
 
@@ -74,7 +75,7 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
                         style="width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; background: #fff;">
                     <option value="">— تحدي عام (يظهر لكل المدارس) —</option>
                     @foreach($values as $value)
-                    <option value="{{ $value->id }}" {{ old('value_id') == $value->id ? 'selected' : '' }}>
+                    <option value="{{ $value->id }}" {{ old('value_id', $challenge->value_id ?? '') == $value->id ? 'selected' : '' }}>
                         {{ $value->name }}
                     </option>
                     @endforeach
@@ -90,7 +91,7 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
                         الوقت الإجمالي (ثواني) *
                     </label>
                     <input type="number" id="time_limit" name="time_limit" required min="30" max="1800"
-                           value="{{ old('time_limit', 600) }}"
+                           value="{{ old('time_limit', $challenge->time_limit ?? 600) }}"
                            style="width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px;">
                     <small style="color: #94a3b8; font-size: 13px;">30 إلى 1800 ثانية</small>
                 </div>
@@ -101,9 +102,10 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
                     </label>
                     <select id="difficulty" name="difficulty"
                             style="width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; background: #fff;">
-                        <option value="easy" {{ old('difficulty') === 'easy' ? 'selected' : '' }}>سهل</option>
-                        <option value="medium" {{ old('difficulty', 'medium') === 'medium' ? 'selected' : '' }}>متوسط</option>
-                        <option value="hard" {{ old('difficulty') === 'hard' ? 'selected' : '' }}>صعب</option>
+                        @php $diffVal = old('difficulty', $challenge->difficulty ?? 'medium'); @endphp
+                        <option value="easy" {{ $diffVal === 'easy' ? 'selected' : '' }}>سهل</option>
+                        <option value="medium" {{ $diffVal === 'medium' ? 'selected' : '' }}>متوسط</option>
+                        <option value="hard" {{ $diffVal === 'hard' ? 'selected' : '' }}>صعب</option>
                     </select>
                 </div>
             </div>
@@ -126,7 +128,7 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
 
             <div style="margin-bottom: 24px;">
                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}
+                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $challenge->is_active ?? true) ? 'checked' : '' }}
                            style="width: 18px; height: 18px;">
                     <span style="font-weight: 600; color: #1e293b;">تفعيل التحدي فور إنشائه</span>
                 </label>
@@ -135,7 +137,7 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
             <div style="display: flex; gap: 12px;">
                 <button type="submit"
                         style="background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #fff; padding: 14px 32px; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer;">
-                    💾 حفظ التحدي
+                    💾 {{ isset($challenge) ? 'حفظ التعديلات' : 'حفظ التحدي' }}
                 </button>
                 <a href="{{ route('admin.pvp-challenges.index') }}"
                    style="background: #f1f5f9; color: #475569; padding: 14px 24px; border-radius: 12px; font-weight: 600; text-decoration: none;">إلغاء</a>
@@ -242,7 +244,7 @@ html[data-theme="dark"] #sa-pvp-create a[style*="background: #f1f5f9"] {
     }
 
     // seed: من old عند خطأ تحقّق، وإلا سؤال واحد فارغ
-    const seeded = @json(old('questions_json') ? json_decode(old('questions_json'), true) : null);
+    const seeded = @json(old('questions_json') ? json_decode(old('questions_json'), true) : ($seedQuestions ?? null));
     if (Array.isArray(seeded) && seeded.length) {
         seeded.forEach((q) => window.addPvpQuestion(q));
     } else {

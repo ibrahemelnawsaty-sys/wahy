@@ -892,43 +892,12 @@ class SuperAdminController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        // فكّ وبناء الأسئلة المُنشأة inline (نص + خيارات + الإجابة الصحيحة + درجة لكل سؤال)
-        $raw = json_decode($validated['questions_json'], true);
-        if (! is_array($raw) || count($raw) === 0) {
-            return back()->withInput()->withErrors(['questions_json' => 'أضِف سؤالًا واحدًا على الأقل']);
+        // فكّ وبناء الأسئلة المُنشأة inline (مشترك بين الإنشاء والتحديث)
+        $build = $this->buildPvpQuestions($validated['questions_json']);
+        if (isset($build['error'])) {
+            return back()->withInput()->withErrors(['questions_json' => $build['error']]);
         }
-        if (count($raw) > 50) {
-            return back()->withInput()->withErrors(['questions_json' => 'الحد الأقصى 50 سؤالًا']);
-        }
-
-        $questions = [];
-        foreach ($raw as $i => $q) {
-            $n = $i + 1;
-            $text = trim((string) ($q['text'] ?? ''));
-            if ($text === '') {
-                return back()->withInput()->withErrors(['questions_json' => "السؤال #{$n}: النص مطلوب"]);
-            }
-            $type = in_array(($q['type'] ?? ''), ['multiple_choice', 'true_false'], true) ? $q['type'] : 'multiple_choice';
-            $points = max(1, min(1000, (int) ($q['points'] ?? 100)));
-
-            if ($type === 'true_false') {
-                $correct = (($q['correct'] ?? 'true') === 'false') ? 'false' : 'true';
-                $questions[] = ['text' => $text, 'type' => 'true_false', 'options' => [], 'correct' => $correct, 'points' => $points];
-            } else {
-                $options = [];
-                foreach ((array) ($q['options'] ?? []) as $opt) {
-                    $t = trim((string) (is_array($opt) ? ($opt['text'] ?? '') : $opt));
-                    if ($t !== '') {
-                        $options[] = ['text' => $t];
-                    }
-                }
-                $correct = (int) ($q['correct'] ?? -1);
-                if (count($options) < 2 || $correct < 0 || $correct >= count($options)) {
-                    return back()->withInput()->withErrors(['questions_json' => "السؤال #{$n}: يحتاج خيارين على الأقل مع تحديد الإجابة الصحيحة"]);
-                }
-                $questions[] = ['text' => $text, 'type' => 'multiple_choice', 'options' => $options, 'correct' => $correct, 'points' => $points];
-            }
-        }
+        $questions = $build['questions'];
 
         $challenge = \App\Models\PvpChallenge::create([
             'title' => $validated['title'],
@@ -953,6 +922,111 @@ class SuperAdminController extends Controller
         $challenge->update(['is_active' => ! $challenge->is_active]);
 
         return back()->with('success', $challenge->is_active ? 'تم تفعيل التحدي' : 'تم تعطيل التحدي');
+    }
+
+    /**
+     * بناء مصفوفة الأسئلة من questions_json — مشتركة بين الإنشاء والتحديث.
+     * تُعيد ['questions'=>[...]] أو ['error'=>'رسالة'].
+     */
+    private function buildPvpQuestions(?string $json): array
+    {
+        $raw = json_decode((string) $json, true);
+        if (! is_array($raw) || count($raw) === 0) {
+            return ['error' => 'أضِف سؤالًا واحدًا على الأقل'];
+        }
+        if (count($raw) > 50) {
+            return ['error' => 'الحد الأقصى 50 سؤالًا'];
+        }
+
+        $questions = [];
+        foreach ($raw as $i => $q) {
+            $n = $i + 1;
+            $text = trim((string) ($q['text'] ?? ''));
+            if ($text === '') {
+                return ['error' => "السؤال #{$n}: النص مطلوب"];
+            }
+            $type = in_array(($q['type'] ?? ''), ['multiple_choice', 'true_false'], true) ? $q['type'] : 'multiple_choice';
+            $points = max(1, min(1000, (int) ($q['points'] ?? 100)));
+
+            if ($type === 'true_false') {
+                $correct = (($q['correct'] ?? 'true') === 'false') ? 'false' : 'true';
+                $questions[] = ['text' => $text, 'type' => 'true_false', 'options' => [], 'correct' => $correct, 'points' => $points];
+            } else {
+                $options = [];
+                foreach ((array) ($q['options'] ?? []) as $opt) {
+                    $t = trim((string) (is_array($opt) ? ($opt['text'] ?? '') : $opt));
+                    if ($t !== '') {
+                        $options[] = ['text' => $t];
+                    }
+                }
+                $correct = (int) ($q['correct'] ?? -1);
+                if (count($options) < 2 || $correct < 0 || $correct >= count($options)) {
+                    return ['error' => "السؤال #{$n}: يحتاج خيارين على الأقل مع تحديد الإجابة الصحيحة"];
+                }
+                $questions[] = ['text' => $text, 'type' => 'multiple_choice', 'options' => $options, 'correct' => $correct, 'points' => $points];
+            }
+        }
+
+        return ['questions' => $questions];
+    }
+
+    /**
+     * نموذج تعديل تحدي PvP (يعيد استخدام نموذج الإنشاء)
+     */
+    public function editPvpChallenge($id)
+    {
+        $challenge = \App\Models\PvpChallenge::findOrFail($id);
+
+        $values = \App\Models\Value::where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        // بذور المنشئ بصيغة النموذج (تُحوّل التحديات القديمة إلى الصيغة الجديدة عند الحفظ)
+        $seedQuestions = $challenge->normalizedQuestions()->map(function ($q) {
+            return [
+                'text' => $q['text'],
+                'type' => $q['type'],
+                'options' => $q['options'],
+                'correct' => $q['correct'],
+                'points' => $q['points'],
+            ];
+        })->values();
+
+        return view('super-admin.pvp-challenges.create', compact('challenge', 'values', 'seedQuestions'));
+    }
+
+    /**
+     * تحديث تحدي PvP
+     */
+    public function updatePvpChallenge(Request $request, $id)
+    {
+        $challenge = \App\Models\PvpChallenge::findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'value_id' => 'nullable|integer|exists:values,id',
+            'time_limit' => 'required|integer|min:30|max:1800',
+            'difficulty' => 'nullable|in:easy,medium,hard',
+            'questions_json' => 'required|string',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $build = $this->buildPvpQuestions($validated['questions_json']);
+        if (isset($build['error'])) {
+            return back()->withInput()->withErrors(['questions_json' => $build['error']]);
+        }
+
+        $challenge->update([
+            'title' => $validated['title'],
+            'value_id' => $validated['value_id'] ?? null,
+            'time_limit' => (int) $validated['time_limit'],
+            'difficulty' => $validated['difficulty'] ?? 'medium',
+            'questions' => $build['questions'],
+            'is_active' => (bool) ($validated['is_active'] ?? false),
+        ]);
+
+        return redirect()->route('admin.pvp-challenges.index')
+            ->with('success', "تم تحديث التحدي \"{$challenge->title}\" بنجاح");
     }
 
     /**

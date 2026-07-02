@@ -350,6 +350,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [SuperAdminController::class, 'pvpChallenges'])->name('index');
             Route::get('/create', [SuperAdminController::class, 'createPvpChallenge'])->name('create');
             Route::post('/', [SuperAdminController::class, 'storePvpChallenge'])->name('store');
+            Route::get('/{id}/edit', [SuperAdminController::class, 'editPvpChallenge'])->name('edit');
+            Route::put('/{id}', [SuperAdminController::class, 'updatePvpChallenge'])->name('update');
             Route::post('/{id}/toggle', [SuperAdminController::class, 'togglePvpChallenge'])->name('toggle');
             Route::delete('/{id}', [SuperAdminController::class, 'destroyPvpChallenge'])->name('destroy');
         });
