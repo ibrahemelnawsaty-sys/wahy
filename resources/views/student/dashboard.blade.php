@@ -21,17 +21,20 @@
     .status-progress { background: #ecc94b; }
     .status-locked { background: #cbd5e0; }
 
-    /* إصلاح عرض بطاقات القيم: كانت تظهر ضيّقة/مقصوصة مع فراغ أبيض، لأن .values-list بلا
-       grid-template-columns صريح — فـ grid-column:1/-1 للقيمة الحالية لا يعمل والبطاقات لا تمتلئ العرض.
-       عمود صريح minmax(0,1fr) يجعلها كاملة العرض ويمنع تجاوز النص العربي الطويل أفقياً. */
-    .values-list { grid-template-columns: minmax(0, 1fr); }
-    .values-tree-section .value-card { width: 100%; }
-    .values-tree-section .value-card,
-    .values-tree-section .value-card * { min-width: 0; }
-    .values-tree-section .value-card h3,
-    .values-tree-section .value-card p,
-    .values-tree-section .concepts-container > div > div,
-    .values-tree-section .concepts-container p { overflow-wrap: break-word; word-break: break-word; }
+    /* إصلاح عرض بطاقات القيم: .values-list كانت display:grid بلا أعمدة صريحة، فالعمود يأخذ عرض
+       المحتوى ويُحاذى لليمين (فراغ أبيض يسار + بطاقة ضيّقة/مقصوصة). الحل الحاسم: تكديس block
+       (العنصر block يملأ عرض أبيه دائماً) — بلا كسر للكلمات، ويسري على كل المقاسات. */
+    .values-tree-section .values-list { display: block !important; }
+    .values-tree-section .values-list > .value-card {
+        width: 100% !important;
+        box-sizing: border-box;
+        margin-bottom: 30px;
+    }
+    .values-tree-section .values-list > .value-card:last-child { margin-bottom: 0; }
+    /* حاوية المفاهيم داخل البطاقة أيضاً block لتملأ العرض */
+    .values-tree-section .concepts-container { display: block !important; }
+    .values-tree-section .concepts-container > div { margin-bottom: 20px; box-sizing: border-box; }
+    .values-tree-section .concepts-container > div:last-child { margin-bottom: 0; }
 
     /* Current Value (قيد التقدم) - Full Width & Prominent */
     .value-card-current {
