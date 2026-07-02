@@ -74,8 +74,8 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     
     <!-- Preload Critical Assets للتحميل الأسرع -->
-    <link rel="preload" href="{{ asset('css/landing.css') }}" as="style">
-    <link rel="preload" href="{{ asset('js/landing.js') }}" as="script">
+    <link rel="preload" href="{{ asset('css/landing.css') }}?v={{ @filemtime(public_path('css/landing.css')) ?: '1' }}" as="style">
+    <link rel="preload" href="{{ asset('js/landing.js') }}?v={{ @filemtime(public_path('js/landing.js')) ?: '1' }}" as="script">
     <!-- إزالة preload لـ icons.svg لأنه يُستخدم بشكل lazy في SVG sprites -->
     
     <!-- Critical CSS Inline - تحميل فوري لـ Above the Fold -->
@@ -84,11 +84,11 @@
     <!-- الخطوط محملة محلياً في landing.css ✓ (أسرع بـ 200ms من Google Fonts) -->
     
     <!-- تحميل landing.css -->
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v={{ @filemtime(public_path('css/landing.css')) ?: '1' }}">
     
         
     <!-- Premium Glassmorphism Design -->
-    <link rel="stylesheet" href="{{ asset('css/glass-luxury.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/glass-luxury.css') }}?v={{ @filemtime(public_path('css/glass-luxury.css')) ?: '1' }}">
     
     <!-- CSS ديناميكي من قاعدة البيانات - Cached Colors ⚡ -->
     <style>
@@ -140,8 +140,8 @@
         }
     </style>
     
-    <script src="{{ asset('js/landing.js') }}" defer></script>
-    <script src="{{ asset('js/theme.js') }}" defer></script>
+    <script src="{{ asset('js/landing.js') }}?v={{ @filemtime(public_path('js/landing.js')) ?: '1' }}" defer></script>
+    <script src="{{ asset('js/theme.js') }}?v={{ @filemtime(public_path('js/theme.js')) ?: '1' }}" defer></script>
     
     @auth
     @if(auth()->user()->role === 'super_admin')
@@ -248,6 +248,8 @@
                         <x-element-actions />
                         <a href="#support" class="nav-link" data-editable="nav_link_6" data-section="header">الدعم</a>
                     </div>
+                    {{-- زر تسجيل الدخول داخل قائمة الجوال (مخفي على الديسكتوب حيث يظهر في nav-actions) --}}
+                    <a href="{{ url('/login') }}" class="nav-link nav-mobile-login">تسجيل الدخول</a>
                 </div>
                 <div class="nav-actions">
                     <!-- Theme Toggle Button -->
