@@ -167,33 +167,39 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerSentryBeforeSend(): void
     {
-        if (! class_exists(\Sentry\State\Hub::class)) {
-            return;
+        // نقطة الدخول الصحيحة في Sentry SDK v4 هي SentrySdk::getCurrentHub().
+        // (الطريقة القديمة Hub::getCurrent() أُزيلت في v4 وكانت تُسقط الإقلاع.)
+        if (! class_exists(\Sentry\SentrySdk::class)) {
+            return; // الحزمة غير مثبّتة — تجاهل بصمت
         }
 
-        $hub = \Sentry\State\Hub::getCurrent();
-        $client = $hub->getClient();
-        if (! $client) {
-            return;
-        }
-
-        $client->getOptions()->setBeforeSendCallback(function (\Sentry\Event $event) {
-            $request = $event->getRequest();
-
-            if (! empty($request)) {
-                $data = $request['data'] ?? [];
-
-                foreach (['password', 'password_confirmation', 'token', 'api_key', 'secret', 'access_token'] as $sensitive) {
-                    if (isset($data[$sensitive])) {
-                        $data[$sensitive] = '[FILTERED]';
-                    }
-                }
-
-                $request['data'] = $data;
-                $event->setRequest($request);
+        // مراقبة الأخطاء يجب ألا تكسر إقلاع التطبيق مهما اختلف إصدار الـ SDK.
+        try {
+            $client = \Sentry\SentrySdk::getCurrentHub()->getClient();
+            if (! $client) {
+                return;
             }
 
-            return $event;
-        });
+            $client->getOptions()->setBeforeSendCallback(function (\Sentry\Event $event) {
+                $request = $event->getRequest();
+
+                if (! empty($request)) {
+                    $data = $request['data'] ?? [];
+
+                    foreach (['password', 'password_confirmation', 'token', 'api_key', 'secret', 'access_token'] as $sensitive) {
+                        if (isset($data[$sensitive])) {
+                            $data[$sensitive] = '[FILTERED]';
+                        }
+                    }
+
+                    $request['data'] = $data;
+                    $event->setRequest($request);
+                }
+
+                return $event;
+            });
+        } catch (\Throwable $e) {
+            // لا نُسقط التطبيق بسبب أداة مراقبة — نتجاهل بصمت
+        }
     }
 }
