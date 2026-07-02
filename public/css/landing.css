@@ -3369,10 +3369,16 @@ svg.icon,
     display: contents;
 }
 
-/* العناصر المدمجة (class + editable-element) */
+/* العناصر المدمجة (class + editable-element): البطاقة نفسها هي editable-element (لا wrapper)،
+   فيجب ألا تتحوّل إلى display:contents وإلا تفكّكت (تجمّعت كل الأيقونات ثم كل النصوص). */
 .stat-item.editable-element {
     display: flex;
     flex-direction: column;
+}
+.benefit-card.editable-element {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
 }
 
 .flow-arrow.editable-element {
