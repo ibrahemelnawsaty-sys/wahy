@@ -61,24 +61,23 @@
     </div>
 
     @foreach($questions as $index => $question)
-    <div class="pvp-question {{ $index === 0 ? 'active' : '' }}" id="question-{{ $index }}" data-qid="{{ $question->id }}">
-        <div class="pvp-q-num">السؤال {{ $index + 1 }} من {{ $questions->count() }}</div>
-        <div class="pvp-q-text">{{ $question->question_text }}</div>
+    <div class="pvp-question {{ $index === 0 ? 'active' : '' }}" id="question-{{ $index }}" data-qid="{{ $question['key'] }}">
+        <div class="pvp-q-num">السؤال {{ $index + 1 }} من {{ $questions->count() }} · <span style="color:#fbbf24;">{{ $question['points'] }} نقطة</span></div>
+        <div class="pvp-q-text">{{ $question['text'] }}</div>
 
-        @if($question->question_type === 'multiple_choice')
-            @php $options = is_string($question->options) ? json_decode($question->options, true) : ($question->options ?? []); @endphp
+        @if($question['type'] === 'multiple_choice')
             <div class="pvp-options">
-                @foreach($options as $oi => $opt)
-                <div class="pvp-option" onclick="selectPvpAnswer({{ $index }}, '{{ $question->id }}', '{{ $oi }}', this)">
+                @foreach($question['options'] as $oi => $opt)
+                <div class="pvp-option" onclick="selectPvpAnswer({{ $index }}, '{{ $question['key'] }}', '{{ $oi }}', this)">
                     <span style="font-weight: 700; opacity: 0.5;">{{ chr(65 + $oi) }}</span>
                     <span>{{ $opt['text'] ?? '' }}</span>
                 </div>
                 @endforeach
             </div>
-        @elseif($question->question_type === 'true_false')
+        @elseif($question['type'] === 'true_false')
             <div class="pvp-options" style="grid-template-columns: 1fr 1fr;">
-                <div class="pvp-option" onclick="selectPvpAnswer({{ $index }}, '{{ $question->id }}', 'true', this)">✅ صح</div>
-                <div class="pvp-option" onclick="selectPvpAnswer({{ $index }}, '{{ $question->id }}', 'false', this)">❌ خطأ</div>
+                <div class="pvp-option" onclick="selectPvpAnswer({{ $index }}, '{{ $question['key'] }}', 'true', this)">✅ صح</div>
+                <div class="pvp-option" onclick="selectPvpAnswer({{ $index }}, '{{ $question['key'] }}', 'false', this)">❌ خطأ</div>
             </div>
         @endif
     </div>
@@ -92,10 +91,13 @@ const timePerQuestion = {{ $match->challenge->time_limit }};
 const matchId = {{ $match->id }};
 let currentQuestion = 0;
 let answers = {};
+let times = {};                 // زمن الإجابة لكل سؤال (ثواني) — للتسجيل حسب السرعة
+let questionStartTime = Date.now();
 let totalTimeElapsed = 0;
 let questionTimer = null;
 
 function startQuestionTimer() {
+    questionStartTime = Date.now();   // بداية توقيت السؤال الحالي
     let timeLeft = timePerQuestion;
     const fill = document.getElementById('timerFill');
     const text = document.getElementById('timerText');
@@ -121,6 +123,8 @@ function selectPvpAnswer(index, qId, answer, el) {
     el.closest('.pvp-options').querySelectorAll('.pvp-option').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
     answers[qId] = answer;
+    // زمن الإجابة لهذا السؤال (ثواني) — كلما أسرع، درجة أعلى
+    times[qId] = (Date.now() - questionStartTime) / 1000;
 
     document.getElementById('dot-' + index).classList.add('answered');
 
@@ -147,7 +151,7 @@ function submitPvpAnswers() {
     fetch(`/student/pvp/${matchId}/submit`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ answers: answers, time_taken: Math.round(totalTimeElapsed) })
+        body: JSON.stringify({ answers: answers, times: times, time_taken: Math.round(totalTimeElapsed) })
     })
     .then(r => r.json())
     .then(data => {

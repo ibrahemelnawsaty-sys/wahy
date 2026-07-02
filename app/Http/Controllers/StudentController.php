@@ -2301,8 +2301,8 @@ class StudentController extends Controller
             return redirect()->route('student.pvp.lobby')->with('error', 'المباراة غير متاحة');
         }
 
-        $questionIds = $match->challenge->questions ?? [];
-        $questions = \App\Models\QuestionBank::whereIn('id', $questionIds)->get();
+        // أسئلة موحّدة (تدعم الصيغة الجديدة inline والصيغة القديمة بمعرّفات البنك)
+        $questions = $match->challenge->normalizedQuestions();
 
         return view('student.pvp-play', compact('match', 'questions'));
     }
@@ -2322,66 +2322,62 @@ class StudentController extends Controller
         }
 
         $answers = $request->input('answers', []);
+        $times = $request->input('times', []);
         $timeTaken = (int) $request->input('time_taken', 0);
 
-        // تصحيح
-        $questionIds = $match->challenge->questions ?? [];
-        $questions = \App\Models\QuestionBank::whereIn('id', $questionIds)->get()->keyBy('id');
+        // helper مرن لـ true_false: يقبل "true/false" و "صح/خطأ"
+        $pvpBoolish = function ($v) {
+            $s = mb_strtolower(trim((string) $v));
+            if (in_array($s, ['1', 'true', 'yes', 'صح', 'صحيح', 'نعم'], true)) {
+                return true;
+            }
+            if (in_array($s, ['0', 'false', 'no', 'خطأ', 'خاطئ', 'لا'], true)) {
+                return false;
+            }
+
+            return null;
+        };
+
+        // أسئلة موحّدة بمفاتيحها (تدعم الصيغة الجديدة inline والقديمة بالمعرّفات).
+        // التسجيل حسب السرعة: درجة السؤال كاملة عند الإجابة الفورية، وتتناقص خطياً
+        // حتى حدّ أدنى (25%) بعد نافذة 20 ثانية.
+        $questions = $match->challenge->normalizedQuestions()->keyBy('key');
+        $decayWindow = 20.0;
+        $minFactor = 0.25;
 
         $score = 0;
-        foreach ($answers as $qId => $answer) {
-            $question = $questions->get($qId);
-            if (! $question) {
+        foreach ($questions as $key => $q) {
+            $answer = $answers[$key] ?? null;
+            if ($answer === null || $answer === '') {
                 continue;
             }
 
-            // helper مرن لـ true_false: يقبل "true/false" و "صح/خطأ"
-            $pvpBoolish = function ($v) {
-                $s = mb_strtolower(trim((string) $v));
-                if (in_array($s, ['1', 'true', 'yes', 'صح', 'صحيح', 'نعم'], true)) {
-                    return true;
-                }
-                if (in_array($s, ['0', 'false', 'no', 'خطأ', 'خاطئ', 'لا'], true)) {
-                    return false;
-                }
-
-                return null;
-            };
-
-            $isCorrect = false;
-            if ($question->question_type === 'multiple_choice') {
-                $options = is_string($question->options) ? json_decode($question->options, true) : ($question->options ?? []);
-                foreach ($options as $i => $opt) {
-                    if (isset($opt['is_correct']) && $opt['is_correct'] && $answer == $i) {
-                        $isCorrect = true;
-                        break;
-                    }
-                }
-            } elseif ($question->question_type === 'true_false') {
+            if (($q['type'] ?? '') === 'true_false') {
                 $studentBool = $pvpBoolish($answer);
-                $correctBool = $pvpBoolish($question->correct_answer ?? '');
+                $correctBool = $pvpBoolish($q['correct'] ?? '');
                 $isCorrect = $studentBool !== null && $studentBool === $correctBool;
             } else {
-                $isCorrect = mb_strtolower(trim($answer)) === mb_strtolower(trim($question->correct_answer ?? ''));
+                // اختيار من متعدد: الإجابة = فهرس الخيار، تُقارن بفهرس الصحيح
+                $isCorrect = (string) $answer === (string) ($q['correct'] ?? '');
             }
 
             if ($isCorrect) {
-                $score++;
+                $rt = isset($times[$key]) ? (float) $times[$key] : $decayWindow;
+                $factor = max($minFactor, 1.0 - ($rt / $decayWindow));
+                $score += (int) round(((int) ($q['points'] ?? 100)) * $factor);
             }
         }
-
-        $scorePercent = count($questionIds) > 0 ? round(($score / count($questionIds)) * 100) : 0;
 
         if ($isPlayer1) {
             $match->update([
                 'player1_answers' => $answers,
-                'player1_score' => $scorePercent,
+                'player1_score' => $score,
                 'player1_time' => $timeTaken,
             ]);
         } else {
             $match->update([
                 'player2_answers' => $answers,
-                'player2_score' => $scorePercent,
+                'player2_score' => $score,
                 'player2_time' => $timeTaken,
             ]);
         }

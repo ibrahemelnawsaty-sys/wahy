@@ -888,17 +888,54 @@ class SuperAdminController extends Controller
             'value_id' => 'nullable|integer|exists:values,id',
             'time_limit' => 'required|integer|min:30|max:1800',
             'difficulty' => 'nullable|in:easy,medium,hard',
-            'question_ids' => 'required|array|min:1|max:50',
-            'question_ids.*' => 'integer|exists:question_bank,id',
+            'questions_json' => 'required|string',
             'is_active' => 'nullable|boolean',
         ]);
+
+        // فكّ وبناء الأسئلة المُنشأة inline (نص + خيارات + الإجابة الصحيحة + درجة لكل سؤال)
+        $raw = json_decode($validated['questions_json'], true);
+        if (! is_array($raw) || count($raw) === 0) {
+            return back()->withInput()->withErrors(['questions_json' => 'أضِف سؤالًا واحدًا على الأقل']);
+        }
+        if (count($raw) > 50) {
+            return back()->withInput()->withErrors(['questions_json' => 'الحد الأقصى 50 سؤالًا']);
+        }
+
+        $questions = [];
+        foreach ($raw as $i => $q) {
+            $n = $i + 1;
+            $text = trim((string) ($q['text'] ?? ''));
+            if ($text === '') {
+                return back()->withInput()->withErrors(['questions_json' => "السؤال #{$n}: النص مطلوب"]);
+            }
+            $type = in_array(($q['type'] ?? ''), ['multiple_choice', 'true_false'], true) ? $q['type'] : 'multiple_choice';
+            $points = max(1, min(1000, (int) ($q['points'] ?? 100)));
+
+            if ($type === 'true_false') {
+                $correct = (($q['correct'] ?? 'true') === 'false') ? 'false' : 'true';
+                $questions[] = ['text' => $text, 'type' => 'true_false', 'options' => [], 'correct' => $correct, 'points' => $points];
+            } else {
+                $options = [];
+                foreach ((array) ($q['options'] ?? []) as $opt) {
+                    $t = trim((string) (is_array($opt) ? ($opt['text'] ?? '') : $opt));
+                    if ($t !== '') {
+                        $options[] = ['text' => $t];
+                    }
+                }
+                $correct = (int) ($q['correct'] ?? -1);
+                if (count($options) < 2 || $correct < 0 || $correct >= count($options)) {
+                    return back()->withInput()->withErrors(['questions_json' => "السؤال #{$n}: يحتاج خيارين على الأقل مع تحديد الإجابة الصحيحة"]);
+                }
+                $questions[] = ['text' => $text, 'type' => 'multiple_choice', 'options' => $options, 'correct' => $correct, 'points' => $points];
+            }
+        }
 
         $challenge = \App\Models\PvpChallenge::create([
             'title' => $validated['title'],
             'value_id' => $validated['value_id'] ?? null,
             'time_limit' => (int) $validated['time_limit'],
             'difficulty' => $validated['difficulty'] ?? 'medium',
-            'questions' => array_map('intval', $validated['question_ids']),
+            'questions' => $questions,
             'is_active' => (bool) ($validated['is_active'] ?? true),
             'created_by' => Auth::id(),
         ]);
