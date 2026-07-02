@@ -1549,12 +1549,59 @@ class StudentController extends Controller
             return response()->json(['success' => false, 'message' => 'استخدمت هذا العنصر مسبقاً']);
         }
 
+        // حساب أثر القوة من metadata
+        $meta = is_array($item->metadata) ? $item->metadata : [];
+        $points = 0;
+        $coins = 0;
+        $effect = $meta['effect'] ?? null;
+        if ($effect === 'points') {
+            $points = (int) ($meta['amount'] ?? 0);
+        } elseif ($effect === 'coins') {
+            $coins = (int) ($meta['amount'] ?? 0);
+        } elseif ($effect === 'mystery') {
+            $min = (int) ($meta['min'] ?? 10);
+            $max = (int) ($meta['max'] ?? 100);
+            $points = random_int(min($min, $max), max($min, $max));
+        } elseif (isset($meta['multiplier'])) { // توافق مع القوى القديمة (duration-based)
+            $points = (int) $meta['multiplier'] * 25;
+        } elseif (isset($meta['bonus_percentage'])) {
+            $coins = (int) $meta['bonus_percentage'];
+        } else {
+            $points = 20; // مكافأة افتراضية بسيطة لأي عنصر قابل للاستخدام
+        }
+
         DB::table('user_purchases')->where('user_id', $user->id)
             ->where('shop_item_id', $itemId)->update(['used_at' => now()]);
 
+        $rewardMsg = '';
+        if ($points > 0 || $coins > 0) {
+            try {
+                \App\Services\AwardService::award(
+                    (int) $user->id,
+                    'power_up_use',
+                    (string) $itemId,
+                    $points,
+                    $coins,
+                    'استخدام قوة: ' . $item->name,
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Power-up award failed: ' . $e->getMessage());
+            }
+            $parts = [];
+            if ($points > 0) {
+                $parts[] = "+{$points} نقطة";
+            }
+            if ($coins > 0) {
+                $parts[] = "+{$coins} عملة";
+            }
+            $rewardMsg = ' — حصلت على ' . implode(' و ', $parts);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'تم استخدام «' . $item->name . '» 🎉',
+            'message' => 'تم استخدام «' . $item->name . '»' . $rewardMsg . ' 🎉',
+            'points' => $points,
+            'coins' => $coins,
         ]);
     }
 

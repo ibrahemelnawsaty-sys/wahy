@@ -322,12 +322,23 @@
         <div class="status-bar-container">
             <!-- Left: Avatar & User Info -->
             <div class="status-bar-left">
-                <div class="status-avatar" onclick="openProfileModal()" style="cursor: pointer;" title="اضغط لتعديل الملف الشخصي">
-                    <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                    <span style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-weight:700;">{{ mb_substr(auth()->user()->name, 0, 1) }}</span>
+                @php
+                    $__su = auth()->user();
+                    $__frameP = method_exists($__su, 'equippedFrame') ? $__su->equippedFrame() : null;
+                    $__fm = ($__frameP && is_array($__frameP->metadata)) ? $__frameP->metadata : [];
+                    $__ring = $__fm['ring'] ?? null;
+                    $__glow = $__fm['glow'] ?? null;
+                    $__badgeP = method_exists($__su, 'equippedBadge') ? $__su->equippedBadge() : null;
+                @endphp
+                <div class="status-avatar" onclick="openProfileModal()" title="اضغط لتعديل الملف الشخصي"
+                     style="cursor: pointer;{{ $__ring ? ' background:' . $__ring . '; padding:3px;' : '' }}{{ $__glow ? ' box-shadow:' . $__glow . ';' : '' }}">
+                    <img src="{{ $__su->avatar_url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <span style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-weight:700;">{{ mb_substr($__su->name, 0, 1) }}</span>
                 </div>
                 <div class="status-info">
-                    <div class="status-name">{{ auth()->user()->name }}</div>
+                    <div class="status-name">
+                        {{ $__su->name }}@if($__badgeP)<span title="{{ $__badgeP->name }}" style="margin-inline-start:4px;">{{ $__badgeP->icon }}</span>@endif
+                    </div>
                     <div class="status-level">
                         <span>⭐</span>
                         <span>المستوى {{ $stats['total_points'] ?? 0 > 100 ? floor(($stats['total_points'] ?? 0) / 100) : 1 }}</span>

@@ -421,6 +421,22 @@ class User extends Authenticatable
     }
 
     /**
+     * البرواز (frame) المُجهَّز حالياً — عنصر theme فعّال (metadata.ring يرسم الحلقة حول الأفاتار).
+     */
+    public function equippedFrame()
+    {
+        return $this->purchases()->where('type', 'theme')->wherePivot('is_active', true)->first();
+    }
+
+    /**
+     * الشارة المُجهَّزة حالياً — عنصر badge فعّال (يُعرَض بجانب الأفاتار/الاسم).
+     */
+    public function equippedBadge()
+    {
+        return $this->purchases()->where('type', 'badge')->wherePivot('is_active', true)->first();
+    }
+
+    /**
      * سجلات streak الدروس (للطالب)
      */
     public function lessonStreaks()
