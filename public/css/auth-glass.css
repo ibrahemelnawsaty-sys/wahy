@@ -536,6 +536,22 @@ body {
     transform: translateY(-3px) scale(1.02) rotate(90deg);
 }
 
+/* أجهزة اللمس/الجوال: اللمس يُبقي :hover عالقاً فيدور الزر/يقفز، والأيقونات تدور/تطفو باستمرار.
+   نوقف تحوّل الزر وأنيميشن الأيقونات على الأجهزة بلا تحويم فعلي. */
+@media (hover: none), (pointer: coarse) {
+    .theme-toggle,
+    .theme-toggle:hover,
+    .theme-toggle:active,
+    .theme-toggle:focus {
+        transform: none !important;
+    }
+    .theme-toggle .icon-sun,
+    .theme-toggle .icon-moon {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
 .theme-toggle .icon-sun,
 .theme-toggle .icon-moon {
     transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);

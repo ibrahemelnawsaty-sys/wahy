@@ -467,6 +467,33 @@ body::before {
     50% { transform: translateX(-5px); opacity: 0.7; }
 }
 
+/* ============================================================
+   حارس أجهزة اللمس/الجوال (يُحمَّل بعد landing.css فيتغلّب عليه)
+   المشكلة: على اللمس تعلق حالة :hover فيدور زر الثيم rotate(180deg) ويبدو "يتحرك بغرابة"،
+   والأسهم .flow-arrow والأيقونات (iconSpin/iconFloat) تنبض/تدور باستمرار = حركة مزعجة + jank.
+   الحل: على الأجهزة بلا تحويم فعلي نوقف تحوّل الزر وكل الأنيميشن (لا نلمس الـ transform الثابت
+   الخاص بتخطيط الأسهم على الجوال rotate(90deg) لأننا نوقف animation/transition فقط للأسهم).
+   ============================================================ */
+@media (hover: none), (pointer: coarse) {
+    .theme-toggle,
+    .theme-toggle:hover,
+    .theme-toggle:active,
+    .theme-toggle:focus {
+        transform: none !important;
+    }
+    .theme-toggle .icon-sun,
+    .theme-toggle .icon-moon {
+        animation: none !important;
+        transition: none !important;
+    }
+    .flow-arrow,
+    .flow-arrow *,
+    .flow-arrow .icon {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
 /* ==================== Premium Team Cards ==================== */
 .team-card {
     background: var(--glass-card) !important;
