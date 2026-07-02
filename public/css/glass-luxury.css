@@ -513,6 +513,20 @@ body::before {
     }
 }
 
+/* الجوال: إخفاء طبقات التوهّج الزخرفية (الدوائر المضيئة).
+   body::before ثابتة (position:fixed) بثلاث دوائر متدرّجة + نبض backgroundPulse؛
+   و.hero::before/::after توهّجان كبيران. تظهر كـ«دوائر مضيئة تهتز» وقد تطفو فوق المحتوى
+   في بعض متصفّحات الجوال (خلل fixed + z-index سالب + backdrop-filter). لا قيمة وظيفية لها
+   على الجوال فنُخفيها تماماً (يبقى المظهر الزجاجي على الديسكتوب). */
+@media (max-width: 768px) {
+    body::before,
+    .hero::before,
+    .hero::after {
+        display: none !important;
+        animation: none !important;
+    }
+}
+
 /* ==================== Premium Team Cards ==================== */
 .team-card {
     background: var(--glass-card) !important;
