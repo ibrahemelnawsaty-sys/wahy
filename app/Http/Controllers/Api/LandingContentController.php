@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\LandingContent;
-use App\Models\LandingLayout;
 use Illuminate\Http\Request;
 
 /**
@@ -183,59 +182,6 @@ class LandingContentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'فشل الاسترجاع',
-            ], 500);
-        }
-    }
-
-    /**
-     * حفظ تخطيط الصفحة الكامل (المحرّر المرئي المدمج).
-     *
-     * يستقبل لقطة HTML لمحتوى <main> بعد التعديل، يُعقّمها خادِمياً
-     * (إزالة سكربتات/معالِجات أحداث/أدوات التحرير) ثم يخزّنها. تلتقط
-     * التعديلات البنيوية (سحب/حذف/تكرار/ترتيب) والأنماط والنصوص معاً.
-     */
-    public function saveLayout(Request $request)
-    {
-        $request->validate([
-            'html' => 'required|string|max:600000', // سقف ~600KB يمنع إغراق التخزين
-        ]);
-
-        try {
-            $layout = LandingLayout::store($request->input('html'));
-
-            return response()->json([
-                'success' => true,
-                'message' => 'تم حفظ التخطيط بنجاح',
-                'length' => mb_strlen((string) $layout->html),
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('Landing layout save error: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'حدث خطأ أثناء حفظ التخطيط',
-            ], 500);
-        }
-    }
-
-    /**
-     * استعادة القالب الافتراضي — حذف التخطيط المخصّص (صمام أمان).
-     */
-    public function resetLayout()
-    {
-        try {
-            LandingLayout::reset();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'تمت استعادة القالب الافتراضي',
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('Landing layout reset error: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'فشل استعادة القالب الافتراضي',
             ], 500);
         }
     }

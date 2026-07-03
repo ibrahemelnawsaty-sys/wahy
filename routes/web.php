@@ -63,10 +63,6 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('api/landing')->group(fu
     Route::post('/content/upload-image', [\App\Http\Controllers\Api\LandingContentController::class, 'uploadImage']);
     Route::post('/content/restore/{versionId}', [\App\Http\Controllers\Api\LandingContentController::class, 'restoreVersion']);
     Route::post('/content/snapshot', [PagesController::class, 'landingSnapshot']);
-
-    // المحرّر المرئي المدمج: حفظ/استعادة تخطيط <main> الكامل
-    Route::post('/layout', [\App\Http\Controllers\Api\LandingContentController::class, 'saveLayout']);
-    Route::delete('/layout', [\App\Http\Controllers\Api\LandingContentController::class, 'resetLayout']);
 });
 
 // عرض الصفحات الديناميكية بـ Page Builder

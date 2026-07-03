@@ -26,10 +26,7 @@ class PagesController extends Controller
             return view('pages.show', compact('page'));
         }
 
-        // تخطيط مخصّص من المحرّر المرئي المدمج (لقطة <main> مُعقّمة)، أو null → القالب الثابت.
-        $landingLayout = \App\Models\LandingLayout::currentHtml();
-
-        return view('landing', compact('landingLayout'));
+        return view('landing');
     }
 
     /**
