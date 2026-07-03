@@ -274,11 +274,15 @@
         </div>
     </header>
     <main id="main-content">
+        @if(!empty($landingLayout ?? null))
+            {{-- تخطيط مخصّص من المحرّر المرئي المدمج (مُعقّم خادِمياً في LandingHtmlSanitizer) --}}
+            {!! $landingLayout !!}
+        @else
         <section class="hero" id="home">
             @auth @if(auth()->user()->role === 'super_admin')
             <div class="section-actions" style="display:none;">
-                <button onclick="window.landingEditorInstance.duplicateSection(this.closest('section'))" title="نسخ القسم">📋</button>
-                <button onclick="window.landingEditorInstance.editSectionProperties(this.closest('section'))" title="تعديل الخصائص">⚙️</button>
+                <button onclick="window.landingEditorInstance?.duplicateSection(this.closest('section'))" title="نسخ القسم">📋</button>
+                <button onclick="window.landingEditorInstance?.editSectionProperties(this.closest('section'))" title="تعديل الخصائص">⚙️</button>
                 <button onclick="if(confirm('حذف هذا القسم؟')) this.closest('section').remove()" title="حذف القسم">🗑️</button>
             </div>
             @endif @endauth
@@ -331,11 +335,12 @@
                         <div class="editable-element" data-element="hero-image">
                             <x-element-actions />
                             <picture>
-                                <source type="image/webp" data-srcset="{{ asset('images/hero-illustration.webp') }}">
-                                <img data-src="{{ asset('images/hero-illustration.svg') }}" 
+                                <source type="image/webp" srcset="{{ asset('images/hero-illustration.webp') }}">
+                                <img src="{{ asset('images/hero-illustration.svg') }}" 
                                      data-editable-image="hero_image" 
-                                     alt="رسم توضيحي" 
-                                     class="hero-image" 
+                                     alt="رسم توضيحي تعليمي لمنصة قيمّ يُبرز رحلة تعلّم القيم"
+                                     class="hero-image"
+                                     decoding="async"
                                      loading="lazy">
                             </picture>
                         </div>
@@ -346,8 +351,8 @@
         <section class="features section" id="features">
             @auth @if(auth()->user()->role === 'super_admin')
             <div class="section-actions" style="display:none;">
-                <button onclick="window.landingEditorInstance.duplicateSection(this.closest('section'))" title="نسخ القسم">📋</button>
-                <button onclick="window.landingEditorInstance.editSectionProperties(this.closest('section'))" title="تعديل الخصائص">⚙️</button>
+                <button onclick="window.landingEditorInstance?.duplicateSection(this.closest('section'))" title="نسخ القسم">📋</button>
+                <button onclick="window.landingEditorInstance?.editSectionProperties(this.closest('section'))" title="تعديل الخصائص">⚙️</button>
                 <button onclick="if(confirm('حذف هذا القسم؟')) this.closest('section').remove()" title="حذف القسم">🗑️</button>
             </div>
             @endif @endauth
@@ -631,29 +636,29 @@
                     <div class="partner-logo editable-element" data-element="partner-logo-1">
                         <x-element-actions />
                         <picture>
-                            <source type="image/webp" data-srcset="{{ asset('images/partners/school-1.webp') }}">
-                            <img data-src="{{ asset('images/partners/school-1.png') }}" alt="شعار مدرسة النور الأهلية" loading="lazy" data-editable-image="partner_logo_1">
+                            <source type="image/webp" srcset="{{ asset('images/partners/school-1.webp') }}">
+                            <img src="{{ asset('images/partners/school-1.png') }}" alt="شعار مدرسة النور الأهلية" loading="lazy" data-editable-image="partner_logo_1">
                         </picture>
                     </div>
                     <div class="partner-logo editable-element" data-element="partner-logo-2">
                         <x-element-actions />
                         <picture>
-                            <source type="image/webp" data-srcset="{{ asset('images/partners/school-2.webp') }}">
-                            <img data-src="{{ asset('images/partners/school-2.png') }}" alt="شعار مدرسة الرؤية الحديثة" loading="lazy" data-editable-image="partner_logo_2">
+                            <source type="image/webp" srcset="{{ asset('images/partners/school-2.webp') }}">
+                            <img src="{{ asset('images/partners/school-2.png') }}" alt="شعار مدرسة الرؤية الحديثة" loading="lazy" data-editable-image="partner_logo_2">
                         </picture>
                     </div>
                     <div class="partner-logo editable-element" data-element="partner-logo-3">
                         <x-element-actions />
                         <picture>
-                            <source type="image/webp" data-srcset="{{ asset('images/partners/school-3.webp') }}">
-                            <img data-src="{{ asset('images/partners/school-3.png') }}" alt="شعار أكاديمية التميز الدولية" loading="lazy" data-editable-image="partner_logo_3">
+                            <source type="image/webp" srcset="{{ asset('images/partners/school-3.webp') }}">
+                            <img src="{{ asset('images/partners/school-3.png') }}" alt="شعار أكاديمية التميز الدولية" loading="lazy" data-editable-image="partner_logo_3">
                         </picture>
                     </div>
                     <div class="partner-logo editable-element" data-element="partner-logo-4">
                         <x-element-actions />
                         <picture>
-                            <source type="image/webp" data-srcset="{{ asset('images/partners/school-4.webp') }}">
-                            <img data-src="{{ asset('images/partners/school-4.png') }}" alt="شعار مدارس الإبداع" loading="lazy" data-editable-image="partner_logo_4">
+                            <source type="image/webp" srcset="{{ asset('images/partners/school-4.webp') }}">
+                            <img src="{{ asset('images/partners/school-4.png') }}" alt="شعار مدارس الإبداع" loading="lazy" data-editable-image="partner_logo_4">
                         </picture>
                     </div>
                 </div>
@@ -678,21 +683,25 @@
                         </div>
 
                         <div class="contact-details-list">
+                            @if($contactEmail)
                             <div class="contact-detail-item">
                                 <span class="contact-detail-icon">📧</span>
                                 <div class="contact-detail-content">
                                     <strong>البريد الإلكتروني</strong>
-                                    <a href="mailto:support@qiyamm.sa">support@qiyamm.sa</a>
+                                    <a href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a>
                                 </div>
                             </div>
+                            @endif
 
+                            @if($contactPhone)
                             <div class="contact-detail-item">
                                 <span class="contact-detail-icon">☎️</span>
                                 <div class="contact-detail-content">
                                     <strong>رقم الهاتف</strong>
-                                    <a href="tel:+966500000000">+966 5 000 0000</a>
+                                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $contactPhone) }}" dir="ltr">{{ $contactPhone }}</a>
                                 </div>
                             </div>
+                            @endif
 
                             <div class="contact-detail-item">
                                 <span class="contact-detail-icon">🕒</span>
@@ -827,6 +836,7 @@
                 </div>
             </div>
         </section>
+        @endif
     </main>
     
     @include('components.footer')
@@ -906,16 +916,35 @@
                 <span class="menu-icon" x-text="fabMinimized ? '👁️' : '👁️‍🗨️'"></span>
                 <span x-text="fabMinimized ? 'إظهار دائم' : 'تصغير عند عدم الاستخدام'"></span>
             </button>
+
+            <div class="edit-fab-menu-divider"></div>
+
+            <button class="edit-fab-menu-item danger" @click="window.landingEditorInstance?.resetToDefault(); menuOpen = false">
+                <span class="menu-icon">♻️</span>
+                <span>استعادة القالب الافتراضي</span>
+            </button>
         </div>
         
         <!-- الزر الرئيسي -->
-        <button @click="handleToggle()" 
+        <button @click="handleToggle()"
                 @contextmenu.prevent="menuOpen = !menuOpen"
-                class="edit-toggle-btn" 
+                class="edit-toggle-btn"
                 :class="{ 'active': isEditMode }"
+                :aria-pressed="isEditMode"
+                aria-label="زر تحرير الصفحة (اضغط للتبديل، ⚙️ للإعدادات)"
                 :title="isEditMode ? 'إيقاف وضع التحرير (كليك يمين للإعدادات)' : 'تعديل الصفحة (كليك يمين للإعدادات)'">
-            <span class="fab-icon" x-text="isEditMode ? '✕' : '✏️'"></span>
-            <span class="edit-fab-badge" x-show="window.landingEditorInstance && Object.keys(window.landingEditorInstance.changes || {}).length > 0" x-text="Object.keys(window.landingEditorInstance?.changes || {}).length"></span>
+            <span class="fab-icon" x-text="isEditMode ? '✕' : '✏️'" aria-hidden="true"></span>
+            <span class="edit-fab-badge" x-show="window.landingEditorInstance && Object.keys(window.landingEditorInstance.changes || {}).length > 0" x-text="Object.keys(window.landingEditorInstance?.changes || {}).length" aria-label="عدد التغييرات غير المحفوظة"></span>
+        </button>
+
+        <!-- زر الإعدادات: يتيح فتح القائمة باللمس (بديل كليك اليمين على الحاسوب) -->
+        <button class="edit-fab-settings"
+                @click="menuOpen = !menuOpen"
+                :aria-expanded="menuOpen"
+                aria-haspopup="true"
+                aria-label="إعدادات زر التحرير"
+                title="إعدادات (الموضع/التصغير/الاستعادة)">
+            <span aria-hidden="true">⚙️</span>
         </button>
     </div>
     
@@ -1184,6 +1213,7 @@
     
     <!-- تحميل المحتوى من قاعدة البيانات - محسّن -->
     @guest
+    @if(empty($landingLayout ?? null))
     <script>
         // تحميل المحتوى المحفوظ للزوار فقط (السوبر أدمن يرى الصفحة الأصلية للتعديل)
         (function() {
@@ -1226,6 +1256,7 @@
             }
         })();
     </script>
+    @endif
     @endguest
     
     <!-- Lazy Loading + Performance Monitoring -->
