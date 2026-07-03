@@ -146,9 +146,9 @@
     @auth
     @if(auth()->user()->role === 'super_admin')
     <!-- Edit Mode Styles - ملف منفصل -->
-    <link rel="stylesheet" href="{{ asset('css/landing-edit-mode.css') }}?v={{ @filemtime(public_path('css/landing-edit-mode.css')) ?: '1' }}">
+    <link rel="stylesheet" href="{{ asset('css/landing-edit-mode.css') }}">
     <!-- Edit Mode JavaScript - يُحمّل أولاً قبل Alpine.js -->
-    <script src="{{ asset('js/landing-editor.js') }}?v={{ @filemtime(public_path('js/landing-editor.js')) ?: '1' }}"></script>
+    <script src="{{ asset('js/landing-editor.js') }}"></script>
     <!-- Alpine.js for Edit Mode - يُحمّل بعد landing-editor.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
     @endif
