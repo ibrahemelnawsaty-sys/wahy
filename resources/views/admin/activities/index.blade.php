@@ -286,7 +286,7 @@
                     <div class="activity-info">
                         <h4>{{ $activity->title }}</h4>
                         @if($activity->description)
-                        <p>{{ \Illuminate\Support\Str::limit($activity->description, 60) }}</p>
+                        <p>{{ html_excerpt($activity->description, 60) }}</p>
                         @endif
                     </div>
                 </td>

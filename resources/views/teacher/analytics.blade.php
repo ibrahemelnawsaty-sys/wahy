@@ -89,7 +89,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; background: #f7fafc; border-radius: 12px; padding: 20px;">
                 <div style="flex: 1;">
                     <div style="font-weight: 600; color: #2d3748; margin-bottom: 5px;">{{ $activity->title }}</div>
-                    <div style="color: #718096; font-size: 13px;">{{ $activity->description ?? 'لا يوجد وصف' }}</div>
+                    <div style="color: #718096; font-size: 13px;">{{ html_excerpt($activity->description) ?: 'لا يوجد وصف' }}</div>
                 </div>
                 <div style="display: flex; gap: 20px;">
                     <div style="text-align: center;">

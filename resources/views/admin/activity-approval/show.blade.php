@@ -30,7 +30,7 @@
         
         <div style="margin-bottom: 15px;">
             <label style="font-weight: 600; color: #6b7280;">الوصف:</label>
-            <p style="margin-top: 5px;">{{ $activity->description ?: 'لا يوجد وصف' }}</p>
+            <p style="margin-top: 5px;">{{ html_excerpt($activity->description) ?: 'لا يوجد وصف' }}</p>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;">

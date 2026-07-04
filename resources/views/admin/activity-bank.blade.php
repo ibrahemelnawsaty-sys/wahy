@@ -129,7 +129,7 @@
                 <span class="badge" style="background:#f1f5f9;color:#475569;">👤 {{ $activity->creator->name ?? 'الأدمن' }}</span>
             </div>
             @if($activity->description)
-            <div style="font-size:13px;color:#64748b;">{{ Str::limit($activity->description, 120) }}</div>
+            <div style="font-size:13px;color:#64748b;">{{ html_excerpt($activity->description, 120) }}</div>
             @endif
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">

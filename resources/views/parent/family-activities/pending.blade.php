@@ -59,7 +59,7 @@
                                     {{ $submission->activity->title }}
                                 </h6>
                                 <p class="text-muted small mb-0">
-                                    {{ $submission->activity->description }}
+                                    {{ html_excerpt($submission->activity->description, 160) }}
                                 </p>
                             </div>
 

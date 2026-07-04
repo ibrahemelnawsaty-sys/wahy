@@ -142,7 +142,7 @@
                             </div>
                         </div>
                         @if($activity->description)
-                        <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">{{ Str::limit($activity->description, 150) }}</p>
+                        <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">{{ html_excerpt($activity->description, 150) }}</p>
                         @endif
                         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                             @if($activity->classroom)

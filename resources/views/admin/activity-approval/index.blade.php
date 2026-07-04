@@ -71,7 +71,7 @@
                     <td style="padding: 15px;">
                         <div style="font-weight: 600; color: #1f2937;">{{ $activity->title }}</div>
                         @if($activity->description)
-                            <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">{{ \Illuminate\Support\Str::limit($activity->description, 80) }}</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">{{ html_excerpt($activity->description, 80) }}</div>
                         @endif
                     </td>
                     <td style="padding: 15px;">
