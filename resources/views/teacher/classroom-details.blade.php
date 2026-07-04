@@ -123,7 +123,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
                             <div style="flex: 1;">
                                 <h4 style="font-size: 20px; font-weight: 700; color: #2d3748; margin-bottom: 10px;">{{ $activity->title }}</h4>
-                                <p style="color: #718096; font-size: 14px; margin-bottom: 10px;">{{ $activity->description }}</p>
+                                <p style="color: #718096; font-size: 14px; margin-bottom: 10px;">{{ html_excerpt($activity->description, 160) }}</p>
                                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                                     <span style="padding: 6px 12px; background: white; border-radius: 20px; font-size: 13px; color: #667eea; font-weight: 600;">
                                         {{ $activity->type }}

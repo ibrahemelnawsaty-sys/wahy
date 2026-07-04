@@ -369,7 +369,7 @@
         <h3 class="activity-name">{{ $activity->title }}</h3>
         @if($activity->description)
         <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
-            {{ \Illuminate\Support\Str::limit($activity->description, 150) }}
+            {{ html_excerpt($activity->description, 150) }}
         </p>
         @endif
         <div class="activity-meta">

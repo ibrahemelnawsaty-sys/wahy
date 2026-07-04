@@ -581,7 +581,7 @@
         <h1 class="activity-title-main">{{ $activity->title ?? 'نشاط تعليمي' }}</h1>
         
         @if($activity->description)
-        <p class="activity-description">{{ $activity->description }}</p>
+        <div class="activity-description">{!! safe_html($activity->description) !!}</div>
         @endif
         
         <div style="text-align: center;">
@@ -1075,7 +1075,7 @@
                 {{-- إجابة قصيرة (Issue 63) --}}
                 @php
                     $firstQ = is_array($activity->questions) ? ($activity->questions[0] ?? []) : [];
-                    $promptText = $firstQ['question'] ?? $firstQ['text'] ?? $activity->description;
+                    $promptText = $firstQ['question'] ?? $firstQ['text'] ?? strip_tags((string) $activity->description);
                 @endphp
                 <div class="question-section">
                     @include('partials.question-media', ['q' => $firstQ])

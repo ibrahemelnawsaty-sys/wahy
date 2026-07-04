@@ -156,7 +156,7 @@
             </div>
 
             @if($activity->description)
-                <p class="text-muted text-center mb-4" style="font-size: 16px;">{{ $activity->description }}</p>
+                <div class="text-muted text-center mb-4" style="font-size: 16px;">{!! safe_html($activity->description) !!}</div>
             @endif
 
             <div class="info-row justify-content-center">

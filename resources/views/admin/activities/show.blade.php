@@ -248,7 +248,7 @@
     <h1 class="activity-title">🎯 {{ $activity->title }}</h1>
 
     @if($activity->description)
-    <p class="activity-description">{{ $activity->description }}</p>
+    <div class="activity-description">{!! safe_html($activity->description) !!}</div>
     @endif
 
     <div class="activity-meta">

@@ -399,7 +399,7 @@ html[data-theme="dark"] .fa-card [style*="color: #1e293b"] { color: #F1F5F9 !imp
                                 <tr>
                                     <td>
                                         <div class="fa-activity-title">{{ $activity->title }}</div>
-                                        <div class="fa-activity-desc">{{ Str::limit($activity->description, 50) }}</div>
+                                        <div class="fa-activity-desc">{{ html_excerpt($activity->description, 50) }}</div>
                                     </td>
                                     <td>
                                         <div class="fa-user-cell">
