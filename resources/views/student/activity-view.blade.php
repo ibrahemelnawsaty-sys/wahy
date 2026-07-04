@@ -900,19 +900,29 @@
                 @php
                     $firstQ = is_array($activity->questions) ? ($activity->questions[0] ?? []) : [];
                     $targetWord = $firstQ['word'] ?? $firstQ['target_word'] ?? $firstQ['correct_answer'] ?? $firstQ['answer'] ?? '';
-                    // جسر: نموذج الأدمن يخزّن الحروف المتاحة في options لا في letters
-                    $availableLetters = $firstQ['letters'] ?? $firstQ['options'] ?? null;
-                    if (is_array($availableLetters)) {
-                        $availableLetters = array_map(fn($l) => is_array($l) ? ($l['text'] ?? $l['label'] ?? '') : (string) $l, $availableLetters);
-                        $availableLetters = array_values(array_filter($availableLetters, fn($l) => $l !== ''));
+
+                    // الحروف الواجب توفّرها لتكوين الإجابة (مع مراعاة التكرار): من الكلمة الهدف،
+                    // وإن غابت فمن الحروف المخزّنة (توافق خلفي مع أسئلة قديمة بلا word).
+                    $mustHave = preg_split('//u', (string) $targetWord, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                    if (empty($mustHave)) {
+                        foreach ((array) ($firstQ['letters'] ?? $firstQ['options'] ?? []) as $l) {
+                            $l = is_array($l) ? ($l['text'] ?? $l['label'] ?? '') : (string) $l;
+                            $mustHave = array_merge($mustHave, preg_split('//u', $l, -1, PREG_SPLIT_NO_EMPTY) ?: []);
+                        }
                     }
-                    if (!is_array($availableLetters) || empty($availableLetters)) {
-                        // احتياط أخير: حروف الكلمة (مع تكرارها) + مشتّتات — لا نُسقط الحروف المكررة
-                        $wordChars = preg_split('//u', (string) $targetWord, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-                        $distractorPool = ['أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
-                        $distractors = collect($distractorPool)->diff($wordChars)->shuffle()->take(max(0, 12 - count($wordChars)))->values()->all();
-                        $availableLetters = collect(array_merge($wordChars, $distractors))->shuffle()->values()->all();
+
+                    // المجمع = كل الحروف الهجائية العربية (نُظهر كل الحروف لا حروف الإجابة فقط)
+                    // + نسخ إضافية لأي حرف يتكرر في الإجابة أو بأشكال خاصة (ة/أ/إ/آ/ؤ/ئ/ى/ء)
+                    // كي تبقى الكلمة قابلة للتكوين. ثم خلط عشوائي في كل عرض.
+                    $alphabet = ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
+                    $pool = $alphabet;
+                    foreach (array_count_values($mustHave) as $ch => $need) {
+                        $have = count(array_keys($pool, (string) $ch, true));
+                        for ($i = $have; $i < $need; $i++) {
+                            $pool[] = (string) $ch;
+                        }
                     }
+                    $availableLetters = collect($pool)->shuffle()->values()->all();
                 @endphp
                 <div class="question-section">
                     @include('partials.question-media', ['q' => $firstQ])
