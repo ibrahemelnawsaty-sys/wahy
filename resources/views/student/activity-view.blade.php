@@ -398,6 +398,129 @@
         transition: background 0.2s;
     }
     .toast-close:hover { background: rgba(255,255,255,0.35); }
+
+    /* ============================================================
+       LIGHT-MODE COVERAGE — واجهة نشاط الطالب مؤلَّفة أصلاً بنص أبيض على زجاج داكن.
+       في الوضع النهاري يصبح الزجاج فاتحاً (--glass-bg-heavy) فوق تدرّج فاتح، فيختفي
+       كل نص/حدّ أبيض (أبيض-على-أبيض — انظر شكوى مُجمّع الحروف). نُعتّم كل نص/حدّ أبيض
+       يجلس على سطح محايد/فاتح؛ والعناصر ذات الخلفية الملوّنة الصلبة (شارة النوع، زر
+       الإرسال، أرقام الأسئلة، دوائر الترتيب، زر المتابعة المتدرّج، الـtoast) تُترك
+       بيضاء عمداً لأنها تستخدم الكلمة الصريحة color:white (لا rgba/hex فلا تُطابَق).
+       كل قاعدة مقيّدة بـ html[data-theme="light"] فالوضع الليلي سليم تماماً.
+       بُني عبر Workflow (5 مسوحات + تركيب + تحقّق خصمي) — مطابق للدستور بالاتجاه المعاكس.
+       ============================================================ */
+    html[data-theme="light"] .progress-bar-container { background: rgba(0,0,0,0.08); }
+
+    html[data-theme="light"] .activity-title-main { color: #1e293b; }
+    html[data-theme="light"] .activity-description { color: rgba(30,41,59,0.75); }
+
+    html[data-theme="light"] .quiz-question { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+    html[data-theme="light"] .quiz-question-text { color: #1e293b; }
+    /* الحدّ فقط، ونستثني المحدَّد كي يبقى إطاره الذهبي (السطر 186) ظاهراً */
+    html[data-theme="light"] .quiz-option:not(.selected) { border-color: rgba(0,0,0,0.12); }
+    html[data-theme="light"] .quiz-option-circle { border-color: rgba(0,0,0,0.25); }
+
+    /* كل الحقول النصية (inline يفرض !important) */
+    html[data-theme="light"] .text-input-field {
+        color: #1e293b !important;
+        background: rgba(0,0,0,0.03) !important;
+        border-color: rgba(0,0,0,0.2) !important;
+    }
+    html[data-theme="light"] .text-input-field::placeholder { color: rgba(30,41,59,0.5) !important; }
+    html[data-theme="light"] .text-input-field:focus { background: rgba(0,0,0,0.05) !important; }
+
+    /* ترتيب الصور: الحاويات والقوائم المنسدلة */
+    html[data-theme="light"] .quiz-image-order-item,
+    html[data-theme="light"] .image-order-item {
+        background: rgba(0,0,0,0.03) !important;
+        border-color: rgba(0,0,0,0.12) !important;
+    }
+    html[data-theme="light"] .quiz-img-select,
+    html[data-theme="light"] .image-order-select {
+        color: #1e293b !important;
+        background: rgba(0,0,0,0.05) !important;
+        border-color: rgba(0,0,0,0.25) !important;
+    }
+
+    /* ترتيب الكلمات/الجمل (قواعد مُعرّفة في كتلة نمط متداخلة بلا inline) */
+    html[data-theme="light"] #orderingList .order-item {
+        background: rgba(0,0,0,0.03);
+        border-color: rgba(0,0,0,0.15);
+        color: #1e293b;
+    }
+    html[data-theme="light"] #orderingList .order-item:hover {
+        background: rgba(0,0,0,0.06);
+        border-color: rgba(0,0,0,0.3);
+    }
+    html[data-theme="light"] .order-handle { background: rgba(0,0,0,0.08); color: #334155; }
+
+    /* اختيار الحروف (العطل في الصورة) */
+    html[data-theme="light"] #letterAnswerBox {
+        color: #1e293b !important;            /* تُورَّث لأحرف JS المُدرجة (span بلا لون) */
+        border-color: rgba(0,0,0,0.3) !important;
+        background: rgba(0,0,0,0.03) !important;
+    }
+    /* اللون والحدّ فقط؛ نترك الخلفية كي يظهر feedback النقر الأخضر (JS inline) */
+    html[data-theme="light"] .letter-btn {
+        color: #1e293b !important;
+        border-color: rgba(0,0,0,0.2) !important;
+    }
+
+    /* رفع الملفات: منطقة الإفلات ونصّها (color:white كلمة صريحة) */
+    html[data-theme="light"] label[for="activityFile"] {
+        background: rgba(0,0,0,0.03) !important;
+        border-color: rgba(0,0,0,0.25) !important;
+    }
+    html[data-theme="light"] label[for="activityFile"] span { color: #334155 !important; }
+
+    /* ---- محتوى inline داخل البطاقة (حالة التسليم المكتمل + التلميحات) ----
+       مطابِقات مقيّدة بـ.activity-content-card؛ لا تلتقط عناصر keep-white لأنها
+       تستخدم color:white الصريحة لا rgba/hex. نغطّي متغيّرات المسافات كلّها. */
+    html[data-theme="light"] .activity-content-card [style*="color: rgba(255,255,255"],
+    html[data-theme="light"] .activity-content-card [style*="color:rgba(255,255,255"],
+    html[data-theme="light"] .activity-content-card [style*="color: rgba(255, 255, 255"],
+    html[data-theme="light"] .activity-content-card [style*="color:rgba(255, 255, 255"] {
+        color: #334155 !important;
+    }
+    html[data-theme="light"] .activity-content-card [style*="color: #FCA5A5"],
+    html[data-theme="light"] .activity-content-card [style*="color:#fca5a5"] {   /* رفض/فشل + onerror + مسح الحروف */
+        color: #B91C1C !important;
+    }
+    html[data-theme="light"] .activity-content-card [style*="color: #F59E0B"],   /* قيد المراجعة */
+    html[data-theme="light"] .activity-content-card [style*="color: #FCD34D"] {  /* درجة 50–79٪ */
+        color: #B45309 !important;
+    }
+    html[data-theme="light"] .activity-content-card [style*="color: #86EFAC"],   /* درجة ≥80٪ */
+    html[data-theme="light"] .activity-content-card [style*="color: #10B981"] {
+        color: #047857 !important;
+    }
+    html[data-theme="light"] .activity-content-card [style*="color: #94a3b8"],   /* تم التسليم */
+    html[data-theme="light"] .activity-content-card [style*="color: #CBD5E1"] {  /* درجة null */
+        color: #475569 !important;
+    }
+    html[data-theme="light"] .activity-content-card [style*="color: #c7d2fe"] {  /* رابط الملف المرفوع */
+        color: #4338CA !important;
+    }
+    /* عنوان الاكتمال h2 'تم تسليم هذا النشاط' (#10B981 منخفض التباين) — h2 وحيد داخل البطاقة */
+    html[data-theme="light"] .activity-content-card h2 { color: #065F46 !important; }
+
+    /* ---- نافذة النتيجة (feedback modal) — خارج .activity-content-card ---- */
+    html[data-theme="light"] .feedback-title   { color: #1e293b; }            /* JS يفرض titleColor للحالات المصحّحة */
+    html[data-theme="light"] .feedback-message  { color: rgba(30,41,59,0.9); } /* يُورَّث للسطر الفرعي 1426 */
+    html[data-theme="light"] .feedback-xp       { color: #B45309; }
+    /* زر 'متابعة' في النافذة: أبيض صلب يذوب في البطاقة الفاتحة → تدرّج العلامة.
+       غير-important كي تبقى نسخة الاكتمال (السطر 647) بتدرّجها inline كما هي. */
+    html[data-theme="light"] .continue-btn {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: #fff;
+    }
+    /* الإجابة الصحيحة + سطر الدرجة المُدرَجان بـJS: أخضر/أبيض على صندوق أخضر شاحب */
+    html[data-theme="light"] #feedbackMessage [style*="color:#fff"],
+    html[data-theme="light"] #feedbackMessage [style*="color: #fff"],
+    html[data-theme="light"] #feedbackMessage [style*="color:#10B981"],
+    html[data-theme="light"] #feedbackMessage [style*="color: #10B981"] {
+        color: #065F46 !important;
+    }
 </style>
 @endpush
 
