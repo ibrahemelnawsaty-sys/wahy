@@ -521,6 +521,17 @@
     html[data-theme="light"] #feedbackMessage [style*="color: #10B981"] {
         color: #065F46 !important;
     }
+
+    /* الجوال: تقليص حشو/هامش البطاقة كي يأخذ المحتوى (وخصوصاً مراجعة الإجابات)
+       العرض الكامل. كانت padding:48px + margin:32px تخنق النص إلى عمود رفيع
+       (~130px) على الشاشات الصغيرة. */
+    @media (max-width: 640px) {
+        .activity-content-card {
+            padding: 16px;
+            margin: 12px;
+            margin-top: 20px;
+        }
+    }
 </style>
 @endpush
 
