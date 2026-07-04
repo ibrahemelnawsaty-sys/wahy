@@ -995,13 +995,23 @@
                         color: white;
                     }
                 </style>
+                @php $qPrompt = $firstQ['question'] ?? $firstQ['text'] ?? null; @endphp
                 <div class="question-section">
                     @include('partials.question-media', ['q' => $firstQ])
-                    <div class="question-text">
-                        @if(in_array($effType, ['word_ordering', 'word_order'])) 🔤 رتّب الكلمات بالترتيب الصحيح
-                        @else 📝 رتّب الجمل بالترتيب الصحيح
-                        @endif
-                    </div>
+                    @if(!empty($qPrompt))
+                        {{-- نصّ السؤال الفعلي (كان لا يظهر للطالب) --}}
+                        <div class="question-text">{{ $qPrompt }}</div>
+                        <p style="color:rgba(255,255,255,0.7);font-size:14px;text-align:center;margin-bottom:6px;">
+                            @if(in_array($effType, ['word_ordering', 'word_order'])) 🔤 رتّب الكلمات بالترتيب الصحيح
+                            @else 📝 رتّب الجمل بالترتيب الصحيح @endif
+                        </p>
+                    @else
+                        <div class="question-text">
+                            @if(in_array($effType, ['word_ordering', 'word_order'])) 🔤 رتّب الكلمات بالترتيب الصحيح
+                            @else 📝 رتّب الجمل بالترتيب الصحيح
+                            @endif
+                        </div>
+                    @endif
                     <p style="color:rgba(255,255,255,0.7);font-size:14px;text-align:center;margin-bottom:18px;">
                         ↕ اسحب العناصر لإعادة ترتيبها — الأعلى يُحتسب أولاً
                     </p>
@@ -1047,9 +1057,16 @@
                     }
                     $availableLetters = collect($pool)->shuffle()->values()->all();
                 @endphp
+                @php $qPrompt = $firstQ['question'] ?? $firstQ['text'] ?? null; @endphp
                 <div class="question-section">
                     @include('partials.question-media', ['q' => $firstQ])
-                    <div class="question-text">🔤 كوّن الكلمة الصحيحة من الحروف</div>
+                    @if(!empty($qPrompt))
+                        {{-- نصّ السؤال/اللغز الفعلي (كان لا يظهر للطالب) --}}
+                        <div class="question-text">{{ $qPrompt }}</div>
+                        <p style="color:rgba(255,255,255,0.7);font-size:14px;text-align:center;margin-bottom:12px;">🔤 كوّن الكلمة الصحيحة من الحروف</p>
+                    @else
+                        <div class="question-text">🔤 كوّن الكلمة الصحيحة من الحروف</div>
+                    @endif
                     @if(!empty($firstQ['hint']))
                         <p style="color:rgba(255,255,255,.7);font-size:14px;text-align:center;margin-bottom:12px;">💡 {{ $firstQ['hint'] }}</p>
                     @endif
