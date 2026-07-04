@@ -38,6 +38,30 @@
     .match-win { background: rgba(16,185,129,0.2); color: #6ee7b7; }
     .match-lose { background: rgba(239,68,68,0.2); color: #fca5a5; }
     .match-draw { background: rgba(251,191,36,0.2); color: #fcd34d; }
+
+    .challenge-btn-alt { background: linear-gradient(135deg, #0ea5e9, #6366f1); box-shadow: 0 8px 25px rgba(14,165,233,0.4); }
+    .pvp-section { margin-bottom: 26px; }
+    .pvp-h3 { color: white; font-size: 20px; font-weight: 700; margin-bottom: 14px; }
+    .invite-card { background: linear-gradient(135deg, rgba(14,165,233,0.18), rgba(99,102,241,0.18)); border: 1px solid rgba(99,102,241,0.35); border-radius: 16px; padding: 16px 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .invite-from { color: white; font-weight: 800; font-size: 15px; }
+    .invite-challenge { color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 4px; }
+    .invite-actions { display: flex; gap: 8px; }
+    .btn-accept { background: linear-gradient(135deg,#10b981,#059669); color: #fff; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; }
+    .btn-decline { background: rgba(255,255,255,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .btn-play { background: linear-gradient(135deg,#8b5cf6,#ec4899); color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; }
+
+    .picker-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+    .picker-overlay.active { display: flex; }
+    .picker-box { background: #1e1b3a; border: 1px solid rgba(139,92,246,0.4); border-radius: 20px; padding: 24px; width: 100%; max-width: 440px; max-height: 80vh; display: flex; flex-direction: column; }
+    .picker-title { color: white; font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .picker-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 14px; }
+    .picker-search { width: 100%; padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: white; font-size: 15px; margin-bottom: 14px; }
+    .picker-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 80px; }
+    .picker-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+    .picker-name { color: white; font-weight: 700; font-size: 15px; }
+    .picker-pick { background: linear-gradient(135deg,#8b5cf6,#ec4899); color: #fff; border: none; padding: 8px 18px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+    .picker-empty { color: rgba(255,255,255,0.4); text-align: center; padding: 20px; }
+    .picker-close { margin-top: 14px; background: rgba(255,255,255,0.1); color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600; }
 </style>
 @endpush
 
@@ -61,6 +85,37 @@
         </div>
     </div>
 
+    @if($pendingInvites->count() > 0)
+    <div class="pvp-section">
+        <h3 class="pvp-h3">📨 تحديات موجّهة إليك</h3>
+        @foreach($pendingInvites as $inv)
+        <div class="invite-card" id="invite-{{ $inv->id }}">
+            <div class="invite-info">
+                <div class="invite-from">⚔️ {{ $inv->player1->name ?? 'طالب' }} يتحدّاك</div>
+                <div class="invite-challenge">{{ $inv->challenge->title ?? '' }} • {{ $inv->created_at?->diffForHumans() }}</div>
+            </div>
+            <div class="invite-actions">
+                <button class="btn-accept" onclick="respondInvite({{ $inv->id }}, 'accept', this)">قبول ✅</button>
+                <button class="btn-decline" onclick="respondInvite({{ $inv->id }}, 'decline', this)">رفض</button>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
+    @if($readyMatches->count() > 0)
+    <div class="pvp-section">
+        <h3 class="pvp-h3">🎮 مباريات جاهزة للعب</h3>
+        @foreach($readyMatches as $rm)
+        @php $opp = $rm->player1_id === Auth::id() ? $rm->player2 : $rm->player1; @endphp
+        <div class="match-card">
+            <div class="match-players">ضد {{ $opp->name ?? 'خصم' }} — {{ $rm->challenge->title ?? '' }}</div>
+            <a href="{{ route('student.pvp.play', $rm->id) }}" class="btn-play">العب الآن ▶</a>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     <h3 style="color: white; font-size: 20px; font-weight: 700; margin-bottom: 16px;">🎮 التحديات المتاحة</h3>
     @forelse($challenges as $challenge)
     <div class="challenge-card">
@@ -69,8 +124,9 @@
             <span>📋 {{ count($challenge->questions ?? []) }} سؤال</span>
             <span>⏱️ {{ $challenge->time_limit }} ثانية/سؤال</span>
         </div>
-        <div style="text-align: center; position: relative; z-index: 1;">
-            <button class="challenge-btn" onclick="joinChallenge({{ $challenge->id }})">⚔️ ابدأ التحدي</button>
+        <div style="text-align: center; position: relative; z-index: 1; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <button class="challenge-btn" onclick="joinChallenge({{ $challenge->id }})">⚔️ منافس عشوائي</button>
+            <button class="challenge-btn challenge-btn-alt" onclick="openOpponentPicker({{ $challenge->id }}, @js($challenge->title))">🎯 اختر منافساً</button>
         </div>
     </div>
     @empty
@@ -107,21 +163,35 @@
 {{-- Waiting Overlay --}}
 <div class="waiting-overlay" id="waitingOverlay">
     <div class="waiting-spinner"></div>
-    <div class="waiting-text">🔍 جاري البحث عن خصم...</div>
+    <div class="waiting-text" id="waitingText">🔍 جاري البحث عن خصم...</div>
     <div class="waiting-sub" id="waitingStatus">في انتظار طالب آخر ينضم للتحدي</div>
     <button class="cancel-btn" onclick="cancelWaiting()">إلغاء</button>
 </div>
 
+{{-- Opponent Picker Modal --}}
+<div class="picker-overlay" id="pickerOverlay">
+    <div class="picker-box">
+        <div class="picker-title" id="pickerTitle">🎯 اختر منافساً</div>
+        <div class="picker-sub">ابحث عن أي طالب في المنصة وتحدَّه مباشرة</div>
+        <input type="text" class="picker-search" id="pickerSearch" placeholder="ابحث بالاسم…" oninput="onOpponentSearch(this.value)">
+        <div class="picker-list" id="pickerList"></div>
+        <button class="picker-close" onclick="closeOpponentPicker()">إغلاق</button>
+    </div>
+</div>
+
 <script>
+const PVP_CSRF = '{{ csrf_token() }}';
 let pollingInterval = null;
 let currentMatchId = null;
+let pickerChallengeId = null;
+let searchTimer = null;
 
+// ===== منافس عشوائي =====
 function joinChallenge(challengeId) {
-    document.getElementById('waitingOverlay').classList.add('active');
-
+    showWaiting('🔍 جاري البحث عن خصم...', 'في انتظار طالب آخر ينضم للتحدي');
     fetch(`/student/pvp/${challengeId}/join`, {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json', 'Accept': 'application/json' }
+        headers: { 'X-CSRF-TOKEN': PVP_CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' }
     })
     .then(r => r.json())
     .then(data => {
@@ -132,29 +202,113 @@ function joinChallenge(challengeId) {
             } else {
                 startPolling(data.match_id);
             }
-        }
-    });
+        } else { hideWaiting(); }
+    })
+    .catch(() => hideWaiting());
 }
 
+// ===== اختيار منافس محدّد =====
+function openOpponentPicker(challengeId, title) {
+    pickerChallengeId = challengeId;
+    document.getElementById('pickerTitle').textContent = '🎯 تحدَّ منافساً في: ' + title;
+    document.getElementById('pickerSearch').value = '';
+    document.getElementById('pickerOverlay').classList.add('active');
+    loadOpponents('');
+    setTimeout(() => document.getElementById('pickerSearch').focus(), 100);
+}
+function closeOpponentPicker() {
+    document.getElementById('pickerOverlay').classList.remove('active');
+    pickerChallengeId = null;
+}
+function onOpponentSearch(val) {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => loadOpponents(val), 300);
+}
+function loadOpponents(q) {
+    const list = document.getElementById('pickerList');
+    list.innerHTML = '<div class="picker-empty">جارٍ التحميل…</div>';
+    fetch(`/student/pvp-opponents/search?q=${encodeURIComponent(q)}`, { headers: { 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(data => {
+        const ops = (data && data.opponents) || [];
+        if (ops.length === 0) { list.innerHTML = '<div class="picker-empty">لا يوجد طلاب مطابقون</div>'; return; }
+        list.innerHTML = ops.map(o =>
+            `<div class="picker-item"><span class="picker-name">${escapeHtml(o.name)}</span>` +
+            `<button class="picker-pick" onclick='pickOpponent(${o.id}, ${JSON.stringify(o.name)})'>تحدَّ ⚔️</button></div>`
+        ).join('');
+    })
+    .catch(() => { list.innerHTML = '<div class="picker-empty">تعذّر التحميل</div>'; });
+}
+function pickOpponent(opponentId, name) {
+    if (!pickerChallengeId) return;
+    const cid = pickerChallengeId;
+    closeOpponentPicker();
+    showWaiting('📨 أُرسِلت الدعوة!', 'بانتظار قبول ' + name + '…');
+    fetch(`/student/pvp/${cid}/challenge`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': PVP_CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ opponent_id: opponentId })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) { currentMatchId = data.match_id; startPolling(data.match_id); }
+        else { hideWaiting(); alert(data.message || 'تعذّر إرسال الدعوة'); }
+    })
+    .catch(() => hideWaiting());
+}
+
+// ===== الردّ على دعوة واردة =====
+function respondInvite(matchId, action, btn) {
+    if (btn) btn.disabled = true;
+    fetch(`/student/pvp-invite/${matchId}/${action}`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': PVP_CSRF, 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (action === 'accept' && data.redirect) { window.location.href = data.redirect; }
+            else { const card = document.getElementById('invite-' + matchId); if (card) card.remove(); }
+        } else if (btn) { btn.disabled = false; }
+    })
+    .catch(() => { if (btn) btn.disabled = false; });
+}
+
+// ===== polling (بعد بحث عشوائي أو إرسال دعوة) =====
 function startPolling(matchId) {
     pollingInterval = setInterval(() => {
-        fetch(`/student/pvp/${matchId}/status`)
+        fetch(`/student/pvp/${matchId}/status`, { headers: { 'Accept': 'application/json' } })
         .then(r => r.json())
         .then(data => {
             if (data.status === 'playing') {
                 clearInterval(pollingInterval);
-                document.getElementById('waitingStatus').textContent = '🎮 تم العثور على خصم: ' + data.player2 + '!';
-                setTimeout(() => {
-                    window.location.href = `/student/pvp/${matchId}/play`;
-                }, 1500);
+                document.getElementById('waitingText').textContent = '🎮 المباراة جاهزة!';
+                document.getElementById('waitingStatus').textContent = 'جارٍ نقلك للّعب…';
+                setTimeout(() => { window.location.href = `/student/pvp/${matchId}/play`; }, 1200);
+            } else if (data.status === 'declined') {
+                clearInterval(pollingInterval);
+                document.getElementById('waitingText').textContent = '😔 اعتذر منافسك';
+                document.getElementById('waitingStatus').textContent = 'لم يقبل التحدي هذه المرة.';
             }
-        });
+        })
+        .catch(() => {});
     }, 3000);
 }
 
+function showWaiting(text, sub) {
+    document.getElementById('waitingText').textContent = text;
+    document.getElementById('waitingStatus').textContent = sub;
+    document.getElementById('waitingOverlay').classList.add('active');
+}
+function hideWaiting() {
+    document.getElementById('waitingOverlay').classList.remove('active');
+}
 function cancelWaiting() {
     if (pollingInterval) clearInterval(pollingInterval);
-    document.getElementById('waitingOverlay').classList.remove('active');
+    hideWaiting();
+}
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 </script>
 @endsection

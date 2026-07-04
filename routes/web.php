@@ -605,6 +605,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/pvp/{matchId}/play', [StudentController::class, 'pvpPlay'])->name('pvp.play');
         Route::post('/pvp/{matchId}/submit', [StudentController::class, 'submitPvpAnswers'])->name('pvp.submit');
         Route::get('/pvp/{matchId}/result', [StudentController::class, 'pvpResult'])->name('pvp.result');
+        // تحدٍّ موجّه: اختيار منافس محدّد + قبول/رفض الدعوة
+        Route::get('/pvp-opponents/search', [StudentController::class, 'pvpSearchOpponents'])->name('pvp.opponents');
+        Route::post('/pvp/{challengeId}/challenge', [StudentController::class, 'challengeOpponent'])->middleware('throttle:20,1')->name('pvp.challenge');
+        Route::post('/pvp-invite/{matchId}/accept', [StudentController::class, 'acceptPvpInvite'])->name('pvp.invite.accept');
+        Route::post('/pvp-invite/{matchId}/decline', [StudentController::class, 'declinePvpInvite'])->name('pvp.invite.decline');
     });
 
     // Notifications

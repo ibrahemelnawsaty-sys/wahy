@@ -2317,6 +2317,8 @@ class StudentController extends Controller
             return view('student.pvp-lobby', [
                 'challenges' => collect(),
                 'myMatches' => collect(),
+                'pendingInvites' => collect(),
+                'readyMatches' => collect(),
                 // اسم مستقل عن 'stats' الذي يشاركه View composer لـ student.* (تضارب أسماء)
                 'pvpStats' => ['total_matches' => 0, 'wins' => 0],
             ]);
@@ -2343,6 +2345,27 @@ class StudentController extends Controller
             ->limit(10)
             ->get();
 
+        // دعوات واردة معلّقة: أنا المدعوّ (player2) بانتظار قبولي/رفضي.
+        $pendingInvites = \App\Models\PvpMatch::where('player2_id', $student->id)
+            ->where('status', 'invited')
+            ->with(['player1:id,name', 'challenge:id,title'])
+            ->latest()
+            ->get();
+
+        // مباريات جاهزة للعب (playing) لم أُرسل إجابتي فيها بعد — استئناف غير متزامن
+        // (يشمل التحديات العشوائية والموجّهة بعد القبول).
+        $readyMatches = \App\Models\PvpMatch::where('status', 'playing')
+            ->where(function ($q) use ($student) {
+                $q->where(function ($q2) use ($student) {
+                    $q2->where('player1_id', $student->id)->whereNull('player1_answers');
+                })->orWhere(function ($q2) use ($student) {
+                    $q2->where('player2_id', $student->id)->whereNull('player2_answers');
+                });
+            })
+            ->with(['player1:id,name', 'player2:id,name', 'challenge:id,title'])
+            ->latest()
+            ->get();
+
         // اسم مستقل عن 'stats' الذي يشاركه View composer لـ student.* (تفادي تضارب الأسماء)
         $pvpStats = [
             'total_matches' => \App\Models\PvpMatch::where(function ($q) use ($student) {
@@ -2351,7 +2374,7 @@ class StudentController extends Controller
             'wins' => \App\Models\PvpMatch::where('winner_id', $student->id)->count(),
         ];
 
-        return view('student.pvp-lobby', compact('challenges', 'myMatches', 'pvpStats'));
+        return view('student.pvp-lobby', compact('challenges', 'myMatches', 'pvpStats', 'pendingInvites', 'readyMatches'));
     }
 
     /**
@@ -2398,6 +2421,184 @@ class StudentController extends Controller
             'match_id' => $match->id,
             'status' => $match->status,
         ]);
+    }
+
+    /**
+     * بحث عن طلاب لتحدّيهم (منافس محدّد) — أي طالب فعّال في المنصة عدا النفس.
+     * يُعيد id/name فقط (لا بيانات حساسة).
+     */
+    public function pvpSearchOpponents(Request $request)
+    {
+        $student = Auth::user();
+        $q = trim((string) $request->query('q', ''));
+
+        $opponents = \App\Models\User::query()
+            ->where('role', 'student')
+            ->where('status', 'active')
+            ->where('id', '!=', $student->id)
+            ->when($q !== '', fn ($query) => $query->where('name', 'like', '%' . $q . '%'))
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name']);
+
+        return response()->json(['success' => true, 'opponents' => $opponents]);
+    }
+
+    /**
+     * تحدٍّ موجّه: دعوة طالب محدّد لمباراة (بإشعار، يقبل/يرفض).
+     * يُنشئ مباراة بحالة "invited" (player2 معيّن) بدل مطابقة عشوائية.
+     */
+    public function challengeOpponent(Request $request, $challengeId)
+    {
+        $student = Auth::user();
+
+        $data = $request->validate([
+            'opponent_id' => 'required|integer',
+        ]);
+
+        $challenge = \App\Models\PvpChallenge::where('is_active', true)->findOrFail($challengeId);
+
+        // المتحدّي يجب أن يملك وصولاً للتحدي (نفس نطاق مدرسته) — كبقية مسارات PvP.
+        if (! \App\Models\PvpChallenge::availableForSchool($student->school_id)
+            ->whereKey($challenge->id)->exists()) {
+            abort(403);
+        }
+
+        // المنافس: طالب فعّال وليس النفس (أي طالب في المنصة).
+        $opponent = \App\Models\User::where('role', 'student')
+            ->where('status', 'active')
+            ->find($data['opponent_id']);
+        if (! $opponent || $opponent->id === $student->id) {
+            return response()->json(['success' => false, 'message' => 'المنافس غير صالح'], 422);
+        }
+
+        // مكافحة الإغراق (1): سقف للدعوات المعلّقة الصادرة — يمنع نثر دعوات على كل الطلاب.
+        $pendingOut = \App\Models\PvpMatch::where('player1_id', $student->id)
+            ->where('status', 'invited')->count();
+        if ($pendingOut >= 15) {
+            return response()->json(['success' => false, 'message' => 'لديك دعوات معلّقة كثيرة. انتظر ردّها أولاً.'], 429);
+        }
+
+        // مكافحة الإغراق (2): تهدئة بعد الرفض — يمنع حلقة «ارفض ثم أعِد الدعوة» المضايِقة.
+        $recentlyDeclined = \App\Models\PvpMatch::where('challenge_id', $challenge->id)
+            ->where('player1_id', $student->id)
+            ->where('player2_id', $opponent->id)
+            ->where('status', 'declined')
+            ->where('completed_at', '>=', now()->subMinutes(10))
+            ->exists();
+        if ($recentlyDeclined) {
+            return response()->json(['success' => false, 'message' => 'اعتذر منافسك مؤخراً. جرّب لاحقاً أو اختر منافساً آخر.'], 429);
+        }
+
+        // منع تكرار الدعوات المعلّقة لنفس المنافس ونفس التحدي.
+        $match = \App\Models\PvpMatch::where('challenge_id', $challenge->id)
+            ->where('player1_id', $student->id)
+            ->where('player2_id', $opponent->id)
+            ->where('status', 'invited')
+            ->first();
+
+        if (! $match) {
+            $match = \App\Models\PvpMatch::create([
+                'challenge_id' => $challenge->id,
+                'player1_id' => $student->id,
+                'player2_id' => $opponent->id,
+                'status' => 'invited',
+            ]);
+
+            try {
+                \App\Services\NotificationService::create(
+                    $opponent->id,
+                    'pvp_invite',
+                    '⚔️ تحدٍّ جديد!',
+                    $student->name . ' يتحدّاك في «' . $challenge->title . '»',
+                    ['match_id' => $match->id],
+                    route('student.pvp.lobby'),
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('PvP invite notification failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'match_id' => $match->id,
+            'status' => $match->status,
+            'opponent' => $opponent->name,
+        ]);
+    }
+
+    /**
+     * قبول دعوة تحدٍّ موجّه — المدعوّ (player2) فقط. تبدأ المباراة (playing).
+     */
+    public function acceptPvpInvite($matchId)
+    {
+        $student = Auth::user();
+        $match = \App\Models\PvpMatch::findOrFail($matchId);
+
+        // IDOR: فقط المدعوّ يقبل، وفقط عند حالة invited.
+        if ($match->player2_id !== $student->id || $match->status !== 'invited') {
+            abort(403);
+        }
+
+        // تحديث ذرّي مشروط بالحالة: يمنع القبول المزدوج (سباق) من ختم/إشعار مكرّر.
+        $accepted = \App\Models\PvpMatch::where('id', $match->id)
+            ->where('status', 'invited')
+            ->update(['status' => 'playing', 'started_at' => now()]);
+
+        if ($accepted) {
+            try {
+                \App\Services\NotificationService::create(
+                    $match->player1_id,
+                    'pvp_accepted',
+                    '✅ قُبِل تحدّيك!',
+                    $student->name . ' قبل التحدي — المباراة جاهزة!',
+                    ['match_id' => $match->id],
+                    route('student.pvp.play', $match->id),
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('PvP accept notification failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'match_id' => $match->id,
+            'redirect' => route('student.pvp.play', $match->id),
+        ]);
+    }
+
+    /**
+     * رفض دعوة تحدٍّ موجّه — المدعوّ (player2) فقط.
+     */
+    public function declinePvpInvite($matchId)
+    {
+        $student = Auth::user();
+        $match = \App\Models\PvpMatch::findOrFail($matchId);
+
+        if ($match->player2_id !== $student->id || $match->status !== 'invited') {
+            abort(403);
+        }
+
+        // تحديث ذرّي مشروط بالحالة (اتّساقاً مع القبول ومنعاً لإشعار مكرّر).
+        $declined = \App\Models\PvpMatch::where('id', $match->id)
+            ->where('status', 'invited')
+            ->update(['status' => 'declined', 'completed_at' => now()]);
+
+        if ($declined) {
+            try {
+                \App\Services\NotificationService::create(
+                    $match->player1_id,
+                    'pvp_declined',
+                    'اعتذر منافسك',
+                    $student->name . ' لم يقبل التحدي هذه المرة.',
+                    ['match_id' => $match->id],
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('PvP decline notification failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
 
     /**
