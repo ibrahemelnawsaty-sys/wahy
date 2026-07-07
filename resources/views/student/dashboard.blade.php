@@ -825,11 +825,21 @@
                             </div>
                         </div>
                         
-                        @if($submission->score)
+                        @php
+                            // النقاط المكتسبة = (الدرجة٪ ÷ 100) × نقاط النشاط — مطابق لصيغة المنح في
+                            // SubmitActivityAction. سابقاً كان يُعرض $submission->score (النسبة) كأنه نقاط،
+                            // فيَظهر ثابتاً/خاطئاً ولا يراعي نقاط النشاط ولا حالة الرفض (المرفوض يكتسب 0).
+                            $activityPoints = (int) ($submission->activity->points ?? 20);
+                            $earnedPoints = in_array($submission->status, ['completed', 'approved'], true) && $submission->score !== null
+                                ? (int) round(($submission->score / 100) * $activityPoints)
+                                : 0;
+                            $showPoints = in_array($submission->status, ['completed', 'approved', 'rejected'], true);
+                        @endphp
+                        @if($showPoints)
                         <div style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: white; padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                             <span style="font-size: 18px;">⭐</span>
-                            <span style="font-weight: 700; color: #2d3748; font-size: 16px;">{{ $submission->score }}</span>
-                            <span style="color: #718096; font-size: 13px;">نقطة</span>
+                            <span style="font-weight: 700; color: #2d3748; font-size: 16px;">{{ $earnedPoints }}</span>
+                            <span style="color: #718096; font-size: 13px;">/ {{ $activityPoints }} نقطة</span>
                         </div>
                         @endif
                         
