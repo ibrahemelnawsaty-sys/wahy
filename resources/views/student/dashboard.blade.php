@@ -451,6 +451,19 @@
 <!-- Container with padding for status bar -->
 <div class="container-wrapper" style="padding-top: 100px; padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">
 
+<style>
+    /* بطاقة الشارات ذهبية بنصّ داكن (تباين ممتاز على الذهبي). كان dark-coverage
+       يُعتّم خلفيتها الباهتة (#ffeaa7) فيختفي النص الداكن. نُبقيها ذهبية بنصّها الداكن
+       في الوضع الليلي أيضاً — كأشقّائها الزاهية (نقاط/أيام). النوعية أعلى تخصّصاً
+       من dark-coverage ([style]) فتفوز بصرف النظر عن الترتيب. */
+    html[data-theme="dark"] .badges-stat-card[style] {
+        background-image: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
+        background-color: #fdcb6e !important;
+    }
+    html[data-theme="dark"] .badges-stat-card > div[style] {
+        color: #2d3436 !important;
+    }
+</style>
 <!-- Top Stats Bar -->
 <div class="animate-in" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
     <!-- Total Points -->
@@ -469,7 +482,7 @@
     </div>
 
     <!-- Badges -->
-    <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 30px rgba(253, 203, 110, 0.3);">
+    <div class="badges-stat-card" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 30px rgba(253, 203, 110, 0.3);">
         <div style="font-size: 48px; margin-bottom: 10px;">🏅</div>
         <div style="font-size: 36px; font-weight: 700; color: #2d3436; margin-bottom: 5px;">{{ $badges->count() }}</div>
         <div style="color: #2d3436; font-size: 14px; font-weight: 600;">شارة مكتسبة</div>
