@@ -557,10 +557,203 @@ html[data-theme="dark"] .user-info p { color: #94a3b8; }
 .link-modal-actions .btn-cancel:hover {
     background: #e2e8f0;
 }
+
+/* ============================================================
+   وحي — طبقة الفخامة + الوضع الليلي الكامل + الاستجابة
+   (إضافات بصرية فقط — لا تمسّ أي مُعرّف/مسار/دالة/حقل)
+   ============================================================ */
+
+/* عمود الدردشة المركزي الفاخر (بدل الامتداد على فراغ 1200px) */
+.chat-page {
+    padding: 100px 20px 120px;
+    max-width: 980px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+.chat-container {
+    max-width: 960px;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 480px;
+}
+
+/* رأس المحادثة — خط لكنة العلامة تحت الهيدر */
+.chat-header { position: relative; }
+.chat-header::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -2px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(102,126,234,0.35), rgba(118,75,162,0.35), transparent);
+    pointer-events: none;
+}
+
+/* خلفية منطقة الرسائل — نقش لطيف يعمل في الوضعين */
+.chat-messages {
+    background:
+        radial-gradient(circle at 18% 8%, rgba(102,126,234,0.06), transparent 40%),
+        radial-gradient(circle at 88% 92%, rgba(118,75,162,0.06), transparent 44%),
+        linear-gradient(180deg, #fafbfc 0%, #eef2f7 100%);
+}
+html[data-theme="dark"] .chat-messages {
+    background:
+        radial-gradient(circle at 18% 8%, rgba(102,126,234,0.12), transparent 40%),
+        radial-gradient(circle at 88% 92%, rgba(118,75,162,0.12), transparent 44%),
+        linear-gradient(180deg, #0b1220 0%, #111827 100%);
+}
+
+/* الفقاعات — لمسة أفخم + تغطية ليلية للمستلَمة عبر المتغيّرات */
+.message-bubble { box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
+.message.received .message-bubble {
+    background: var(--w-card, #fff);
+    border-color: var(--w-border, #e2e8f0);
+    color: var(--w-text, #0f172a);
+}
+html[data-theme="dark"] .message.received .message-bubble { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+
+/* شريط الإرسال + الأدوات + المحرر — أسطح مبنيّة على متغيّرات الثيم */
+.chat-input {
+    background: var(--w-card, #fff);
+    border-top-color: var(--w-border, rgba(241,245,249,0.8));
+}
+.editor-toolbar {
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: var(--w-bg, #f8fafc);
+    border: 2px solid var(--w-border, #e2e8f0);
+    color: var(--w-text, #0f172a);
+}
+.tb-divider { width: 1px; height: 24px; background: var(--w-border, #e2e8f0); margin: 0 4px; }
+html[data-theme="dark"] .toolbar-btn { color: var(--w-text-muted, #94a3b8); }
+html[data-theme="dark"] .toolbar-btn:hover { background: rgba(255,255,255,0.08); color: var(--w-text, #f1f5f9); }
+
+/* المحرر الغني — كان style مضمّناً بألوان فاتحة تكسر الوضع الليلي */
+.rich-editor {
+    flex: 1;
+    padding: 14px 18px;
+    border: 2px solid var(--w-border, #e2e8f0);
+    border-radius: 14px;
+    min-height: 52px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    background: var(--w-bg, #f8fafc);
+    color: var(--w-text, #0f172a);
+    outline: none;
+    transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
+    direction: rtl;
+}
+.rich-editor:focus {
+    border-color: #667eea;
+    background: var(--w-card, #fff);
+    box-shadow: 0 4px 16px rgba(102,126,234,0.18);
+}
+.rich-editor:empty::before { color: var(--w-text-muted, #94a3b8); }
+
+/* الحالة الفارغة — أكثر جاذبية (شارة أيقونة دائرية بتدرّج العلامة) */
+.empty-messages i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12));
+    color: #667eea;
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+html[data-theme="dark"] .empty-messages { color: var(--w-text-muted, #94a3b8); }
+html[data-theme="dark"] .empty-messages h3 { color: var(--w-text, #f1f5f9); }
+html[data-theme="dark"] .empty-messages p { color: var(--w-text-muted, #94a3b8); }
+html[data-theme="dark"] .empty-messages i {
+    background: linear-gradient(135deg, rgba(102,126,234,0.22), rgba(118,75,162,0.22));
+    color: #a5b4fc;
+}
+
+/* زر العودة — تغطية ليلية */
+html[data-theme="dark"] .back-btn {
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    color: var(--w-text, #f1f5f9);
+    border-color: var(--w-border, rgba(255,255,255,0.1));
+}
+html[data-theme="dark"] .back-btn:hover {
+    background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+}
+
+/* مودال إدراج الرابط — تغطية ليلية كاملة */
+html[data-theme="dark"] .link-modal-box { background: var(--w-card, #1e293b); color: var(--w-text, #f1f5f9); }
+html[data-theme="dark"] .link-modal-header { border-bottom-color: var(--w-border, rgba(255,255,255,0.1)); }
+html[data-theme="dark"] .link-modal-header h3 { color: var(--w-text, #f1f5f9); }
+html[data-theme="dark"] .link-modal-field label { color: var(--w-text, #f1f5f9); }
+html[data-theme="dark"] .link-modal-field .field-hint { color: var(--w-text-muted, #94a3b8); }
+html[data-theme="dark"] .link-modal-field input {
+    background: var(--w-bg, #0b1220);
+    border-color: var(--w-border, rgba(255,255,255,0.1));
+    color: var(--w-text, #f1f5f9);
+}
+html[data-theme="dark"] .link-modal-field input:focus { background: var(--w-card, #1e293b); }
+html[data-theme="dark"] .link-modal-close {
+    background: var(--w-bg, #0b1220);
+    border-color: var(--w-border, rgba(255,255,255,0.1));
+    color: var(--w-text-muted, #94a3b8);
+}
+html[data-theme="dark"] .link-modal-actions .btn-cancel {
+    background: var(--w-bg, #0b1220);
+    border-color: var(--w-border, rgba(255,255,255,0.1));
+    color: var(--w-text, #f1f5f9);
+}
+html[data-theme="dark"] .link-modal-actions .btn-cancel:hover { background: rgba(255,255,255,0.08); }
+
+/* ============================ الاستجابة ============================ */
+
+/* تابلت */
+@media (max-width: 1024px) {
+    .chat-page { padding: 90px 16px 112px; }
+    .chat-container { height: calc(100vh - 250px); }
+    .message-bubble { max-width: 72%; }
+}
+
+/* جوال — عمود واحد، لوح دردشة يملأ العرض، حشو أصغر، فقاعات 85% */
+@media (max-width: 640px) {
+    .chat-page { padding: 78px 10px 96px; max-width: 100%; }
+    .chat-container {
+        border-radius: 16px;
+        height: calc(100vh - 240px);
+        min-height: 360px;
+    }
+    .chat-header { padding: 16px; gap: 12px; }
+    .user-avatar { width: 46px; height: 46px; font-size: 18px; border-width: 2px; }
+    .user-info h3 { font-size: 16px; }
+    .user-info p { font-size: 12px; word-break: break-word; }
+    .chat-messages { padding: 16px 14px; }
+    .message { margin-bottom: 14px; gap: 8px; }
+    .message-bubble { max-width: 85%; padding: 12px 15px; }
+    .chat-input { padding: 14px; }
+    .editor-toolbar { gap: 2px; padding: 6px 8px; }
+    .toolbar-btn { width: 32px; height: 32px; font-size: 12px; }
+    .rich-editor { font-size: 16px; padding: 12px 14px; } /* 16px يمنع تكبير iOS عند التركيز */
+    .send-btn { padding: 12px 18px; height: 48px; }
+    .back-btn { padding: 10px 18px; font-size: 13px; }
+    .link-modal-box { padding: 24px 20px; }
+    .empty-messages { padding: 56px 16px; }
+    .empty-messages i { width: 84px; height: 84px; font-size: 34px; }
+}
+
+/* ارتفاع أدق على الجوال باستخدام dvh حين يتوفّر */
+@supports (height: 100dvh) {
+    @media (max-width: 640px) {
+        .chat-container { height: calc(100dvh - 240px); }
+    }
+}
 </style>
 
 <!-- Container with padding for status bar and bottom nav -->
-<div style="padding-top: 100px; padding-bottom: 120px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">
+<div class="chat-page">
 
 <div style="margin-bottom: 24px;">
     <button class="back-btn" onclick="window.location.href='{{ auth()->user()->role === 'school_admin' ? route('school-admin.messages.index') : route('messages.index') }}'">
@@ -609,30 +802,27 @@ html[data-theme="dark"] .user-info p { color: #94a3b8; }
     <!-- صندوق الإرسال مع محرر نصوص -->
     <div class="chat-input" style="flex-direction: column; gap: 8px;">
         <!-- شريط الأدوات -->
-        <div class="editor-toolbar" style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: #f8fafc; border-radius: 12px; border: 2px solid #e2e8f0; flex-wrap: wrap;">
+        <div class="editor-toolbar" style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
             <button type="button" class="toolbar-btn" onclick="execCmd('bold')" title="غامق" style="font-weight:900;">B</button>
             <button type="button" class="toolbar-btn" onclick="execCmd('italic')" title="مائل" style="font-style:italic;font-weight:700;">I</button>
             <button type="button" class="toolbar-btn" onclick="execCmd('underline')" title="تسطير" style="text-decoration:underline;font-weight:700;">U</button>
-            <div style="width: 1px; height: 24px; background: #e2e8f0; margin: 0 4px;"></div>
+            <div class="tb-divider"></div>
             <button type="button" class="toolbar-btn" onclick="execCmd('justifyRight')" title="محاذاة يمين">⇥</button>
             <button type="button" class="toolbar-btn" onclick="execCmd('justifyCenter')" title="محاذاة وسط">≡</button>
             <button type="button" class="toolbar-btn" onclick="execCmd('justifyLeft')" title="محاذاة يسار">⇤</button>
-            <div style="width: 1px; height: 24px; background: #e2e8f0; margin: 0 4px;"></div>
+            <div class="tb-divider"></div>
             <button type="button" class="toolbar-btn" onclick="insertLink()" title="إدراج رابط">🔗</button>
             <button type="button" class="toolbar-btn" onclick="document.getElementById('chatImageUpload').click()" title="إدراج صورة">🖼️</button>
             <input type="file" id="chatImageUpload" accept="image/*" style="display: none;" onchange="insertImage(this)">
         </div>
         <!-- محرر النص -->
         <div style="display: flex; gap: 14px; align-items: flex-end; width: 100%;">
-            <div 
-                id="messageInput" 
-                contenteditable="true" 
+            <div
+                id="messageInput"
+                contenteditable="true"
                 class="rich-editor"
-                style="flex: 1; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 14px; min-height: 52px; max-height: 200px; overflow-y: auto; font-family: inherit; font-size: 14px; line-height: 1.6; background: #f8fafc; outline: none; transition: all 0.3s ease; direction: rtl;"
                 data-placeholder="اكتب رسالتك هنا... (Ctrl+Enter للإرسال)"
                 onkeydown="handleKeyPress(event)"
-                onfocus="this.style.borderColor='#667eea'; this.style.background='white'; this.style.boxShadow='0 4px 16px rgba(102,126,234,0.15)'"
-                onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'; this.style.boxShadow='none'"
             ></div>
             <button class="send-btn" onclick="sendMessage()" id="sendBtn">
                 <span>إرسال</span>

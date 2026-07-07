@@ -4,29 +4,27 @@
 
 @section('content')
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 30px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3); color: white;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+<div class="admin-msg-hero">
+    <div class="admin-msg-hero-row">
         <div>
-            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
-                <div style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px;">
-                    💬
-                </div>
+            <div class="admin-msg-hero-title-wrap">
+                <div class="admin-msg-hero-badge">💬</div>
                 <div>
-                    <h1 style="font-size: 28px; font-weight: 800; margin: 0;">نظام الرسائل الشامل</h1>
-                    <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 15px;">إدارة جميع محادثات المنصة</p>
+                    <h1>نظام الرسائل الشامل</h1>
+                    <p class="admin-msg-hero-sub">إدارة جميع محادثات المنصة</p>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; opacity: 0.95;">
-                <a href="{{ route('dashboard') }}" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 6px;">
-                    <span style="width: 24px; height: 24px; background: rgba(255,255,255,0.2); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;"><i class="fas fa-home" style="font-size: 12px;"></i></span> لوحة البيانات
+            <div class="admin-msg-hero-crumbs">
+                <a href="{{ route('dashboard') }}">
+                    <span class="crumb-home"><i class="fas fa-home" style="font-size: 12px;"></i></span> لوحة البيانات
                 </a>
                 <span>›</span>
                 <span style="font-weight: 600;">الرسائل</span>
             </div>
         </div>
-        <div style="text-align: center; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 16px 24px;">
-            <div style="font-size: 32px; font-weight: 800; margin-bottom: 4px;">{{ $conversations->count() }}</div>
-            <div style="font-size: 13px; opacity: 0.9;">محادثة نشطة</div>
+        <div class="admin-msg-hero-count">
+            <div class="num">{{ $conversations->count() }}</div>
+            <div class="lbl">محادثة نشطة</div>
         </div>
     </div>
 </div>
@@ -444,6 +442,326 @@
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* ===================================================================
+   طبقة بصرية فاخرة + استجابة كاملة + وضع ليلي
+   (إضافات فقط — لا تُبدّل أي صنف يستهدفه JS، فقط تُنسّقه)
+   =================================================================== */
+
+/* ---- الهيدر (Hero) ---- */
+.admin-msg-hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 24px;
+    box-shadow: 0 18px 45px rgba(102, 126, 234, 0.32);
+    color: #fff;
+}
+.admin-msg-hero::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: -70px;
+    top: -70px;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+    pointer-events: none;
+}
+.admin-msg-hero-row {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.admin-msg-hero-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+.admin-msg-hero-badge {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+.admin-msg-hero h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.15;
+}
+.admin-msg-hero-sub {
+    margin: 4px 0 0;
+    opacity: 0.9;
+    font-size: 15px;
+}
+.admin-msg-hero-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    opacity: 0.95;
+    flex-wrap: wrap;
+}
+.admin-msg-hero-crumbs a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.admin-msg-hero-crumbs .crumb-home {
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.admin-msg-hero-count {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    padding: 16px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    flex-shrink: 0;
+}
+.admin-msg-hero-count .num {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    line-height: 1;
+}
+.admin-msg-hero-count .lbl {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+/* ---- تلميع الأسطح (فخامة موحّدة) ---- */
+.admin-messages-container {
+    min-height: 540px;
+}
+.admin-conversations-list,
+.admin-chat-container {
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
+    border-radius: 20px;
+}
+.admin-conversations-list::-webkit-scrollbar {
+    width: 8px;
+}
+.admin-conversations-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.admin-conversations-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+/* =========================================================
+   الاستجابة
+   ========================================================= */
+
+/* تابلت (641–1024): قلّل عرض القائمة والحشو */
+@media (max-width: 1024px) {
+    .admin-messages-container {
+        grid-template-columns: 320px 1fr;
+        gap: 16px;
+        height: calc(100vh - 280px);
+        min-height: 500px;
+    }
+    .admin-conversations-list {
+        padding: 20px 18px;
+    }
+    .admin-conversations-list h3 {
+        font-size: 18px;
+    }
+    .admin-user-avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+    }
+    .message-bubble-inline {
+        max-width: 78%;
+    }
+}
+
+/* جوال (≤640): عمود واحد — القائمة تملأ العرض، الدردشة كلوح كامل */
+@media (max-width: 640px) {
+    .admin-msg-hero {
+        padding: 22px 18px;
+        border-radius: 18px;
+    }
+    .admin-msg-hero h1 {
+        font-size: 22px;
+    }
+    .admin-msg-hero-badge {
+        width: 46px;
+        height: 46px;
+        font-size: 22px;
+    }
+    .admin-msg-hero-count {
+        padding: 12px 18px;
+    }
+    .admin-msg-hero-count .num {
+        font-size: 26px;
+    }
+
+    .admin-messages-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        height: auto;
+        min-height: 0;
+    }
+    .admin-conversations-list {
+        max-height: 48vh;
+        padding: 18px 14px;
+        border-radius: 16px;
+    }
+    .admin-chat-container {
+        height: 78vh;
+        min-height: 460px;
+        border-radius: 16px;
+    }
+    .chat-header-inline {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+    .chat-messages-inline {
+        padding: 16px 14px;
+    }
+    .chat-input-inline {
+        padding: 14px 16px;
+    }
+    .message-bubble-inline {
+        max-width: 85%;
+    }
+    .admin-conversation-item {
+        padding: 14px;
+    }
+    .admin-user-avatar {
+        width: 46px;
+        height: 46px;
+        font-size: 17px;
+    }
+    .admin-new-conversation-btn {
+        padding: 14px 18px;
+        font-size: 15px;
+    }
+}
+
+/* شاشات صغيرة جداً */
+@media (max-width: 380px) {
+    .admin-msg-hero-count {
+        display: none;
+    }
+    .message-bubble-inline {
+        max-width: 90%;
+    }
+}
+
+/* =========================================================
+   الوضع الليلي — تغطية الأسطح المُعرّفة بأصناف
+   (المتغيّرات --w-* معرّفة للوضعين؛ dark-coverage يغطّي inline فقط)
+   ========================================================= */
+html[data-theme="dark"] .admin-conversations-list,
+html[data-theme="dark"] .admin-chat-container {
+    background: var(--w-card) !important;
+    border-color: var(--w-border) !important;
+    box-shadow: var(--w-shadow) !important;
+}
+html[data-theme="dark"] .admin-conversations-list h3 {
+    color: var(--w-text) !important;
+    border-bottom-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .admin-conversation-item {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .admin-conversation-item:hover,
+html[data-theme="dark"] .admin-conversation-item.active {
+    background: rgba(102, 126, 234, 0.15) !important;
+}
+html[data-theme="dark"] .admin-user-name {
+    color: var(--w-text) !important;
+}
+html[data-theme="dark"] .admin-last-message {
+    color: var(--w-text-muted) !important;
+}
+html[data-theme="dark"] .admin-empty-state,
+html[data-theme="dark"] .admin-empty-state p {
+    color: var(--w-text-muted) !important;
+}
+html[data-theme="dark"] .admin-empty-state h3,
+html[data-theme="dark"] .admin-empty-state h4 {
+    color: var(--w-text) !important;
+}
+
+/* الدردشة الداخلية (تُحقن عبر JS بهذه الأصناف) */
+html[data-theme="dark"] .chat-header-inline {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.16) 0%, rgba(118, 75, 162, 0.16) 100%) !important;
+    border-bottom-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .chat-header-inline h3 {
+    color: var(--w-text) !important;
+}
+html[data-theme="dark"] .chat-messages-inline {
+    background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%) !important;
+}
+html[data-theme="dark"] .message-row.received .message-bubble-inline {
+    background: var(--w-card) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .chat-input-inline {
+    background: var(--w-card) !important;
+    border-top-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .chat-input-inline textarea {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .editor-toolbar {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] #inlineMessageInput {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .toolbar-btn {
+    color: var(--w-text-muted) !important;
+}
+html[data-theme="dark"] .toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--w-text) !important;
+}
+/* حقول مودال إدراج الرابط */
+html[data-theme="dark"] #adminLinkUrl,
+html[data-theme="dark"] #adminLinkText {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--w-text) !important;
+    border-color: var(--w-border) !important;
 }
 </style>
 

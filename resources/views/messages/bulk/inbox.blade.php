@@ -4,15 +4,26 @@
 
 @section('content')
 <style>
-.bi-page { padding: 0; }
+/* ============================================================
+   صندوق الوارد الجماعي — طبقة بصرية فاخرة + استجابة + وضع ليلي
+   الأسطح المحايدة مبنية على متغيّرات الثيم (--w-*) فتعمل في الوضعَين
+   تلقائياً؛ اللكنة الكهرمانية (وارد) محفوظة كدلالة وظيفية.
+   ============================================================ */
+:root {
+    --bi-accent: #f59e0b;
+    --bi-accent-strong: #d97706;
+}
 
+.bi-page { padding: 0; max-width: 1040px; margin: 0 auto; }
+
+/* ===== Hero ===== */
 .bi-hero {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
-    border-radius: 18px;
+    border-radius: 20px;
     padding: 32px;
-    margin-bottom: 28px;
-    color: white;
-    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.35);
+    margin-bottom: 24px;
+    color: #fff;
+    box-shadow: 0 18px 45px rgba(217, 119, 6, 0.32);
     position: relative;
     overflow: hidden;
 }
@@ -23,7 +34,7 @@
     left: -20%;
     width: 350px;
     height: 350px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
     border-radius: 50%;
 }
 .bi-hero::after {
@@ -33,94 +44,120 @@
     right: -10%;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
     border-radius: 50%;
 }
 .bi-hero-icon {
     width: 60px; height: 60px;
     background: rgba(255,255,255,0.2);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: 16px;
     display: flex; align-items: center; justify-content: center;
     font-size: 28px;
     margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
 }
 .bi-hero h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; position: relative; z-index: 1; }
-.bi-hero p { opacity: 0.9; font-size: 15px; margin: 0; position: relative; z-index: 1; }
+.bi-hero p { opacity: 0.92; font-size: 15px; margin: 0; position: relative; z-index: 1; }
 .bi-hero-stats {
     position: relative; z-index: 1;
-    margin-top: 18px;
+    margin-top: 20px;
     display: flex;
-    gap: 24px;
+    gap: 14px;
+    flex-wrap: wrap;
 }
 .bi-hero-stat {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 14px;
+    padding: 12px 18px;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
 }
 .bi-hero-stat-value {
     font-size: 28px;
     font-weight: 800;
+    line-height: 1;
 }
 .bi-hero-stat-label {
-    font-size: 13px;
-    opacity: 0.85;
+    font-size: 12.5px;
+    opacity: 0.9;
+    line-height: 1.35;
 }
 
-/* Card */
+/* ===== Card ===== */
 .bi-card {
-    background: white;
-    border-radius: 18px;
-    border: 2px solid #f1f5f9;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    background: var(--w-card, #fff);
+    color: var(--w-text, #0f172a);
+    border-radius: 20px;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    box-shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
     overflow: hidden;
 }
 .bi-card-header {
     padding: 20px 24px;
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 1px solid var(--w-border, rgba(15,23,42,0.08));
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, rgba(245,158,11,0.03) 0%, rgba(217,119,6,0.03) 100%);
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(217,119,6,0.03) 100%);
 }
 .bi-card-header h3 {
     font-size: 18px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--w-text, #1e293b);
     margin: 0;
     display: flex;
     align-items: center;
     gap: 10px;
 }
+.bi-header-badge {
+    padding: 5px 14px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(245,158,11,0.14);
+    color: #b45309;
+    border: 1px solid rgba(245,158,11,0.28);
+    white-space: nowrap;
+}
 
-/* Message Item */
+/* ===== Message Item ===== */
 .bi-msg-item {
     padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9;
-    transition: all 0.2s;
+    border-bottom: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    transition: background 0.2s, box-shadow 0.2s;
     cursor: pointer;
 }
 .bi-msg-item:hover {
-    background: linear-gradient(135deg, rgba(245,158,11,0.02) 0%, rgba(217,119,6,0.02) 100%);
+    background: linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(217,119,6,0.04) 100%);
 }
 .bi-msg-item:last-child { border-bottom: none; }
 .bi-msg-item.unread {
     background: linear-gradient(135deg, #fffbeb, #fef3c7);
-    border-right: 4px solid #f59e0b;
+    border-right: 4px solid var(--bi-accent);
 }
 .bi-msg-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 12px;
     margin-bottom: 8px;
 }
 .bi-msg-subject {
     font-size: 15px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--w-text, #1e293b);
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 .bi-msg-badge-new {
     padding: 3px 10px;
@@ -133,7 +170,7 @@
 }
 .bi-msg-body {
     font-size: 14px;
-    color: #64748b;
+    color: var(--w-text-muted, #64748b);
     line-height: 1.6;
     margin-bottom: 10px;
     overflow: hidden;
@@ -150,7 +187,7 @@
 }
 .bi-msg-meta-item {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--w-text-muted, #94a3b8);
     display: flex;
     align-items: center;
     gap: 5px;
@@ -159,30 +196,31 @@
 .bi-msg-action {
     padding: 8px 18px;
     border-radius: 10px;
-    border: 2px solid #e2e8f0;
-    background: white;
+    border: 1px solid var(--w-border, #e2e8f0);
+    background: var(--w-bg, #f8fafc);
     font-size: 13px;
     font-weight: 600;
-    color: #475569;
+    color: var(--w-text-muted, #475569);
     cursor: pointer;
     transition: all 0.2s;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     text-decoration: none;
+    flex-shrink: 0;
 }
 .bi-msg-action:hover {
-    border-color: #f59e0b;
-    color: #d97706;
-    background: #fffbeb;
+    border-color: var(--bi-accent);
+    color: var(--bi-accent-strong);
+    background: rgba(245,158,11,0.12);
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(245,158,11,0.15);
+    box-shadow: 0 4px 12px rgba(245,158,11,0.18);
 }
 
-/* Alert */
+/* ===== Alert ===== */
 .bi-alert {
     padding: 14px 20px;
-    border-radius: 12px;
+    border-radius: 14px;
     background: linear-gradient(135deg, #dcfce7, #d1fae5);
     color: #166534;
     font-weight: 600;
@@ -191,10 +229,10 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    border: 2px solid #bbf7d0;
+    border: 1px solid #bbf7d0;
 }
 
-/* Empty State */
+/* ===== Empty State ===== */
 .bi-empty {
     text-align: center;
     padding: 70px 20px;
@@ -202,41 +240,102 @@
 .bi-empty-icon {
     width: 90px; height: 90px;
     background: linear-gradient(135deg, #fef3c7, #fde68a);
-    border-radius: 22px;
+    border-radius: 24px;
     display: flex; align-items: center; justify-content: center;
     font-size: 40px;
     margin: 0 auto 18px;
-    box-shadow: 0 6px 20px rgba(245,158,11,0.15);
+    box-shadow: 0 8px 24px rgba(245,158,11,0.18);
+}
+.bi-empty h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--w-text, #475569);
+    margin: 0 0 6px;
+}
+.bi-empty p {
+    color: var(--w-text-muted, #94a3b8);
+    margin: 0;
+    font-size: 14px;
 }
 
-/* Modal */
-.bi-modal .modal-content {
+/* ===== Pagination ===== */
+.bi-pagination {
+    padding: 18px 24px;
+    border-top: 1px solid var(--w-border, rgba(15,23,42,0.08));
+}
+
+/* ===== Modal (vanilla — لا يعتمد على Bootstrap) ===== */
+.bi-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(15, 23, 42, 0.62);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    display: none;              /* يُبدَّل إلى flex عبر JS (inline) */
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.bi-modal-box {
+    background: var(--w-card, #fff);
+    color: var(--w-text, #0f172a);
     border-radius: 18px;
-    overflow: hidden;
-    border: none;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow: auto;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    box-shadow: 0 28px 60px rgba(2, 6, 23, 0.40);
 }
 .bi-modal-header {
     background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    padding: 20px 24px;
+    color: #fff;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
-.bi-modal-header h5 { font-weight: 700; margin: 0; color: white; }
-.bi-modal-header .btn-close { filter: brightness(0) invert(1); }
+.bi-modal-header h5 { font-weight: 700; margin: 0; color: #fff; font-size: 17px; }
+.bi-modal-close {
+    background: rgba(255,255,255,0.18);
+    border: none;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.bi-modal-close:hover { background: rgba(255,255,255,0.34); }
 .bi-modal-body { padding: 24px; }
+.bi-modal-body h6 {
+    font-weight: 700;
+    color: var(--w-text-muted, #475569);
+    margin: 0 0 10px;
+    font-size: 14px;
+}
 .bi-modal-meta {
     display: flex; gap: 16px; flex-wrap: wrap;
     padding: 14px 18px;
-    background: #f8fafc;
+    background: var(--w-bg, #f8fafc);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
     border-radius: 12px;
     margin-bottom: 16px;
 }
+.bi-modal-meta small { color: var(--w-text-muted, #94a3b8); }
+.bi-modal-meta strong { color: var(--w-text, #1e293b); }
 .bi-modal-content {
     padding: 18px;
-    background: #f8fafc;
+    background: var(--w-bg, #f8fafc);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
     border-radius: 12px;
     line-height: 1.8;
-    color: #334155;
+    color: var(--w-text, #334155);
 }
 /* تنسيق HTML المحرر */
 .bi-modal-content img { max-width: 100%; border-radius: 8px; margin: 6px 0; height: auto; }
@@ -244,7 +343,7 @@
 .bi-modal-content p { margin-bottom: 8px; }
 .bi-modal-footer {
     padding: 16px 24px;
-    border-top: 2px solid #f1f5f9;
+    border-top: 1px solid var(--w-border, rgba(15,23,42,0.08));
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -252,14 +351,61 @@
 .bi-modal-btn {
     padding: 10px 22px;
     border-radius: 10px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
     border: none;
     cursor: pointer;
     transition: all 0.2s;
 }
-.bi-modal-btn-close { background: #f1f5f9; color: #475569; }
-.bi-modal-btn-close:hover { background: #e2e8f0; }
+.bi-modal-btn-close {
+    background: var(--w-bg, #f1f5f9);
+    color: var(--w-text, #475569);
+    border: 1px solid var(--w-border, transparent);
+}
+.bi-modal-btn-close:hover { filter: brightness(0.96); }
+
+/* ===== تغطية الوضع الليلي — لكنات فوق الأسطح المبنية على المتغيّرات ===== */
+html[data-theme="dark"] .bi-msg-item.unread { background: rgba(245, 158, 11, 0.10); }
+html[data-theme="dark"] .bi-msg-item:hover { background: rgba(245, 158, 11, 0.07); }
+html[data-theme="dark"] .bi-msg-action:hover { color: #fcd34d; background: rgba(245, 158, 11, 0.15); }
+html[data-theme="dark"] .bi-header-badge { color: #fcd34d; }
+html[data-theme="dark"] .bi-alert {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.32);
+}
+html[data-theme="dark"] .bi-empty-icon { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); }
+
+/* ===== الاستجابة ===== */
+@media (max-width: 1024px) {
+    .bi-hero { padding: 26px; }
+    .bi-card-header { padding: 18px 20px; }
+    .bi-msg-item { padding: 18px 20px; }
+}
+@media (max-width: 640px) {
+    .bi-hero { padding: 22px 18px; border-radius: 16px; margin-bottom: 18px; }
+    .bi-hero-icon { width: 50px; height: 50px; font-size: 22px; margin-bottom: 10px; }
+    .bi-hero h1 { font-size: 22px; }
+    .bi-hero p { font-size: 14px; }
+    .bi-hero-stats { gap: 10px; margin-top: 16px; }
+    .bi-hero-stat { padding: 10px 14px; flex: 1 1 auto; }
+    .bi-hero-stat-value { font-size: 22px; }
+    .bi-card { border-radius: 16px; }
+    .bi-card-header { padding: 16px; }
+    .bi-card-header h3 { font-size: 16px; }
+    .bi-msg-item { padding: 16px; }
+    .bi-msg-header { flex-direction: column; align-items: stretch; gap: 10px; }
+    .bi-msg-action { align-self: flex-start; }
+    .bi-msg-meta { gap: 10px 14px; }
+    .bi-pagination { padding: 16px; }
+    .bi-modal-backdrop { padding: 12px; }
+    .bi-modal-box { max-height: 94vh; border-radius: 16px; }
+    .bi-modal-header { padding: 16px 18px; }
+    .bi-modal-header h5 { font-size: 16px; }
+    .bi-modal-body { padding: 18px; }
+    .bi-modal-meta { flex-direction: column; gap: 10px; }
+    .bi-modal-footer { padding: 14px 18px; }
+}
 </style>
 
 <div class="bi-page">
@@ -294,9 +440,7 @@
                 الرسائل المستلمة
             </h3>
             @if($unreadCount > 0)
-                <span style="padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e;">
-                    {{ $unreadCount }} غير مقروءة
-                </span>
+                <span class="bi-header-badge">{{ $unreadCount }} غير مقروءة</span>
             @endif
         </div>
         <div>
@@ -341,52 +485,50 @@
                     </div>
 
                     <!-- Message Modal (vanilla — لا يعتمد على Bootstrap) -->
-                    <div class="bi-modal-backdrop" id="messageModal{{ $recipient->id }}" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:1050; align-items:center; justify-content:center; padding:20px;">
-                        <div style="background:white; border-radius:16px; max-width:720px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 25px 50px rgba(0,0,0,0.25);">
-                            <div class="modal-content">
-                                <div class="bi-modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid #e2e8f0;">
-                                    <h5 style="margin:0;">📨 {{ $message->subject }}</h5>
-                                    <button type="button" onclick="biCloseModal({{ $recipient->id }})" style="background:transparent; border:none; font-size:22px; cursor:pointer; color:#64748b;">✕</button>
-                                </div>
-                                <div class="bi-modal-body">
-                                    <div class="bi-modal-meta">
-                                        <div>
-                                            <small style="color: #94a3b8;">المرسل</small><br>
-                                            <strong style="color: #1e293b;">{{ $message->sender->name ?? 'غير محدد' }}</strong>
-                                        </div>
-                                        <div>
-                                            <small style="color: #94a3b8;">تاريخ الإرسال</small><br>
-                                            <strong style="color: #1e293b;">{{ $message->sent_at->format('Y-m-d H:i') }}</strong>
-                                        </div>
-                                        @if($isRead)
-                                        <div>
-                                            <small style="color: #94a3b8;">تم القراءة</small><br>
-                                            <strong style="color: #10b981;">{{ $recipient->read_at->format('Y-m-d H:i') }}</strong>
-                                        </div>
-                                        @endif
+                    <div class="bi-modal-backdrop" id="messageModal{{ $recipient->id }}" style="display:none;">
+                        <div class="bi-modal-box" role="dialog" aria-modal="true" aria-label="عرض الرسالة">
+                            <div class="bi-modal-header">
+                                <h5>📨 {{ $message->subject }}</h5>
+                                <button type="button" class="bi-modal-close" onclick="biCloseModal({{ $recipient->id }})" aria-label="إغلاق">✕</button>
+                            </div>
+                            <div class="bi-modal-body">
+                                <div class="bi-modal-meta">
+                                    <div>
+                                        <small>المرسل</small><br>
+                                        <strong>{{ $message->sender->name ?? 'غير محدد' }}</strong>
                                     </div>
-                                    <h6 style="font-weight: 700; color: #475569; margin-bottom: 10px;">📝 نص الرسالة</h6>
-                                    <div class="bi-modal-content">{!! safe_html($message->message) !!}</div>
+                                    <div>
+                                        <small>تاريخ الإرسال</small><br>
+                                        <strong>{{ $message->sent_at->format('Y-m-d H:i') }}</strong>
+                                    </div>
+                                    @if($isRead)
+                                    <div>
+                                        <small>تم القراءة</small><br>
+                                        <strong style="color: #10b981;">{{ $recipient->read_at->format('Y-m-d H:i') }}</strong>
+                                    </div>
+                                    @endif
                                 </div>
-                                <div class="bi-modal-footer" style="padding:14px 24px; border-top:1px solid #e2e8f0; text-align:left;">
-                                    <button type="button" onclick="biCloseModal({{ $recipient->id }})" style="background:#f1f5f9; border:none; padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; color:#475569;">
-                                        إغلاق
-                                    </button>
-                                </div>
+                                <h6>📝 نص الرسالة</h6>
+                                <div class="bi-modal-content">{!! safe_html($message->message) !!}</div>
+                            </div>
+                            <div class="bi-modal-footer">
+                                <button type="button" class="bi-modal-btn bi-modal-btn-close" onclick="biCloseModal({{ $recipient->id }})">
+                                    إغلاق
+                                </button>
                             </div>
                         </div>
                     </div>
                 @endforeach
 
                 <!-- Pagination -->
-                <div style="padding: 20px; border-top: 2px solid #f1f5f9;">
+                <div class="bi-pagination">
                     {{ $messages->links() }}
                 </div>
             @else
                 <div class="bi-empty">
                     <div class="bi-empty-icon">📬</div>
-                    <h3 style="font-size: 20px; font-weight: 700; color: #475569; margin: 0 0 6px;">لا توجد رسائل في صندوق الوارد</h3>
-                    <p style="color: #94a3b8; margin: 0; font-size: 14px;">ستظهر هنا الرسائل الجماعية المرسلة إليك</p>
+                    <h3>لا توجد رسائل في صندوق الوارد</h3>
+                    <p>ستظهر هنا الرسائل الجماعية المرسلة إليك</p>
                 </div>
             @endif
         </div>

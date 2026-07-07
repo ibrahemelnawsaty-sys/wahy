@@ -4,197 +4,336 @@
 
 @push('styles')
 <style>
-/* ===== Messages Page ===== */
-.msg-wrap { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-.msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.msg-header h2 { font-size: 24px; font-weight: 700; }
+/* ===== Wahy — صفحة المراسلات (معلم ⇄ ولي الأمر) — طبقة بصرية فاخرة =====
+   كل الأسطح مبنيّة على متغيّرات النظام الموحّد (--w-*) المعرّفة للوضعين (light/dark)
+   في partials/theme-toggle، فتعمل التغطية اللونية تلقائياً في الوضعين. */
+:root,
+.msg-wrap,
+#conversationModal,
+#newMessageModal {
+    --msg-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --msg-grad-soft: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12));
+}
+
+/* ===== إطار الصفحة ===== */
+.msg-wrap {
+    background: var(--w-card, #fff);
+    color: var(--w-text, #0f172a);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    border-radius: 22px;
+    padding: 26px 28px;
+    box-shadow: var(--w-shadow, 0 10px 40px rgba(2,6,23,0.08));
+}
+
+/* ===== الهيدر ===== */
+.msg-header {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; flex-wrap: wrap;
+    margin-bottom: 24px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--w-border, rgba(15,23,42,0.08));
+}
+.msg-header-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.msg-header h2 {
+    font-size: 24px; font-weight: 800; margin: 0;
+    color: var(--w-text, #0f172a);
+    display: flex; align-items: center; gap: 10px;
+}
+.msg-header .msg-sub { font-size: 13.5px; color: var(--w-text-muted, #475569); }
+
 .btn-new-msg {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white; padding: 12px 25px; border-radius: 12px;
-    border: none; cursor: pointer; font-weight: 600; font-size: 14px;
+    background: var(--msg-grad); color: #fff;
+    padding: 12px 22px; border-radius: 12px; border: none; cursor: pointer;
+    font-weight: 700; font-size: 14px;
+    display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 6px 18px rgba(102,126,234,0.35);
     transition: transform 0.2s, box-shadow 0.2s;
 }
-.btn-new-msg:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
-.conv-list { display: grid; gap: 15px; }
+.btn-new-msg:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(102,126,234,0.45); }
+.btn-new-msg:active { transform: translateY(0); }
+
+/* ===== قائمة المحادثات — شبكة بطاقات مستجيبة ===== */
+.conv-list {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
 .conv-item {
-    border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px;
-    cursor: pointer; transition: all 0.3s; display: flex; justify-content: space-between; align-items: start;
+    position: relative; display: flex; align-items: flex-start; gap: 14px;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    border-radius: 16px; padding: 18px;
+    background: var(--w-card, #fff);
+    cursor: pointer; overflow: hidden;
+    transition: transform 0.18s, box-shadow 0.2s, border-color 0.2s;
 }
-.conv-item:hover { border-color: #667eea; background: #f8f7ff; }
+.conv-item::before {
+    content: ''; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--msg-grad); opacity: 0; transition: opacity 0.2s;
+}
+.conv-item:hover {
+    transform: translateY(-3px);
+    border-color: rgba(102,126,234,0.55);
+    box-shadow: 0 12px 30px rgba(102,126,234,0.16);
+}
+.conv-item:hover::before { opacity: 1; }
+
+.conv-avatar {
+    flex-shrink: 0; width: 50px; height: 50px; border-radius: 14px;
+    background: var(--msg-grad); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800; line-height: 1;
+    box-shadow: 0 6px 16px rgba(102,126,234,0.35);
+}
+.conv-main { flex: 1; min-width: 0; }
+.conv-name {
+    font-size: 16.5px; font-weight: 700; margin: 0 0 4px;
+    color: var(--w-text, #0f172a);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.conv-about {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    color: #6d28d9; background: var(--msg-grad-soft);
+    padding: 2px 10px; border-radius: 999px; margin-bottom: 6px;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .conv-snippet {
-    color: #4a5568; font-size: 14px; margin-top: 8px;
-    /* نعرض نص بدون تنسيق HTML هنا */
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px;
+    color: var(--w-text-muted, #475569); font-size: 13.5px; line-height: 1.5;
+    /* نص بلا تنسيق HTML — سطر واحد بحذف زائد */
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.badge-new { background: #f56565; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.conv-side {
+    flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    text-align: end;
+}
+.conv-time { color: var(--w-text-muted, #475569); font-size: 12px; white-space: nowrap; }
+.badge-new {
+    background: #ef4444; color: #fff; padding: 3px 11px; border-radius: 999px;
+    font-size: 11px; font-weight: 800; box-shadow: 0 3px 10px rgba(239,68,68,0.4);
+}
+
+/* حالة فارغة (القائمة) */
+.conv-empty {
+    grid-column: 1 / -1; text-align: center; padding: 64px 20px;
+    color: var(--w-text-muted, #475569);
+}
+.conv-empty .ce-icon {
+    width: 96px; height: 96px; margin: 0 auto 18px; border-radius: 28px;
+    background: var(--msg-grad-soft);
+    display: flex; align-items: center; justify-content: center; font-size: 46px;
+}
+.conv-empty h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--w-text, #0f172a); }
+.conv-empty p { font-size: 14px; }
 
 /* ===== Modal ===== */
 .modal-overlay {
-    display: none; position: fixed; top: 0; left: 0;
-    width: 100%; height: 100%; background: rgba(0,0,0,0.6);
-    z-index: 1000; justify-content: center; align-items: center;
-    padding: 16px;
+    display: none; position: fixed; inset: 0;
+    background: rgba(2,6,23,0.62); backdrop-filter: blur(6px);
+    z-index: 1000; justify-content: center; align-items: center; padding: 16px;
 }
 .modal-box {
-    background: white; border-radius: 20px; width: 100%;
-    max-width: 720px; max-height: 90vh; display: flex; flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    background: var(--w-card, #fff); color: var(--w-text, #0f172a);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    border-radius: 22px; width: 100%; max-width: 760px; max-height: 90vh;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(2,6,23,0.5);
 }
 .modal-head {
-    padding: 20px 24px; border-bottom: 2px solid #e2e8f0;
-    display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+    padding: 18px 22px; flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--msg-grad); color: #fff;
 }
-.modal-head h3 { font-size: 20px; font-weight: 700; color: #2d3748; }
-.btn-close { background: #f56565; color: white; border: none; border-radius: 8px; padding: 8px 15px; cursor: pointer; font-weight: 700; font-size: 16px; }
+.modal-head h3 {
+    font-size: 18px; font-weight: 800; color: #fff; margin: 0;
+    display: flex; align-items: center; gap: 10px;
+}
+.btn-close {
+    background: rgba(255,255,255,0.18); color: #fff; border: none; border-radius: 10px;
+    width: 38px; height: 38px; cursor: pointer; font-weight: 700; font-size: 16px;
+    display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s;
+}
+.btn-close:hover { background: rgba(255,255,255,0.32); }
 
-/* Messages container */
+/* لوحة الرسائل = خلفية الدردشة */
 #messagesContainer {
-    flex: 1; overflow-y: auto; padding: 20px;
-    display: flex; flex-direction: column; gap: 12px;
-    min-height: 250px;
+    flex: 1; overflow-y: auto; padding: 22px 20px;
+    display: flex; flex-direction: column; gap: 12px; min-height: 260px;
+    background:
+        radial-gradient(circle at 20% 0%, rgba(102,126,234,0.06), transparent 55%),
+        var(--w-bg, #f8fafc);
 }
 .msg-bubble {
-    max-width: 72%; padding: 12px 18px; border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 74%; padding: 11px 16px; border-radius: 16px;
+    font-size: 14px; line-height: 1.6; word-wrap: break-word; overflow-wrap: anywhere;
+    box-shadow: 0 2px 10px rgba(2,6,23,0.08);
 }
 .msg-bubble.me {
     align-self: flex-end;
-    background: linear-gradient(135deg, #667eea, #764ba2); color: white;
-    border-bottom-right-radius: 4px;
+    background: var(--msg-grad); color: #fff;
+    border-bottom-right-radius: 5px;
 }
 .msg-bubble.other {
-    align-self: flex-start; background: #f7fafc; color: #2d3748;
-    border-bottom-left-radius: 4px; border: 1px solid #e2e8f0;
+    align-self: flex-start;
+    background: var(--w-card, #fff); color: var(--w-text, #0f172a);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    border-bottom-left-radius: 5px;
 }
-.msg-bubble .msg-time { font-size: 11px; opacity: 0.65; margin-top: 6px; }
+.msg-bubble .msg-time { font-size: 10.5px; opacity: 0.7; margin-top: 6px; }
 
-/* Rich content inside bubbles */
+/* محتوى غنيّ داخل الفقاعات */
 .msg-bubble .msg-body img { max-width: 100%; border-radius: 8px; margin: 4px 0; height: auto; }
 .msg-bubble .msg-body a { text-decoration: underline; }
-.msg-bubble.me .msg-body a { color: #c7d2fe; }
-.msg-bubble.other .msg-body a { color: #3b82f6; }
+.msg-bubble.me .msg-body a { color: #e0e7ff; }
+.msg-bubble.other .msg-body a { color: #6366f1; }
 
-/* ===== Compose area ===== */
-.compose-area { padding: 16px 20px; border-top: 2px solid #e2e8f0; flex-shrink: 0; }
+/* حالة فارغة داخل الدردشة (تُنشأ من JS) */
+.chat-empty { margin: auto; text-align: center; color: var(--w-text-muted, #475569); padding: 40px 20px; }
+.chat-empty .ce-ic {
+    width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 22px;
+    background: var(--msg-grad-soft);
+    display: flex; align-items: center; justify-content: center; font-size: 34px;
+}
 
-/* Mini RTE toolbar */
+/* ===== منطقة الكتابة ===== */
+.compose-area {
+    padding: 14px 18px; flex-shrink: 0;
+    border-top: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    background: var(--w-card, #fff);
+}
+
+/* شريط أدوات مصغّر */
 .rte-toolbar {
-    display: flex; flex-wrap: wrap; gap: 4px;
-    padding: 6px 10px; background: #f8fafc;
-    border: 2px solid #e2e8f0; border-bottom: none;
-    border-radius: 10px 10px 0 0; align-items: center;
+    display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+    padding: 6px 10px; background: var(--w-bg, #f8fafc);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08)); border-bottom: none;
+    border-radius: 12px 12px 0 0;
 }
 .rte-btn-mini {
-    padding: 3px 8px; border: 1px solid #cbd5e1; border-radius: 4px;
-    background: white; cursor: pointer; font-size: 12px; color: #334155;
-    transition: background 0.15s;
+    padding: 4px 9px; border: 1px solid var(--w-border, rgba(15,23,42,0.08)); border-radius: 6px;
+    background: var(--w-card, #fff); color: var(--w-text, #0f172a); cursor: pointer; font-size: 12.5px;
+    transition: background 0.15s, border-color 0.15s;
 }
-.rte-btn-mini:hover { background: #e2e8f0; }
-.rte-sep { width: 1px; height: 20px; background: #cbd5e1; margin: 0 3px; }
+.rte-btn-mini:hover { background: var(--msg-grad-soft); border-color: rgba(102,126,234,0.4); }
+.rte-sep { width: 1px; height: 20px; background: var(--w-border, rgba(15,23,42,0.12)); margin: 0 3px; }
 
 .rte-editor-msg {
-    min-height: 90px; max-height: 200px; overflow-y: auto;
-    padding: 12px; border: 2px solid #e2e8f0;
-    border-radius: 0 0 0 0;
+    min-height: 88px; max-height: 200px; overflow-y: auto; padding: 12px 14px;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08)); border-radius: 0 0 12px 12px;
     font-family: 'Cairo', sans-serif; font-size: 14px; line-height: 1.7;
     outline: none; direction: rtl;
-    background: white;
+    background: var(--w-card, #fff); color: var(--w-text, #0f172a);
+    transition: border-color 0.2s;
 }
+.rte-editor-msg:focus { border-color: rgba(102,126,234,0.55); }
 .rte-editor-msg:empty::before {
     content: 'اكتب رسالتك هنا...';
-    color: #a0aec0; pointer-events: none;
+    color: var(--w-text-muted, #a0aec0); pointer-events: none;
 }
 
-.compose-bottom {
-    display: flex; justify-content: flex-end; margin-top: 8px;
-}
+.compose-bottom { display: flex; justify-content: flex-end; margin-top: 10px; }
 .btn-send {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white; border: none; border-radius: 10px;
-    padding: 10px 28px; cursor: pointer; font-weight: 700;
-    font-size: 14px; transition: transform 0.2s;
+    background: var(--msg-grad); color: #fff; border: none; border-radius: 12px;
+    padding: 11px 30px; cursor: pointer; font-weight: 700; font-size: 14px;
+    display: inline-flex; align-items: center; gap: 6px;
+    box-shadow: 0 6px 18px rgba(102,126,234,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
-.btn-send:hover { transform: translateY(-2px); }
-.btn-send:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-send:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(102,126,234,0.45); }
+.btn-send:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* new message form */
+/* ===== نموذج رسالة جديدة ===== */
 .form-modal-box {
-    background: white; border-radius: 20px; width: 100%; max-width: 600px;
-    padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    background: var(--w-card, #fff); color: var(--w-text, #0f172a);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    border-radius: 22px; width: 100%; max-width: 620px; padding: 28px;
+    box-shadow: 0 30px 80px rgba(2,6,23,0.5);
     max-height: 90vh; overflow-y: auto;
 }
-.form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #4a5568; }
-.form-select-field, .form-field {
-    width: 100%; border: 2px solid #e2e8f0; border-radius: 12px;
-    padding: 12px; font-family: 'Cairo', sans-serif; font-size: 14px;
-    background: white; transition: border 0.2s;
+.form-modal-title {
+    font-size: 21px; font-weight: 800; margin-bottom: 20px;
+    color: var(--w-text, #0f172a);
+    display: flex; align-items: center; gap: 10px;
 }
-.form-select-field:focus, .form-field:focus { border-color: #667eea; outline: none; }
+.form-label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 14px; color: var(--w-text, #0f172a); }
+.form-select-field, .form-field {
+    width: 100%; border: 1px solid var(--w-border, rgba(15,23,42,0.08)); border-radius: 12px;
+    padding: 12px 14px; font-family: 'Cairo', sans-serif; font-size: 14px;
+    background: var(--w-card, #fff); color: var(--w-text, #0f172a); transition: border-color 0.2s;
+}
+.form-select-field:focus, .form-field:focus { border-color: rgba(102,126,234,0.55); outline: none; }
 .new-msg-editor {
-    min-height: 120px; max-height: 280px; overflow-y: auto;
-    padding: 12px; border: 2px solid #e2e8f0;
-    border-radius: 0 0 10px 10px;
+    min-height: 120px; max-height: 280px; overflow-y: auto; padding: 12px 14px;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08)); border-radius: 0 0 12px 12px;
     font-family: 'Cairo', sans-serif; font-size: 14px; line-height: 1.7;
-    outline: none; direction: rtl; background: white;
+    outline: none; direction: rtl;
+    background: var(--w-card, #fff); color: var(--w-text, #0f172a);
 }
 .new-msg-editor:empty::before {
     content: 'اكتب رسالتك...';
-    color: #a0aec0; pointer-events: none;
+    color: var(--w-text-muted, #a0aec0); pointer-events: none;
 }
-.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
-.btn-cancel { background: #edf2f7; color: #2d3748; border: none; border-radius: 10px; padding: 10px 24px; cursor: pointer; font-weight: 600; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+.btn-cancel {
+    background: var(--w-bg, #edf2f7); color: var(--w-text, #2d3748);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08)); border-radius: 12px;
+    padding: 11px 24px; cursor: pointer; font-weight: 700; transition: background 0.15s;
+}
+.btn-cancel:hover { background: var(--w-border, #e2e8f0); }
 
-/* ===== Wahy dark-mode coverage — صفحة المراسلات =====
-   يعالج الفئات المخصّصة ذات الألوان المُصلَّبة (background:white / #f7fafc / نص داكن)
-   اعتماداً على متغيّرات النظام الموحّد (--w-*). */
-html[data-theme="dark"] .msg-wrap,
-html[data-theme="dark"] .modal-box,
-html[data-theme="dark"] .form-modal-box {
-    background: var(--w-card) !important;
-    box-shadow: var(--w-shadow) !important;
+/* ===== الاستجابة ===== */
+@media (max-width: 1024px) {
+    .msg-wrap { padding: 22px 20px; }
+    .conv-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 }
-html[data-theme="dark"] .msg-header h2,
-html[data-theme="dark"] .modal-head h3 { color: var(--w-text) !important; }
-html[data-theme="dark"] .modal-head,
-html[data-theme="dark"] .compose-area,
-html[data-theme="dark"] .conv-item { border-color: var(--w-border) !important; }
-html[data-theme="dark"] .conv-item:hover { background: rgba(255,255,255,0.05) !important; }
-html[data-theme="dark"] .conv-snippet { color: var(--w-text-muted) !important; }
-html[data-theme="dark"] .msg-bubble.other {
-    background: rgba(255,255,255,0.06) !important;
-    color: var(--w-text) !important;
-    border-color: var(--w-border) !important;
+@media (max-width: 640px) {
+    .msg-wrap { padding: 18px 14px; border-radius: 18px; }
+    .msg-header { margin-bottom: 18px; padding-bottom: 16px; }
+    .msg-header h2 { font-size: 20px; }
+    .btn-new-msg { width: 100%; justify-content: center; }
+    .conv-list { grid-template-columns: 1fr; gap: 12px; }
+    .conv-item { padding: 14px; gap: 12px; }
+    .conv-avatar { width: 44px; height: 44px; font-size: 18px; }
+
+    /* المودال يصبح لوحاً كامل الشاشة */
+    .modal-overlay { padding: 0; align-items: stretch; }
+    .modal-box {
+        max-width: 100%; width: 100%; max-height: none;
+        height: 100vh; height: 100dvh; border-radius: 0; border: none;
+    }
+    #messagesContainer { padding: 16px 14px; }
+    .msg-bubble { max-width: 85%; }
+    .compose-area { padding: 12px 14px; }
+    .rte-toolbar { gap: 4px; padding: 6px 8px; }
+
+    .form-modal-box {
+        max-width: 100%; width: 100%; max-height: none;
+        min-height: 100vh; min-height: 100dvh; border-radius: 0; border: none; padding: 22px 16px;
+    }
+    .form-actions { flex-direction: column-reverse; }
+    .form-actions .btn-cancel, .form-actions .btn-send { width: 100%; justify-content: center; }
 }
-html[data-theme="dark"] .rte-toolbar { background: rgba(255,255,255,0.04) !important; border-color: var(--w-border) !important; }
-html[data-theme="dark"] .rte-btn-mini {
-    background: rgba(255,255,255,0.06) !important;
-    color: var(--w-text) !important;
-    border-color: var(--w-border) !important;
+
+/* ===== Wahy dark-mode — تحسينات صريحة إضافية =====
+   الأسطح تعمل أصلاً عبر --w-* في الوضعين؛ هنا فقط لمسات خاصة بالوضع الليلي. */
+html[data-theme="dark"] .conv-item:hover {
+    border-color: rgba(129,140,248,0.6) !important;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4) !important;
 }
-html[data-theme="dark"] .rte-btn-mini:hover { background: rgba(255,255,255,0.12) !important; }
-html[data-theme="dark"] .rte-sep { background: var(--w-border) !important; }
-html[data-theme="dark"] .rte-editor-msg,
-html[data-theme="dark"] .new-msg-editor,
-html[data-theme="dark"] .form-select-field,
-html[data-theme="dark"] .form-field {
-    background: rgba(255,255,255,0.05) !important;
-    color: var(--w-text) !important;
-    border-color: var(--w-border) !important;
+html[data-theme="dark"] .conv-about { color: #c4b5fd !important; }
+html[data-theme="dark"] #messagesContainer {
+    background:
+        radial-gradient(circle at 20% 0%, rgba(102,126,234,0.10), transparent 55%),
+        var(--w-bg) !important;
 }
-html[data-theme="dark"] .rte-editor-msg:empty::before,
-html[data-theme="dark"] .new-msg-editor:empty::before { color: var(--w-text-muted) !important; }
-html[data-theme="dark"] .form-label { color: var(--w-text-muted) !important; }
-html[data-theme="dark"] .btn-cancel {
-    background: rgba(255,255,255,0.08) !important;
-    color: var(--w-text) !important;
-}
+html[data-theme="dark"] .rte-toolbar input[type="color"] { border-color: var(--w-border) !important; }
+html[data-theme="dark"] .msg-bubble.other .msg-body a { color: #a5b4fc !important; }
 </style>
 @endpush
 
 @section('content')
 <div class="msg-wrap">
     <div class="msg-header">
-        <h2>💬 المراسلات مع أولياء الأمور</h2>
+        <div class="msg-header-titles">
+            <h2>💬 المراسلات مع أولياء الأمور</h2>
+            <span class="msg-sub">تواصل مباشر مع أولياء الأمور حول أبنائهم الطلاب</span>
+        </div>
         <button class="btn-new-msg" onclick="showNewMessageModal()">✉️ رسالة جديدة</button>
     </div>
 
@@ -203,32 +342,28 @@ html[data-theme="dark"] .btn-cancel {
         @forelse($conversations as $conversation)
         @if(!$conversation->parent) @continue @endif
         <div class="conv-item" onclick="openConversation({{ $conversation->parent_id }}, {{ $conversation->student_id ?? 'null' }})">
-            <div style="flex:1; min-width:0;">
-                <h3 style="font-size:18px; font-weight:600; color:#2d3748; margin-bottom:5px;">
-                    👤 {{ $conversation->parent->name ?? 'غير معروف' }}
-                </h3>
+            <div class="conv-avatar">{{ mb_substr($conversation->parent->name ?? '👤', 0, 1) }}</div>
+            <div class="conv-main">
+                <h3 class="conv-name">{{ $conversation->parent->name ?? 'غير معروف' }}</h3>
                 @if($conversation->student)
-                <div style="color:#718096; font-size:13px; margin-bottom:6px;">
-                    بخصوص: {{ $conversation->student->name }}
-                </div>
+                <span class="conv-about">بخصوص: {{ $conversation->student->name }}</span>
                 @endif
                 <div class="conv-snippet">
                     {{ html_excerpt($conversation->message, 90) }}
                 </div>
             </div>
-            <div style="text-align:left; flex-shrink:0; margin-right:16px;">
-                <div style="color:#718096; font-size:12px; margin-bottom:5px;">
-                    {{ $conversation->created_at->diffForHumans() }}
-                </div>
+            <div class="conv-side">
+                <span class="conv-time">{{ $conversation->created_at->diffForHumans() }}</span>
                 @if($conversation->sender_type === 'parent' && !$conversation->is_read)
                 <span class="badge-new">جديد</span>
                 @endif
             </div>
         </div>
         @empty
-        <div style="text-align:center; padding:60px 20px; color:#718096;">
-            <div style="font-size:60px; margin-bottom:15px;">📭</div>
-            <p style="font-size:16px;">لا توجد رسائل بعد</p>
+        <div class="conv-empty">
+            <div class="ce-icon">📭</div>
+            <h3>لا توجد رسائل بعد</h3>
+            <p>ابدأ رسالة جديدة للتواصل مع أولياء أمور طلابك.</p>
         </div>
         @endforelse
     </div>
@@ -238,10 +373,10 @@ html[data-theme="dark"] .btn-cancel {
 
 {{-- نافذة المحادثة --}}
 <div id="conversationModal" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="conversationTitle">
         <div class="modal-head">
             <h3 id="conversationTitle">💬 محادثة</h3>
-            <button class="btn-close" onclick="closeConversation()">✕</button>
+            <button class="btn-close" onclick="closeConversation()" aria-label="إغلاق">✕</button>
         </div>
 
         <div id="messagesContainer">
@@ -275,8 +410,8 @@ html[data-theme="dark"] .btn-cancel {
 
 {{-- نافذة رسالة جديدة --}}
 <div id="newMessageModal" class="modal-overlay">
-    <div class="form-modal-box">
-        <h3 style="font-size:22px; font-weight:700; margin-bottom:20px;">✉️ رسالة جديدة</h3>
+    <div class="form-modal-box" role="dialog" aria-modal="true" aria-labelledby="newMsgTitle">
+        <h3 id="newMsgTitle" class="form-modal-title">✉️ رسالة جديدة</h3>
 
         <form id="newMessageForm" style="display:flex; flex-direction:column; gap:16px;">
             <div>
@@ -377,7 +512,7 @@ function loadMessages() {
             const c = document.getElementById('messagesContainer');
             c.innerHTML = '';
             if (!messages.length) {
-                c.innerHTML = '<div style="text-align:center;color:#a0aec0;padding:40px 20px;">ابدأ المحادثة...</div>';
+                c.innerHTML = '<div class="chat-empty"><div class="ce-ic">💬</div><div>ابدأ المحادثة الآن</div></div>';
                 return;
             }
             messages.forEach(msg => {

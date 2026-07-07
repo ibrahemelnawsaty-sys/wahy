@@ -4,15 +4,21 @@
 
 @section('content')
 <style>
+/* =========================================================================
+   Bulk Messages (System C) — طبقة بصرية فاخرة + وضع ليلي + استجابة.
+   الأسطح المحايدة مبنيّة على متغيّرات الثيم var(--w-*) فتعمل في الوضعين تلقائياً
+   (المصدر: partials/theme-toggle). اللكنات الوظيفية (أزرق/أخضر/كهرماني/بنفسجي)
+   محفوظة كهوية للبث الجماعي. لا أسماء أصناف مُعاد تسميتها.
+   ========================================================================= */
 .bm-page { padding: 0; }
 
 .bm-hero {
     background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
-    border-radius: 18px;
+    border-radius: 20px;
     padding: 32px;
     margin-bottom: 28px;
     color: white;
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 18px 44px rgba(99, 102, 241, 0.35);
     position: relative;
     overflow: hidden;
 }
@@ -23,7 +29,7 @@
     left: -20%;
     width: 350px;
     height: 350px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
     border-radius: 50%;
 }
 .bm-hero::after {
@@ -33,7 +39,7 @@
     right: -10%;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
     border-radius: 50%;
 }
 .bm-hero-icon {
@@ -44,10 +50,11 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 28px;
     margin-bottom: 14px;
+    position: relative; z-index: 1;
 }
 .bm-hero h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; position: relative; z-index: 1; }
 .bm-hero p { opacity: 0.9; font-size: 15px; margin: 0; position: relative; z-index: 1; }
-.bm-hero-actions { position: relative; z-index: 1; margin-top: 18px; display: flex; gap: 10px; }
+.bm-hero-actions { position: relative; z-index: 1; margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
 .bm-hero-btn {
     padding: 10px 24px;
     border-radius: 12px;
@@ -55,7 +62,7 @@
     font-size: 14px;
     border: none;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
@@ -74,20 +81,20 @@
     margin-bottom: 28px;
 }
 .bm-stat {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    border: 2px solid #f1f5f9;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-    transition: all 0.3s;
+    background: var(--w-card, #fff);
+    border-radius: 18px;
+    padding: 22px;
+    border: 1px solid var(--w-border, #f1f5f9);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.05);
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
     display: flex;
     align-items: center;
     gap: 18px;
 }
 .bm-stat:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
-    border-color: #e2e8f0;
+    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.10);
+    border-color: rgba(99, 102, 241, 0.35);
 }
 .bm-stat-icon {
     width: 56px; height: 56px;
@@ -99,36 +106,38 @@
 .bm-stat-value {
     font-size: 30px;
     font-weight: 800;
-    color: #1e293b;
+    color: var(--w-text, #1e293b);
     line-height: 1;
 }
 .bm-stat-label {
     font-size: 13px;
-    color: #64748b;
+    color: var(--w-text-muted, #64748b);
     font-weight: 500;
     margin-top: 4px;
 }
 
 /* Card */
 .bm-card {
-    background: white;
-    border-radius: 18px;
-    border: 2px solid #f1f5f9;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    background: var(--w-card, #fff);
+    border-radius: 20px;
+    border: 1px solid var(--w-border, #f1f5f9);
+    box-shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
     overflow: hidden;
 }
 .bm-card-header {
     padding: 20px 24px;
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 1px solid var(--w-border, #f1f5f9);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, rgba(59,130,246,0.03) 0%, rgba(139,92,246,0.03) 100%);
+    gap: 12px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(139,92,246,0.05) 100%);
 }
 .bm-card-header h3 {
     font-size: 18px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--w-text, #1e293b);
     margin: 0;
     display: flex;
     align-items: center;
@@ -136,31 +145,37 @@
 }
 
 /* Table */
+.bm-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
 .bm-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 720px;
 }
 .bm-table thead th {
     padding: 14px 16px;
     font-size: 13px;
     font-weight: 700;
-    color: #475569;
+    color: var(--w-text-muted, #475569);
     text-align: right;
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
+    background: var(--w-bg, #f8fafc);
+    border-bottom: 1px solid var(--w-border, #e2e8f0);
     white-space: nowrap;
 }
 .bm-table tbody tr {
-    transition: all 0.2s;
+    transition: background 0.2s;
 }
 .bm-table tbody tr:hover {
-    background: linear-gradient(135deg, rgba(59,130,246,0.03) 0%, rgba(139,92,246,0.03) 100%);
+    background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(139,92,246,0.05) 100%);
 }
 .bm-table tbody td {
     padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--w-border, #f1f5f9);
     font-size: 14px;
     vertical-align: middle;
+    color: var(--w-text, #1e293b);
 }
 
 /* Badge */
@@ -189,7 +204,7 @@
 .bm-progress-bar {
     flex: 1;
     height: 8px;
-    background: #f1f5f9;
+    background: rgba(100, 116, 139, 0.16);
     border-radius: 10px;
     overflow: hidden;
     min-width: 80px;
@@ -204,7 +219,7 @@
 /* Date */
 .bm-date {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--w-text-muted, #94a3b8);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -215,21 +230,21 @@
 .bm-action-btn {
     width: 36px; height: 36px;
     border-radius: 10px;
-    border: 2px solid #e2e8f0;
-    background: white;
+    border: 1px solid var(--w-border, #e2e8f0);
+    background: var(--w-card, #fff);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s, color 0.2s;
     text-decoration: none;
-    color: #475569;
+    color: var(--w-text-muted, #475569);
 }
 .bm-action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 16px rgba(2, 6, 23, 0.12);
 }
-.bm-action-btn.view:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+.bm-action-btn.view:hover { border-color: #6366f1; color: #6366f1; background: rgba(99, 102, 241, 0.12); }
 .bm-action-btn i { font-size: 13px; }
 
 /* Empty State */
@@ -246,6 +261,8 @@
     margin: 0 auto 18px;
     box-shadow: 0 6px 20px rgba(99,102,241,0.15);
 }
+.bm-empty h3 { color: var(--w-text, #475569); }
+.bm-empty p { color: var(--w-text-muted, #94a3b8); }
 
 /* Alert */
 .bm-alert {
@@ -258,8 +275,8 @@
     align-items: center;
     gap: 10px;
 }
-.bm-alert-success { background: linear-gradient(135deg, #dcfce7, #d1fae5); color: #166534; border: 2px solid #bbf7d0; }
-.bm-alert-danger { background: linear-gradient(135deg, #fce4ec, #fecdd3); color: #991b1b; border: 2px solid #fca5a5; }
+.bm-alert-success { background: linear-gradient(135deg, #dcfce7, #d1fae5); color: #166534; border: 1px solid #bbf7d0; }
+.bm-alert-danger { background: linear-gradient(135deg, #fce4ec, #fecdd3); color: #991b1b; border: 1px solid #fca5a5; }
 
 /* Modal */
 .bm-modal .modal-content {
@@ -267,6 +284,10 @@
     overflow: hidden;
     border: none;
     box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
+.bm-modal-card {
+    background: var(--w-card, #fff);
+    box-shadow: 0 25px 50px rgba(2, 6, 23, 0.35);
 }
 .bm-modal-header {
     background: linear-gradient(135deg, #3b82f6, #6366f1);
@@ -279,32 +300,78 @@
 .bm-modal-body .bm-msg-meta {
     display: flex; gap: 16px; flex-wrap: wrap;
     padding: 14px 18px;
-    background: #f8fafc;
+    background: rgba(100, 116, 139, 0.10);
     border-radius: 12px;
     margin-bottom: 16px;
 }
 .bm-modal-body .bm-msg-content {
     padding: 18px;
-    background: #f8fafc;
+    background: rgba(100, 116, 139, 0.10);
     border-radius: 12px;
     line-height: 1.8;
-    color: #334155;
+    color: var(--w-text, #334155);
     white-space: pre-wrap;
 }
 
 /* Subject cell */
 .bm-subject {
     font-weight: 700;
-    color: #1e293b;
+    color: var(--w-text, #1e293b);
     font-size: 14px;
 }
 .bm-subject-school {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--w-text-muted, #94a3b8);
     margin-top: 3px;
     display: flex;
     align-items: center;
     gap: 4px;
+}
+
+/* =========================================================================
+   الوضع الليلي — الشارات/التنبيهات الوظيفية (نسخ شفّافة ملوّنة بنص فاتح، بدل
+   الجزر الباستيل الفاتحة على السطح الداكن). بقيّة الأسطح تُدار عبر var(--w-*).
+   ========================================================================= */
+html[data-theme="dark"] .bm-badge-primary   { background: rgba(99, 102, 241, 0.18); color: #c7d2fe; }
+html[data-theme="dark"] .bm-badge-success   { background: rgba(16, 185, 129, 0.16); color: #6ee7b7; }
+html[data-theme="dark"] .bm-badge-warning   { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
+html[data-theme="dark"] .bm-badge-info      { background: rgba(6, 182, 212, 0.18); color: #67e8f9; }
+html[data-theme="dark"] .bm-badge-danger    { background: rgba(239, 68, 68, 0.16); color: #fca5a5; }
+html[data-theme="dark"] .bm-badge-secondary { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; }
+html[data-theme="dark"] .bm-alert-success   { background: rgba(16, 185, 129, 0.14); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.35); }
+html[data-theme="dark"] .bm-alert-danger    { background: rgba(239, 68, 68, 0.14); color: #fca5a5; border-color: rgba(239, 68, 68, 0.35); }
+html[data-theme="dark"] .bm-empty-icon {
+    background: rgba(99, 102, 241, 0.16);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================================================================
+   الاستجابة — لابتوب (افتراضي) / تابلت 641–1024 / جوال ≤640.
+   الجدول يبقى دائماً ضمن .bm-table-scroll (overflow-x:auto) + min-width للتمرير.
+   ========================================================================= */
+@media (max-width: 1024px) {
+    .bm-hero { padding: 26px; }
+    .bm-stats { gap: 14px; }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+    .bm-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+    .bm-hero { padding: 22px; border-radius: 16px; margin-bottom: 20px; }
+    .bm-hero h1 { font-size: 22px; }
+    .bm-hero p { font-size: 13px; }
+    .bm-hero-icon { width: 52px; height: 52px; font-size: 24px; margin-bottom: 12px; }
+    .bm-hero-actions { flex-direction: column; align-items: stretch; }
+    .bm-hero-btn { justify-content: center; width: 100%; }
+    .bm-stats { grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
+    .bm-stat { padding: 18px; }
+    .bm-stat-value { font-size: 26px; }
+    .bm-card-header { padding: 16px 18px; }
+    .bm-card-header h3 { font-size: 16px; }
+    .bm-table thead th, .bm-table tbody td { padding: 12px 12px; }
+    .bm-modal-body { padding: 18px; }
+    .bm-modal-body .bm-msg-meta { gap: 12px; padding: 12px 14px; }
+    .bm-empty { padding: 48px 16px; }
 }
 </style>
 
@@ -384,7 +451,7 @@
         </div>
         <div>
             @if($sentMessages->count() > 0)
-                <div style="overflow-x: auto;">
+                <div class="bm-table-scroll">
                     <table class="bm-table">
                         <thead>
                             <tr>
@@ -451,10 +518,10 @@
                                 </tr>
 
                                 <!-- View Modal (vanilla — لا يعتمد على Bootstrap JS) -->
-                                <div class="bm-modal-backdrop" id="viewModal{{ $message->id }}" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:1050; align-items:center; justify-content:center; padding:20px;">
-                                    <div style="background:white; border-radius:16px; max-width:720px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 25px 50px rgba(0,0,0,0.25);">
+                                <div class="bm-modal-backdrop" id="viewModal{{ $message->id }}" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:1050; align-items:center; justify-content:center; padding:20px;">
+                                    <div class="bm-modal-card" style="border-radius:16px; max-width:720px; width:100%; max-height:90vh; overflow:auto;">
                                         <div class="bm-modal-content">
-                                            <div class="bm-modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid #e2e8f0;">
+                                            <div class="bm-modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid rgba(255,255,255,0.18);">
                                                 <h5 style="margin:0;">📨 {{ $message->subject }}</h5>
                                                 <button type="button" onclick="bmHideModal({{ $message->id }})" style="background:transparent; border:none; font-size:22px; cursor:pointer; color:#64748b;">✕</button>
                                             </div>
@@ -495,7 +562,7 @@
                 </div>
 
                 <!-- Pagination -->
-                <div style="padding: 20px; border-top: 2px solid #f1f5f9;">
+                <div style="padding: 20px; border-top: 1px solid var(--w-border, #f1f5f9);">
                     {{ $sentMessages->links() }}
                 </div>
             @else
