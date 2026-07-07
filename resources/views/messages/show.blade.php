@@ -760,21 +760,39 @@ html[data-theme="dark"] .link-modal-actions .btn-cancel:hover { background: rgba
 @supports (height: 100dvh) {
     .student-app .chat-container { height: calc(100dvh - 340px); }
 }
+/* الجوال: الحلّ المتين — المُنشئ ثابت (fixed) على مسافة معلومة فوق التنقّل العائم،
+   مستقلّاً تماماً عن ارتفاع شريط الحالة (الذي يتغيّر ويلتفّ)؛ والرسائل تتدفّق فوقه. */
 @media (max-width: 640px) {
     .student-app .chat-page {
-        display: flex;
-        flex-direction: column;
-        min-height: calc(100vh - 110px);   /* شريط الحالة العلوي (يلتفّ لسطرين) */
-        margin-bottom: -100px;             /* يُلغي الحشو السفلي المزدوج لـstudent-main (يمنع تمرير الصفحة كلّها) */
-        padding: 10px 8px 112px;           /* الأسفل يُخلي التنقّل العائم (16+72+هامش) */
+        display: block;
+        min-height: 0;
+        margin-bottom: 0;
+        padding: 8px 6px 232px;   /* الأسفل يترك مساحة للمُنشئ الثابت + التنقّل */
         box-sizing: border-box;
     }
-    .student-app .chat-container { flex: 1 1 auto; height: auto; min-height: 260px; }
-    .student-app .chat-messages { min-height: 0; }   /* يضمن التمرير الداخلي بدل تمدّد المحتوى */
-}
-@supports (height: 100dvh) {
-    @media (max-width: 640px) {
-        .student-app .chat-page { min-height: calc(100dvh - 110px); }
+    .student-app .chat-container {
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        overflow: visible;
+    }
+    .student-app .chat-messages {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        padding-bottom: 8px;
+    }
+    .student-app .chat-input {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: 100px;   /* فوق التنقّل العائم (bottom:16 + height:72 + هامش) */
+        z-index: 50;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.22);
+        background: var(--w-card, var(--color-card, #ffffff));
+        max-width: 960px;
+        margin: 0 auto;
     }
 }
 </style>
@@ -904,16 +922,30 @@ function _isBlankNode(node) {
     return false;
 }
 
-// تقليم الأسطر الفارغة المتأخّرة في الفقاعات الموجودة (رسائل قديمة أُرسلت بأسطر فارغة
-// من محرّر contenteditable) — تمنع الفقاعات الطويلة شبه الفارغة.
-document.querySelectorAll('.message-bubble').forEach(function (b) {
-    var stop = b.querySelector('.message-time');
-    var node = stop ? stop.previousSibling : b.lastChild;
-    while (node && node !== stop && _isBlankNode(node)) {
-        var prev = node.previousSibling;
-        b.removeChild(node);
-        node = prev;
+// يقلّم العُقد الفارغة المتأخّرة من عنصر، متغلغلاً داخل آخر عنصر لإزالة أسطر <br> الداخلية أيضاً.
+function _trimTrailing(el) {
+    var node = el.lastChild;
+    while (node) {
+        if (_isBlankNode(node)) {
+            var prev = node.previousSibling;
+            el.removeChild(node);
+            node = prev;
+            continue;
+        }
+        if (node.nodeType === 1 && !(node.matches && node.matches('img,video,audio'))
+            && !(node.querySelector && node.querySelector('img,video,audio'))) {
+            _trimTrailing(node);   // تغلغل: قد ينتهي العنصر النصّي بأسطر <br> داخلية
+        }
+        break;
     }
+}
+
+// تقليم الفراغات المتأخّرة في الفقاعات الموجودة (رسائل أُرسلت بأسطر فارغة من محرّر contenteditable).
+document.querySelectorAll('.message-bubble').forEach(function (b) {
+    var time = b.querySelector('.message-time');
+    if (time) b.removeChild(time);
+    _trimTrailing(b);
+    if (time) b.appendChild(time);
 });
 
 // التمرير لأسفل عند تحميل الصفحة
@@ -1078,7 +1110,7 @@ function insertImage(input) {
 function cleanMessageHtml(html) {
     var t = document.createElement('div');
     t.innerHTML = html;
-    while (t.lastChild && _isBlankNode(t.lastChild)) t.removeChild(t.lastChild);
+    _trimTrailing(t);
     while (t.firstChild && _isBlankNode(t.firstChild)) t.removeChild(t.firstChild);
     return t.innerHTML.trim();
 }

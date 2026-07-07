@@ -1,5 +1,5 @@
 // Service Worker - Aggressive Caching Strategy
-const CACHE_VERSION = 'qiyamm-v1.0';
+const CACHE_VERSION = 'qiyamm-v1.1';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
