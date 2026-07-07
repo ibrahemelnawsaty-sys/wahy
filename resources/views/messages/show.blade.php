@@ -750,6 +750,33 @@ html[data-theme="dark"] .link-modal-actions .btn-cancel:hover { background: rgba
         .chat-container { height: calc(100dvh - 240px); }
     }
 }
+
+/* ==================== تصحيحات خاصة بتخطيط الطالب (student-app) ==================== */
+/* student-app وحده يملك شريط تنقّل عائماً سفلياً (position:fixed; bottom:16px; height:72px)
+   فيصطدم به مُنشئ الرسالة. نُخصّص المحادثة للطالب لتملأ ما بين شريط الحالة والتنقّل
+   العائم دون تصادم (تخطيط مرن flex على الجوال بدل ارتفاع ثابت). المُحدِّد .student-app
+   أعلى تخصّصاً فيفوز على القواعد العامة أعلاه دون أن يمسّ بقية الأدوار. */
+.student-app .chat-container { height: calc(100vh - 340px); min-height: 460px; }
+@supports (height: 100dvh) {
+    .student-app .chat-container { height: calc(100dvh - 340px); }
+}
+@media (max-width: 640px) {
+    .student-app .chat-page {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 110px);   /* شريط الحالة العلوي (يلتفّ لسطرين) */
+        margin-bottom: -100px;             /* يُلغي الحشو السفلي المزدوج لـstudent-main (يمنع تمرير الصفحة كلّها) */
+        padding: 10px 8px 112px;           /* الأسفل يُخلي التنقّل العائم (16+72+هامش) */
+        box-sizing: border-box;
+    }
+    .student-app .chat-container { flex: 1 1 auto; height: auto; min-height: 260px; }
+    .student-app .chat-messages { min-height: 0; }   /* يضمن التمرير الداخلي بدل تمدّد المحتوى */
+}
+@supports (height: 100dvh) {
+    @media (max-width: 640px) {
+        .student-app .chat-page { min-height: calc(100dvh - 110px); }
+    }
+}
 </style>
 
 <!-- Container with padding for status bar and bottom nav -->
@@ -863,6 +890,31 @@ html[data-theme="dark"] .link-modal-actions .btn-cancel:hover { background: rgba
 const messagesContainer = document.getElementById('messagesContainer');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
+
+// عقدة فارغة؟ (سطر <br>، أو عنصر بلا نص/صورة، أو نص مسافات/nbsp فقط)
+function _isBlankNode(node) {
+    if (!node) return false;
+    if (node.nodeType === 3) return !node.textContent.replace(/ /g, ' ').trim();
+    if (node.nodeType === 1) {
+        if (node.tagName === 'BR') return true;
+        if (node.matches && node.matches('img,video,audio')) return false;
+        if (node.querySelector && node.querySelector('img,a,video,audio')) return false;
+        return !node.textContent.replace(/ /g, ' ').trim();
+    }
+    return false;
+}
+
+// تقليم الأسطر الفارغة المتأخّرة في الفقاعات الموجودة (رسائل قديمة أُرسلت بأسطر فارغة
+// من محرّر contenteditable) — تمنع الفقاعات الطويلة شبه الفارغة.
+document.querySelectorAll('.message-bubble').forEach(function (b) {
+    var stop = b.querySelector('.message-time');
+    var node = stop ? stop.previousSibling : b.lastChild;
+    while (node && node !== stop && _isBlankNode(node)) {
+        var prev = node.previousSibling;
+        b.removeChild(node);
+        node = prev;
+    }
+});
 
 // التمرير لأسفل عند تحميل الصفحة
 scrollToBottom();
@@ -1021,8 +1073,18 @@ function insertImage(input) {
     input.value = '';
 }
 
+// ينظّف HTML الرسالة قبل الإرسال: يزيل الأسطر/العناصر الفارغة المتأخّرة والأولى
+// (يمنع تخزين فقاعات طويلة شبه فارغة). يحتفظ بالصور/الروابط.
+function cleanMessageHtml(html) {
+    var t = document.createElement('div');
+    t.innerHTML = html;
+    while (t.lastChild && _isBlankNode(t.lastChild)) t.removeChild(t.lastChild);
+    while (t.firstChild && _isBlankNode(t.firstChild)) t.removeChild(t.firstChild);
+    return t.innerHTML.trim();
+}
+
 function sendMessage() {
-    const message = messageInput.innerHTML.trim();
+    const message = cleanMessageHtml(messageInput.innerHTML);
     
     if (!message) {
         messageInput.focus();
