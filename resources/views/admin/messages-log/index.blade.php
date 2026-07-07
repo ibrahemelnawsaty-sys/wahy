@@ -4,14 +4,24 @@
 
 @section('content')
 <style>
-.ml-page { padding: 0; }
+/* ===== Wahy — سجل الرسائل (سوبر أدمن) — طبقة بصرية فاخرة =====
+   كل الأسطح مبنيّة على متغيّرات النظام الموحّد (--w-*) المعرّفة للوضعين (light/dark)
+   في partials/theme-toggle، فتعمل التغطية اللونية تلقائياً في الوضعين.
+   المرجع القياسي: resources/views/teacher/messages.blade.php */
+.ml-page {
+    padding: 0;
+    --ml-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --ml-grad-soft: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12));
+    --ml-grad-tint: linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%);
+    color: var(--w-text, #0f172a);
+}
 
 .ml-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 18px;
+    background: var(--ml-grad);
+    border-radius: 20px;
     padding: 32px;
     margin-bottom: 28px;
-    color: white;
+    color: #fff;
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.35);
     position: relative;
     overflow: hidden;
@@ -20,7 +30,7 @@
     content: '';
     position: absolute;
     top: -50%;
-    right: -30%;
+    inset-inline-end: -30%;
     width: 400px;
     height: 400px;
     background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
@@ -30,6 +40,8 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
     position: relative;
     z-index: 1;
 }
@@ -42,9 +54,9 @@
     font-size: 28px;
     margin-bottom: 14px;
 }
-.ml-hero h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; }
+.ml-hero h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; color: #fff; }
 .ml-hero p { opacity: 0.9; font-size: 15px; margin: 0; }
-.ml-hero-actions { display: flex; gap: 10px; }
+.ml-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .ml-hero-actions .ml-btn {
     padding: 10px 20px;
     border-radius: 12px;
@@ -59,11 +71,11 @@
 .ml-btn-glass {
     background: rgba(255,255,255,0.2);
     backdrop-filter: blur(10px);
-    color: white;
+    color: #fff;
 }
-.ml-btn-glass:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); color: white; }
+.ml-btn-glass:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); color: #fff; }
 .ml-btn-white {
-    background: white;
+    background: #fff;
     color: #667eea;
     box-shadow: 0 4px 14px rgba(0,0,0,0.1);
 }
@@ -77,11 +89,11 @@
     margin-bottom: 28px;
 }
 .ml-stat {
-    background: white;
+    background: var(--w-card, #fff);
     border-radius: 16px;
     padding: 22px;
-    border: 2px solid #f1f5f9;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    box-shadow: var(--w-shadow, 0 10px 40px rgba(2,6,23,0.08));
     transition: all 0.3s;
     display: flex;
     align-items: center;
@@ -89,8 +101,8 @@
 }
 .ml-stat:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    border-color: #e2e8f0;
+    box-shadow: 0 12px 30px rgba(102,126,234,0.16);
+    border-color: rgba(102,126,234,0.4);
 }
 .ml-stat-icon {
     width: 52px; height: 52px;
@@ -102,37 +114,37 @@
 .ml-stat-value {
     font-size: 28px;
     font-weight: 800;
-    color: #1e293b;
+    color: var(--w-text, #0f172a);
     line-height: 1;
 }
 .ml-stat-label {
     font-size: 13px;
-    color: #64748b;
+    color: var(--w-text-muted, #475569);
     font-weight: 500;
     margin-top: 4px;
 }
 
 /* Cards */
 .ml-card {
-    background: white;
+    background: var(--w-card, #fff);
     border-radius: 18px;
-    border: 2px solid #f1f5f9;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    box-shadow: var(--w-shadow, 0 10px 40px rgba(2,6,23,0.08));
     margin-bottom: 24px;
     overflow: hidden;
 }
 .ml-card-header {
     padding: 20px 24px;
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 1px solid var(--w-border, rgba(15,23,42,0.08));
     display: flex;
     align-items: center;
     gap: 12px;
-    background: linear-gradient(135deg, rgba(102,126,234,0.03) 0%, rgba(118,75,162,0.03) 100%);
+    background: var(--ml-grad-tint);
 }
 .ml-card-header h3 {
     font-size: 18px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--w-text, #0f172a);
     margin: 0;
 }
 .ml-card-body { padding: 24px; }
@@ -147,31 +159,33 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #475569;
+    color: var(--w-text-muted, #475569);
     margin-bottom: 6px;
 }
 .ml-filter-group input,
 .ml-filter-group select {
     width: 100%;
     padding: 10px 14px;
-    border: 2px solid #e2e8f0;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
     border-radius: 10px;
     font-size: 14px;
-    background: #f8fafc;
+    background: var(--w-bg, #f8fafc);
     transition: all 0.3s;
-    color: #1e293b;
+    color: var(--w-text, #0f172a);
 }
+.ml-filter-group input::placeholder { color: var(--w-text-muted, #94a3b8); }
 .ml-filter-group input:focus,
 .ml-filter-group select:focus {
     outline: none;
     border-color: #667eea;
-    background: white;
-    box-shadow: 0 4px 12px rgba(102,126,234,0.12);
+    background: var(--w-card, #fff);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.15);
 }
 .ml-filter-actions {
     margin-top: 18px;
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
 }
 .ml-filter-actions .ml-btn-action {
     padding: 10px 22px;
@@ -187,19 +201,20 @@
     transition: all 0.3s;
 }
 .ml-btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: var(--ml-grad);
+    color: #fff;
     box-shadow: 0 4px 14px rgba(102,126,234,0.3);
 }
 .ml-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
 .ml-btn-secondary {
-    background: #f1f5f9;
-    color: #475569;
-    border: 2px solid #e2e8f0;
+    background: var(--w-bg, #f1f5f9);
+    color: var(--w-text-muted, #475569);
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
 }
-.ml-btn-secondary:hover { background: #e2e8f0; color: #475569; }
+.ml-btn-secondary:hover { background: var(--ml-grad-soft); color: var(--w-text, #0f172a); }
 
 /* Table */
+.ml-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .ml-table {
     width: 100%;
     border-collapse: collapse;
@@ -208,24 +223,39 @@
     padding: 14px 16px;
     font-size: 13px;
     font-weight: 700;
-    color: #475569;
+    color: var(--w-text-muted, #475569);
     text-align: right;
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
+    background: var(--w-bg, #f8fafc);
+    border-bottom: 1px solid var(--w-border, rgba(15,23,42,0.08));
     white-space: nowrap;
 }
 .ml-table tbody tr {
     transition: all 0.2s;
 }
 .ml-table tbody tr:hover {
-    background: linear-gradient(135deg, rgba(102,126,234,0.03) 0%, rgba(118,75,162,0.03) 100%);
+    background: var(--ml-grad-tint);
 }
 .ml-table tbody td {
     padding: 12px 16px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--w-border, rgba(15,23,42,0.08));
     font-size: 14px;
     vertical-align: middle;
+    color: var(--w-text, #0f172a);
 }
+
+/* Cell helpers */
+.ml-id { font-weight: 700; color: #667eea; }
+.ml-msg-text {
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--w-text-muted, #475569);
+}
+.ml-datecell { font-size: 13px; }
+.ml-datecell .ml-date { font-weight: 600; color: var(--w-text, #0f172a); }
+.ml-datecell .ml-time { color: var(--w-text-muted, #94a3b8); }
+.ml-dash { color: var(--w-text-muted, #cbd5e1); }
 
 /* User Cell */
 .ml-user-cell {
@@ -237,13 +267,13 @@
     width: 36px; height: 36px;
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    color: white;
+    color: #fff;
     font-weight: 700;
     font-size: 13px;
     flex-shrink: 0;
 }
-.ml-user-name { font-weight: 600; font-size: 14px; color: #1e293b; }
-.ml-user-role { font-size: 11px; color: #94a3b8; }
+.ml-user-name { font-weight: 600; font-size: 14px; color: var(--w-text, #0f172a); }
+.ml-user-role { font-size: 11px; color: var(--w-text-muted, #94a3b8); }
 
 /* Badges */
 .ml-badge {
@@ -254,17 +284,18 @@
     border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
 }
-.ml-badge-read { background: #dcfce7; color: #166534; }
-.ml-badge-unread { background: #fef3c7; color: #92400e; }
+.ml-badge-read { background: rgba(34,197,94,0.15); color: #16a34a; }
+.ml-badge-unread { background: rgba(245,158,11,0.15); color: #d97706; }
 
 /* Action Buttons */
 .ml-actions { display: flex; gap: 6px; }
 .ml-action-btn {
     width: 34px; height: 34px;
     border-radius: 8px;
-    border: 2px solid #e2e8f0;
-    background: white;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
+    background: var(--w-card, #fff);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -272,37 +303,46 @@
     transition: all 0.2s;
     font-size: 14px;
     text-decoration: none;
-    color: #475569;
+    color: var(--w-text-muted, #475569);
 }
 .ml-action-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.ml-action-btn.view:hover { border-color: #667eea; color: #667eea; background: #f0f0ff; }
-.ml-action-btn.chat:hover { border-color: #10b981; color: #10b981; background: #f0fdf4; }
-.ml-action-btn.delete:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+.ml-action-btn.view:hover { border-color: #667eea; color: #667eea; background: rgba(102,126,234,0.12); }
+.ml-action-btn.chat:hover { border-color: #10b981; color: #10b981; background: rgba(16,185,129,0.12); }
+.ml-action-btn.delete:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.12); }
 
 /* Top Senders */
+.ml-senders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
 .ml-sender-card {
     padding: 18px;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: var(--w-bg, #f8fafc);
     border-radius: 14px;
-    border: 2px solid #e2e8f0;
+    border: 1px solid var(--w-border, rgba(15,23,42,0.08));
     transition: all 0.3s;
 }
 .ml-sender-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    border-color: #667eea;
+    box-shadow: 0 6px 20px rgba(102,126,234,0.16);
+    border-color: rgba(102,126,234,0.4);
 }
+.ml-sender-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.ml-sender-name { font-weight: 700; color: var(--w-text, #0f172a); }
+.ml-sender-role { font-size: 12px; color: var(--w-text-muted, #94a3b8); }
 .ml-rank {
     font-size: 28px;
     line-height: 1;
 }
+.ml-rank-num { font-size: 18px; font-weight: 800; color: var(--w-text-muted, #94a3b8); }
 .ml-sender-count {
     font-size: 22px;
     font-weight: 800;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--ml-grad);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -315,11 +355,58 @@
 }
 .ml-empty-icon {
     width: 80px; height: 80px;
-    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    background: var(--ml-grad-soft);
     border-radius: 20px;
     display: flex; align-items: center; justify-content: center;
     font-size: 36px;
     margin: 0 auto 16px;
+}
+.ml-empty h3 { font-size: 20px; font-weight: 700; color: var(--w-text, #0f172a); margin: 0 0 6px; }
+.ml-empty p { color: var(--w-text-muted, #94a3b8); margin: 0; }
+
+.ml-pagination { padding: 20px; }
+
+/* ===== الاستجابة ===== */
+@media (max-width: 1024px) {
+    .ml-hero { padding: 26px; }
+    .ml-stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+    .ml-card-body { padding: 20px; }
+}
+@media (max-width: 640px) {
+    .ml-hero { padding: 22px 18px; border-radius: 16px; }
+    .ml-hero-top { flex-direction: column; }
+    .ml-hero h1 { font-size: 22px; }
+    .ml-hero p { font-size: 13.5px; }
+    .ml-hero-actions { width: 100%; }
+    .ml-hero-actions .ml-btn { flex: 1; justify-content: center; }
+
+    .ml-stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .ml-stat { padding: 16px; gap: 12px; }
+    .ml-stat-icon { width: 46px; height: 46px; font-size: 21px; }
+    .ml-stat-value { font-size: 23px; }
+
+    .ml-card-header { padding: 16px 18px; }
+    .ml-card-header h3 { font-size: 16px; }
+    .ml-card-body { padding: 18px 14px; }
+
+    .ml-filters-grid { grid-template-columns: 1fr; }
+    .ml-filter-actions { flex-direction: column; }
+    .ml-filter-actions .ml-btn-action { width: 100%; justify-content: center; }
+
+    .ml-senders-grid { grid-template-columns: 1fr; }
+    .ml-pagination { padding: 16px 14px; }
+}
+@media (max-width: 400px) {
+    .ml-stats { grid-template-columns: 1fr; }
+}
+
+/* ===== Wahy dark-mode — لمسات صريحة إضافية =====
+   الأسطح تعمل أصلاً عبر --w-* في الوضعين؛ هنا فقط تحسينات خاصة بالوضع الليلي. */
+html[data-theme="dark"] .ml-id { color: #a5b4fc; }
+html[data-theme="dark"] .ml-stat:hover,
+html[data-theme="dark"] .ml-sender-card:hover {
+    border-color: rgba(129,140,248,0.6) !important;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4) !important;
 }
 </style>
 
@@ -473,7 +560,7 @@
         </div>
         <div style="padding: 0;">
             @if($messages->count() > 0)
-                <div style="overflow-x: auto;">
+                <div class="ml-table-wrap">
                     <table class="ml-table">
                         <thead>
                             <tr>
@@ -490,7 +577,7 @@
                         <tbody>
                             @foreach($messages as $message)
                                 <tr>
-                                    <td><span style="font-weight: 700; color: #667eea;">#{{ $message->id }}</span></td>
+                                    <td><span class="ml-id">#{{ $message->id }}</span></td>
                                     <td>
                                         <div class="ml-user-cell">
                                             <div class="ml-user-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">
@@ -514,7 +601,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #475569;" title="{{ $message->message }}">
+                                        <div class="ml-msg-text" title="{{ $message->message }}">
                                             {{ \Illuminate\Support\Str::limit($message->message, 80) }}
                                         </div>
                                     </td>
@@ -526,19 +613,19 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div style="font-size: 13px;">
-                                            <div style="font-weight: 600; color: #1e293b;">{{ $message->created_at->format('Y-m-d') }}</div>
-                                            <div style="color: #94a3b8;">{{ $message->created_at->format('H:i') }}</div>
+                                        <div class="ml-datecell">
+                                            <div class="ml-date">{{ $message->created_at->format('Y-m-d') }}</div>
+                                            <div class="ml-time">{{ $message->created_at->format('H:i') }}</div>
                                         </div>
                                     </td>
                                     <td>
                                         @if($message->read_at)
-                                            <div style="font-size: 13px;">
-                                                <div style="font-weight: 600; color: #1e293b;">{{ $message->read_at->format('Y-m-d') }}</div>
-                                                <div style="color: #94a3b8;">{{ $message->read_at->format('H:i') }}</div>
+                                            <div class="ml-datecell">
+                                                <div class="ml-date">{{ $message->read_at->format('Y-m-d') }}</div>
+                                                <div class="ml-time">{{ $message->read_at->format('H:i') }}</div>
                                             </div>
                                         @else
-                                            <span style="color: #cbd5e1;">—</span>
+                                            <span class="ml-dash">—</span>
                                         @endif
                                     </td>
                                     <td>
@@ -559,14 +646,14 @@
                 </div>
 
                 <!-- Pagination -->
-                <div style="padding: 20px;">
+                <div class="ml-pagination">
                     {{ $messages->links() }}
                 </div>
             @else
                 <div class="ml-empty">
                     <div class="ml-empty-icon">📭</div>
-                    <h3 style="font-size: 20px; font-weight: 700; color: #475569; margin: 0 0 6px;">لا توجد رسائل</h3>
-                    <p style="color: #94a3b8; margin: 0;">لم يتم العثور على رسائل تطابق معايير البحث</p>
+                    <h3>لا توجد رسائل</h3>
+                    <p>لم يتم العثور على رسائل تطابق معايير البحث</p>
                 </div>
             @endif
         </div>
@@ -580,20 +667,20 @@
             <h3>أكثر المستخدمين نشاطاً في الإرسال</h3>
         </div>
         <div class="ml-card-body">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+            <div class="ml-senders-grid">
                 @foreach($topSenders as $index => $sender)
                     <div class="ml-sender-card">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                        <div class="ml-sender-head">
                             <div class="ml-rank">
                                 @if($index === 0) 🥇
                                 @elseif($index === 1) 🥈
                                 @elseif($index === 2) 🥉
-                                @else <span style="font-size: 18px; font-weight: 800; color: #94a3b8;">{{ $index + 1 }}</span>
+                                @else <span class="ml-rank-num">{{ $index + 1 }}</span>
                                 @endif
                             </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 700; color: #1e293b;">{{ $sender->sender->name ?? 'غير معروف' }}</div>
-                                <div style="font-size: 12px; color: #94a3b8;">{{ $sender->sender->role ?? '-' }}</div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div class="ml-sender-name">{{ $sender->sender->name ?? 'غير معروف' }}</div>
+                                <div class="ml-sender-role">{{ $sender->sender->role ?? '-' }}</div>
                             </div>
                         </div>
                         <div class="ml-sender-count">
