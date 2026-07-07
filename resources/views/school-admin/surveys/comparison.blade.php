@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.school-admin')
 @section('title', 'مقارنة استبيان')
 @section('page-title', '📊 مقارنة استبيان')
 
