@@ -22,6 +22,18 @@
     .crown-icon {
         animation: crownFloat 4s ease-in-out infinite;
     }
+
+    /* بطاقات القيم المتاحة (خلفية فاتحة inline): معالِجات onmouse*="this.style.*"
+       كانت تُعيد تسلسل سمة style عند اللمس فتنكسر مطابقة dark-coverage للـinline
+       وترتدّ فاتحة في الوضع الليلي = فاتح على فاتح. الحلّ الجذري نفسه: حوم عبر
+       CSS لأجهزة المؤشّر فقط + خلفية ليلية صريحة قائمة على الصنف (محصّنة). */
+    @media (hover: hover) {
+        .crown-avail-card:hover { border-color: #667eea; transform: translateY(-5px); }
+    }
+    html[data-theme="dark"] .crown-avail-card[style] {
+        background-image: none !important;
+        background-color: rgba(148, 163, 184, 0.10) !important;
+    }
 </style>
 @endpush
 
@@ -90,10 +102,8 @@
         
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
             @foreach($availableCrowns as $value)
-            <div style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 20px; padding: 25px; border: 3px dashed #cbd5e0; transition: all 0.3s; cursor: pointer;"
-                 onclick="window.location.href='{{ route('student.path') }}'"
-                 onmouseover="this.style.borderColor='#667eea'; this.style.transform='translateY(-5px)';"
-                 onmouseout="this.style.borderColor='#cbd5e0'; this.style.transform='translateY(0)';">
+            <div class="crown-avail-card" style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 20px; padding: 25px; border: 3px dashed #cbd5e0; transition: all 0.3s; cursor: pointer;"
+                 onclick="window.location.href='{{ route('student.path') }}'">
                 
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
                     <div style="width: 60px; height: 60px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">

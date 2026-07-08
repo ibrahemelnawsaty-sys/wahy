@@ -463,6 +463,35 @@
     html[data-theme="dark"] .badges-stat-card > div[style] {
         color: #2d3436 !important;
     }
+
+    /* بطاقات «آخر إنجازاتي» + المفاهيم + الدروس كانت تعتمد على dark-coverage
+       لتعتيم خلفياتها الفاتحة المكتوبة inline. لكن معالِجات onmouse*="this.style.*"
+       تُعيد تسلسل سمة style عند أوّل لمس (‎#f0fff4 → rgb(240,255,244)‎، و white →
+       rgb(255,255,255)‎)، فتنكسر مطابقة dark-coverage للـinline وترتدّ الخلفية
+       فاتحة بينما يبقى النص فاتحاً = فاتح على فاتح (يختفي المحتوى عند الضغط).
+       الحلّ الجذري: (1) نقل تأثير الحوم إلى CSS ‎:hover‎ لأجهزة المؤشّر فقط —
+       يمنع أيضاً «تعليق الحوم» على اللمس، و(2) إزالة معالِجات JS نهائياً فلا
+       إعادة تسلسل، و(3) خلفيات ليلية صريحة قائمة على الصنف محصّنة ضدّ أيّ إعادة
+       تسلسل. النوعية (‎html[data-theme] .class[style]‎) تفوق dark-coverage. */
+    @media (hover: hover) {
+        .ach-timeline-card:hover { transform: translateX(-10px); box-shadow: 0 8px 25px var(--glow, rgba(0,0,0,0.15)); }
+        .ach-concept-card:hover  { transform: translateX(-5px);  box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .ach-lesson-card:hover   { border-color: var(--lc-hover-border, #667eea) !important; }
+        .ach-lesson-head:hover   { background: #f7fafc; }
+    }
+    html[data-theme="dark"] .ach-timeline-card[style] {
+        background: rgba(148, 163, 184, 0.10) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html[data-theme="dark"] .ach-concept-card[style] {
+        background-image: none !important;
+        background-color: rgba(148, 163, 184, 0.10) !important;
+    }
+    html[data-theme="dark"] .ach-lesson-card[style] {
+        background: rgba(148, 163, 184, 0.07) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html[data-theme="dark"] .ach-lesson-head:hover { background: rgba(255, 255, 255, 0.05); }
 </style>
 <!-- Top Stats Bar -->
 <div class="animate-in" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
@@ -678,9 +707,7 @@
                     $conceptColor = $conceptCompleted ? '#48bb78' : '#667eea';
                 @endphp
                 
-                <div style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 15px; padding: 25px; border-right: 5px solid {{ $conceptColor }}; transition: all 0.3s;"
-                     onmouseover="this.style.transform='translateX(-5px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)'"
-                     onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'">
+                <div class="ach-concept-card" style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 15px; padding: 25px; border-right: 5px solid {{ $conceptColor }}; transition: all 0.3s;">
                     
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                         <div style="font-weight: 700; color: #2d3748; font-size: 20px; display: flex; align-items: center; gap: 10px;">
@@ -703,14 +730,9 @@
                             $lessonCompleted = $lesson->is_completed ?? false;
                         @endphp
                         
-                        <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid {{ $lessonCompleted ? '#48bb78' : '#e2e8f0' }}; transition: all 0.3s;"
-                             onmouseover="this.style.borderColor='{{ $lessonCompleted ? '#48bb78' : '#667eea' }}'"
-                             onmouseout="this.style.borderColor='{{ $lessonCompleted ? '#48bb78' : '#e2e8f0' }}'"
-                        >
-                            <div style="display: flex; align-items: start; justify-content: space-between; gap: 15px; margin-bottom: 15px; cursor: pointer; padding: 8px; border-radius: 10px; transition: background 0.2s;"
-                                 onclick="window.location.href='{{ route('student.lesson', $lesson->id) }}'"
-                                 onmouseover="this.style.background='#f7fafc'"
-                                 onmouseout="this.style.background='transparent'">
+                        <div class="ach-lesson-card" style="--lc-hover-border: {{ $lessonCompleted ? '#48bb78' : '#667eea' }}; background: white; border-radius: 12px; padding: 20px; border: 2px solid {{ $lessonCompleted ? '#48bb78' : '#e2e8f0' }}; transition: all 0.3s;">
+                            <div class="ach-lesson-head" style="display: flex; align-items: start; justify-content: space-between; gap: 15px; margin-bottom: 15px; cursor: pointer; padding: 8px; border-radius: 10px; transition: background 0.2s;"
+                                 onclick="window.location.href='{{ route('student.lesson', $lesson->id) }}'">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 700; color: #2d3748; font-size: 18px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
                                         <span style="font-size: 24px;">{{ $lessonCompleted ? '✅' : '💡' }}</span>
@@ -794,9 +816,7 @@
                 };
             @endphp
             
-            <div style="position: relative; background: {{ $statusConfig['bg'] }}; border-radius: 15px; padding: 20px; border: 2px solid {{ $statusConfig['color'] }}20; transition: all 0.3s; cursor: pointer;"
-                 onmouseover="this.style.transform='translateX(-10px)'; this.style.boxShadow='0 8px 25px {{ $statusConfig['glow'] }}';"
-                 onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none';">
+            <div class="ach-timeline-card" style="--glow: {{ $statusConfig['glow'] }}; position: relative; background: {{ $statusConfig['bg'] }}; border-radius: 15px; padding: 20px; border: 2px solid {{ $statusConfig['color'] }}20; transition: all 0.3s; cursor: pointer;">
                 
                 <!-- Timeline Dot -->
                 <div style="position: absolute; right: -60px; top: 25px; width: 40px; height: 40px; background: {{ $statusConfig['color'] }}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 15px {{ $statusConfig['glow'] }}; border: 4px solid white;">
