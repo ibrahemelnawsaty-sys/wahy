@@ -751,49 +751,121 @@ html[data-theme="dark"] .link-modal-actions .btn-cancel:hover { background: rgba
     }
 }
 
-/* ==================== تصحيحات خاصة بتخطيط الطالب (student-app) ==================== */
-/* student-app وحده يملك شريط تنقّل عائماً سفلياً (position:fixed; bottom:16px; height:72px)
-   فيصطدم به مُنشئ الرسالة. نُخصّص المحادثة للطالب لتملأ ما بين شريط الحالة والتنقّل
-   العائم دون تصادم (تخطيط مرن flex على الجوال بدل ارتفاع ثابت). المُحدِّد .student-app
-   أعلى تخصّصاً فيفوز على القواعد العامة أعلاه دون أن يمسّ بقية الأدوار. */
-.student-app .chat-container { height: calc(100vh - 340px); min-height: 460px; }
-@supports (height: 100dvh) {
-    .student-app .chat-container { height: calc(100dvh - 340px); }
+/* ملاحظة: تصحيحات تخطيط الطالب القديمة (ارتفاع ثابت calc(100vh-340px) + مُنشئ جوال
+   bottom:100px) استُبدلت كلياً بطبقة «ملء-الصفحة الفاخرة» الموحّدة أدناه (chat-container
+   مرن + مُنشئ جوال bottom:136px يتخطّى زرّ الثيم العائم أيضاً). أُزيل الكود الميّت لتفادي
+   الالتباس (كان يُطابِق نفس المُحدِّدات بتخصّص مساوٍ فتفوز الطبقة الأحدث). */
+
+/* ============================================================
+   وحي — رسائل الطالب ملء-الصفحة الفاخرة (student-app فقط)
+   كل القواعد مقيّدة بـ.student-app؛ الأسطح: --w-* ← --color-* ← ثابت.
+   تُلحَق بنهاية آخر <style> فتفوز على القواعد أعلاه دون !important
+   (إلا حيث نكسر style مضمّناً — !important مقيّد بـ.student-app، آمن).
+   ============================================================ */
+.student-app{
+  --wm-surface:   var(--w-card,        var(--color-card,        #ffffff));
+  --wm-surface-2: var(--w-bg,          var(--color-bg,          #f8fafc));
+  --wm-ink:       var(--w-text,        var(--color-text,        #0f172a));
+  --wm-ink-muted: var(--w-text-muted,  var(--color-text-muted,  #64748b));
+  --wm-line:      var(--w-border,      var(--color-border,      rgba(15,23,42,.08)));
+  --wm-overlay:   var(--color-overlay, rgba(255,255,255,.85));
+  --wm-shadow:    var(--color-shadow,  0 10px 40px rgba(2,6,23,.06));
+  --wm-brand-1:#667eea; --wm-brand-2:#764ba2;
+  --wm-grad: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  --wm-ring: 0 0 0 1px rgba(102,126,234,.16), 0 16px 40px rgba(102,126,234,.16);
+  --wm-accent:#667eea;                 /* لكنة تُفتَّح في الليلي */
+  --wsb:96px; --wnav:104px;            /* إزاحات افتراضية (تُعاد لكل نقطة) */
 }
-/* الجوال: الحلّ المتين — المُنشئ ثابت (fixed) على مسافة معلومة فوق التنقّل العائم،
-   مستقلّاً تماماً عن ارتفاع شريط الحالة (الذي يتغيّر ويلتفّ)؛ والرسائل تتدفّق فوقه. */
-@media (max-width: 640px) {
-    .student-app .chat-page {
-        display: block;
-        min-height: 0;
-        margin-bottom: 0;
-        padding: 8px 6px 232px;   /* الأسفل يترك مساحة للمُنشئ الثابت + التنقّل */
-        box-sizing: border-box;
-    }
-    .student-app .chat-container {
-        height: auto;
-        min-height: 0;
-        max-height: none;
-        overflow: visible;
-    }
-    .student-app .chat-messages {
-        height: auto;
-        max-height: none;
-        overflow: visible;
-        padding-bottom: 8px;
-    }
-    .student-app .chat-input {
-        position: fixed;
-        left: 8px;
-        right: 8px;
-        bottom: 100px;   /* فوق التنقّل العائم (bottom:16 + height:72 + هامش) */
-        z-index: 50;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.22);
-        background: var(--w-card, var(--color-card, #ffffff));
-        max-width: 960px;
-        margin: 0 auto;
-    }
+html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
+
+/* ---- (أ) تحرير القشرة + ملء العرض حافّة-لحافّة ---- */
+.student-app .student-main{ max-width:none; padding-top:0; padding-bottom:0; padding-inline:0; }
+.student-app .chat-page,
+.student-app .msg-inbox-shell{
+  width:100vw; margin-inline:calc(50% - 50vw); box-sizing:border-box; overflow-x:clip;
+  padding-inline:clamp(14px,4vw,44px);
+  padding-block:clamp(8px,2vw,16px) 0;
+}
+
+/* ---- (ب) ملء الارتفاع: عمود مرن بارتفاع محسوب (≥641)؛ تراجع vh ثم dvh ---- */
+@media (min-width:641px){
+  .student-app .chat-page,
+  .student-app .msg-inbox-shell{
+    display:flex; flex-direction:column; min-height:0;
+    height:calc(100vh - var(--wsb) - var(--wnav));
+  }
+}
+@supports (height:100dvh){ @media (min-width:641px){
+  .student-app .chat-page,
+  .student-app .msg-inbox-shell{ height:calc(100dvh - var(--wsb) - var(--wnav)); }
+}}
+@media (min-width:641px) and (max-width:767px){
+  .student-app .chat-page,.student-app .msg-inbox-shell{ --wsb:132px; --wnav:100px; }
+}
+@media (min-width:768px) and (max-width:1023px){
+  .student-app .chat-page,.student-app .msg-inbox-shell{ --wsb:96px; --wnav:104px; }
+}
+@media (min-width:1024px){
+  .student-app .chat-page,.student-app .msg-inbox-shell{ --wsb:80px; --wnav:106px; }
+}
+
+/* ---- (هـ) لمسات فخامة مشتركة (متطابقة في الملفّين) ---- */
+.student-app .user-avatar{ box-shadow:0 6px 18px rgba(102,126,234,.35); }
+.student-app .unread-badge{ box-shadow:0 3px 10px rgba(239,68,68,.45); }
+.student-app .empty-messages i,
+.student-app .conv-empty-icon{ animation:wmFloat 4s ease-in-out infinite; }
+@keyframes wmFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+@keyframes wmRise{ from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* ================= المحادثة — ملء الصفحة ================= */
+.student-app .chat-page{ max-width:none; margin:0; }   /* + full-bleed/height من الجزء المشترك */
+
+/* الحاوية تملأ المتبقّي (تتجاوز height:calc(100dvh-340px) القائمة) */
+.student-app .chat-container{
+  flex:1; min-height:0; height:auto; max-height:none; width:100%; max-width:none;
+  display:flex; flex-direction:column; overflow:hidden; margin:0; border-radius:20px;
+  background:var(--wm-surface); border:1px solid var(--wm-line); box-shadow:var(--wm-shadow);
+}
+
+/* رأس زجاجي أنيق (chat-messages وحده يُمرَّر، فالرأس يثبت طبيعياً) */
+.student-app .chat-header{ background:var(--wm-overlay); border-bottom:1px solid var(--wm-line); }
+@media (min-width:768px){
+  .student-app .chat-header{ -webkit-backdrop-filter:blur(14px) saturate(160%); backdrop-filter:blur(14px) saturate(160%); }
+}
+.student-app .user-info h3{ color:var(--wm-ink); }
+.student-app .user-info p{ color:var(--wm-ink-muted); }
+.student-app .user-avatar{ border-color:var(--wm-surface); }
+
+/* منطقة الرسائل تملأ + قياس قراءة مريح داخل لوحة عريضة (لابتوب) */
+.student-app .chat-messages{ flex:1; min-height:0; }
+@media (min-width:1024px){
+  .student-app .chat-header,
+  .student-app .chat-messages,
+  .student-app .chat-input{ padding-inline:max(28px,(100% - 1060px)/2); }
+}
+
+/* الفقاعات: عرض متجاوب (الأسطح/الذيول/الظلال موجودة وتبقى) */
+.student-app .message-bubble{ max-width:min(68%,720px); }
+@media (min-width:768px) and (max-width:1023px){ .student-app .message-bubble{ max-width:72%; } }
+
+/* المُنشئ (ديسكتوب/تابلت): طفل مرن — سطح صلب */
+.student-app .chat-input{ background:var(--wm-surface); border-top-color:var(--wm-line); }
+
+/* أداء: إطفاء الزجاج ≤768 (فلسفة القشرة) */
+@media (max-width:768px){
+  .student-app .chat-header{ -webkit-backdrop-filter:none; backdrop-filter:none; background:var(--wm-surface); }
+}
+
+/* جوال ≤640: المُنشئ ثابت فوق التنقّل + زرّ الثيم؛ الرسائل تتدفّق فوقه (الثابت #4 مُحسَّن) */
+@media (max-width:640px){
+  .student-app .chat-page{ display:block; height:auto; min-height:0; padding:8px 10px 264px; }
+  .student-app .chat-container{ height:auto; min-height:0; max-height:none; overflow:visible; border-radius:16px; }
+  .student-app .chat-messages{ height:auto; max-height:none; overflow:visible; padding-bottom:8px; }
+  .student-app .chat-input{
+    position:fixed; inset-inline:8px; bottom:136px; z-index:50;
+    border-radius:16px; box-shadow:0 12px 34px rgba(2,6,23,.24);
+    background:var(--wm-surface); max-width:960px; margin-inline:auto;
+  }
 }
 </style>
 
@@ -953,6 +1025,11 @@ scrollToBottom();
 
 function scrollToBottom() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // على الجوال تصبح الحاوية overflow:visible (غير مُمرَّرة) فالمُمرِّر الفعلي هو النافذة —
+    // نُمرّر النافذة لأسفل لتظهر أحدث رسالة فوق المُنشئ الثابت (لا يؤثّر في الديسكتوب المُمرَّر).
+    if (messagesContainer.scrollHeight <= messagesContainer.clientHeight + 1) {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
 }
 
 function handleKeyPress(event) {

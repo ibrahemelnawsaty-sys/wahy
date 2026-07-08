@@ -11,7 +11,7 @@
     foreach ($conversations as $__conv) { $unreadTotal += $__conv->unreadCount($authId); }
 @endphp
 <!-- Container with padding for status bar and bottom nav -->
-<div style="padding-top: 100px; padding-bottom: 120px; padding-left: 20px; padding-right: 20px; max-width: 1400px; margin: 0 auto;">
+<div class="msg-inbox-shell" style="padding-top: 100px; padding-bottom: 120px; padding-left: 20px; padding-right: 20px; max-width: 1400px; margin: 0 auto;">
 <!-- Page Header -->
 <div class="msg-page-header">
     <div class="msg-ph-top">
@@ -456,6 +456,178 @@ html[data-theme="dark"] .cw-stat-unread .cw-stat-num { color: #fca5a5; }
     .conversation-item:hover,
     .user-list-item:hover { transform: none; }
 }
+
+/* ============================================================
+   وحي — رسائل الطالب ملء-الصفحة الفاخرة (student-app فقط)
+   كل القواعد مقيّدة بـ.student-app؛ الأسطح: --w-* ← --color-* ← ثابت.
+   ============================================================ */
+.student-app{
+  --wm-surface:   var(--w-card,        var(--color-card,        #ffffff));
+  --wm-surface-2: var(--w-bg,          var(--color-bg,          #f8fafc));
+  --wm-ink:       var(--w-text,        var(--color-text,        #0f172a));
+  --wm-ink-muted: var(--w-text-muted,  var(--color-text-muted,  #64748b));
+  --wm-line:      var(--w-border,      var(--color-border,      rgba(15,23,42,.08)));
+  --wm-overlay:   var(--color-overlay, rgba(255,255,255,.85));
+  --wm-shadow:    var(--color-shadow,  0 10px 40px rgba(2,6,23,.06));
+  --wm-brand-1:#667eea; --wm-brand-2:#764ba2;
+  --wm-grad: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  --wm-ring: 0 0 0 1px rgba(102,126,234,.16), 0 16px 40px rgba(102,126,234,.16);
+  --wm-accent:#667eea;                 /* لكنة تُفتَّح في الليلي */
+  --wsb:96px; --wnav:104px;            /* إزاحات افتراضية (تُعاد لكل نقطة) */
+}
+html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
+
+/* ---- (أ) تحرير القشرة + ملء العرض حافّة-لحافّة ---- */
+.student-app .student-main{ max-width:none; padding-top:0; padding-bottom:0; padding-inline:0; }
+.student-app .msg-inbox-shell{
+  width:100vw; margin-inline:calc(50% - 50vw); box-sizing:border-box; overflow-x:clip;
+  padding-inline:clamp(14px,4vw,44px);
+  padding-block:clamp(8px,2vw,16px) 0;
+}
+
+/* ---- (ب) ملء الارتفاع: عمود مرن بارتفاع محسوب (≥641)؛ تراجع vh ثم dvh ---- */
+@media (min-width:641px){
+  .student-app .msg-inbox-shell{
+    display:flex; flex-direction:column; min-height:0;
+    height:calc(100vh - var(--wsb) - var(--wnav));
+  }
+}
+@supports (height:100dvh){ @media (min-width:641px){
+  .student-app .msg-inbox-shell{ height:calc(100dvh - var(--wsb) - var(--wnav)); }
+}}
+@media (min-width:641px) and (max-width:767px){
+  .student-app .msg-inbox-shell{ --wsb:132px; --wnav:100px; }
+}
+@media (min-width:768px) and (max-width:1023px){
+  .student-app .msg-inbox-shell{ --wsb:96px; --wnav:104px; }
+}
+@media (min-width:1024px){
+  .student-app .msg-inbox-shell{ --wsb:80px; --wnav:106px; }
+}
+
+/* ---- (هـ) لمسات فخامة مشتركة ---- */
+.student-app .user-avatar{ box-shadow:0 6px 18px rgba(102,126,234,.35); }
+.student-app .unread-badge{ box-shadow:0 3px 10px rgba(239,68,68,.45); }
+.student-app .conv-empty-icon{ animation:wmFloat 4s ease-in-out infinite; }
+@keyframes wmFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+@keyframes wmRise{ from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* ================= صندوق الوارد — ملء الصفحة ================= */
+/* كسر الـinline المضمّن على الغلاف — للطالب فقط */
+.student-app .msg-inbox-shell{
+  max-width:none !important; margin-block:0 !important;
+  width:100vw !important; margin-inline:calc(50% - 50vw) !important;
+  padding:clamp(8px,2vw,16px) clamp(14px,4vw,44px) 0 !important;
+}
+
+/* الهيدر: طفل auto أنحف + زجاج خفيف على الديسكتوب */
+.student-app .msg-page-header{
+  margin-bottom:clamp(10px,1.4vw,16px);
+  background:var(--wm-surface); border:1px solid var(--wm-line); box-shadow:var(--wm-shadow);
+}
+@media (min-width:768px){
+  .student-app .msg-page-header{
+    background:var(--wm-overlay);
+    -webkit-backdrop-filter:blur(16px) saturate(160%); backdrop-filter:blur(16px) saturate(160%);
+  }
+}
+.student-app .msg-ph-title,.student-app .msg-ph-current{ color:var(--wm-ink); }
+.student-app .msg-ph-crumbs{ color:var(--wm-ink-muted); }
+.student-app .msg-ph-link{ color:var(--wm-accent); }
+
+/* الشبكة تملأ الارتفاع (تتجاوز calc(100vh-280px) القاعدة) */
+.student-app .messages-container{
+  flex:1; min-height:0; height:auto; padding-bottom:0;
+  grid-template-columns:minmax(340px,400px) 1fr; gap:clamp(14px,1.5vw,22px);
+}
+@media (min-width:768px) and (max-width:1023px){
+  .student-app .messages-container{ grid-template-columns:300px 1fr; gap:16px; }
+}
+
+/* القائمة: سطح صلب + تمرير داخلي + رأس لاصق */
+.student-app .conversations-list{
+  min-height:0; overflow-y:auto; border-radius:20px; padding:clamp(14px,1.2vw,22px);
+  background:var(--wm-surface); border:1px solid var(--wm-line); box-shadow:var(--wm-shadow);
+}
+.student-app .conversations-list h3{
+  position:sticky; top:0; z-index:2; margin:0 0 12px; padding-block:10px;
+  background:var(--wm-surface); color:var(--wm-ink);
+}
+
+/* بنود المحادثة: سطح غائر صلب + شريط لكنة على الحافّة الابتدائية + رفع */
+.student-app .conversation-item{
+  background:var(--wm-surface-2); border:1px solid var(--wm-line);
+  border-inline-start:3px solid transparent; animation:wmRise .38s cubic-bezier(.4,0,.2,1) both;
+}
+.student-app .conversation-item:hover,
+.student-app .conversation-item.active{
+  background:var(--wm-surface); border-color:var(--wm-brand-1);
+  border-inline-start-color:var(--wm-brand-1); box-shadow:var(--wm-ring);
+}
+.student-app .conversation-item:hover{ transform:translateX(-4px); }
+.student-app .user-name{ color:var(--wm-ink); }
+.student-app .last-message{ color:var(--wm-ink-muted); }
+
+/* لوحة الترحيب تملأ العمود الثاني */
+.student-app .chat-container{
+  height:100%; min-height:0; overflow:hidden; border-radius:20px;
+  background:var(--wm-surface); border:1px solid var(--wm-line); box-shadow:var(--wm-shadow);
+}
+.student-app .cw-title{ color:var(--wm-ink); }
+.student-app .cw-sub,.student-app .cw-stat-label,.student-app .cw-hint{ color:var(--wm-ink-muted); }
+.student-app .cw-stat,.student-app .cw-hint{ background:var(--wm-surface-2); border-color:var(--wm-line); }
+.student-app .cw-stat-num{ color:var(--wm-accent); }
+.student-app .cw-stat-unread .cw-stat-num{ color:#ef4444; }
+
+/* المودال: سطح صلب + إصلاح المدخلات الفاتحة المضمّنة (ليلي) */
+.student-app .modal-content{ background:var(--wm-surface); border-color:var(--wm-line); color:var(--wm-ink); }
+.student-app #userSearch{
+  background:var(--wm-surface-2) !important; color:var(--wm-ink) !important; border:2px solid var(--wm-line) !important;
+}
+html[data-theme="dark"] .student-app #schoolSelect{
+  background:var(--wm-surface) !important; color:var(--wm-ink) !important; border-color:var(--wm-line) !important;
+}
+.student-app .user-list-item{ background:var(--wm-surface-2); border-color:var(--wm-line); animation:wmRise .38s cubic-bezier(.4,0,.2,1) both; }
+.student-app .user-list-item:hover{ background:var(--wm-surface); border-color:var(--wm-brand-1); box-shadow:var(--wm-ring); }
+/* شارات الأدوار داخل مودال المستخدمين: خلفياتها الفاتحة inline تبدو ساطعة في الليلي
+   فوق البطاقة الداكنة. نحوّلها (للطالب في الليلي فقط) إلى تلوين شفّاف بلون الدور نفسه
+   + نص فاتح — يُبقي تمييز كل دور ويرفع التباين. مطابقة inline لكل لون دور. */
+html[data-theme="dark"] .student-app .user-list-item .user-name > span[style*="#dbeafe"]{ background:rgba(59,130,246,.22) !important; color:#bfdbfe !important; }
+html[data-theme="dark"] .student-app .user-list-item .user-name > span[style*="#dcfce7"]{ background:rgba(34,197,94,.22) !important; color:#bbf7d0 !important; }
+html[data-theme="dark"] .student-app .user-list-item .user-name > span[style*="#fef3c7"]{ background:rgba(245,158,11,.22) !important; color:#fde68a !important; }
+html[data-theme="dark"] .student-app .user-list-item .user-name > span[style*="#e0e7ff"]{ background:rgba(99,102,241,.22) !important; color:#c7d2fe !important; }
+
+/* أشرطة تمرير بإبهام العلامة */
+.student-app .conversations-list::-webkit-scrollbar,
+.student-app .chat-welcome::-webkit-scrollbar,
+.student-app #usersList::-webkit-scrollbar,
+.student-app .modal-content::-webkit-scrollbar{ width:8px; }
+.student-app .conversations-list::-webkit-scrollbar-thumb,
+.student-app .chat-welcome::-webkit-scrollbar-thumb,
+.student-app #usersList::-webkit-scrollbar-thumb,
+.student-app .modal-content::-webkit-scrollbar-thumb{
+  background:linear-gradient(var(--wm-brand-1),var(--wm-brand-2)); border-radius:8px;
+}
+
+/* صغير 641–767: عمود واحد + إخفاء لوحة الترحيب (لا JS يعتمدها في الوارد) */
+@media (min-width:641px) and (max-width:767px){
+  .student-app .messages-container{ grid-template-columns:1fr; }
+  .student-app .msg-inbox-shell .chat-container{ display:none; }
+}
+
+/* جوال ≤640: تدفّق حرّ حافّة-لحافّة */
+@media (max-width:640px){
+  .student-app .msg-inbox-shell{ height:auto !important; display:block; padding:8px 10px 120px !important; }
+  .student-app .messages-container{ grid-template-columns:1fr; height:auto; min-height:0; gap:14px; }
+  .student-app .msg-inbox-shell .chat-container{ display:none; }
+  .student-app .conversations-list{
+    max-height:none; overflow:visible; border-radius:16px;
+    border-inline:0; box-shadow:none; padding-inline:clamp(10px,3vw,16px);
+  }
+  .student-app .conversation-item:hover,.student-app .user-list-item:hover{ transform:none; }
+  .student-app .msg-page-header{ background:transparent; border:0; box-shadow:none; padding:6px 4px; margin-bottom:8px; }
+  .student-app .msg-ph-crumbs{ display:none; }
+}
 </style>
 
 <div class="messages-container">
@@ -694,7 +866,7 @@ function filterUsers() {
         if (!noResults) {
             noResults = document.createElement('div');
             noResults.id = 'noResultsMessage';
-            noResults.style.cssText = 'text-align: center; padding: 40px; color: #64748b;';
+            noResults.style.cssText = 'text-align: center; padding: 40px; color: var(--w-text-muted, var(--color-text-muted, #94a3b8));';
             noResults.innerHTML = '<p>🔍 لا توجد نتائج</p><p style="font-size: 13px;">جرب البحث بكلمات أخرى</p>';
             document.getElementById('usersList').appendChild(noResults);
         }
