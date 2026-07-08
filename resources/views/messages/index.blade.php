@@ -628,6 +628,98 @@ html[data-theme="dark"] .student-app .user-list-item .user-name > span[style*="#
   .student-app .msg-page-header{ background:transparent; border:0; box-shadow:none; padding:6px 4px; margin-bottom:8px; }
   .student-app .msg-ph-crumbs{ display:none; }
 }
+
+/* ===================================================================
+   وحي — ملء-الصفحة الفاخر لصندوق الوارد المشترك (المعلّم + وليّ الأمر).
+   المتحكّم يوجّه super_admin→messages.admin.index و school_admin→
+   messages.school-admin.index (صفحتاهما الخاصّتان تملآن العرض/الارتفاع
+   أصلاً)، والمعلّم (بعد توجيهه مباشرةً لـmessages.index) ووليّ الأمر
+   يعرضان هذا الملفّ المشترك. طبقة تخطيط بحتة مقيّدة بحاوية كل دور +
+   :has(.msg-inbox-shell) — لا تمسّ .student-app ولا صفحات غير الرسائل.
+   (المكوّنات فخمة أصلاً عبر --w-*.)
+   =================================================================== */
+
+/* (1) تحييد سقف/حشو الحاوية على صفحة الوارد فقط */
+.teacher-main:has(.msg-inbox-shell),
+#parent-main-content:has(.msg-inbox-shell){
+  max-width:none;
+  padding:0;
+}
+
+/* (2) الجذر يملأ العرض ويصير عمود مرن */
+.teacher-main .msg-inbox-shell,
+#parent-main-content .msg-inbox-shell{
+  max-width:none !important;          /* يكسر inline max-width:1400px */
+  margin:0 !important;                /* يكسر inline margin:0 auto */
+  width:100%;
+  box-sizing:border-box;
+  padding:clamp(16px,2vw,28px) clamp(16px,2.4vw,32px) 0 !important;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
+/* (3) الشبكة تملأ ما تبقّى من الارتفاع */
+.teacher-main .messages-container,
+#parent-main-content .messages-container{
+  flex:1;
+  min-height:0;
+  height:auto;
+  padding-bottom:clamp(16px,2vw,28px);
+}
+
+/* طفلا الشبكة يمرّران داخلياً (القائمة overflow-y:auto، لوحة الترحيب عمود مرن) */
+.teacher-main .conversations-list,
+#parent-main-content .conversations-list,
+.teacher-main .messages-container > .chat-container,
+#parent-main-content .messages-container > .chat-container{
+  min-height:0;
+  height:auto;
+}
+
+/* (4-أ) المعلّم: .teacher-main = flex:1 داخل .teacher-layout (min-height:100vh بلا رأس
+   ثابت) — نجعلها عمود مرن فيرث الجذر (100vh − القائمة الجانبية) الطولَ تلقائياً */
+@media (min-width:641px){
+  .teacher-main:has(.msg-inbox-shell){
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+  .teacher-main .msg-inbox-shell{ flex:1; }
+}
+
+/* (4-ب) وليّ الأمر: رأس sticky ≈84px (يلتفّ صفّين ≈132px في 641–768) */
+@media (min-width:641px){
+  #parent-main-content .msg-inbox-shell{ --ph:84px; height:calc(100vh - var(--ph)); }
+}
+@media (min-width:641px) and (max-width:768px){
+  #parent-main-content .msg-inbox-shell{ --ph:132px; }
+}
+@supports (height:100dvh){
+  @media (min-width:641px){
+    #parent-main-content .msg-inbox-shell{ height:calc(100dvh - var(--ph)); }
+  }
+}
+
+/* (5) جوال ≤640: تدفّق طبيعي (block) وإخفاء لوحة الترحيب (كما الطالب) */
+@media (max-width:640px){
+  .teacher-main .msg-inbox-shell,
+  #parent-main-content .msg-inbox-shell{
+    height:auto !important;
+    display:block;
+    min-height:0;
+    padding:12px 12px 24px !important;
+  }
+  .teacher-main .messages-container,
+  #parent-main-content .messages-container{
+    height:auto;
+    min-height:0;
+  }
+  .teacher-main .msg-inbox-shell .chat-container,
+  #parent-main-content .msg-inbox-shell .chat-container{
+    display:none;
+  }
+}
 </style>
 
 <div class="messages-container">

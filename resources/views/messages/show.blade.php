@@ -867,6 +867,138 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
     background:var(--wm-surface); max-width:960px; margin-inline:auto;
   }
 }
+
+/* ===================================================================
+   وحي — ملء-الصفحة الفاخر لصفحة المحادثة (بقيّة الأدوار: super_admin /
+   school_admin / teacher / parent). طبقة تخطيط بحتة. مقيّدة بحاوية كل
+   دور ومبوّبة بـ:has(.chat-page). الحاوية تملأ العرض، والرأس/الرسائل/
+   المُنشئ ضمن عمود قراءة ~1060px (اتّساقاً مع الطالب).
+   تخصّص: .chat-page/.chat-container أنماطها في <style> لا inline، فمُحدِّد
+   الحاوية (0,2,0 أو id 1,1,0) يتغلّب على القاعدة الأساسية (0,1,0) بلا !important.
+   =================================================================== */
+
+/* (1) تحييد سقف/حشو الحاوية على صفحة المحادثة فقط (كل العروض) --------- */
+.admin-content:has(.chat-page),
+.main-content:has(.chat-page),
+.teacher-main:has(.chat-page),
+#parent-main-content:has(.chat-page){
+  max-width:none;
+  padding:0;
+}
+
+/* (2) الجذر .chat-page يملأ العرض ويصير عمود مرن (بلا !important) ------ */
+.admin-content .chat-page,
+.main-content .chat-page,
+.teacher-main .chat-page,
+#parent-main-content .chat-page{
+  max-width:none;                     /* يتجاوز base max-width:980px */
+  margin:0;                           /* يتجاوز base margin:0 auto */
+  width:100%;
+  box-sizing:border-box;
+  padding:clamp(16px,2vw,28px) clamp(16px,2.4vw,32px);
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
+/* (3) لوحة المحادثة تملأ ما تبقّى (تتجاوز base height:calc(100vh-280px)
+   + max-width:960px + margin:0 auto). عمود مرن داخلي: رأس(auto) +
+   رسائل(flex:1 تمرير) + مُنشئ(auto) => التمرير داخلي لا للصفحة. */
+.admin-content .chat-container,
+.main-content .chat-container,
+.teacher-main .chat-container,
+#parent-main-content .chat-container{
+  max-width:none;
+  margin:0;
+  width:100%;
+  flex:1;
+  min-height:0;
+  height:auto;
+  max-height:none;
+}
+.admin-content .chat-messages,
+.main-content .chat-messages,
+.teacher-main .chat-messages,
+#parent-main-content .chat-messages{
+  min-height:0;                       /* base أصلاً flex:1 — نضمن الانكماش */
+}
+
+/* (4-أ) نظام الطول «flex-fill»: super_admin + teacher (حاوية محدودة بالمنفذ) */
+@media (min-width:641px){
+  .admin-content:has(.chat-page),
+  .teacher-main:has(.chat-page){
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+  .admin-content .chat-page,
+  .teacher-main .chat-page{
+    flex:1;
+  }
+}
+
+/* (4-ب) نظام الطول «calc صريح»: school_admin (رأس ≈88px) + parent
+   (رأس ≈84px، يلتفّ صفّين ≈132px في 641–768) */
+@media (min-width:641px){
+  .main-content .chat-page{ height:calc(100vh - 88px); }
+  #parent-main-content .chat-page{ --ph:84px; height:calc(100vh - var(--ph)); }
+}
+@media (min-width:641px) and (max-width:768px){
+  .main-content .chat-page{ height:calc(100vh - 74px); }
+  #parent-main-content .chat-page{ --ph:132px; }
+}
+@supports (height:100dvh){
+  @media (min-width:641px){
+    .main-content .chat-page{ height:calc(100dvh - 88px); }
+    #parent-main-content .chat-page{ height:calc(100dvh - var(--ph)); }
+  }
+  @media (min-width:641px) and (max-width:768px){
+    .main-content .chat-page{ height:calc(100dvh - 74px); }
+  }
+}
+
+/* (5) عمود القراءة المتوسّط ~1060px داخل اللوحة الممتلئة عرضاً — يوسّط
+   الرأس/الرسائل/المُنشئ (اتّساقاً مع الطالب)، ديسكتوب/تابلت فقط ------- */
+@media (min-width:641px){
+  .admin-content .chat-header, .admin-content .chat-messages, .admin-content .chat-input,
+  .main-content .chat-header, .main-content .chat-messages, .main-content .chat-input,
+  .teacher-main .chat-header, .teacher-main .chat-messages, .teacher-main .chat-input,
+  #parent-main-content .chat-header, #parent-main-content .chat-messages, #parent-main-content .chat-input{
+    padding-inline:max(28px,(100% - 1060px)/2);
+  }
+}
+
+/* (6) جوال ≤640: تدفّق طبيعي — الصفحة تُمرَّر والمُنشئ ضمن التدفّق (لا
+   مُنشئ ثابت لغير الطالب، تفادياً لمصارعة زرّ الثيم العائم للوليّ). */
+@media (max-width:640px){
+  .admin-content .chat-page,
+  .main-content .chat-page,
+  .teacher-main .chat-page,
+  #parent-main-content .chat-page{
+    display:block;
+    height:auto;
+    min-height:0;
+    padding:16px 12px 28px;
+  }
+  .admin-content .chat-container,
+  .main-content .chat-container,
+  .teacher-main .chat-container,
+  #parent-main-content .chat-container{
+    height:auto;
+    min-height:60vh;
+    max-height:none;
+    overflow:visible;
+  }
+  .admin-content .chat-messages,
+  .main-content .chat-messages,
+  .teacher-main .chat-messages,
+  #parent-main-content .chat-messages{
+    height:auto;
+    max-height:none;
+    overflow:visible;
+    min-height:0;
+  }
+}
 </style>
 
 <!-- Container with padding for status bar and bottom nav -->

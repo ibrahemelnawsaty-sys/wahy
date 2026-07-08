@@ -44,7 +44,7 @@ class MessagesController extends Controller
         $viewPath = match ($user->role) {
             'super_admin' => 'messages.admin.index',
             'school_admin' => 'messages.school-admin.index',
-            'teacher' => 'messages.teacher.index',
+            'teacher' => 'messages.index', // موحّد مع الوليّ/الطالب على تصميم ملء-الصفحة المشترك؛ كان messages.teacher.index يُضمّن (@include) هذا الملفّ المُمتِدّ لتخطيط فيُنشئ تخطيطاً متداخلاً (قائمتان جانبيّتان)
             'parent' => 'messages.index', // نفس التصميم الافتراضي
             'student' => 'messages.index', // نفس التصميم الافتراضي
             default => 'messages.index'
