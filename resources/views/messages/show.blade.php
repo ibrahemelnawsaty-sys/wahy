@@ -861,6 +861,7 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
   .student-app .chat-page{ display:block; height:auto; min-height:0; padding:8px 10px 264px; }
   .student-app .chat-container{ height:auto; min-height:0; max-height:none; overflow:visible; border-radius:16px; }
   .student-app .chat-messages{ height:auto; max-height:none; overflow:visible; padding-bottom:8px; }
+  .student-app .message-bubble{ max-width:82%; }   /* استغلال أفضل لعرض الجوال */
   .student-app .chat-input{
     position:fixed; inset-inline:8px; bottom:136px; z-index:50;
     border-radius:16px; box-shadow:0 12px 34px rgba(2,6,23,.24);
@@ -1136,9 +1137,14 @@ function _trimTrailing(el) {
             node = prev;
             continue;
         }
-        if (node.nodeType === 1 && !(node.matches && node.matches('img,video,audio'))
+        if (node.nodeType === 3) {
+            // نصّ غير فارغ لكنه ينتهي بمسافات/أسطر جديدة: مع white-space:pre-wrap تُرسَم
+            // فراغاً رأسياً فتطول الفقاعة (السبب الحقيقي للفقاعات الطويلة). التقليم السابق
+            // كان يحذف عناصر <br>/الفارغة فقط لا الذيل الأبيض داخل العقدة النصّية — فنقلّمه هنا.
+            node.textContent = node.textContent.replace(/[\s ]+$/, '');
+        } else if (node.nodeType === 1 && !(node.matches && node.matches('img,video,audio'))
             && !(node.querySelector && node.querySelector('img,video,audio'))) {
-            _trimTrailing(node);   // تغلغل: قد ينتهي العنصر النصّي بأسطر <br> داخلية
+            _trimTrailing(node);   // تغلغل: قد ينتهي العنصر النصّي بأسطر <br>/مسافات داخلية
         }
         break;
     }
