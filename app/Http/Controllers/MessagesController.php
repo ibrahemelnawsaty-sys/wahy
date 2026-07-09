@@ -251,12 +251,14 @@ class MessagesController extends Controller
             // الحصول على المحادثة أو إنشاؤها
             $conversation = Conversation::findOrCreate($sender->id, $receiver->id);
 
-            // إنشاء الرسالة
+            // إنشاء الرسالة — نطبّع المحتوى قبل التخزين (يزيل العُقد الفارغة/الأحرف الخفية
+            // التي يُدخلها المحرّر فتُضخّم الفقاعة)، مع تراجع للخام لو أنتج التطبيع فراغاً.
+            $normalized = normalize_message_html($request->message);
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_id' => $sender->id,
                 'receiver_id' => $receiver->id,
-                'message' => $request->message,
+                'message' => $normalized !== '' ? $normalized : $request->message,
             ]);
 
             // تحديث وقت آخر رسالة

@@ -78,10 +78,15 @@ html[data-theme="dark"] .user-info p { color: #94a3b8; }
 }
 
 .message {
-    margin-bottom: 20px;
+    margin-bottom: 3px;
     display: flex;
     gap: 12px;
     animation: messageSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* تجميع بأسلوب تلجرام: فجوة أكبر فقط عند تغيّر المُرسِل (CSS فقط، بلا JS) */
+.message.sent + .message.received,
+.message.received + .message.sent {
+    margin-top: 14px;
 }
 
 @keyframes messageSlide {
@@ -100,44 +105,52 @@ html[data-theme="dark"] .user-info p { color: #94a3b8; }
 }
 
 .message-bubble {
-    max-width: 65%;
-    padding: 14px 18px;
-    border-radius: 18px;
+    width: fit-content;
+    max-width: 72%;
+    padding: 7px 12px 6px;
+    border-radius: 14px;
     word-wrap: break-word;
-    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
     position: relative;
-    transition: all 0.3s ease;
-    line-height: 1.6;
+    transition: box-shadow 0.2s ease;
+    line-height: 1.45;
+    font-size: 14.5px;
 }
 
-.message-bubble:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+.message.sent .message-bubble:hover,
+.message.received .message-bubble:hover {
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.10);
 }
 
 .message.received .message-bubble {
     background: white;
     border: 2px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     border-bottom-right-radius: 4px;
 }
 
 .message.sent .message-bubble {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.28);
     border-bottom-left-radius: 4px;
 }
 
 .message-time {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-top: 6px;
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 2px;
     font-weight: 500;
+    text-align: end;
+    line-height: 1;
 }
+/* الطابع عند الحافّة الخارجيّة لكل جانب (المُستقبَل يمين الشاشة → start=يمين في RTL) */
+.message.received .message-time { text-align: start; }
+html[data-theme="dark"] .message.received .message-time { color: #94a3b8; }
 
 .message.sent .message-time {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.92);
 }
 
 /* تنسيق الصور داخل الرسائل */
@@ -605,7 +618,7 @@ html[data-theme="dark"] .chat-messages {
 }
 
 /* الفقاعات — لمسة أفخم + تغطية ليلية للمستلَمة عبر المتغيّرات */
-.message-bubble { box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
+.message-bubble { box-shadow: 0 1px 4px rgba(2,6,23,0.06); }
 .message.received .message-bubble {
     background: var(--w-card, #fff);
     border-color: var(--w-border, #e2e8f0);
@@ -731,8 +744,8 @@ html[data-theme="dark"] .link-modal-actions .btn-cancel:hover { background: rgba
     .user-info h3 { font-size: 16px; }
     .user-info p { font-size: 12px; word-break: break-word; }
     .chat-messages { padding: 16px 14px; }
-    .message { margin-bottom: 14px; gap: 8px; }
-    .message-bubble { max-width: 85%; padding: 12px 15px; }
+    .message { margin-bottom: 3px; gap: 8px; }
+    .message-bubble { max-width: 82%; padding: 7px 11px 6px; }
     .chat-input { padding: 14px; }
     .editor-toolbar { gap: 2px; padding: 6px 8px; }
     .toolbar-btn { width: 32px; height: 32px; font-size: 12px; }
@@ -1033,7 +1046,7 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
         @forelse($messages as $message)
             <div class="message {{ $message->sender_id == auth()->id() ? 'sent' : 'received' }}">
                 <div class="message-bubble">
-                    {!! safe_html($message->message) !!}
+                    {!! safe_html(normalize_message_html($message->message)) !!}
                     <div class="message-time">
                         <span style="margin-left: 4px;">🕒</span>
                         {{ $message->created_at->diffForHumans() }}
@@ -1117,12 +1130,12 @@ const sendBtn = document.getElementById('sendBtn');
 // عقدة فارغة؟ (سطر <br>، أو عنصر بلا نص/صورة، أو نص مسافات/nbsp فقط)
 function _isBlankNode(node) {
     if (!node) return false;
-    if (node.nodeType === 3) return !node.textContent.replace(/ /g, ' ').trim();
+    if (node.nodeType === 3) return !node.textContent.replace(/\u00A0/g, ' ').trim();
     if (node.nodeType === 1) {
         if (node.tagName === 'BR') return true;
         if (node.matches && node.matches('img,video,audio')) return false;
         if (node.querySelector && node.querySelector('img,a,video,audio')) return false;
-        return !node.textContent.replace(/ /g, ' ').trim();
+        return !node.textContent.replace(/\u00A0/g, ' ').trim();
     }
     return false;
 }
@@ -1150,10 +1163,34 @@ function _trimTrailing(el) {
     }
 }
 
-// تقليم الفراغات المتأخّرة في الفقاعات الموجودة (رسائل أُرسلت بأسطر فارغة من محرّر contenteditable).
+// تطبيع DOM يطابق normalize_message_html الخادميّة: يزيل الأحرف الخفية والعُقد الفارغة.
+function _stripZeroWidth(root) {
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var n;
+    while ((n = w.nextNode())) {
+        n.textContent = n.textContent
+            .replace(/[\u200B\u200C\u200D\u2060\uFEFF\u00AD]/g, '')
+            .replace(/\u00A0/g, ' ');
+    }
+}
+function _removeEmptyEls(root) {
+    var EMPTY = 'div,p,span,b,i,u,strong,em,a,font,small,sub,sup,section,article';
+    var changed = true;
+    while (changed) {
+        changed = false;
+        root.querySelectorAll(EMPTY).forEach(function (el) {
+            if (el.querySelector('img,video,audio')) return;           // لا تحذف حاويةَ وسائط
+            if (el.textContent.replace(/[\s ]/g, '') === '') { el.remove(); changed = true; }
+        });
+    }
+}
+
+// تنظيف الفقاعات الموجودة عند التحميل (احتياط فوق التطبيع الخادميّ) — يزيل الفراغ المُضخِّم للفقاعة.
 document.querySelectorAll('.message-bubble').forEach(function (b) {
     var time = b.querySelector('.message-time');
     if (time) b.removeChild(time);
+    _stripZeroWidth(b);
+    _removeEmptyEls(b);
     _trimTrailing(b);
     if (time) b.appendChild(time);
 });
@@ -1325,6 +1362,8 @@ function insertImage(input) {
 function cleanMessageHtml(html) {
     var t = document.createElement('div');
     t.innerHTML = html;
+    _stripZeroWidth(t);
+    _removeEmptyEls(t);
     _trimTrailing(t);
     while (t.firstChild && _isBlankNode(t.firstChild)) t.removeChild(t.firstChild);
     return t.innerHTML.trim();

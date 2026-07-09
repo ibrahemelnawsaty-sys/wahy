@@ -200,3 +200,56 @@ if (! function_exists('safe_html')) {
         return $html;
     }
 }
+
+if (! function_exists('normalize_message_html')) {
+    /**
+     * تطبيع محتوى رسالة قادم من محرّر contenteditable قبل التخزين/العرض.
+     *
+     * يعالج «الفقاعات الطويلة الفارغة»: المحرّر يُدخل عُقداً فارغة/بيضاء (كتل <div>
+     * و<div><br></div> فارغة، &nbsp;/U+00A0، أحرف zero-width U+200B/200C/200D/2060/FEFF،
+     * ومسافات/أسطر زائدة) و.message-bubble يعرضها بـpre-wrap فتصير ارتفاعاً حقيقياً.
+     * لا يمسّ النصّ أو التنسيق الفعليّ (b/i/u/a/img غير الفارغ) ولا يقوم مقام safe_html
+     * (يُستخدم قبله: safe_html(normalize_message_html($x))). آمن وعديم-التأثير عند التكرار.
+     */
+    function normalize_message_html(?string $html): string
+    {
+        if ($html === null || $html === '') {
+            return '';
+        }
+        $html = (string) $html;
+
+        // حصانة: نضمن UTF-8 صالحاً قبل أي preg_replace بمُعدِّل /u (يُعيد null على البايتات
+        // الفاسدة فتختفي الرسالة). نُسقِط غير الصالح (نادر مع تخزين utf8mb4).
+        if (! mb_check_encoding($html, 'UTF-8')) {
+            $html = mb_convert_encoding($html, 'UTF-8', 'UTF-8');
+        }
+
+        // 1) حذف الأحرف الخفية (zero-width / word-joiner / BOM / soft-hyphen) — لا يزيلها trim
+        $html = preg_replace('/[\x{200B}\x{200C}\x{200D}\x{2060}\x{FEFF}\x{00AD}]/u', '', $html);
+
+        // 2) توحيد المسافة غير الفاصلة إلى مسافة عاديّة (بأشكالها المرمّزة والحرفيّة)
+        $html = preg_replace('/\x{00A0}|&nbsp;|&#0*160;|&#x0*A0;/iu', ' ', $html);
+
+        // 3) توحيد كل أشكال <br> إلى <br>
+        $html = preg_replace('#<\s*br\s*/?\s*>#i', '<br>', $html);
+
+        // 4) إزالة العناصر الفارغة تكرارياً (محتواها مسافات/<br> فقط ولا وسائط بداخلها)
+        //    التكرار يعالج التداخل: يُفرَّغ الداخليّ ثمّ يصبح الخارجيّ فارغاً في الجولة التالية.
+        $emptyTag = 'div|p|span|b|i|u|strong|em|a|font|small|sub|sup|section|article';
+        do {
+            $before = $html;
+            $html = preg_replace('#<(' . $emptyTag . ')\b[^>]*>(?:\s|<br>)*</\s*\1\s*>#iu', '', $html);
+        } while ($html !== $before && $html !== null);
+
+        // 5) طيّ تتابع <br> إلى واحد، وحذف البادئ/الذيليّ منها ومن المسافات المحيطة
+        $html = preg_replace('#(?:\s*<br>\s*){2,}#i', '<br>', $html);
+        $html = preg_replace('#^(?:\s|<br>)+#i', '', $html);
+        $html = preg_replace('#(?:\s|<br>)+$#i', '', $html);
+
+        // 6) ضغط المسافات/الأسطر المتكرّرة داخل النصّ (pre-line يطوي ما تبقّى)
+        $html = preg_replace('/[ \t\x{00A0}]{2,}/u', ' ', $html);
+        $html = preg_replace('/(\r?\n\s*){2,}/', "\n", $html);
+
+        return trim((string) $html);
+    }
+}
