@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\School;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class SchoolManagementController extends Controller
@@ -63,6 +64,9 @@ class SchoolManagementController extends Controller
             'contact_phone' => 'required|string|max:20',
             'qr_code' => 'nullable|string|unique:schools,qr_code',
             'status' => 'required|in:active,inactive',
+            'classrooms' => 'nullable|array',
+            'classrooms.*.name' => 'nullable|string|max:255',
+            'classrooms.*.grade_level' => 'nullable|string|max:255',
         ]);
 
         // توليد QR Code تلقائي
@@ -72,11 +76,36 @@ class SchoolManagementController extends Controller
 
         $validated['created_by'] = auth()->id();
 
-        $school = School::create($validated);
+        // الفصول لا تنتمي لأعمدة schools — نفصلها قبل الإنشاء
+        $classroomRows = $validated['classrooms'] ?? [];
+        unset($validated['classrooms']);
+
+        $school = DB::transaction(function () use ($validated, $classroomRows) {
+            $school = School::create($validated);
+            foreach ($classroomRows as $row) {
+                $name = trim($row['name'] ?? '');
+                if ($name === '') {
+                    continue; // تجاهُل الصفوف الفارغة — لا بيانات وهمية (§3)
+                }
+                $grade = trim($row['grade_level'] ?? '');
+                $school->classrooms()->create([
+                    'name' => $name,
+                    'grade_level' => $grade !== '' ? $grade : null,
+                    'status' => 'active',
+                    // academic_year / capacity / teacher_id ⇒ افتراضيات الهجرة
+                ]);
+            }
+
+            return $school;
+        });
+
+        $createdCount = $school->classrooms()->count();
 
         return redirect()
             ->route('admin.schools.index')
-            ->with('success', 'تم إضافة المدرسة بنجاح! 🏫');
+            ->with('success', $createdCount > 0
+                ? "تم إضافة المدرسة و{$createdCount} فصلاً بنجاح! 🏫"
+                : 'تم إضافة المدرسة بنجاح! 🏫');
     }
 
     /**

@@ -19,6 +19,23 @@
     html[data-theme="light"] .lesson-header { background: rgba(255,255,255,0.7); }
     html[data-theme="light"] .lesson-back-btn { color: #334155; background: rgba(0,0,0,0.06); }
     html[data-theme="light"] .section-type-badge { color: #475569; background: rgba(0,0,0,0.04); }
+
+    /* الوضع النهاري: النصوص البيضاء المُصلَّبة تصبح غير مقروءة على الخلفية الفاتحة — نجعلها داكنة (Issue: تباين الوضع النهاري) */
+    html[data-theme="light"] .lesson-content-card { color: #334155; }
+    html[data-theme="light"] .lesson-title-main,
+    html[data-theme="light"] .section-header,
+    html[data-theme="light"] .activity-title { color: #1e293b; }
+    html[data-theme="light"] .lesson-meta-info,
+    html[data-theme="light"] .progress-text,
+    html[data-theme="light"] .activity-meta { color: #475569; }
+    html[data-theme="light"] .lesson-title-section { border-bottom-color: rgba(15,23,42,0.10); }
+    html[data-theme="light"] .activity-card { background: rgba(255,255,255,0.7); border-color: rgba(15,23,42,0.08); }
+    html[data-theme="light"] .activity-card:hover { background: rgba(255,255,255,0.9); }
+    html[data-theme="light"] .activity-card.completed { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.4); }
+    html[data-theme="light"] .activity-status.locked { background: rgba(15,23,42,0.06); color: #64748b; }
+    /* حالة «لا أنشطة»: النص الأبيض inline → داكن */
+    html[data-theme="light"] .lesson-content-card h3[style*="color: white"],
+    html[data-theme="light"] .lesson-content-card p[style*="rgba(255,255,255"] { color: #334155 !important; }
     
     .lesson-container {
         max-width: 900px;
@@ -392,41 +409,67 @@
 
     <!-- Streak Progress Card -->
     @if($lesson->hasStreakEnabled() && isset($lessonStreak))
-    <div class="streak-progress-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 2px solid #f59e0b;">
+    @php
+        $__sMin       = (int) $lesson->streak_min_days;
+        $__sDone      = (int) $lessonStreak->completed_days;
+        $__sClaimed   = (bool) $lessonStreak->bonus_claimed;
+        $__sReached   = $__sDone >= $__sMin;
+        $__sRemaining = max(0, $__sMin - $__sDone);
+        $__sPct       = $lessonStreak->getProgressPercentage();
+    @endphp
+    <div class="streak-progress-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 2px solid #f59e0b; box-shadow: 0 8px 24px rgba(217,119,6,0.20);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 36px;">🔥</span>
                 <div>
-                    <h3 style="font-size: 18px; font-weight: 700; color: #92400e; margin: 0;">مكافأة الالتزام</h3>
-                    <p style="font-size: 13px; color: #b45309; margin: 4px 0 0 0;">
-                        @if($lessonStreak->bonus_claimed)
-                            ✅ حصلت على المكافأة!
+                    <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">مكافأة الالتزام اليومي</h3>
+                    <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
+                        @if($__sClaimed)
+                            🎉 حصلت على المكافأة النهائية <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة — تُمنح مرّة واحدة فقط.
                         @else
-                            أكمل أنشطة في <strong>{{ $lesson->streak_min_days }}</strong> أيام للحصول على <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة إضافية
+                            كافئ نفسك بـ<strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة) عند إكمال أنشطة في <strong>{{ $__sMin }}</strong> أيام مختلفة.
                         @endif
                     </p>
                 </div>
             </div>
-            
-            <div style="text-align: center; min-width: 120px;">
-                <div style="font-size: 32px; font-weight: 700; color: #92400e;">
-                    {{ $lessonStreak->completed_days }} / {{ $lesson->streak_min_days }}
+            <div style="text-align: center; min-width: 128px;">
+                <div style="font-size: 34px; font-weight: 800; color: #92400e; line-height: 1;">
+                    {{ $__sDone }}<span style="font-size:18px; font-weight:700; color:#b45309;"> / {{ $__sMin }}</span>
                 </div>
-                <div style="font-size: 12px; color: #b45309;">يوم مكتمل</div>
+                <div style="font-size: 12px; color: #b45309; margin-top: 2px;">يوم مكتمل</div>
+                @if(!$__sClaimed && $__sDone > 0)
+                <div style="display:inline-block; margin-top:8px; background:#f59e0b; color:#fff7ed; font-size:11px; font-weight:800; padding:4px 12px; border-radius:999px;">🚀 لقد بدأت! استمرّ</div>
+                @endif
             </div>
         </div>
-        
+        <!-- نقاط الأيام: ✓ لكل يوم مكتمل -->
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; direction:rtl;">
+            @for($__d = 1; $__d <= $__sMin; $__d++)
+                @php $__filled = $__d <= $__sDone; @endphp
+                <div title="اليوم {{ $__d }}" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; {{ $__filled ? 'background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; box-shadow:0 2px 6px rgba(217,119,6,.45);' : 'background:rgba(255,255,255,.55); color:#d1a054; border:2px dashed #f59e0b;' }}">{{ $__filled ? '✓' : $__d }}</div>
+            @endfor
+        </div>
         <!-- Progress Bar -->
-        <div style="margin-top: 15px;">
+        <div style="margin-top: 14px;">
             <div style="background: rgba(255,255,255,0.5); border-radius: 10px; height: 12px; overflow: hidden;">
-                <div style="background: linear-gradient(90deg, #f59e0b, #d97706); height: 100%; border-radius: 10px; transition: width 0.5s; width: {{ $lessonStreak->getProgressPercentage() }}%;"></div>
+                <div style="background: linear-gradient(90deg, #f59e0b, #d97706); height: 100%; border-radius: 10px; transition: width 0.5s; width: {{ $__sPct }}%;"></div>
             </div>
-            @if(!$lessonStreak->bonus_claimed)
-            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #92400e;">
-                <span>{{ $lessonStreak->completed_days > 0 ? 'استمر!' : 'ابدأ اليوم!' }}</span>
-                <span>{{ max(0, $lesson->streak_min_days - $lessonStreak->completed_days) }} أيام متبقية</span>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #92400e; font-weight:700;">
+                @if($__sClaimed)
+                    <span>🏅 اكتملت مكافأة هذا الدرس</span>
+                    <span>{{ $__sDone }} يوم التزام</span>
+                @elseif($__sReached)
+                    <span>✨ أتممت الأيام المطلوبة! مكافأتك النهائية في طريقها</span>
+                @else
+                    <span>{{ $__sDone > 0 ? '🔥 استمرّ — أنت على الطريق' : '🌱 ابدأ اليوم بأوّل نشاط' }}</span>
+                    <span>باقٍ {{ $__sRemaining }} {{ $__sRemaining == 1 ? 'يوم' : 'أيام' }}</span>
+                @endif
             </div>
-            @endif
+        </div>
+        <!-- تمييز صريح: نقاط يومية مقابل مكافأة نهائية -->
+        <div style="margin-top:14px; padding-top:12px; border-top:1px dashed rgba(146,64,14,.35); font-size:11.5px; color:#92400e; line-height:1.7;">
+            <div>⭐ <strong>نقاط الأنشطة</strong>: تُحتسب لك <strong>يوميًا</strong> مع كل نشاط تُنجزه.</div>
+            <div>🏆 <strong>مكافأة الالتزام</strong>: <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية تُمنح مرّة واحدة فقط</strong> عند بلوغ {{ $__sMin }} أيام.</div>
         </div>
     </div>
     @endif

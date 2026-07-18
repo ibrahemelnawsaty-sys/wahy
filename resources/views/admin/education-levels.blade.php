@@ -102,12 +102,14 @@
         <h3 id="linkSchoolTitle" style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: var(--text-primary, #1e293b);"></h3>
         <div id="schoolCheckboxes" style="display: grid; gap: 8px; max-height: 400px; overflow-y: auto; padding: 4px;">
             @foreach($schools as $school)
-            <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; cursor: pointer; border: 1px solid rgba(0,0,0,0.08); transition: background 0.2s;" onmouseover="this.style.background='rgba(102,126,234,0.05)'" onmouseout="this.style.background='transparent'">
+            <label class="school-option" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; cursor: pointer; border: 1px solid rgba(0,0,0,0.08); transition: background 0.2s;" onmouseover="this.style.background='rgba(102,126,234,0.05)'" onmouseout="this.style.background='transparent'">
                 <input type="checkbox" class="school-checkbox" value="{{ $school->id }}" style="width: 18px; height: 18px; accent-color: #667eea;">
                 <span style="font-weight: 600; font-size: 14px; color: var(--text-primary, #334155);">{{ $school->name }}</span>
+                <span class="linked-badge" style="display: none; margin-inline-start: auto; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(16,185,129,0.12); color: #10b981;">مرتبطة</span>
             </label>
             @endforeach
         </div>
+        <div id="linkSchoolEmpty" style="display: none; text-align: center; padding: 20px; color: var(--text-secondary, #94a3b8); font-size: 14px;">كل المدارس مرتبطة بهذه المرحلة بالفعل</div>
         <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
             <button onclick="closeLinkSchoolModal()" style="padding: 10px 24px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); background: transparent; color: var(--text-secondary, #64748b); font-weight: 600; cursor: pointer; font-family: inherit;">إلغاء</button>
             <button onclick="submitLinkSchool()" style="padding: 10px 24px; border-radius: 10px; border: none; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; font-weight: 600; cursor: pointer; font-family: inherit;">حفظ الربط</button>
@@ -120,6 +122,9 @@
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     let modalAction = null; // { type: 'add_level' | 'edit_level' | 'add_year' | 'edit_year', id: null, levelId: null }
     let linkSchoolLevelId = null;
+
+    // خريطة: معرّف المرحلة → معرّفات المدارس المرتبطة بها بالفعل (لإخفاء المكرَّر عند الربط)
+    window.levelSchoolMap = @json($levels->mapWithKeys(fn ($l) => [$l->id => $l->schools->pluck('id')->all()]));
 
     // ============ المراحل ============
 
@@ -186,8 +191,20 @@
     function showLinkSchoolModal(levelId, levelName) {
         linkSchoolLevelId = levelId;
         document.getElementById('linkSchoolTitle').textContent = `ربط المدارس بمرحلة: ${levelName}`;
-        // إعادة تعيين الخيارات
-        document.querySelectorAll('.school-checkbox').forEach(cb => cb.checked = false);
+        // إخفاء/تعطيل المدارس المرتبطة بهذه المرحلة مسبقاً حتى لا تظهر مرة أخرى
+        const linkedIds = (window.levelSchoolMap[levelId] || []).map(String);
+        let availableCount = 0;
+        document.querySelectorAll('#schoolCheckboxes .school-option').forEach(label => {
+            const cb = label.querySelector('.school-checkbox');
+            const badge = label.querySelector('.linked-badge');
+            const isLinked = linkedIds.includes(String(cb.value));
+            cb.checked = false;
+            cb.disabled = isLinked;                 // المُعطَّل يُستبعَد تلقائياً من :checked
+            label.style.display = isLinked ? 'none' : 'flex';
+            if (badge) badge.style.display = 'none';
+            if (!isLinked) availableCount++;
+        });
+        document.getElementById('linkSchoolEmpty').style.display = availableCount === 0 ? 'block' : 'none';
         document.getElementById('linkSchoolModal').style.display = 'flex';
     }
 
@@ -196,19 +213,21 @@
     }
 
     async function submitLinkSchool() {
-        const selectedIds = [...document.querySelectorAll('.school-checkbox:checked')].map(cb => cb.value);
+        const selectedIds = [...document.querySelectorAll('#schoolCheckboxes .school-checkbox:checked')].map(cb => cb.value);
         if (selectedIds.length === 0) { alert('اختر مدرسة واحدة على الأقل'); return; }
 
         try {
             const res = await fetch('{{ route("admin.education-levels.link-school") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                body: JSON.stringify({ school_id: selectedIds[0], education_level_ids: [linkSchoolLevelId] }),
+                body: JSON.stringify({ school_ids: selectedIds, education_level_id: linkSchoolLevelId }),
             });
             const data = await res.json();
             if (data.success) {
                 closeLinkSchoolModal();
                 location.reload();
+            } else if (data.errors) {
+                alert(Object.values(data.errors).flat().join('\n'));
             }
         } catch (e) { console.error(e); }
     }

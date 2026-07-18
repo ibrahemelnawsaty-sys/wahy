@@ -249,19 +249,10 @@
             </div>
 
             <div class="form-group full-width">
-                <label class="form-label">الوصف (يدعم تنسيقاً غنياً + إدراج فيديو/صورة)</label>
-                {{-- Issue #35: محرر بسيط لوصف النشاط --}}
-                <div style="border: 2px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 12px; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                        <button type="button" onclick="actDescExec('bold')" style="background:white; border:1px solid #e2e8f0; border-radius:4px; padding:4px 10px; cursor:pointer; font-weight:900;">B</button>
-                        <button type="button" onclick="actDescExec('italic')" style="background:white; border:1px solid #e2e8f0; border-radius:4px; padding:4px 10px; cursor:pointer; font-style:italic;">I</button>
-                        <button type="button" onclick="actDescExec('underline')" style="background:white; border:1px solid #e2e8f0; border-radius:4px; padding:4px 10px; cursor:pointer; text-decoration:underline;">U</button>
-                        <input type="color" onchange="actDescExec('foreColor', this.value)" title="لون" style="width:28px; height:28px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer;">
-                        <button type="button" onclick="actDescInsertLink()" style="background:white; border:1px solid #e2e8f0; border-radius:4px; padding:4px 10px; cursor:pointer;">🔗</button>
-                    </div>
-                    <div id="actDescEditor" contenteditable="true" dir="rtl" style="min-height:140px; padding:14px; font-size:15px; line-height:1.7; outline:none; background:white;">{!! safe_html(old('description', $activity->description)) !!}</div>
-                </div>
-                <textarea name="description" id="actDescHidden" style="display:none;">{{ old('description', $activity->description) }}</textarea>
+                <label class="form-label">الوصف (يدعم تنسيقاً غنياً + إدراج صورة)</label>
+                {{-- محرّر نصوص غنيّ موحّد — يُحمّل الوصف القديم تلقائياً عند التعديل --}}
+                <div data-rich-editor="activityDesc" data-target="descriptionHidden" dir="rtl">{!! safe_html(old('description', $activity->description)) !!}</div>
+                <textarea name="description" id="descriptionHidden" hidden>{!! safe_html(old('description', $activity->description)) !!}</textarea>
                 @error('description')
                     <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
                 @enderror
@@ -917,48 +908,7 @@ function uploadActivityImage(input, qIndex, imgIndex) {
     });
 }
 
-// Issue #35: محرر وصف النشاط
-(function() {
-    let saved = null;
-    function save() {
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount > 0) saved = sel.getRangeAt(0).cloneRange();
-    }
-    function restore() {
-        const editor = document.getElementById('actDescEditor');
-        if (!editor) return;
-        editor.focus();
-        if (saved) {
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(saved);
-        }
-    }
-    window.actDescExec = function(cmd, val) {
-        restore();
-        try { document.execCommand(cmd, false, val || null); } catch (e) {}
-        save();
-    };
-    window.actDescInsertLink = function() {
-        const url = prompt('أدخل الرابط:');
-        if (url) actDescExec('createLink', url);
-    };
-    document.addEventListener('DOMContentLoaded', function() {
-        const editor = document.getElementById('actDescEditor');
-        if (editor) {
-            editor.addEventListener('keyup', save);
-            editor.addEventListener('mouseup', save);
-        }
-        // مزامنة المحرر مع textarea المخفي قبل الإرسال
-        const form = document.querySelector('form');
-        if (form && editor) {
-            form.addEventListener('submit', function() {
-                const hidden = document.getElementById('actDescHidden');
-                if (hidden) hidden.value = editor.innerHTML;
-            });
-        }
-    });
-})();
+// وصف النشاط يُدار الآن عبر المحرّر الموحّد rich-editor.js (data-rich-editor)
 
 </script>
 

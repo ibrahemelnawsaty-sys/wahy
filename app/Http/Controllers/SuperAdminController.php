@@ -1529,6 +1529,7 @@ class SuperAdminController extends Controller
     {
         $levels = \App\Models\EducationLevel::ordered()
             ->with(['academicYears' => fn ($q) => $q->ordered()])
+            ->with('schools:id') // معرّفات المدارس المرتبطة — لفلترة نافذة الربط (إخفاء المربوطة)
             ->withCount('schools')
             ->get();
 
@@ -1659,17 +1660,19 @@ class SuperAdminController extends Controller
     public function linkSchoolLevels(Request $request)
     {
         $validated = $request->validate([
-            'school_id' => 'required|exists:schools,id',
-            'education_level_ids' => 'required|array',
-            'education_level_ids.*' => 'exists:education_levels,id',
+            'education_level_id' => 'required|exists:education_levels,id',
+            'school_ids' => 'required|array|min:1',
+            'school_ids.*' => 'exists:schools,id',
         ]);
 
-        $school = School::findOrFail($validated['school_id']);
-        $school->educationLevels()->sync($validated['education_level_ids']);
+        $level = \App\Models\EducationLevel::findOrFail($validated['education_level_id']);
+        // ربط غير هدّام (§3): يضيف روابط المدارس المختارة لهذه المرحلة فقط
+        // دون فصل أي روابط قائمة (لا للمدارس الأخرى ولا لمراحل المدرسة الأخرى).
+        $level->schools()->syncWithoutDetaching($validated['school_ids']);
 
         return response()->json([
             'success' => true,
-            'message' => 'تم ربط المراحل الدراسية بالمدرسة بنجاح',
+            'message' => 'تم ربط المدارس بالمرحلة الدراسية بنجاح',
         ]);
     }
 }

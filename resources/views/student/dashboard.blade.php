@@ -21,6 +21,19 @@
     .status-progress { background: #ecc94b; }
     .status-locked { background: #cbd5e0; }
 
+    /* بطاقات الأقسام: سطح موحّد يتبع الثيم (فاتح/داكن) بدل الأبيض الثابت.
+       يحلّ «التنسيق السيّئ + اختلال الوضع الليلي/النهاري» بلا اعتماد على ترقيعات التغطية. */
+    .dash-panel {
+        background: var(--color-card);
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: var(--color-shadow);
+    }
+    .dash-panel h2 { color: var(--color-text); }
+    @media (max-width: 768px) { .dash-panel { padding: 20px 15px; border-radius: 20px; } }
+
     /* إصلاح عرض بطاقات القيم: .values-list كانت display:grid بلا أعمدة صريحة، فالعمود يأخذ عرض
        المحتوى ويُحاذى لليمين (فراغ أبيض يسار + بطاقة ضيّقة/مقصوصة). الحل الحاسم: تكديس block
        (العنصر block يملأ عرض أبيه دائماً) — بلا كسر للكلمات، ويسري على كل المقاسات. */
@@ -365,81 +378,81 @@
         }
 
         /* Badges Collection - Mobile */
-        .animate-in[style*="background: white"] {
+        .animate-in.dash-panel {
             padding: 20px 15px !important;
             border-radius: 20px !important;
             margin-bottom: 20px !important;
         }
 
-        .animate-in[style*="background: white"] h2 {
+        .animate-in.dash-panel h2 {
             font-size: 20px !important;
             margin-bottom: 15px !important;
         }
 
-        .animate-in[style*="background: white"] h2 > span[style*="font-size: 36px"] {
+        .animate-in.dash-panel h2 > span[style*="font-size: 36px"] {
             font-size: 28px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="display: grid"] {
+        .animate-in.dash-panel > div[style*="display: grid"] {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 12px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="display: grid"] > div {
+        .animate-in.dash-panel > div[style*="display: grid"] > div {
             padding: 18px 12px !important;
             border-radius: 14px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="display: grid"] > div > div[style*="font-size: 56px"] {
+        .animate-in.dash-panel > div[style*="display: grid"] > div > div[style*="font-size: 56px"] {
             font-size: 40px !important;
             margin-bottom: 8px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="display: grid"] > div > div[style*="font-weight: 700"][style*="font-size: 16px"] {
+        .animate-in.dash-panel > div[style*="display: grid"] > div > div[style*="font-weight: 700"][style*="font-size: 16px"] {
             font-size: 13px !important;
             margin-bottom: 4px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="display: grid"] > div > div[style*="font-size: 12px"] {
+        .animate-in.dash-panel > div[style*="display: grid"] > div > div[style*="font-size: 12px"] {
             font-size: 10px !important;
         }
 
         /* Upcoming Homework - Mobile */
-        .animate-in[style*="background: white"] > div[style*="display: grid"][style*="grid-template-columns: repeat(auto-fill"] {
+        .animate-in.dash-panel > div[style*="display: grid"][style*="grid-template-columns: repeat(auto-fill"] {
             grid-template-columns: 1fr !important;
         }
 
         /* Recent Activities - Mobile */
-        .animate-in[style*="background: white"][style*="box-shadow: 0 15px 50px"] {
+        .animate-in.dash-panel {
             padding: 20px 15px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="position: relative"][style*="padding-right: 40px"] {
+        .animate-in.dash-panel > div[style*="position: relative"][style*="padding-right: 40px"] {
             padding-right: 20px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="position: relative"] > div[style*="position: absolute"][style*="right: 19px"] {
+        .animate-in.dash-panel > div[style*="position: relative"] > div[style*="position: absolute"][style*="right: 19px"] {
             right: 9px !important;
             width: 2px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="position: relative"] > div > div[style*="position: relative"] {
+        .animate-in.dash-panel > div[style*="position: relative"] > div > div[style*="position: relative"] {
             padding: 15px 12px !important;
             border-radius: 12px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="position: relative"] > div > div > div[style*="position: absolute"][style*="right: -60px"] {
+        .animate-in.dash-panel > div[style*="position: relative"] > div > div > div[style*="position: absolute"][style*="right: -60px"] {
             right: -30px !important;
             width: 30px !important;
             height: 30px !important;
             font-size: 16px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="position: relative"] > div > div > div > div[style*="flex: 1"] > div > div[style*="font-weight: 700"][style*="font-size: 18px"] {
+        .animate-in.dash-panel > div[style*="position: relative"] > div > div > div > div[style*="flex: 1"] > div > div[style*="font-weight: 700"][style*="font-size: 18px"] {
             font-size: 15px !important;
         }
 
-        .animate-in[style*="background: white"] > div[style*="position: relative"] > div > div > div > div > div[style*="text-align: left"] {
+        .animate-in.dash-panel > div[style*="position: relative"] > div > div > div > div > div[style*="text-align: left"] {
             text-align: center !important;
         }
     }
@@ -540,7 +553,7 @@
 
 <!-- Badges Collection -->
 @if($badges->count() > 0)
-<div class="animate-in" style="background: white; border-radius: 25px; padding: 35px; margin-bottom: 30px; box-shadow: 0 15px 50px rgba(0,0,0,0.08);">
+<div class="animate-in dash-panel" style="margin-bottom: 30px;">
     <h2 style="font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 36px;">🏅</span> 
         <span>مجموعة شاراتي</span>
@@ -566,7 +579,7 @@
 
 <!-- Upcoming Homework -->
 @if(isset($upcomingHomework) && $upcomingHomework->count() > 0)
-<div class="animate-in" style="background: white; border-radius: 25px; padding: 35px; margin-bottom: 30px; box-shadow: 0 15px 50px rgba(0,0,0,0.08);">
+<div class="animate-in dash-panel" style="margin-bottom: 30px;">
     <h2 style="font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 36px;">📚</span> 
         <span>الواجبات المنزلية القادمة</span>
@@ -624,7 +637,7 @@
 @endif
 
 <!-- Values Tree -->
-<div id="values-tree" class="animate-in values-tree-section" style="background: white; border-radius: 25px; padding: 35px; margin-bottom: 30px; box-shadow: 0 15px 50px rgba(0,0,0,0.08);">
+<div id="values-tree" class="animate-in values-tree-section dash-panel" style="margin-bottom: 30px;">
     <div class="values-tree-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 class="values-tree-title" style="font-size: 28px; font-weight: 700; color: #1a202c; display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 36px;">🌳</span> 
@@ -791,7 +804,7 @@
 
 <!-- Recent Activities Timeline -->
 @if($recentActivities->count() > 0)
-<div class="animate-in" style="background: white; border-radius: 25px; padding: 35px; box-shadow: 0 15px 50px rgba(0,0,0,0.08);">
+<div class="animate-in dash-panel">
     <h2 style="font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 36px;">📊</span> 
         <span>آخر إنجازاتي</span>

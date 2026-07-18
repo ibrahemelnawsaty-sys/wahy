@@ -717,7 +717,10 @@
     
     <!-- Glass Notifications JS -->
     <script src="{{ asset('js/glass-notifications.js') }}"></script>
-    
+
+    <!-- محرّر النصوص الغنيّ الموحّد (ذاتيّ الاستضافة — يعمل بدون إنترنت) -->
+    <script src="{{ asset('js/rich-editor.js') }}" defer></script>
+
     @stack('scripts')
     
     <!-- Real-Time Messages System -->

@@ -203,77 +203,9 @@
         
         <div class="form-group">
             <label class="form-label">وصف النشاط</label>
-            {{-- محرّر نصوص غنيّ (Quill) — مطابق لمحرّر لوحة المشرف --}}
-            <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-            <style>
-                #quillDescEditor { min-height: 180px; font-size: 15px; line-height: 1.9; direction: rtl; text-align: right; background: white; border-bottom-right-radius: 14px; border-bottom-left-radius: 14px; }
-                #quillDescEditor.ql-container, .ql-toolbar { border-color: #e2e8f0 !important; }
-                .ql-toolbar { border-top-right-radius: 14px; border-top-left-radius: 14px; background: #f8fafc; }
-                #quillDescEditor .ql-editor { direction: rtl !important; text-align: right !important; min-height: 180px; font-family: inherit; }
-                #quillDescEditor .ql-editor.ql-blank::before { right: 15px; left: auto; font-style: normal; color: #94a3b8; }
-            </style>
-            <div id="quillDescEditor">{!! safe_html(old('description')) !!}</div>
-            <textarea name="description" id="descriptionHidden" style="display:none;">{{ old('description') }}</textarea>
-            <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-            <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                if (typeof Quill === 'undefined' || !document.getElementById('quillDescEditor')) return;
-
-                const quill = new Quill('#quillDescEditor', {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: [
-                            [{ 'header': [1, 2, 3, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'align': [] }],
-                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                            ['link', 'image', 'blockquote'],
-                            ['clean']
-                        ]
-                    },
-                    placeholder: 'وصف النشاط...'
-                });
-
-                // مزامنة الـ HTML إلى textarea مخفي قبل الإرسال (فارغ حقيقي عند عدم الكتابة)
-                const hidden = document.getElementById('descriptionHidden');
-                const form = document.getElementById('quillDescEditor').closest('form');
-                if (form && hidden) {
-                    form.addEventListener('submit', function () {
-                        hidden.value = quill.getText().trim() === '' ? '' : quill.root.innerHTML;
-                    });
-                }
-
-                // رفع الصور إلى endpoint المحرّر العام المتاح للمعلم
-                const toolbar = quill.getModule('toolbar');
-                toolbar.addHandler('image', function () {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = async () => {
-                        const file = input.files[0];
-                        if (!file) return;
-                        const formData = new FormData();
-                        formData.append('image', file);
-                        formData.append('_token', '{{ csrf_token() }}');
-                        try {
-                            const r = await fetch('{{ route("editor.upload-image") }}', { method: 'POST', body: formData, headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } });
-                            const json = await r.json();
-                            if (json.url) {
-                                const range = quill.getSelection(true);
-                                quill.insertEmbed(range.index, 'image', json.url, 'user');
-                                quill.setSelection(range.index + 1);
-                            } else {
-                                alert('فشل رفع الصورة: ' + (json.message || ''));
-                            }
-                        } catch (e) {
-                            alert('خطأ في رفع الصورة');
-                        }
-                    };
-                    input.click();
-                });
-            });
-            </script>
+            {{-- محرّر نصوص غنيّ موحّد (ذاتيّ الاستضافة — يعمل بدون إنترنت) --}}
+            <div data-rich-editor="activityDesc" data-target="descriptionHidden" dir="rtl">{!! safe_html(old('description')) !!}</div>
+            <textarea name="description" id="descriptionHidden" hidden>{!! safe_html(old('description')) !!}</textarea>
         </div>
     </div>
 

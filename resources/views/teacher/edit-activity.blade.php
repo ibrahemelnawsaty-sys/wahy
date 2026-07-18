@@ -96,8 +96,9 @@
 
                         <div class="mb-3">
                             <label class="form-label">وصف النشاط</label>
-                            <textarea name="description" rows="3"
-                                      class="form-control @error('description') is-invalid @enderror">{{ old('description', $activity->description) }}</textarea>
+                            {{-- محرّر نصوص غنيّ موحّد — يُحمّل الوصف القديم تلقائياً عند التعديل --}}
+                            <div data-rich-editor="activityDesc" data-target="descriptionHidden" dir="rtl">{!! safe_html(old('description', $activity->description)) !!}</div>
+                            <textarea name="description" id="descriptionHidden" hidden>{!! safe_html(old('description', $activity->description)) !!}</textarea>
                             @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 

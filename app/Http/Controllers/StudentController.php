@@ -1105,13 +1105,32 @@ class StudentController extends Controller
             }
 
             // === streak الدرس (مرتبط بنشاط داخل درس) ===
+            // مكافأة نهائية تُمنح مرّة واحدة عند بلوغ عدد الأيام المطلوب للدرس.
             try {
                 if ($activity->lesson_id) {
                     $lessonStreak = \App\Models\LessonUserStreak::firstOrCreate(
                         ['user_id' => $student->id, 'lesson_id' => $activity->lesson_id],
                         ['completed_days' => 0, 'activity_dates' => [], 'bonus_claimed' => false],
                     );
-                    $lessonStreak->recordActivityDay();
+                    $newLessonDay = $lessonStreak->recordActivityDay();
+
+                    if ($newLessonDay && ! $lessonStreak->bonus_claimed) {
+                        // checkAndClaimBonus يحرس streak_disabled/min_not_reached ويقلب bonus_claimed مرّة واحدة فقط
+                        $lessonBonus = $lessonStreak->checkAndClaimBonus();
+                        if (! empty($lessonBonus['eligible'])) {
+                            $lessonBonusPoints = (int) ($lessonBonus['bonus_points'] ?? 0);
+                            if ($lessonBonusPoints > 0) {
+                                Point::create([
+                                    'user_id' => $student->id,
+                                    'points' => $lessonBonusPoints,
+                                    'reason' => 'مكافأة الالتزام النهائية للدرس: ' . ($activity->lesson?->title ?? ''),
+                                ]);
+                                $streakBonus += $lessonBonusPoints;
+                                $lessonMsg = '🏆 مكافأة الالتزام النهائية: +' . $lessonBonusPoints . ' نقطة!';
+                                $streakMessage = $streakMessage ? ($streakMessage . ' • ' . $lessonMsg) : $lessonMsg;
+                            }
+                        }
+                    }
                 }
             } catch (\Throwable $e) {
                 Log::error('Lesson streak processing failed: ' . $e->getMessage());
