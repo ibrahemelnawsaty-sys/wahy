@@ -990,6 +990,21 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ route('school-admin.activity-approvals') }}" class="nav-link {{ request()->routeIs('school-admin.activity-approvals*') ? 'active' : '' }}">
+                            <span class="nav-icon"><i class="fas fa-clipboard-check"></i></span>
+                            <span class="nav-text">اعتماد الأنشطة</span>
+                            @php
+                                $pendingActivitiesCount = \App\Models\Activity::whereNotNull('created_by')
+                                    ->where('school_approval_status', 'pending')
+                                    ->whereHas('creator', function ($q) {
+                                        $q->where('school_id', auth()->user()->school_id)->where('role', 'teacher');
+                                    })
+                                    ->count();
+                            @endphp
+                            <span class="nav-badge" style="display: {{ $pendingActivitiesCount > 0 ? 'inline-flex' : 'none' }};" data-live="school_activity_approvals_pending" data-live-badge>{{ $pendingActivitiesCount > 0 ? $pendingActivitiesCount : 0 }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ route('school-admin.registration-links') }}" class="nav-link {{ request()->routeIs('school-admin.registration-links') ? 'active' : '' }}">
                             <span class="nav-icon"><i class="fas fa-link"></i></span>
                             <span class="nav-text">روابط التسجيل</span>

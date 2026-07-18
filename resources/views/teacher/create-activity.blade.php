@@ -203,7 +203,77 @@
         
         <div class="form-group">
             <label class="form-label">وصف النشاط</label>
-            <textarea name="description" class="form-textarea" placeholder="اكتب وصفاً تفصيلياً للنشاط... ماذا يتوقع من الطالب؟ ما هي التعليمات؟">{{ old('description') }}</textarea>
+            {{-- محرّر نصوص غنيّ (Quill) — مطابق لمحرّر لوحة المشرف --}}
+            <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+            <style>
+                #quillDescEditor { min-height: 180px; font-size: 15px; line-height: 1.9; direction: rtl; text-align: right; background: white; border-bottom-right-radius: 14px; border-bottom-left-radius: 14px; }
+                #quillDescEditor.ql-container, .ql-toolbar { border-color: #e2e8f0 !important; }
+                .ql-toolbar { border-top-right-radius: 14px; border-top-left-radius: 14px; background: #f8fafc; }
+                #quillDescEditor .ql-editor { direction: rtl !important; text-align: right !important; min-height: 180px; font-family: inherit; }
+                #quillDescEditor .ql-editor.ql-blank::before { right: 15px; left: auto; font-style: normal; color: #94a3b8; }
+            </style>
+            <div id="quillDescEditor">{!! safe_html(old('description')) !!}</div>
+            <textarea name="description" id="descriptionHidden" style="display:none;">{{ old('description') }}</textarea>
+            <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+            <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof Quill === 'undefined' || !document.getElementById('quillDescEditor')) return;
+
+                const quill = new Quill('#quillDescEditor', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'align': [] }],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['link', 'image', 'blockquote'],
+                            ['clean']
+                        ]
+                    },
+                    placeholder: 'وصف النشاط...'
+                });
+
+                // مزامنة الـ HTML إلى textarea مخفي قبل الإرسال (فارغ حقيقي عند عدم الكتابة)
+                const hidden = document.getElementById('descriptionHidden');
+                const form = document.getElementById('quillDescEditor').closest('form');
+                if (form && hidden) {
+                    form.addEventListener('submit', function () {
+                        hidden.value = quill.getText().trim() === '' ? '' : quill.root.innerHTML;
+                    });
+                }
+
+                // رفع الصور إلى endpoint المحرّر العام المتاح للمعلم
+                const toolbar = quill.getModule('toolbar');
+                toolbar.addHandler('image', function () {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async () => {
+                        const file = input.files[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('image', file);
+                        formData.append('_token', '{{ csrf_token() }}');
+                        try {
+                            const r = await fetch('{{ route("editor.upload-image") }}', { method: 'POST', body: formData, headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } });
+                            const json = await r.json();
+                            if (json.url) {
+                                const range = quill.getSelection(true);
+                                quill.insertEmbed(range.index, 'image', json.url, 'user');
+                                quill.setSelection(range.index + 1);
+                            } else {
+                                alert('فشل رفع الصورة: ' + (json.message || ''));
+                            }
+                        } catch (e) {
+                            alert('خطأ في رفع الصورة');
+                        }
+                    };
+                    input.click();
+                });
+            });
+            </script>
         </div>
     </div>
 
@@ -242,6 +312,54 @@
                 <div class="desc">رتّب الصور بالترتيب الصحيح</div>
                 <input type="radio" name="type" value="image_order" {{ old('type') == 'image_order' ? 'checked' : '' }} style="display: none;">
             </label>
+        </div>
+    </div>
+
+    <!-- إعدادات الاختبار (اختبار فقط) -->
+    <div class="form-card fade-in" id="quizSettingsSection" style="display: {{ old('type', 'quiz') == 'quiz' ? 'block' : 'none' }};">
+        <h3>⏱️ إعدادات الاختبار</h3>
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label">مدة الاختبار (بالدقائق)</label>
+                <input type="number" name="quiz_duration" class="form-input" value="{{ old('quiz_duration', 30) }}" min="1" placeholder="30">
+                <div class="form-hint">اترك فارغاً لاختبار بدون وقت محدد</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">عدد المحاولات المسموحة</label>
+                <input type="number" name="max_attempts" class="form-input" value="{{ old('max_attempts', 3) }}" min="1" placeholder="3">
+                <div class="form-hint">اترك فارغاً لمحاولات غير محدودة</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إعدادات المشروع (مشروع فقط) -->
+    <div class="form-card fade-in" id="projectSettingsSection" style="display: {{ old('type') == 'project' ? 'block' : 'none' }};">
+        <h3>📁 إعدادات المشروع</h3>
+        <div class="form-group">
+            <label class="form-label">أنواع الملفات المسموحة</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px;">
+                <label style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer;">
+                    <input type="checkbox" name="allowed_file_types[]" value="document" {{ is_array(old('allowed_file_types')) && in_array('document', old('allowed_file_types')) ? 'checked' : '' }}>
+                    <span>📄 مستندات (PDF, Word, Excel)</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer;">
+                    <input type="checkbox" name="allowed_file_types[]" value="image" {{ is_array(old('allowed_file_types')) && in_array('image', old('allowed_file_types')) ? 'checked' : '' }}>
+                    <span>🖼️ صور (JPG, PNG, GIF)</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer;">
+                    <input type="checkbox" name="allowed_file_types[]" value="video" {{ is_array(old('allowed_file_types')) && in_array('video', old('allowed_file_types')) ? 'checked' : '' }}>
+                    <span>🎥 فيديو (MP4, AVI, MOV)</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer;">
+                    <input type="checkbox" name="allowed_file_types[]" value="audio" {{ is_array(old('allowed_file_types')) && in_array('audio', old('allowed_file_types')) ? 'checked' : '' }}>
+                    <span>🎵 صوت (MP3, WAV, AAC)</span>
+                </label>
+            </div>
+            <div class="form-hint" style="margin-top: 8px;">اختر أنواع الملفات التي يمكن للطلاب رفعها</div>
+        </div>
+        <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">الحد الأقصى لحجم الملف (MB)</label>
+            <input type="number" name="max_file_size" class="form-input" value="{{ old('max_file_size', 10) }}" min="1" max="100" placeholder="10">
         </div>
     </div>
 
@@ -296,6 +414,11 @@
                 <label class="form-label">درجة النجاح (%)</label>
                 <input type="number" name="passing_score" class="form-input" value="{{ old('passing_score', 70) }}" min="0" max="100">
                 <div class="form-hint">النسبة المطلوبة لاجتياز النشاط</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الترتيب</label>
+                <input type="number" name="order" class="form-input" value="{{ old('order', 0) }}" min="0" placeholder="0">
+                <div class="form-hint">0 = ترتيب تلقائي</div>
             </div>
         </div>
 
@@ -414,6 +537,16 @@ function selectType(card, type) {
         qSection.style.display = (type === 'quiz' || type === 'exercise') ? 'block' : 'none';
     }
 
+    // Show/hide quiz settings (اختبار فقط) و project settings (مشروع فقط)
+    const quizSettings = document.getElementById('quizSettingsSection');
+    if (quizSettings) {
+        quizSettings.style.display = type === 'quiz' ? 'block' : 'none';
+    }
+    const projectSettings = document.getElementById('projectSettingsSection');
+    if (projectSettings) {
+        projectSettings.style.display = type === 'project' ? 'block' : 'none';
+    }
+
     // Rewrite hidden field with the correct shape for the selected type
     serializeQuestions();
 }
@@ -477,8 +610,14 @@ function addImageItem() {
             <button type="button" onclick="this.closest('.form-card').remove(); updateImageData();" style="background: #fee2e2; color: #dc2626; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">✕ حذف</button>
         </div>
         <div style="margin-bottom: 12px;">
-            <label style="display: block; font-weight: 600; color: #64748b; margin-bottom: 6px; font-size: 13px;">رابط الصورة (URL)</label>
-            <input type="url" class="form-input img-url" placeholder="https://example.com/image.jpg" oninput="previewImg(this); updateImageData()">
+            <label style="display: block; font-weight: 600; color: #64748b; margin-bottom: 6px; font-size: 13px;">رابط الصورة (URL) أو ارفع صورة</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="url" class="form-input img-url" placeholder="https://example.com/image.jpg" oninput="previewImg(this); updateImageData()" style="flex:1;min-width:200px;">
+                <label style="padding:10px 16px;background:#fef3c7;border:2px dashed #f59e0b;border-radius:10px;cursor:pointer;color:#92400e;font-weight:600;font-size:13px;white-space:nowrap;">
+                    📤 رفع صورة
+                    <input type="file" accept="image/*" style="display:none;" onchange="uploadOrderImage(this)">
+                </label>
+            </div>
             <div style="margin-top: 8px;">
                 <img class="img-preview" src="" alt="" style="max-width:120px;max-height:100px;border-radius:8px;border:2px solid #e2e8f0;display:none;object-fit:cover;">
             </div>
@@ -501,6 +640,33 @@ function previewImg(input) {
     } else {
         preview.style.display = 'none';
     }
+}
+
+// رفع صورة عنصر ترتيب الصور عبر endpoint المحرّر العام
+function uploadOrderImage(input) {
+    var file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('يرجى اختيار ملف صورة فقط'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('حجم الصورة يجب أن يكون أقل من 5 ميجابايت'); return; }
+    var card = input.closest('.form-card');
+    var urlInput = card.querySelector('.img-url');
+    var fd = new FormData();
+    fd.append('image', file);
+    fd.append('_token', '{{ csrf_token() }}');
+    fetch('{{ route("editor.upload-image") }}', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+    })
+    .then(function (r) { if (!r.ok) throw new Error('فشل رفع الصورة'); return r.json(); })
+    .then(function (d) {
+        if (d.url) {
+            urlInput.value = d.url;
+            previewImg(urlInput);
+            updateImageData();
+        } else { alert('فشل رفع الصورة'); }
+    })
+    .catch(function (e) { alert('حدث خطأ أثناء الرفع: ' + e.message); });
 }
 
 function updateImageData() {
@@ -674,6 +840,8 @@ function renderQuestions() {
                            placeholder="الدرجة" min="1">
                 </div>
 
+                ${mediaRowHtml(q, index)}
+
                 ${q.type === 'letter_choice' ? `
                     <div class="q-field-row">
                         <input type="text" class="form-input" value="${escAttr(q.word || '')}"
@@ -727,6 +895,64 @@ function escAttr(v) {
     return String(v == null ? '' : v)
         .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
         .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ===== وسائط لكل سؤال (صورة/فيديو/صوت) — مطابق للوحة المشرف، رفع عبر editor.upload-image =====
+function mediaRowHtml(q, index) {
+    const mtype = q.media_type || '';
+    const label = mtype === 'image' ? 'الصورة' : (mtype === 'video' ? 'الفيديو' : 'الصوت');
+    return `
+        <div class="q-options" style="margin-top:10px;background:#fafbff;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 12px;">
+            <label class="q-label" style="display:block;margin-bottom:6px;">🎬 وسائط للسؤال (اختياري)</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <select class="q-option-input" style="max-width:150px;flex:0 0 auto;" onchange="updateQuestionMedia(${index}, 'media_type', this.value)">
+                    <option value="" ${mtype === '' ? 'selected' : ''}>لا شيء</option>
+                    <option value="image" ${mtype === 'image' ? 'selected' : ''}>🖼️ صورة</option>
+                    <option value="video" ${mtype === 'video' ? 'selected' : ''}>🎬 فيديو</option>
+                    <option value="audio" ${mtype === 'audio' ? 'selected' : ''}>🎵 صوت</option>
+                </select>
+                ${mtype ? `
+                    <input type="url" class="q-option-input" style="flex:1;min-width:200px;" value="${escAttr(q.media_url || '')}"
+                           onchange="updateQuestionMedia(${index}, 'media_url', this.value)"
+                           placeholder="رابط ${label} (URL)">
+                    ${mtype === 'image' ? `
+                        <label style="padding:8px 12px;background:#eef2ff;border:2px dashed #667eea;border-radius:8px;cursor:pointer;color:#4338ca;font-weight:600;font-size:12px;white-space:nowrap;">
+                            📤 رفع
+                            <input type="file" accept="image/*" style="display:none;" onchange="uploadQuestionImage(this, ${index})">
+                        </label>` : ''}
+                ` : ''}
+            </div>
+            ${mtype === 'image' && q.media_url ? `<img src="${escAttr(q.media_url)}" style="max-width:160px;max-height:120px;border-radius:8px;margin-top:8px;border:2px solid #e2e8f0;" onerror="this.style.display='none'">` : ''}
+            ${mtype === 'video' && q.media_url ? `<video src="${escAttr(q.media_url)}" controls style="max-width:220px;max-height:130px;border-radius:8px;margin-top:8px;"></video>` : ''}
+            ${mtype === 'audio' && q.media_url ? `<audio src="${escAttr(q.media_url)}" controls style="margin-top:8px;width:100%;"></audio>` : ''}
+        </div>
+    `;
+}
+
+function updateQuestionMedia(index, field, value) {
+    questions[index][field] = value;
+    if (field === 'media_type' && !value) {
+        delete questions[index].media_url;
+    }
+    renderQuestions();
+}
+
+function uploadQuestionImage(input, index) {
+    var file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('يرجى اختيار ملف صورة فقط'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('حجم الصورة يجب أن يكون أقل من 5 ميجابايت'); return; }
+    var fd = new FormData();
+    fd.append('image', file);
+    fd.append('_token', '{{ csrf_token() }}');
+    fetch('{{ route("editor.upload-image") }}', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+    })
+    .then(function (r) { if (!r.ok) throw new Error('فشل رفع الصورة'); return r.json(); })
+    .then(function (d) { if (d.url) { questions[index].media_url = d.url; renderQuestions(); } else { alert('فشل رفع الصورة'); } })
+    .catch(function (e) { alert('حدث خطأ أثناء الرفع: ' + e.message); });
 }
 </script>
 

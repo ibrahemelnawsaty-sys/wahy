@@ -34,10 +34,41 @@
             </ol>
         </nav>
         <h2 class="mb-1">تعديل النشاط</h2>
+
+        {{-- حالة الاعتماد (مرحلتان: مدير المدرسة ثم الإدارة) --}}
+        <div class="mt-2">
+            @if($activity->school_approval_status === 'rejected' || $activity->approval_status === 'rejected')
+                <span class="badge bg-danger">❌ مرفوض</span>
+            @elseif($activity->school_approval_status === 'pending')
+                <span class="badge bg-warning text-dark">⏳ بانتظار اعتماد مدير المدرسة</span>
+            @elseif($activity->approval_status === 'pending')
+                <span class="badge" style="background:#2563eb;color:#fff;">⏳ بانتظار اعتماد الإدارة</span>
+            @elseif($activity->approval_status === 'approved')
+                <span class="badge bg-success">✅ معتمد ومرئي للطلاب</span>
+            @endif
+        </div>
     </div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    @endif
+
+    {{-- سبب الرفض + إعادة الإرسال --}}
+    @if($activity->school_approval_status === 'rejected' || $activity->approval_status === 'rejected')
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-1">سبب الرفض:</div>
+            <div>{{ $activity->school_rejection_reason ?: ($activity->rejection_reason ?: 'لم يُذكر سبب.') }}</div>
+            <hr>
+            <small class="d-block mb-2 text-muted">عدّل النشاط ثم احفظ، وبعدها أعد إرساله للاعتماد.</small>
+            <form action="{{ route('teacher.activities.resubmit', $activity->id) }}" method="POST"
+                  onsubmit="return confirm('إعادة إرسال هذا النشاط للاعتماد؟');" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-primary btn-sm">🔄 إعادة إرسال للاعتماد</button>
+            </form>
+        </div>
     @endif
 
     <form action="{{ route('teacher.activities.update', $activity->id) }}" method="POST" enctype="multipart/form-data" id="activityForm">

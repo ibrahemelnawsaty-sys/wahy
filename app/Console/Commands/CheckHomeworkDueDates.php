@@ -37,6 +37,7 @@ class CheckHomeworkDueDates extends Command
         // الواجبات التي موعدها خلال 24 ساعة
         $upcomingHomework = Activity::where('is_homework', true)
             ->where('status', 'active')
+            ->where('approval_status', 'approved')
             ->whereBetween('due_date', [$now, $in24Hours])
             ->with(['classroom.students', 'creator'])
             ->get();
@@ -81,6 +82,7 @@ class CheckHomeworkDueDates extends Command
         // التحقق من الواجبات المتأخرة
         $overdueHomework = Activity::where('is_homework', true)
             ->where('status', 'active')
+            ->where('approval_status', 'approved')
             ->where('due_date', '<', $now)
             ->with(['classroom.students', 'creator'])
             ->get();

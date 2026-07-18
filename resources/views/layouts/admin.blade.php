@@ -285,7 +285,11 @@
                             <span class="admin-nav-icon">📚</span>
                             <span class="admin-nav-text">بنك الأنشطة</span>
                             @php
-                                $pendingBankActivities = \App\Models\Activity::where('is_activity_bank', true)->where('approval_status', 'pending')->count();
+                                $pendingBankActivities = \App\Models\Activity::whereNotNull('created_by')
+                                    ->where('approval_status', 'pending')
+                                    ->where('school_approval_status', 'approved')
+                                    ->whereHas('creator', fn ($q) => $q->where('role', 'teacher'))
+                                    ->count();
                                 $pendingBankQuestions = \App\Models\QuestionBank::where('status', 'pending')->count();
                                 $totalBankPending = $pendingBankActivities + $pendingBankQuestions;
                             @endphp
@@ -296,7 +300,11 @@
                             <span class="admin-nav-icon">✅</span>
                             <span class="admin-nav-text">الموافقة على الأنشطة</span>
                             @php
-                                $pendingActivities = \App\Models\Activity::where('is_activity_bank', true)->where('approval_status', 'pending')->count();
+                                $pendingActivities = \App\Models\Activity::whereNotNull('created_by')
+                                    ->where('approval_status', 'pending')
+                                    ->where('school_approval_status', 'approved')
+                                    ->whereHas('creator', fn ($q) => $q->where('role', 'teacher'))
+                                    ->count();
                             @endphp
                             <span style="background: #f59e0b; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $pendingActivities > 0 ? 'inline-flex' : 'none' }};" data-live="activity_approval_pending" data-live-badge>{{ $pendingActivities > 0 ? $pendingActivities : 0 }}</span>
                         </a>

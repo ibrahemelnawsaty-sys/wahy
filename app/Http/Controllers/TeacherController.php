@@ -719,8 +719,11 @@ class TeacherController extends Controller
             'due_date' => 'nullable|date',
         ]);
 
-        // إضافة المعلم الحالي كمنشئ
+        // إضافة المعلم الحالي كمنشئ + مرحلتا الاعتماد (مدير المدرسة ثم الأدمن)
         $validated['created_by'] = $user->id;
+        $validated['is_activity_bank'] = false;
+        $validated['school_approval_status'] = 'pending';
+        $validated['approval_status'] = 'pending';
 
         // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
         $validated['manual_review'] = $request->boolean('manual_review');
@@ -734,10 +737,11 @@ class TeacherController extends Controller
             );
         }
 
-        // تحويل الأسئلة من JSON string إلى array للحفظ
+        // تحويل الأسئلة من JSON string إلى array للحفظ + حارس سلامة الأسئلة
         if (! empty($validated['questions'])) {
             $decoded = json_decode($validated['questions'], true);
             $validated['questions'] = $decoded ?? null;
+            $this->validateActivityQuestions($validated['questions']);
         } else {
             unset($validated['questions']); // حذف المفتاح لتجنب تعيينه null
         }
@@ -750,21 +754,12 @@ class TeacherController extends Controller
         // إنشاء النشاط
         $activity = Activity::create($validated);
 
-        // إرسال إشعار للطلاب في الفصل
-        if ($activity->classroom_id) {
-            $classroom = Classroom::with('students')->find($activity->classroom_id);
-            foreach ($classroom->students as $student) {
-                NotificationService::newActivity(
-                    $student->id,
-                    $activity->title,
-                    $activity->type === 'quiz' ? 'اختبار جديد' : ($activity->type === 'project' ? 'مشروع جديد' : 'تمرين جديد'),
-                    null,
-                );
-            }
-        }
+        // لا نُشعِر طلاب الفصل بعد — النشاط غير معتمد حتى الآن. الإشعار يتمّ عند اعتماد الأدمن النهائي.
+        // بدلاً من ذلك نُشعِر مدير/مديري المدرسة بوجود نشاط بانتظار اعتمادهم.
+        $this->notifySchoolAdminsOfPendingActivity($user, $activity);
 
         return redirect()->route('teacher.activities')
-            ->with('success', 'تم إنشاء النشاط بنجاح');
+            ->with('success', 'تم إرسال النشاط للاعتماد. سيراجعه مدير المدرسة ثم الإدارة قبل ظهوره للطلاب.');
     }
 
     /**
@@ -851,6 +846,7 @@ class TeacherController extends Controller
         if ($request->filled('questions')) {
             $decoded = json_decode($request->input('questions'), true);
             $validated['questions'] = $decoded ?? $activity->questions; // fallback للقديمة
+            $this->validateActivityQuestions($validated['questions']); // حارس مفاتيح الإجابة (كالإنشاء)
         } else {
             // لم يُرسل الحقل → لا تمس البيانات الموجودة
             unset($validated['questions']);
@@ -864,8 +860,63 @@ class TeacherController extends Controller
         // تحديث النشاط
         $activity->update($validated);
 
+        // أمن الاعتماد: أيّ تعديل من المعلّم يُعيد النشاط للمرحلة الأولى (اعتماد مدير المدرسة ثم
+        // الأدمن) فلا يُنشَر محتوى غير مُراجَع للطلاب — يمنع «غسل الاعتماد» بتعديل نشاط معتمَد.
+        // (تجاوز حارس الموديل عبر saveQuietly كما في إعادة الإرسال.)
+        $activity->forceFill([
+            'school_approval_status' => 'pending',
+            'school_approved_by' => null,
+            'school_approved_at' => null,
+            'school_rejection_reason' => null,
+            'approval_status' => 'pending',
+            'approved_by' => null,
+            'approved_at' => null,
+            'rejection_reason' => null,
+        ])->saveQuietly();
+        $this->notifySchoolAdminsOfPendingActivity($user, $activity);
+
         return redirect()->route('teacher.activities')
-            ->with('success', 'تم تحديث النشاط بنجاح');
+            ->with('success', 'تم تحديث النشاط، وأُعيد للاعتماد (مدير المدرسة ثم الإدارة) قبل ظهوره للطلاب.');
+    }
+
+    /**
+     * إعادة إرسال نشاط مرفوض للاعتماد — يعيده للمرحلة الأولى (اعتماد مدير المدرسة).
+     * يتجاوز حارس الموديل عبر saveQuietly بعد التحقّق من ملكية المعلم.
+     */
+    public function resubmitActivity($id)
+    {
+        $user = Auth::user();
+
+        $activity = Activity::where('id', $id)
+            ->where('created_by', $user->id)
+            ->firstOrFail();
+
+        // يُعاد الإرسال فقط لنشاط مرفوض في إحدى المرحلتين
+        $isRejected = $activity->school_approval_status === 'rejected'
+            || $activity->approval_status === 'rejected';
+
+        if (! $isRejected) {
+            return redirect()->route('teacher.activities')
+                ->with('error', 'لا يمكن إعادة إرسال نشاط غير مرفوض.');
+        }
+
+        // إعادة الضبط للمرحلة الأولى ومسح أسباب الرفض (تجاوز الحارس عبر saveQuietly)
+        $activity->forceFill([
+            'school_approval_status' => 'pending',
+            'school_approved_by' => null,
+            'school_approved_at' => null,
+            'school_rejection_reason' => null,
+            'approval_status' => 'pending',
+            'approved_by' => null,
+            'approved_at' => null,
+            'rejection_reason' => null,
+        ])->saveQuietly();
+
+        // إشعار مدير/مديري المدرسة بإعادة الإرسال
+        $this->notifySchoolAdminsOfPendingActivity($user, $activity);
+
+        return redirect()->route('teacher.activities')
+            ->with('success', 'تم إعادة إرسال النشاط للاعتماد بنجاح.');
     }
 
     /**
@@ -1637,7 +1688,7 @@ class TeacherController extends Controller
     }
 
     /**
-     * إضافة نشاط إلى بنك الأنشطة (بدون موافقة)
+     * إضافة نشاط إلى بنك الأنشطة — يمرّ بمرحلتَي اعتماد (مدير المدرسة ثم الأدمن).
      */
     public function addActivityToBank(Request $request)
     {
@@ -1654,13 +1705,33 @@ class TeacherController extends Controller
             'bonus_points' => 'nullable|integer|min:0|max:50',
             'is_creative' => 'boolean',
             'passing_score' => 'nullable|integer|min:0|max:100',
+            'manual_review' => 'nullable|boolean',
+            'order' => 'nullable|integer|min:0',
+            'quiz_duration' => 'nullable|integer|min:1',
+            'max_attempts' => 'nullable|integer|min:1',
+            'allowed_file_types' => 'nullable|array',
+            'allowed_file_types.*' => 'in:document,image,video,audio',
+            'max_file_size' => 'nullable|integer|min:1|max:100',
             'status' => 'required|in:active,inactive,draft',
         ]);
 
-        // إضافة المعلم الحالي كمنشئ
+        // إضافة المعلم الحالي كمنشئ + مرحلتا الاعتماد (مدير المدرسة ثم الأدمن)
         $validated['created_by'] = $user->id;
         $validated['is_activity_bank'] = true;
+        $validated['school_approval_status'] = 'pending';
         $validated['approval_status'] = 'pending';
+
+        // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
+        $validated['manual_review'] = $request->boolean('manual_review');
+
+        // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR / تسرب بين المدارس)
+        if (! empty($validated['classroom_id'])) {
+            abort_unless(
+                $user->teachingClassrooms()->whereKey($validated['classroom_id'])->exists(),
+                403,
+                'هذا الفصل ليس ضمن فصولك',
+            );
+        }
 
         // إذا كان نشاط إبداعي، يجب أن يكون لكل الفصل
         if ($validated['is_creative'] ?? false) {
@@ -1670,21 +1741,97 @@ class TeacherController extends Controller
             $validated['bonus_points'] = $validated['bonus_points'] ?? 10;
         }
 
-        // تحويل الأسئلة من JSON string إلى array للحفظ
+        // تحويل الأسئلة من JSON string إلى array للحفظ + حارس سلامة الأسئلة
         if (! empty($validated['questions'])) {
             $decoded = json_decode($validated['questions'], true);
             $validated['questions'] = $decoded ?? null;
+            $this->validateActivityQuestions($validated['questions']);
         } else {
             unset($validated['questions']);
+        }
+
+        // تحويل أنواع الملفات المسموحة إلى JSON
+        if (isset($validated['allowed_file_types'])) {
+            $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
 
         // إنشاء النشاط
         $activity = Activity::create($validated);
 
+        // إشعار مدير/مديري المدرسة بوجود نشاط بانتظار اعتمادهم
+        $this->notifySchoolAdminsOfPendingActivity($user, $activity);
+
         // تحديث نقاط المعلم
         TeacherPoint::updateTeacherPoints($user->id);
 
-        return redirect()->route('teacher.activity-bank.index')->with('success', 'تم إضافة النشاط إلى بنك الأنشطة بنجاح. سيتم مراجعته من قبل الإدارة.');
+        return redirect()->route('teacher.activity-bank.index')->with('success', 'تم إرسال النشاط للاعتماد. سيراجعه مدير المدرسة ثم الإدارة قبل ظهوره للطلاب.');
+    }
+
+    /**
+     * حارس خادمي لسلامة الأسئلة — يمنع تخزين نشاط بلا مفتاح إجابة صالح
+     * (مطابق لحارس لوحة المشرف: الإجابة القصيرة واختيار الحروف).
+     */
+    private function validateActivityQuestions($questions): void
+    {
+        if (! is_array($questions)) {
+            return;
+        }
+
+        foreach ($questions as $i => $q) {
+            if (! is_array($q)) {
+                continue;
+            }
+            $type = $q['type'] ?? $q['question_type'] ?? null;
+            $n = $i + 1;
+
+            if ($type === 'short_answer') {
+                $answer = trim((string) ($q['correct_answer'] ?? $q['answer'] ?? ''));
+                if ($answer === '') {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'questions' => "السؤال رقم {$n}: يجب إدخال الإجابة الصحيحة لسؤال الإجابة القصيرة.",
+                    ]);
+                }
+            }
+
+            if ($type === 'letter_choice') {
+                $word = trim((string) ($q['word'] ?? $q['target_word'] ?? ''));
+                $letters = is_array($q['options'] ?? null)
+                    ? array_filter(array_map(
+                        fn ($o) => trim((string) (is_array($o) ? ($o['text'] ?? $o['label'] ?? '') : $o)),
+                        $q['options'],
+                    ))
+                    : [];
+                if ($word === '' && empty($letters)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'questions' => "السؤال رقم {$n}: أدخل حروف الكلمة لسؤال اختيار الحروف.",
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * إشعار مدير/مديري مدرسة المعلم بنشاط بانتظار اعتمادهم.
+     */
+    private function notifySchoolAdminsOfPendingActivity(User $teacher, Activity $activity): void
+    {
+        if (! $teacher->school_id) {
+            return;
+        }
+
+        $admins = User::where('school_id', $teacher->school_id)
+            ->where('role', 'school_admin')
+            ->pluck('id');
+
+        foreach ($admins as $adminId) {
+            NotificationService::send(
+                $adminId,
+                '📝 نشاط بانتظار اعتمادك',
+                "أرسل المعلم {$teacher->name} النشاط \"{$activity->title}\" لاعتماده.",
+                'activity_pending',
+                route('school-admin.activity-approvals'),
+            );
+        }
     }
 
     /**

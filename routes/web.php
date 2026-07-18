@@ -454,6 +454,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/requests/{id}/approve', [SchoolAdminController::class, 'approveRequest'])->name('requests.approve');
         Route::post('/requests/{id}/reject', [SchoolAdminController::class, 'rejectRequest'])->name('requests.reject');
 
+        // Activity Approvals — المرحلة الأولى: اعتماد أنشطة المعلّمين
+        Route::get('/activity-approvals', [SchoolAdminController::class, 'activityApprovals'])->name('activity-approvals');
+        Route::post('/activity-approvals/{id}/approve', [SchoolAdminController::class, 'approveActivity'])->name('activity-approvals.approve');
+        Route::post('/activity-approvals/{id}/reject', [SchoolAdminController::class, 'rejectActivity'])->name('activity-approvals.reject');
+
         // Excel Import/Export
         Route::get('/excel-management', [SchoolAdminController::class, 'excelManagement'])->name('excel-management');
         Route::get('/download-template', [SchoolAdminController::class, 'downloadTemplate'])->name('download-template');
@@ -501,6 +506,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/activities/{id}/edit', [TeacherController::class, 'editActivity'])->name('activities.edit');
         Route::put('/activities/{id}', [TeacherController::class, 'updateActivity'])->name('activities.update');
         Route::get('/activities/{id}/preview', [TeacherController::class, 'previewActivity'])->name('activities.preview');
+        Route::post('/activities/{id}/resubmit', [TeacherController::class, 'resubmitActivity'])->name('activities.resubmit');
         Route::delete('/activities/{id}', [TeacherController::class, 'deleteActivity'])->name('activities.delete');
 
         // نظام مكافأة الالتزام للأنشطة

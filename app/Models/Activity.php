@@ -61,6 +61,10 @@ class Activity extends Model
         'approved_by',
         'approved_at',
         'rejection_reason',
+        'school_approval_status',
+        'school_approved_by',
+        'school_approved_at',
+        'school_rejection_reason',
     ];
 
     protected $casts = [
@@ -69,6 +73,7 @@ class Activity extends Model
         'due_date' => 'datetime',
         'featured_at' => 'datetime',
         'approved_at' => 'datetime',
+        'school_approved_at' => 'datetime',
         'is_homework' => 'boolean',
         'is_team_activity' => 'boolean',
         'is_family_activity' => 'boolean',
@@ -88,7 +93,7 @@ class Activity extends Model
     protected static function booted(): void
     {
         static::updating(function (self $activity) {
-            $sensitive = ['approval_status', 'approved_by', 'approved_at', 'is_featured', 'featured_by', 'featured_at', 'rejection_reason'];
+            $sensitive = ['approval_status', 'approved_by', 'approved_at', 'is_featured', 'featured_by', 'featured_at', 'rejection_reason', 'school_approval_status', 'school_approved_by', 'school_approved_at', 'school_rejection_reason'];
 
             $changed = collect($sensitive)->filter(fn ($field) => $activity->isDirty($field));
             if ($changed->isEmpty()) {
@@ -130,6 +135,30 @@ class Activity extends Model
     public function isPendingApproval(): bool
     {
         return $this->approval_status === 'pending';
+    }
+
+    /**
+     * المعتمد من مدير المدرسة
+     */
+    public function schoolApprover(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'school_approved_by');
+    }
+
+    /**
+     * هل النشاط معتمد من مدير المدرسة؟
+     */
+    public function isSchoolApproved(): bool
+    {
+        return $this->school_approval_status === 'approved';
+    }
+
+    /**
+     * هل النشاط في انتظار موافقة مدير المدرسة؟
+     */
+    public function isPendingSchoolApproval(): bool
+    {
+        return $this->school_approval_status === 'pending';
     }
 
     /**

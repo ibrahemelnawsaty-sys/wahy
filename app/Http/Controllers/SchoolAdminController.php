@@ -10,12 +10,14 @@ use App\Exports\TeachersExport;
 use App\Imports\BulkUsersImport;
 use App\Mail\RegistrationApprovedMail;
 use App\Mail\RegistrationRejectedMail;
+use App\Models\Activity;
 use App\Models\ActivitySubmission;
 use App\Models\Classroom;
 use App\Models\RegistrationRequest;
 use App\Models\School;
 use App\Models\SchoolStatisticsCache;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -836,6 +838,110 @@ class SchoolAdminController extends Controller
         }
 
         return back()->with('success', 'تم رفض الطلب وإخطار المستخدم');
+    }
+
+    // ==================== اعتماد أنشطة المعلّمين (المرحلة الأولى) ====================
+
+    /**
+     * استعلام مُقيَّد بأنشطة معلّمي مدرستي فقط (حماية IDOR — لا school_id على activities،
+     * فالربط عبر دور المُنشئ ومدرسته).
+     */
+    private function schoolActivitiesQuery()
+    {
+        $schoolId = Auth::user()->school_id;
+
+        return Activity::whereNotNull('created_by')
+            ->whereHas('creator', function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId)->where('role', 'teacher');
+            });
+    }
+
+    /**
+     * قائمة أنشطة المعلّمين بانتظار اعتماد مدير المدرسة (المرحلة الأولى).
+     */
+    public function activityApprovals(Request $request)
+    {
+        $school = Auth::user()->school;
+
+        $status = $request->get('status', 'pending');
+
+        $query = $this->schoolActivitiesQuery()
+            ->with(['creator', 'lesson.concept.value']);
+
+        if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $query->where('school_approval_status', $status);
+        }
+
+        $activities = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        $stats = [
+            'pending' => (clone $this->schoolActivitiesQuery())->where('school_approval_status', 'pending')->count(),
+            'approved' => (clone $this->schoolActivitiesQuery())->where('school_approval_status', 'approved')->count(),
+            'rejected' => (clone $this->schoolActivitiesQuery())->where('school_approval_status', 'rejected')->count(),
+        ];
+
+        return view('school-admin.activity-approvals.index', compact('activities', 'stats', 'status', 'school'));
+    }
+
+    /**
+     * اعتماد نشاط معلّم (المرحلة الأولى) ⇒ يُرفَع للأدمن ويُشعَر السوبر أدمن.
+     */
+    public function approveActivity($id)
+    {
+        $activity = $this->schoolActivitiesQuery()->findOrFail($id);
+
+        $activity->update([
+            'school_approval_status' => 'approved',
+            'school_approved_by' => Auth::id(),
+            'school_approved_at' => now(),
+            'school_rejection_reason' => null,
+        ]);
+
+        // إشعار السوبر أدمن (كلّهم) بوجود نشاط بانتظار الاعتماد النهائي
+        $superAdmins = User::whereIn('role', ['admin', 'super_admin'])->pluck('id');
+        foreach ($superAdmins as $adminId) {
+            NotificationService::send(
+                $adminId,
+                '📝 نشاط بانتظار الاعتماد النهائي',
+                "اعتمد مدير المدرسة النشاط \"{$activity->title}\" وهو بانتظار مراجعتك.",
+                'activity_pending_admin',
+                route('admin.activity-approval.index'),
+            );
+        }
+
+        return back()->with('success', 'تم اعتماد النشاط ورفعه للإدارة للمراجعة النهائية');
+    }
+
+    /**
+     * رفض نشاط معلّم (المرحلة الأولى) ⇒ يُشعَر المعلّم ويستطيع تعديله وإعادة إرساله.
+     */
+    public function rejectActivity(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        $activity = $this->schoolActivitiesQuery()->findOrFail($id);
+
+        $activity->update([
+            'school_approval_status' => 'rejected',
+            'school_approved_by' => Auth::id(),
+            'school_approved_at' => now(),
+            'school_rejection_reason' => $validated['rejection_reason'],
+        ]);
+
+        // إشعار المعلّم — يمكنه التعديل وإعادة الإرسال
+        if ($activity->created_by) {
+            NotificationService::send(
+                $activity->created_by,
+                'تم رفض نشاطك من مدير المدرسة',
+                "تم رفض نشاط '{$activity->title}'. السبب: {$validated['rejection_reason']}. يمكنك تعديله وإعادة إرساله.",
+                'activity_school_rejected',
+                route('teacher.activities'),
+            );
+        }
+
+        return back()->with('success', 'تم رفض النشاط وإخطار المعلّم');
     }
 
     // ==================== Excel Import/Export ====================

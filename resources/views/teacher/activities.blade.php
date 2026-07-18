@@ -190,6 +190,17 @@
                                         @else
                                             <span class="badge bg-secondary">غير نشط</span>
                                         @endif
+                                        <div class="mt-1">
+                                            @if($activity->school_approval_status === 'rejected' || $activity->approval_status === 'rejected')
+                                                <span class="badge bg-danger" title="{{ $activity->school_rejection_reason ?: $activity->rejection_reason }}">❌ مرفوض</span>
+                                            @elseif($activity->school_approval_status === 'pending')
+                                                <span class="badge bg-warning text-dark">⏳ بانتظار مدير المدرسة</span>
+                                            @elseif($activity->approval_status === 'pending')
+                                                <span class="badge" style="background:#2563eb;color:#fff;">⏳ بانتظار الإدارة</span>
+                                            @elseif($activity->approval_status === 'approved')
+                                                <span class="badge bg-success">✅ معتمد</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -197,11 +208,20 @@
                                                class="btn btn-sm btn-outline-info" title="معاينة">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('teacher.activities.edit', $activity->id) }}" 
+                                            <a href="{{ route('teacher.activities.edit', $activity->id) }}"
                                                class="btn btn-sm btn-outline-primary" title="تعديل">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            @if($activity->school_approval_status === 'rejected' || $activity->approval_status === 'rejected')
+                                            <form action="{{ route('teacher.activities.resubmit', $activity->id) }}" method="POST"
+                                                  onsubmit="return confirm('إعادة إرسال هذا النشاط للاعتماد؟');" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="إعادة إرسال للاعتماد">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
+                                            </form>
+                                            @endif
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
                                                     onclick="deleteActivity({{ $activity->id }})" title="حذف">
                                                 <i class="fas fa-trash"></i>
                                             </button>

@@ -136,7 +136,8 @@ class StudentApiController extends Controller
 
         // ملاحظة: جدول activities لا يملك عمود school_id — عزل المدرسة يتم عبر فصول الطالب أدناه
         $query = Activity::with(['lesson.concept.value'])
-            ->where('status', 'active');
+            ->where('status', 'active')
+            ->where('approval_status', 'approved');   // بوّابة الاعتماد — لا تُسرَّب أنشطة معلّم غير معتمدة عبر الـAPI
 
         // Filter by classroom if student
         if ($user->role === 'student') {
@@ -214,6 +215,14 @@ class StudentApiController extends Controller
             ], 403);
         }
 
+        // بوّابة الاعتماد: لا يُفتَح نشاط معلّم غير معتمد (بأسئلته/مفاتيح إجاباته)
+        if (! $activity->isApproved()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'هذا النشاط غير متاح حالياً',
+            ], 403);
+        }
+
         $submission = $activity->submissions()
             ->where('student_id', $user->id)
             ->first();
@@ -266,6 +275,14 @@ class StudentApiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول لهذا النشاط',
+            ], 403);
+        }
+
+        // بوّابة الاعتماد: لا يُقبَل تسليم/منح نقاط على نشاط معلّم غير معتمد
+        if (! $activity->isApproved()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'هذا النشاط غير متاح حالياً',
             ], 403);
         }
 

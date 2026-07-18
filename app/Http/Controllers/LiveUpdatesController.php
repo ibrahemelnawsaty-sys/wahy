@@ -45,10 +45,15 @@ class LiveUpdatesController extends Controller
             $counts['header_new_users'] = $pendingReq;
             $counts['registration_requests_pending'] = $pendingReq;
 
-            $counts['activity_approval_pending'] = $safe(fn () => \App\Models\Activity::where('is_activity_bank', true)
-                ->where('approval_status', 'pending')->count());
+            // الطابور النهائي للأدمن = أنشطة معلّمين مُعتمَدة مدرسياً بانتظار الاعتماد النهائي
+            $adminPendingActivities = fn () => \App\Models\Activity::whereNotNull('created_by')
+                ->where('approval_status', 'pending')
+                ->where('school_approval_status', 'approved')
+                ->whereHas('creator', fn ($q) => $q->where('role', 'teacher'))
+                ->count();
+            $counts['activity_approval_pending'] = $safe($adminPendingActivities);
             $counts['activity_bank_pending'] = $safe(fn () => (
-                \App\Models\Activity::where('is_activity_bank', true)->where('approval_status', 'pending')->count()
+                $adminPendingActivities()
                 + \App\Models\QuestionBank::where('status', 'pending')->count()
             ));
         }
@@ -77,6 +82,10 @@ class LiveUpdatesController extends Controller
                 ->whereNull('read_at')->count());
             $counts['registration_requests_pending'] = $safe(fn () => \App\Models\RegistrationRequest::where('school_id', $user->school_id)
                 ->where('status', 'pending')->count());
+            $counts['school_activity_approvals_pending'] = $safe(fn () => \App\Models\Activity::whereNotNull('created_by')
+                ->where('school_approval_status', 'pending')
+                ->whereHas('creator', fn ($q) => $q->where('school_id', $user->school_id)->where('role', 'teacher'))
+                ->count());
         }
 
         // ── student ──

@@ -128,12 +128,14 @@
                                     <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">🎁 +{{ $activity->bonus_points }} إضافية</span>
                                     @endif
                                     @if($activity->created_by == auth()->id())
-                                        @if($activity->approval_status === 'pending')
-                                        <span style="background: #fef3c7; color: #d97706; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">⏳ في انتظار الموافقة</span>
+                                        @if($activity->school_approval_status === 'rejected' || $activity->approval_status === 'rejected')
+                                        <span style="background: #fee2e2; color: #dc2626; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">❌ مرفوض</span>
+                                        @elseif($activity->school_approval_status === 'pending')
+                                        <span style="background: #fef3c7; color: #d97706; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">⏳ بانتظار اعتماد مدير المدرسة</span>
+                                        @elseif($activity->approval_status === 'pending')
+                                        <span style="background: #dbeafe; color: #2563eb; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">⏳ بانتظار اعتماد الإدارة</span>
                                         @elseif($activity->approval_status === 'approved')
                                         <span style="background: #dcfce7; color: #16a34a; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">✅ معتمد</span>
-                                        @elseif($activity->approval_status === 'rejected')
-                                        <span style="background: #fee2e2; color: #dc2626; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">❌ مرفوض</span>
                                         @endif
                                     @else
                                         <span style="background: #e0e7ff; color: #4f46e5; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">🌐 مشترك</span>
@@ -141,6 +143,21 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- سبب الرفض + إعادة الإرسال (لصاحب النشاط فقط) --}}
+                        @if($activity->created_by == auth()->id() && ($activity->school_approval_status === 'rejected' || $activity->approval_status === 'rejected'))
+                        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px 18px; margin-bottom: 15px;">
+                            <div style="color: #b91c1c; font-weight: 700; font-size: 13px; margin-bottom: 4px;">سبب الرفض:</div>
+                            <div style="color: #7f1d1d; font-size: 13px; line-height: 1.6;">{{ $activity->school_rejection_reason ?: ($activity->rejection_reason ?: 'لم يُذكر سبب.') }}</div>
+                            <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+                                <a href="{{ route('teacher.activities.edit', $activity->id) }}" style="background: #e2e8f0; color: #334155; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none;">✏️ تعديل</a>
+                                <form action="{{ route('teacher.activities.resubmit', $activity->id) }}" method="POST" onsubmit="return confirm('إعادة إرسال هذا النشاط للاعتماد؟');" style="margin: 0;">
+                                    @csrf
+                                    <button type="submit" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; border: none; cursor: pointer;">🔄 إعادة إرسال</button>
+                                </form>
+                            </div>
+                        </div>
+                        @endif
                         @if($activity->description)
                         <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">{{ html_excerpt($activity->description, 150) }}</p>
                         @endif
