@@ -4,21 +4,22 @@
 
 @push('styles')
 <style>
-    /* Lesson View - خلفية أهدأ بصرياً (Issues #87, #99)
-       الافتراضي = أزرق/بنفسجي متناسق مع باقي صفحات الطالب (ليس الأسود القاسي).
+    /* Lesson View — الثيم موحّد مع بقيّة صفحات الطالب عبر var(--app-bg).
        الوضع الفاتح يستخدم html[data-theme="light"] (متوافق مع الـ toggle العالمي). */
+    /* الخلفية موحّدة مع بقيّة صفحات الطالب — ترث ثيم الـ layout
+       (داكن حقيقي #1e1b4b→#0b1220 ليلاً، فاتح نهاراً) بدل البنفسجي الساطع الثابت. */
     body {
-        background: linear-gradient(135deg, #4c51bf 0%, #5b21b6 50%, #6d28d9 100%);
+        background: var(--app-bg);
     }
     html[data-theme="light"] body {
-        background: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 50%, #fce7f3 100%);
         color: #1e293b;
     }
     html[data-theme="light"] .rich-content { color: #1e293b; }
+    html[data-theme="light"] .rich-content a { color: #1d4ed8; }
     html[data-theme="light"] .content-text { color: #334155; }
     html[data-theme="light"] .lesson-header { background: rgba(255,255,255,0.7); }
     html[data-theme="light"] .lesson-back-btn { color: #334155; background: rgba(0,0,0,0.06); }
-    html[data-theme="light"] .section-type-badge { color: #475569; background: rgba(0,0,0,0.04); }
+    /* شارة نوع القسم تدرّج علاميّ بنصّ أبيض مقروء في الوضعين — لا حاجة لتسطيحها رماديّاً نهاراً */
 
     /* الوضع النهاري: النصوص البيضاء المُصلَّبة تصبح غير مقروءة على الخلفية الفاتحة — نجعلها داكنة (Issue: تباين الوضع النهاري) */
     html[data-theme="light"] .lesson-content-card { color: #334155; }
@@ -36,12 +37,22 @@
     /* حالة «لا أنشطة»: النص الأبيض inline → داكن */
     html[data-theme="light"] .lesson-content-card h3[style*="color: white"],
     html[data-theme="light"] .lesson-content-card p[style*="rgba(255,255,255"] { color: #334155 !important; }
-    
+
+    /* نهاراً: البطاقات الزجاجيّة تحتاج حدّاً/ظلّاً مرئيّاً وإلا ذابت في الخلفية الفاتحة */
+    html[data-theme="light"] .lesson-content-card,
+    html[data-theme="light"] .lesson-header {
+        border-color: var(--color-border);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+    html[data-theme="light"] .lesson-content-card { background: rgba(255, 255, 255, 0.82); }
+    /* وعاء شريط التقدّم الفارغ يجب أن يُرى نهاراً فوق الرأس الفاتح */
+    html[data-theme="light"] .progress-bar-track { background: rgba(15, 23, 42, 0.10); }
+
     .lesson-container {
         max-width: 900px;
         margin: 0 auto;
-        padding: var(--spacing-lg) var(--spacing-md);
-        padding-bottom: 120px;
+        /* الحشو الأفقيّ يتكفّل به .container-wrapper (20px) — نُصفّره هنا لمنع الازدواج على الجوّال */
+        padding: var(--spacing-lg) 0 120px;
     }
     
     /* Minimal Header */
@@ -241,8 +252,9 @@
     
     .activity-card:hover {
         background: rgba(255, 255, 255, 0.1);
-        transform: translateX(-8px);
+        /* لا إزاحة أفقيّة (كانت تُسبّب تموّجاً/تجاوزاً في RTL على الجوّال) — نكتفي بالحدّ والظلّ */
         border-color: var(--color-primary);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
     }
     
     .activity-card.completed {
@@ -342,6 +354,51 @@
         box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
     }
     
+    /* غلاف موحّد للصوت (كان <audio> عارياً خارج نسق البطاقات) + مواءمة واجهة المشغّل مع الثيم */
+    .media-audio {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-md);
+        margin-top: var(--spacing-md);
+    }
+    .media-audio audio {
+        width: 100%;
+        display: block;
+    }
+    /* منع المشغّلات الأصليّة من الظهور بواجهة فاتحة قاسية داخل بطاقة داكنة */
+    .media-audio audio,
+    .media-container video {
+        color-scheme: light dark;
+    }
+
+    /* نقاط أيام الالتزام: أصناف صريحة بتباين كافٍ في الوضعين بدل ألوان inline لا يلتقطها dark-coverage */
+    .streak-day-dot {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 800;
+    }
+    .streak-day-dot.filled {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(217, 119, 6, .45);
+    }
+    .streak-day-dot.empty {
+        background: rgba(255, 255, 255, .65);
+        color: #92400e;
+        border: 2px dashed #f59e0b;
+    }
+    html[data-theme="dark"] .streak-day-dot.empty {
+        background: rgba(255, 255, 255, .10);
+        color: #fcd34d;
+        border-color: #b45309;
+    }
+
     @media (max-width: 767px) {
         .lesson-header {
             flex-direction: column;
@@ -368,7 +425,7 @@
 @endpush
 
 @section('content')
-<div class="container-wrapper" style="padding-top: 100px; padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">
+<div class="container-wrapper" style="padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">{{-- الحشو العلويّ من .student-main (شريط الحالة sticky داخل التدفّق) — لا نُكرّره لتفادي الفجوة العلوية المفرطة --}}
 <div class="lesson-container fade-in">
 
     {{-- استبيان التقييم القبلي/البعدي المرتبط بالدرس --}}
@@ -454,7 +511,7 @@
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; direction:rtl;">
             @for($__d = 1; $__d <= $__sMin; $__d++)
                 @php $__filled = $__d <= $__sDone; @endphp
-                <div title="اليوم {{ $__d }}" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; {{ $__filled ? 'background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; box-shadow:0 2px 6px rgba(217,119,6,.45);' : 'background:rgba(255,255,255,.55); color:#d1a054; border:2px dashed #f59e0b;' }}">{{ $__filled ? '✓' : $__d }}</div>
+                <div title="اليوم {{ $__d }}" class="streak-day-dot {{ $__filled ? 'filled' : 'empty' }}">{{ $__filled ? '✓' : $__d }}</div>
             @endfor
         </div>
         <!-- Progress Bar -->
@@ -590,10 +647,12 @@
                 <span>🎧</span>
                 <span>مقطع صوتي</span>
             </span>
-            <audio controls style="width: 100%; margin-top: var(--spacing-md);">
-                <source src="{{ $lesson->audio_url }}" type="audio/mpeg">
-                متصفحك لا يدعم تشغيل الملفات الصوتية.
-            </audio>
+            <div class="media-audio">
+                <audio controls>
+                    <source src="{{ $lesson->audio_url }}" type="audio/mpeg">
+                    متصفحك لا يدعم تشغيل الملفات الصوتية.
+                </audio>
+            </div>
         </div>
         @endif
 
@@ -604,10 +663,12 @@
                 <span>🎧</span>
                 <span>مقطع صوتي</span>
             </span>
-            <audio controls style="width: 100%; margin-top: var(--spacing-md);">
-                <source src="{{ asset('storage/' . ltrim($lesson->audio_file, '/')) }}">
-                متصفحك لا يدعم تشغيل الملفات الصوتية.
-            </audio>
+            <div class="media-audio">
+                <audio controls>
+                    <source src="{{ asset('storage/' . ltrim($lesson->audio_file, '/')) }}">
+                    متصفحك لا يدعم تشغيل الملفات الصوتية.
+                </audio>
+            </div>
         </div>
         @endif
     </div>

@@ -4,24 +4,106 @@
 
 @push('styles')
 <style>
-    /* Page-specific animations */
+    /* ============================================================
+       صفحة التعلم — تنسيق فاخر متّسق + قراءة مضمونة في الوضعين.
+       كل القاعد مقيّدة بـ.student-app، والألوان من توكنات الثيم
+       (--color-text/-muted/-success) أو قاعدتين صريحتين dark/light
+       بدل أبيض/بنفسجي مُصلَّب هشّ. لا اعتماد على مطابقة inline الهشّة.
+       ============================================================ */
+
+    /* توهّج بطاقة الهيرو */
     @keyframes pulseGlow {
-        0%, 100% { 
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-        }
-        50% { 
-            box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
-        }
+        0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+        50%      { box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); }
     }
-    
-    .hero-card-glow {
-        animation: pulseGlow 3s ease-in-out infinite;
+    .student-app .hero-card-glow { animation: pulseGlow 3s ease-in-out infinite; }
+
+    /* عناوين/تسميات البطاقات الزجاجية ← توكنات الثيم
+       (نصّ داكن على زجاج فاتح نهاراً، فاتح على داكن ليلاً) بدل الأبيض المُصلَّب */
+    .student-app .hero-lesson-title,
+    .student-app .daily-goal-title,
+    .student-app .section-title,
+    .student-app .quick-practice-title { color: var(--color-text); }
+    .student-app .hero-lesson-subject  { color: var(--color-text-muted); }
+    .student-app .daily-goal-text      { color: var(--color-text-muted); }
+    .student-app .progress-ring-text   { color: var(--color-text); }
+
+    /* منع أي تجاوز أفقي داخل عمود المعلومات عند 320px */
+    .student-app .hero-lesson-info     { min-width: 0; }
+    .student-app .hero-lesson-progress { flex-wrap: wrap; }
+
+    /* شريط تمييز بطاقة الهدف يتبع اتجاه RTL (كان border-left يقع يساراً) */
+    .student-app .daily-goal-card {
+        border-left: 0;
+        border-inline-start: 4px solid var(--color-success);
     }
+
+    /* شارة حالة الهدف — قاعدتان صريحتان لكل حالة لضمان التباين في الوضعين */
+    .student-app .daily-goal-status.dg-complete { background: rgba(34,197,94,0.20);  color: #15803d; }
+    .student-app .daily-goal-status.dg-progress { background: rgba(245,158,11,0.22); color: #b45309; }
+    html[data-theme="dark"] .student-app .daily-goal-status.dg-complete { background: rgba(34,197,94,0.18);  color: #6ee7b7; }
+    html[data-theme="dark"] .student-app .daily-goal-status.dg-progress { background: rgba(245,158,11,0.18); color: #fcd34d; }
+
+    /* مؤشّر مكافأة الالتزام — هوية كهرمانية ذاتية بقاعدتين (تمنع تسطيح dark-coverage)
+       وتوحيد المسافات/الخطوط على سلّم var(--spacing-*) */
+    .student-app .cls-badge {
+        display: inline-flex; flex-direction: column; gap: var(--spacing-xs);
+        border-radius: var(--radius-md); padding: var(--spacing-xs) var(--spacing-md);
+        margin-bottom: var(--spacing-md); max-width: 100%;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1.5px solid #f59e0b;
+    }
+    html[data-theme="dark"] .student-app .cls-badge {
+        background: rgba(245,158,11,0.15);
+        border-color: rgba(245,158,11,0.55);
+    }
+    .student-app .cls-badge-line {
+        display: flex; align-items: center; flex-wrap: wrap; gap: 7px;
+        font-size: 13px; font-weight: 800; color: #92400e; line-height: 1.4;
+    }
+    html[data-theme="dark"] .student-app .cls-badge-line { color: #fcd34d; }
+    .student-app .cls-badge-emoji { font-size: 15px; }
+    .student-app .cls-badge-bar {
+        display: block; height: 6px; border-radius: 8px; overflow: hidden;
+        background: rgba(255,255,255,0.55);
+    }
+    html[data-theme="dark"] .student-app .cls-badge-bar { background: rgba(0,0,0,0.28); }
+    .student-app .cls-badge-bar > span {
+        display: block; height: 100%; border-radius: 8px;
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+    }
+
+    /* الحالة الفارغة: بطاقة هيرو غير تفاعلية (تلغي المؤشّر والرفع والتوهّج ::before) */
+    .student-app .hero-lesson-card--static { cursor: default; }
+    .student-app .hero-lesson-card--static:hover {
+        transform: none;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    }
+    .student-app .hero-lesson-card--static::before { display: none; }
+
+    /* تخطيط العمودين للسطح المكتبي عبر CSS (بلا اعتماد على JS، بلا FOUC) */
+    .student-app .learn-content-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xl);
+    }
+    .student-app .main-content-right { display: none; }
+    @media (min-width: 1024px) {
+        .student-app .learn-content-grid { grid-template-columns: 2fr 1fr; align-items: start; }
+        .student-app .main-content-right { display: block; }
+    }
+
+    /* XP التدريب السريع: كهرمانيّ على زجاج فاتح يختفي نهاراً → بنّي مقروء (يبقى كهرمانيّاً ليلاً) */
+    html[data-theme="light"] .student-app .quick-practice-xp { color: #b45309; }
+    /* توسيط حلقة التقدّم وزرّ CTA تحت العنوان المتوسّط على الجوال */
+    @media (max-width: 767px) { .student-app .hero-lesson-progress { justify-content: center; } }
+    /* مسار حلقة التقدّم الفارغ (أبيض شفّاف) يختفي على بطاقة الهيرو الفاتحة نهاراً → حدّ داكن خفيف */
+    html[data-theme="light"] .student-app .progress-ring-circle-bg { stroke: rgba(15, 23, 42, 0.12); }
 </style>
 @endpush
 
 @section('content')
-<div class="container-wrapper" style="padding-top: 100px; padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">
+<div class="container-wrapper">{{-- الحشو/العرض من .student-main (لا نكرّره هنا لتفادي الحشو المزدوج والفجوة العلوية المفرطة) --}}
 <div class="fade-in">
     <!-- Hero: Current Lesson Card -->
     @if(isset($currentLesson) && $currentLesson)
@@ -33,7 +115,7 @@
             <div class="hero-lesson-info">
                 <div class="hero-lesson-subject">{{ $currentLesson->concept->value->name ?? 'القيم' }}</div>
                 <div class="hero-lesson-title">{{ $currentLesson->title }}</div>
-                <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 16px;">
+                <div style="font-size: 14px; color: var(--color-text-muted); margin-bottom: var(--spacing-md); line-height: 1.6;">
                     {{ $currentLesson->description ?? 'ابدأ رحلتك في تعلم هذا الدرس' }}
                 </div>
 
@@ -45,14 +127,14 @@
                     $__clsClaimed = (bool) (($currentLessonStreak ?? null)->bonus_claimed ?? false);
                     $__clsPct     = $__clsMin > 0 ? min(100, round($__clsDone / $__clsMin * 100)) : 0;
                 @endphp
-                <div style="display:inline-flex; flex-direction:column; gap:6px; background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border:1.5px solid #f59e0b; border-radius:12px; padding:8px 14px; margin-bottom:16px; max-width:100%;">
+                <div class="cls-badge">
                     @if($__clsClaimed)
-                        <span style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:#92400e;"><span style="font-size:15px;">🏆</span> مكافأة الالتزام محقّقة!</span>
+                        <span class="cls-badge-line"><span class="cls-badge-emoji">🏆</span> مكافأة الالتزام محقّقة!</span>
                     @elseif($__clsDone > 0)
-                        <span style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:#92400e;"><span style="font-size:15px;">🔥</span> التزام: يوم {{ $__clsDone }} من {{ $__clsMin }} — استمرّ! 🚀</span>
-                        <span style="display:block; background:rgba(255,255,255,0.55); border-radius:8px; height:6px; overflow:hidden;"><span style="display:block; height:100%; border-radius:8px; background:linear-gradient(90deg,#f59e0b,#d97706); width:{{ $__clsPct }}%;"></span></span>
+                        <span class="cls-badge-line"><span class="cls-badge-emoji">🔥</span> التزام: يوم {{ $__clsDone }} من {{ $__clsMin }} — استمرّ! 🚀</span>
+                        <span class="cls-badge-bar"><span style="width:{{ $__clsPct }}%;"></span></span>
                     @else
-                        <span style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:#92400e;"><span style="font-size:15px;">🔥</span> مكافأة التزام — ابدأ اليوم بأوّل نشاط!</span>
+                        <span class="cls-badge-line"><span class="cls-badge-emoji">🔥</span> مكافأة التزام — ابدأ اليوم بأوّل نشاط!</span>
                     @endif
                 </div>
                 @endif
@@ -78,10 +160,10 @@
     </div>
     @else
     <!-- Empty State -->
-    <div class="hero-lesson-card" style="text-align: center; padding: 60px 40px;">
+    <div class="hero-lesson-card hero-lesson-card--static" style="text-align: center; padding: 60px 40px;">
         <div style="font-size: 80px; margin-bottom: 20px;">🎯</div>
-        <h2 style="font-size: 28px; font-weight: 700; color: white; margin-bottom: 12px;">ابدأ رحلتك التعليمية</h2>
-        <p style="font-size: 16px; color: rgba(255,255,255,0.8); margin-bottom: 24px;">اختر أول درس من خريطة التعلم</p>
+        <h2 style="font-size: 28px; font-weight: 700; color: var(--color-text); margin-bottom: 12px;">ابدأ رحلتك التعليمية</h2>
+        <p style="font-size: 16px; color: var(--color-text-muted); margin-bottom: 24px;">اختر أول درس من خريطة التعلم</p>
         <button class="hero-lesson-cta" onclick="window.location.href='{{ route('student.path') }}'">
             <span>استكشف الدروس</span>
             <span style="font-size: 20px;">🗺️</span>
@@ -90,7 +172,7 @@
     @endif
 
     <!-- Desktop Layout: Two Columns -->
-    <div style="display: grid; grid-template-columns: 1fr; gap: var(--spacing-xl);" class="learn-content-grid">
+    <div class="learn-content-grid">
         <!-- Left Column: Main Content -->
         <div class="main-content-left">
             <!-- Daily Goal Card -->
@@ -106,7 +188,7 @@
                         $goalPercent = min(($completedToday / $dailyGoal) * 100, 100);
                         $isCompleted = $completedToday >= $dailyGoal;
                     @endphp
-                    <div class="daily-goal-status" style="background: {{ $isCompleted ? 'rgba(34, 197, 94, 0.3)' : 'rgba(251, 191, 36, 0.3)' }}; color: {{ $isCompleted ? '#22C55E' : '#FBBF24' }};">
+                    <div class="daily-goal-status {{ $isCompleted ? 'dg-complete' : 'dg-progress' }}">
                         {{ $isCompleted ? '✓ مكتمل' : $completedToday . ' / ' . $dailyGoal }}
                     </div>
                 </div>
@@ -137,7 +219,7 @@
                             <span>⭐</span>
                             <span>+10 XP</span>
                         </div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px;">5 دقائق</div>
+                        <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 8px;">5 دقائق</div>
                     </div>
 
                     <!-- Practice Card 2: Quiz -->
@@ -148,7 +230,7 @@
                             <span>⭐</span>
                             <span>+15 XP</span>
                         </div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px;">3 أسئلة</div>
+                        <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 8px;">3 أسئلة</div>
                     </div>
 
                     <!-- Practice Card 3: Challenge -->
@@ -159,7 +241,7 @@
                             <span>⭐</span>
                             <span>+25 XP</span>
                         </div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px;">10 دقائق</div>
+                        <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 8px;">10 دقائق</div>
                     </div>
 
                     <!-- Practice Card 4: Story -->
@@ -170,7 +252,7 @@
                             <span>⭐</span>
                             <span>+20 XP</span>
                         </div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px;">8 دقائق</div>
+                        <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 8px;">8 دقائق</div>
                     </div>
                 </div>
             </div>
@@ -188,10 +270,10 @@
                          onclick="window.location.href='{{ route('student.activity', $activity->id) }}'">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-md);">
                             <div style="flex: 1;">
-                                <div style="font-weight: 700; font-size: 16px; color: white; margin-bottom: 6px;">
+                                <div style="font-weight: 700; font-size: 16px; color: var(--color-text); margin-bottom: 6px;">
                                     {{ $activity->activity->title ?? 'نشاط' }}
                                 </div>
-                                <div style="font-size: 13px; color: rgba(255,255,255,0.7);">
+                                <div style="font-size: 13px; color: var(--color-text-muted);">
                                     {{ $activity->created_at->diffForHumans() }}
                                 </div>
                             </div>
@@ -225,24 +307,24 @@
         </div>
 
         <!-- Right Column: Side Cards (Desktop Only) -->
-        <div class="main-content-right" style="display: none;">
+        <div class="main-content-right">
             <!-- Achievements Card -->
             <div class="glass-card scale-in" style="padding: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
-                <div style="font-size: 20px; font-weight: 700; color: white; margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--color-text); margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 28px;">🏅</span>
                     <span>إنجازاتي</span>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: rgba(255,255,255,0.9); font-size: 14px;">الدروس المكتملة</span>
+                        <span style="color: var(--color-text-muted); font-size: 14px;">الدروس المكتملة</span>
                         <span style="font-weight: 700; color: var(--color-success); font-size: 18px;">{{ $stats['completed_activities'] ?? 0 }}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: rgba(255,255,255,0.9); font-size: 14px;">الشارات المكتسبة</span>
+                        <span style="color: var(--color-text-muted); font-size: 14px;">الشارات المكتسبة</span>
                         <span style="font-weight: 700; color: var(--color-warning); font-size: 18px;">{{ $stats['total_badges'] ?? 0 }}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: rgba(255,255,255,0.9); font-size: 14px;">متوسط الدرجات</span>
+                        <span style="color: var(--color-text-muted); font-size: 14px;">متوسط الدرجات</span>
                         <span style="font-weight: 700; color: var(--color-secondary); font-size: 18px;">{{ $stats['average_score'] ?? 0 }}%</span>
                     </div>
                 </div>
@@ -251,7 +333,7 @@
             <!-- Badges Preview -->
             @if(isset($badges) && $badges->count() > 0)
             <div class="glass-card scale-in" style="padding: var(--spacing-lg); animation-delay: 0.1s;">
-                <div style="font-size: 20px; font-weight: 700; color: white; margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--color-text); margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 28px;">🎖️</span>
                     <span>أحدث الشارات</span>
                 </div>
@@ -261,7 +343,7 @@
                                 border-radius: var(--radius-lg); padding: 16px; text-align: center;
                                 border: 1px solid rgba(139, 92, 246, 0.4);">
                         <div style="font-size: 32px; margin-bottom: 6px;">{{ $badge->icon ?? '🏆' }}</div>
-                        <div style="font-size: 11px; font-weight: 600; color: white;">{{ $badge->name }}</div>
+                        <div style="font-size: 11px; font-weight: 600; color: var(--color-text);">{{ $badge->name }}</div>
                     </div>
                     @endforeach
                 </div>
@@ -271,25 +353,4 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    // Show side column on large screens
-    if (window.innerWidth >= 1024) {
-        document.querySelector('.learn-content-grid').style.gridTemplateColumns = '2fr 1fr';
-        document.querySelector('.main-content-right').style.display = 'block';
-    }
-    
-    // Handle window resize
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 1024) {
-            document.querySelector('.learn-content-grid').style.gridTemplateColumns = '2fr 1fr';
-            document.querySelector('.main-content-right').style.display = 'block';
-        } else {
-            document.querySelector('.learn-content-grid').style.gridTemplateColumns = '1fr';
-            document.querySelector('.main-content-right').style.display = 'none';
-        }
-    });
-</script>
-@endpush
 </div>

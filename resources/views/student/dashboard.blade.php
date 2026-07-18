@@ -19,7 +19,18 @@
     .animate-in { animation: slideIn 0.5s ease-out; }
     .status-completed { background: #48bb78; }
     .status-progress { background: #ecc94b; }
-    .status-locked { background: #cbd5e0; }
+    .status-locked { background: #94a3b8; }
+    /* نسبة التقدّم داخل شريط القيمة: اللون في صنف (لا inline) كي لا يقلبه dark-coverage إلى
+       أبيض فوق التعبئة الذهبية/الخضراء الفاتحة (فتختفي ليلاً) — نصّ داكن مقروء في الوضعين. */
+    .value-progress-pct { color: #1a202c; }
+    /* F8: حدّ رقيق للسواتش الثلاث لتتمايز عن سطح اللوحة الأبيض في النهاري
+       (كانت «مقفل» رمادية باهتة بالكاد تُرى على الأبيض). */
+    .values-tree-legend .status-completed,
+    .values-tree-legend .status-progress,
+    .values-tree-legend .status-locked {
+        border: 1px solid var(--color-border);
+        box-sizing: border-box;
+    }
 
     /* بطاقات الأقسام: سطح موحّد يتبع الثيم (فاتح/داكن) بدل الأبيض الثابت.
        يحلّ «التنسيق السيّئ + اختلال الوضع الليلي/النهاري» بلا اعتماد على ترقيعات التغطية. */
@@ -81,7 +92,9 @@
         grid-column: 1 / -1 !important;
         border-width: 4px !important;
         box-shadow: 0 20px 60px rgba(236, 201, 75, 0.4) !important;
-        background: linear-gradient(135deg, rgba(236, 201, 75, 0.05) 0%, rgba(255, 255, 255, 1) 100%) !important;
+        /* F6: أساس يتبع الثيم (بدل الأبيض المُصلَّب الهشّ) مع توهّج ذهبي رقيق
+           → البطاقة تتمايز وتُقرأ في الوضعين دون الاتّكال على dark-coverage. */
+        background: linear-gradient(135deg, rgba(236, 201, 75, 0.14) 0%, var(--color-card) 100%) !important;
         animation: currentPulse 3s ease-in-out infinite !important;
     }
 
@@ -126,7 +139,6 @@
         .container-wrapper {
             padding-left: 12px !important;
             padding-right: 12px !important;
-            padding-top: 80px !important;
             padding-bottom: 100px !important;
         }
 
@@ -324,23 +336,9 @@
             font-size: 18px !important;
         }
 
-        /* Activities - Mobile */
-        .concepts-container > div > div[style*="display: grid"] > div > div[style*="display: grid"] > div > div[style*="display: flex"] {
-            flex-direction: column !important;
-            gap: 8px !important;
-            margin-top: 10px !important;
-        }
-
-        .concepts-container > div > div[style*="display: grid"] > div > div[style*="display: grid"] > div > div[style*="display: flex"] > a {
-            width: 100% !important;
-            justify-content: center !important;
-            padding: 12px 16px !important;
-            font-size: 13px !important;
-        }
-
-        .concepts-container > div > div[style*="display: grid"] > div > div[style*="display: grid"] > div > div[style*="display: flex"] > a > span[style*="font-size: 18px"] {
-            font-size: 16px !important;
-        }
+        /* Activities — الأنشطة الآن شبكة .student-activities (grid) مُعرّفة أعلاه
+           مع كسر إلى عمودين عند ≤480px؛ القواعد القديمة القائمة على [display:flex]
+           صارت ميتة بعد إزالة الـinline، فحُذفت لتفادي CSS متناقض. */
 
         /* Top Stats Bar - Mobile */
         .animate-in[style*="display: grid"][style*="grid-template-columns"] {
@@ -422,38 +420,11 @@
             grid-template-columns: 1fr !important;
         }
 
-        /* Recent Activities - Mobile */
-        .animate-in.dash-panel {
-            padding: 20px 15px !important;
-        }
-
-        .animate-in.dash-panel > div[style*="position: relative"][style*="padding-right: 40px"] {
-            padding-right: 20px !important;
-        }
-
-        .animate-in.dash-panel > div[style*="position: relative"] > div[style*="position: absolute"][style*="right: 19px"] {
-            right: 9px !important;
-            width: 2px !important;
-        }
-
-        .animate-in.dash-panel > div[style*="position: relative"] > div > div[style*="position: relative"] {
+        /* Recent Activities timeline — الآن معايَر بأصناف .ach-timeline* أعلاه
+           (النقطة/الخطّ/الحشو/محاذاة الميتا)، فلا حاجة لمطابقة inline الهشّة هنا. */
+        .ach-timeline-card {
             padding: 15px 12px !important;
             border-radius: 12px !important;
-        }
-
-        .animate-in.dash-panel > div[style*="position: relative"] > div > div > div[style*="position: absolute"][style*="right: -60px"] {
-            right: -30px !important;
-            width: 30px !important;
-            height: 30px !important;
-            font-size: 16px !important;
-        }
-
-        .animate-in.dash-panel > div[style*="position: relative"] > div > div > div > div[style*="flex: 1"] > div > div[style*="font-weight: 700"][style*="font-size: 18px"] {
-            font-size: 15px !important;
-        }
-
-        .animate-in.dash-panel > div[style*="position: relative"] > div > div > div > div > div[style*="text-align: left"] {
-            text-align: center !important;
         }
     }
 </style>
@@ -462,7 +433,7 @@
 @section('content')
 
 <!-- Container with padding for status bar -->
-<div class="container-wrapper" style="padding-top: 100px; padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">
+<div class="container-wrapper" style="padding-bottom: 100px; padding-left: 20px; padding-right: 20px; max-width: 1200px; margin: 0 auto;">{{-- الحشو العلويّ من .student-main — لا نُكرّره لتفادي الفجوة العلوية المفرطة --}}
 
 <style>
     /* بطاقة الشارات ذهبية بنصّ داكن (تباين ممتاز على الذهبي). كان dark-coverage
@@ -505,6 +476,28 @@
         border-color: rgba(255, 255, 255, 0.08) !important;
     }
     html[data-theme="dark"] .ach-lesson-head:hover { background: rgba(255, 255, 255, 0.05); }
+
+    /* F2/F3: الخطّ الزمنيّ «آخر إنجازاتي» بأصناف دلاليّة بدل مطابقة inline الهشّة.
+       معايرة موحّدة: النقطة (40px) مركزها على مركز الخطّ (right:19px, w:3px → ~20.5px)
+       بلا تجاوز أفقيّ على سطح المكتب. حلقة النقطة تتبع لون البطاقة (تُقرأ ليلاً). */
+    .ach-timeline { position: relative; padding-right: 50px; }
+    .ach-timeline-line {
+        position: absolute; right: 19px; top: 0; bottom: 0; width: 3px;
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    }
+    .ach-timeline-dot {
+        position: absolute; right: -49px; top: 25px;
+        width: 40px; height: 40px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; border: 4px solid var(--color-card);
+    }
+    .ach-timeline-meta { text-align: left; }
+    @media (max-width: 768px) {
+        .ach-timeline { padding-right: 34px; }
+        .ach-timeline-line { right: 15px; width: 2px; }
+        .ach-timeline-dot { right: -33px; width: 30px; height: 30px; font-size: 16px; }
+        .ach-timeline-meta { text-align: center !important; }
+    }
 </style>
 <!-- Top Stats Bar -->
 <div class="animate-in" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
@@ -583,7 +576,7 @@
     <h2 style="font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 36px;">📚</span> 
         <span>الواجبات المنزلية القادمة</span>
-        <span style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-left: auto;">{{ $upcomingHomework->count() }}</span>
+        <span style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: auto;">{{ $upcomingHomework->count() }}</span>
     </h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
         @foreach($upcomingHomework as $homework)
@@ -660,7 +653,7 @@
     </div>
     
     <div class="values-list" style="display: grid; gap: 30px;">
-        @foreach($values as $index => $value)
+        @forelse($values as $index => $value)
         @php
             // استخدام البيانات الحقيقية من Controller
             $isUnlocked = $value->is_unlocked ?? ($index === 0);
@@ -703,7 +696,11 @@
                     @if($isUnlocked)
                     <div style="margin-top: 12px; background: #e2e8f0; border-radius: 20px; height: 12px; overflow: hidden;">
                         <div style="width: {{ $progressPercent }}%; height: 100%; background: linear-gradient(90deg, {{ $statusColor }}, {{ $statusColor }}dd); border-radius: 20px; transition: width 0.6s ease; position: relative;">
-                            <div style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: white; font-size: 9px; font-weight: 700;">{{ $progressPercent }}%</div>
+                            {{-- F1: نسبة داكنة ثابتة (≥11px) بهالة بيضاء رقيقة تُقرأ على الأصفر/الأخضر في الوضعين،
+                                 وتُخفى عند النِّسب المنخفضة كي لا تجلس على المسار الفارغ. --}}
+                            @if($progressPercent >= 12)
+                            <div class="value-progress-pct" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 800; text-shadow: 0 1px 2px rgba(255,255,255,0.7); white-space: nowrap;">{{ $progressPercent }}%</div>
+                            @endif
                         </div>
                     </div>
                     @endif
@@ -790,7 +787,7 @@
 
                             <!-- Activities -->
                             @if($lesson->activities->count() > 0)
-                            <div class="student-activities" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+                            <div class="student-activities" style="margin-top: 12px;">
                                 @foreach($lesson->activities as $activity)
                                 @php
                                     // استخدام البيانات الحقيقية من Controller
@@ -830,7 +827,16 @@
             </div>
             @endif
         </div>
-        @endforeach
+        @empty
+        {{-- F5: حالة فارغة أنيقة (طالب جديد/لا قيَم مُسندة) تُقرأ في الوضعين عبر متغيّرات الثيم. --}}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: var(--color-card); border: 1.5px dashed var(--color-border); border-radius: 20px;">
+            <div style="font-size: 56px; margin-bottom: 14px;">🌱</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--color-text); margin-bottom: 8px;">ستبدأ رحلتك قريباً…</div>
+            <div style="font-size: 15px; color: var(--color-text-muted); line-height: 1.7; max-width: 460px; margin: 0 auto;">
+                لم تُسنَد إليك قيمٌ بعد. حالما يُفعّل معلّمك أوّل قيمة ستظهر هنا شجرة رحلتك في بناء القيم.
+            </div>
+        </div>
+        @endforelse
     </div>
 </div>
 
@@ -843,9 +849,9 @@
         <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: auto;">{{ $recentActivities->count() }} نشاط</span>
     </h2>
     
-    <div style="position: relative; padding-right: 40px;">
+    <div class="ach-timeline">
         <!-- Timeline Line -->
-        <div style="position: absolute; right: 19px; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);"></div>
+        <div class="ach-timeline-line"></div>
         
         <div style="display: grid; gap: 20px;">
             @foreach($recentActivities as $submission)
@@ -864,7 +870,7 @@
             <div class="ach-timeline-card" style="--glow: {{ $statusConfig['glow'] }}; position: relative; background: {{ $statusConfig['bg'] }}; border-radius: 15px; padding: 20px; border: 2px solid {{ $statusConfig['color'] }}20; transition: all 0.3s; cursor: pointer;">
                 
                 <!-- Timeline Dot -->
-                <div style="position: absolute; right: -60px; top: 25px; width: 40px; height: 40px; background: {{ $statusConfig['color'] }}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 15px {{ $statusConfig['glow'] }}; border: 4px solid white;">
+                <div class="ach-timeline-dot" style="background: {{ $statusConfig['color'] }}; box-shadow: 0 4px 15px {{ $statusConfig['glow'] }};">
                     {{ $statusConfig['icon'] }}
                 </div>
                 
@@ -916,7 +922,7 @@
                         @endif
                     </div>
                     
-                    <div style="text-align: left;">
+                    <div class="ach-timeline-meta">
                         <span style="display: inline-block; background: {{ $statusConfig['color'] }}; color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 8px; box-shadow: 0 4px 12px {{ $statusConfig['glow'] }};">
                             {{ $statusConfig['icon'] }} {{ $statusConfig['text'] }}
                         </span>
