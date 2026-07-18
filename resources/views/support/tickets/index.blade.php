@@ -1,9 +1,31 @@
-@extends('layouts.support')
+@php
+    // السوبر أدمن يدير التذاكر من داخل لوحته (منفصلة تماماً عن لوحة موظّف الدعم الفنيّ)،
+    // فيما يراها موظّف الدعم داخل لوحة الدعم. البيانات والمنطق مشتركان، والقشرة تختلف بالدور.
+    $__ticketLayout = auth()->user()->role === 'technical_support' ? 'layouts.support' : 'layouts.admin';
+@endphp
+@extends($__ticketLayout)
 
-@section('title', 'التذاكر')
+@section('title', 'تذاكر الدعم الفنيّ')
 @section('page-title', 'تذاكر الدعم الفنيّ')
 
 @section('content')
+    {{-- تحت لايوت الأدمن نُدرِج أصناف الدعم (لايوت الدعم يُدرِجها أصلاً) --}}
+    @if(auth()->user()->role !== 'technical_support')
+        @include('support.partials.styles')
+    @endif
+
+    {{-- زرّ سريع للتذاكر المُصعّدة داخل الصفحة --}}
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+        @if(request('escalated'))
+            <a href="{{ route('support.tickets.index') }}" class="support-btn support-btn-secondary" style="color:#fff;">← عرض كل التذاكر</a>
+            <span class="support-badge escalate">🚨 تعرض المُصعّدة فقط</span>
+        @else
+            <a href="{{ route('support.tickets.index', ['escalated' => 1]) }}" class="support-btn support-btn-escalate">
+                🚨 التذاكر المُصعّدة ({{ number_format($counts['escalated']) }})
+            </a>
+        @endif
+    </div>
+
     <!-- Counters (منها «حُلّت») -->
     <div class="admin-stats-grid" style="margin-bottom: 24px;">
         <a href="{{ route('support.tickets.index') }}" class="admin-stat-card" style="text-decoration: none;">

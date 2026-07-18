@@ -1,9 +1,17 @@
-@extends('layouts.support')
+@php
+    // السوبر أدمن يفتح التذكرة داخل لوحته (منفصلة عن لوحة موظّف الدعم)؛ موظّف الدعم داخل لوحته.
+    $__ticketLayout = auth()->user()->role === 'technical_support' ? 'layouts.support' : 'layouts.admin';
+@endphp
+@extends($__ticketLayout)
 
 @section('title', 'تذكرة #' . $ticket->id)
 @section('page-title', 'تذكرة #' . $ticket->id)
 
 @section('content')
+    @if(auth()->user()->role !== 'technical_support')
+        @include('support.partials.styles')
+    @endif
+
     <div style="margin-bottom: 16px;">
         <a href="{{ route('support.tickets.index') }}" class="support-btn support-btn-ghost">← رجوع للتذاكر</a>
     </div>

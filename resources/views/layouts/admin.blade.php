@@ -357,7 +357,15 @@
 
                         <a href="{{ route('tickets.index') }}" class="admin-nav-item {{ request()->routeIs('tickets.*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">🛟</span>
-                            <span class="admin-nav-text">الدعم الفنيّ</span>
+                            <span class="admin-nav-text">تذاكري</span>
+                        </a>
+
+                        <a href="{{ route('support.tickets.index') }}" class="admin-nav-item {{ request()->routeIs('support.tickets.*') ? 'active' : '' }}">
+                            <span class="admin-nav-icon">🎧</span>
+                            <span class="admin-nav-text">إدارة تذاكر الدعم</span>
+                            @if(($escalatedTicketsCount ?? 0) > 0)
+                            <span style="background:#ef4444;color:#fff;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:auto;">{{ $escalatedTicketsCount }}</span>
+                            @endif
                         </a>
                     </div>
                 </div>

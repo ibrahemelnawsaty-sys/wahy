@@ -254,6 +254,29 @@ class SupportTicketSystemTest extends TestCase
         $this->actingAs($support)->get(route('support.users.edit', $admin))->assertForbidden();
     }
 
+    public function test_super_admin_views_tickets_inside_admin_panel_not_support_panel(): void
+    {
+        $this->ticketFor(User::factory()->student()->create());
+        $admin = User::factory()->superAdmin()->create();
+
+        $res = $this->actingAs($admin)->get(route('support.tickets.index'));
+
+        $res->assertOk()
+            ->assertSee('إدارة تذاكر الدعم')   // عنصر قائمة الأدمن الجانبية (قشرة الأدمن)
+            ->assertSee('التذاكر المُصعّدة');    // زرّ المُصعّدة داخل الصفحة
+    }
+
+    public function test_support_employee_views_tickets_inside_support_panel(): void
+    {
+        $support = $this->support();
+
+        $res = $this->actingAs($support)->get(route('support.tickets.index'));
+
+        $res->assertOk()
+            ->assertSee('المستخدمون')            // عنصر قائمة لوحة الدعم (قشرة الدعم)
+            ->assertDontSee('إدارة تذاكر الدعم'); // ليست قشرة الأدمن
+    }
+
     public function test_escalated_ticket_shows_alert_in_admin_header(): void
     {
         $support = $this->support();
