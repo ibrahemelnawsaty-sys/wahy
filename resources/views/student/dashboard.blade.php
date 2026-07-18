@@ -542,7 +542,7 @@
 @if($badges->count() > 0)
 <div class="animate-in" style="background: white; border-radius: 25px; padding: 35px; margin-bottom: 30px; box-shadow: 0 15px 50px rgba(0,0,0,0.08);">
     <h2 style="font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 36px;">�</span> 
+        <span style="font-size: 36px;">🏅</span> 
         <span>مجموعة شاراتي</span>
         <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: auto;">{{ $badges->count() }} شارة</span>
     </h2>
