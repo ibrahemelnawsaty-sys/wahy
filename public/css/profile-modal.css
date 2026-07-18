@@ -474,3 +474,65 @@
         font-size: 16px;
     }
 }
+
+/* ============================================
+   THEME AWARENESS — وضوح كامل في النهاري والليلي
+   الأصل كان بلا ألوان صريحة على المدخلات/الوعاء ولا تغطية ليلية، فيرث النصّ لون
+   القشرة (يُفتَّح فيختفي). نُثبّت هنا نصّاً داكناً صريحاً نهاراً (بأولويّة تتغلّب
+   على أي قاعدة عامة تُفتّح النصّ)، وسطحاً داكناً بنصّ فاتح ليلاً.
+   ============================================ */
+html[data-theme="light"] .profile-modal-content { color: #1A202C; }
+html[data-theme="light"] .profile-modal-header h2,
+html[data-theme="light"] .profile-section h3,
+html[data-theme="light"] .coins-stat-value,
+html[data-theme="light"] .coins-history-desc { color: #1A202C !important; }
+html[data-theme="light"] .form-group label,
+html[data-theme="light"] .points-rule-text,
+html[data-theme="light"] .empty-state-text,
+html[data-theme="light"] .btn-cancel { color: #4A5568 !important; }
+html[data-theme="light"] .upload-hint,
+html[data-theme="light"] .coins-stat-label,
+html[data-theme="light"] .coins-history-date,
+html[data-theme="light"] .empty-state-hint { color: #718096 !important; }
+html[data-theme="light"] .form-input {
+    color: #1A202C !important;
+    background: #ffffff !important;
+    -webkit-text-fill-color: #1A202C;   /* يمنع تفتيح نصّ الحقل على بعض المتصفّحات */
+}
+html[data-theme="light"] .form-input::placeholder { color: rgba(0,0,0,0.4) !important; }
+
+/* الوضع الليلي — سطح داكن ونصّ فاتح */
+html[data-theme="dark"] .profile-modal-content {
+    background: rgba(30, 41, 59, 0.98);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+    color: #e2e8f0;
+}
+html[data-theme="dark"] .profile-modal-header { border-bottom-color: rgba(16, 185, 129, 0.3); }
+html[data-theme="dark"] .profile-section { border-bottom-color: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .profile-modal-header h2,
+html[data-theme="dark"] .profile-section h3,
+html[data-theme="dark"] .coins-stat-value,
+html[data-theme="dark"] .coins-history-desc { color: #f1f5f9; }
+html[data-theme="dark"] .form-group label,
+html[data-theme="dark"] .points-rule-text,
+html[data-theme="dark"] .empty-state-text,
+html[data-theme="dark"] .btn-cancel { color: #cbd5e1; }
+html[data-theme="dark"] .upload-hint,
+html[data-theme="dark"] .coins-stat-label,
+html[data-theme="dark"] .coins-history-date,
+html[data-theme="dark"] .empty-state-hint { color: #94a3b8; }
+html[data-theme="dark"] .form-input {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f1f5f9;
+    -webkit-text-fill-color: #f1f5f9;
+}
+html[data-theme="dark"] .form-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+html[data-theme="dark"] .form-input:focus { background: rgba(15, 23, 42, 0.85); }
+html[data-theme="dark"] .profile-modal-footer { background: rgba(255, 255, 255, 0.03); }
+html[data-theme="dark"] .btn-cancel { background: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .btn-cancel:hover { background: rgba(255, 255, 255, 0.14); }
+html[data-theme="dark"] .coins-stat-card { background: rgba(255, 255, 255, 0.06); }
+html[data-theme="dark"] .points-rule { background: rgba(16, 185, 129, 0.10); }
+html[data-theme="dark"] .coins-history-item { background: rgba(255, 255, 255, 0.04); }
+html[data-theme="dark"] .coins-history-item:hover { background: rgba(255, 255, 255, 0.08); }
