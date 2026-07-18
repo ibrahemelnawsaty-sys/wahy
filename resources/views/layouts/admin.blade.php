@@ -439,6 +439,14 @@
                     <h1 class="admin-page-title">@yield('page-title', 'لوحة التحكم')</h1>
                 </div>
                 <div class="admin-header-right" style="display: flex; align-items: center; gap: 16px;">
+                    <!-- تنبيه التذاكر المُصعّدة (يظهر للسوبر أدمن عند وجود تصعيد عالق) -->
+                    @if(($escalatedTicketsCount ?? 0) > 0)
+                    <a href="{{ route('support.tickets.index', ['escalated' => 1]) }}" title="تذاكر دعم مُصعّدة بحاجة لتدخّلك" style="text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.12); padding: 8px 14px; border-radius: 10px; color: #ef4444; font-weight: 700; font-size: 13px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(239,68,68,0.22)'" onmouseout="this.style.background='rgba(239,68,68,0.12)'">
+                        <span>🚨</span>
+                        <span><span data-live="header_escalated_tickets">{{ $escalatedTicketsCount }}</span> تذكرة مُصعّدة</span>
+                    </a>
+                    @endif
+
                     <!-- Notification Counters -->
                     <a href="{{ route('admin.users.index') }}" style="text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(102, 126, 234, 0.1); padding: 8px 14px; border-radius: 10px; color: #667eea; font-weight: 600; font-size: 13px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(102,126,234,0.2)'" onmouseout="this.style.background='rgba(102,126,234,0.1)'">
                         <span>👥</span>

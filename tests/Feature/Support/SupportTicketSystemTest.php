@@ -254,6 +254,29 @@ class SupportTicketSystemTest extends TestCase
         $this->actingAs($support)->get(route('support.users.edit', $admin))->assertForbidden();
     }
 
+    public function test_escalated_ticket_shows_alert_in_admin_header(): void
+    {
+        $support = $this->support();
+        $admin = User::factory()->superAdmin()->create();
+        $ticket = $this->ticketFor(User::factory()->student()->create());
+
+        $this->actingAs($support)->post(route('support.tickets.escalate', $ticket));
+
+        // السوبر أدمن يرى تنبيه «تذكرة مُصعّدة» في ترويسة لوحته
+        $this->actingAs($admin)->get('/admin/dashboard')
+            ->assertOk()
+            ->assertSee('تذكرة مُصعّدة');
+    }
+
+    public function test_admin_header_has_no_escalation_alert_when_none_pending(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+
+        $this->actingAs($admin)->get('/admin/dashboard')
+            ->assertOk()
+            ->assertDontSee('تذكرة مُصعّدة');
+    }
+
     public function test_support_cannot_touch_effective_super_admin_via_secondary_role(): void
     {
         $support = $this->support();
