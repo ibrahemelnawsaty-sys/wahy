@@ -439,7 +439,7 @@
                     </svg>
                     <div class="nav-item-indicator"></div>
                 </div>
-                <div class="nav-item-label">التمرين</div>
+                <div class="nav-item-label">تحديات</div>
             </a>
             
             <!-- Messages -->
