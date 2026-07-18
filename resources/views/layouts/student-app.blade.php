@@ -376,7 +376,7 @@
                 
                 <!-- Coins Badge -->
                 <div class="status-badge status-badge-coins" onclick="openCoinsModal()" style="cursor: pointer;" title="اضغط لعرض سجل النقاط">
-                    <span class="status-badge-icon">⭐</span>
+                    <span class="status-badge-icon">💰</span>
                     <span data-live="coins_total">{{ $stats['total_coins'] ?? 0 }}</span>
                 </div>
                 
