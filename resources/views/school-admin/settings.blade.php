@@ -141,29 +141,31 @@
                 </div>
                 
                 <hr style="margin: 24px 0;">
-                <h6 style="font-weight: 700; color: #4a5568; margin-bottom: 16px;">
-                    <i class="fas fa-key" style="margin-left: 8px;"></i>
-                    تغيير كلمة المرور <span style="font-weight: 400; color: #a0aec0; font-size: 13px;">(اختياري)</span>
-                </h6>
-                
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">كلمة المرور الحالية</label>
-                        <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror">
-                        @error('current_password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">كلمة المرور الجديدة</label>
-                        <input type="password" name="new_password" class="form-control @error('new_password') is-invalid @enderror">
-                        @error('new_password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">تأكيد كلمة المرور</label>
-                        <input type="password" name="new_password_confirmation" class="form-control">
+                <button type="button" onclick="togglePwFields(this)" aria-expanded="false"
+                        style="width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; font-weight:700; color:var(--w-text,#4a5568); background:var(--w-bg,#f7fafc); border:1.5px solid var(--w-border,#e2e8f0); border-radius:12px; padding:12px 16px; cursor:pointer;">
+                    <span><i class="fas fa-key" style="margin-left:8px; color:#10b981;"></i> تغيير كلمة المرور <span style="font-weight:400; color:#a0aec0; font-size:13px;">(اختياري)</span></span>
+                    <i class="fas fa-chevron-down pw-chev" style="transition:transform .25s;" aria-hidden="true"></i>
+                </button>
+                <div class="pw-fields" hidden style="margin-top:16px;">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">كلمة المرور الحالية</label>
+                            <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror">
+                            @error('current_password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">كلمة المرور الجديدة</label>
+                            <input type="password" name="new_password" class="form-control @error('new_password') is-invalid @enderror">
+                            @error('new_password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">تأكيد كلمة المرور</label>
+                            <input type="password" name="new_password_confirmation" class="form-control">
+                        </div>
                     </div>
                 </div>
                 
@@ -245,6 +247,17 @@
             updateSettingsMuteButton(isMuted);
         }, 100);
     });
+
+    // إظهار/إخفاء حقول تغيير كلمة المرور (مطويّة افتراضياً)
+    function togglePwFields(btn) {
+        var f = btn.parentElement.querySelector('.pw-fields');
+        if (!f) return;
+        var willShow = f.hasAttribute('hidden');
+        if (willShow) { f.removeAttribute('hidden'); } else { f.setAttribute('hidden', ''); }
+        btn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+        var chev = btn.querySelector('.pw-chev');
+        if (chev) chev.style.transform = willShow ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
 </script>
 @endpush
 @endsection

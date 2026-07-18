@@ -682,20 +682,25 @@
                     </div>
                 </div>
 
-                <!-- Password Section -->
+                <!-- Password Section — مطويّة خلف زرّ، تظهر عند الضغط -->
                 <div class="profile-section">
-                    <h3>🔐 تغيير كلمة المرور</h3>
-                    <div class="form-group">
-                        <label>كلمة المرور الحالية</label>
-                        <input type="password" name="current_password" class="form-input" placeholder="اتركه فارغاً إذا لم ترد التغيير">
-                    </div>
-                    <div class="form-group">
-                        <label>كلمة المرور الجديدة</label>
-                        <input type="password" name="new_password" class="form-input" placeholder="8 أحرف على الأقل">
-                    </div>
-                    <div class="form-group">
-                        <label>تأكيد كلمة المرور الجديدة</label>
-                        <input type="password" name="new_password_confirmation" class="form-input">
+                    <button type="button" class="pw-toggle-btn" onclick="togglePwFields(this)" aria-expanded="false" aria-controls="pwFields">
+                        <span>🔐 تغيير كلمة المرور</span>
+                        <span class="pw-chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="pw-fields" id="pwFields" hidden>
+                        <div class="form-group">
+                            <label>كلمة المرور الحالية</label>
+                            <input type="password" name="current_password" class="form-input" placeholder="اتركه فارغاً إذا لم ترد التغيير">
+                        </div>
+                        <div class="form-group">
+                            <label>كلمة المرور الجديدة</label>
+                            <input type="password" name="new_password" class="form-input" placeholder="8 أحرف على الأقل">
+                        </div>
+                        <div class="form-group">
+                            <label>تأكيد كلمة المرور الجديدة</label>
+                            <input type="password" name="new_password_confirmation" class="form-input">
+                        </div>
                     </div>
                 </div>
 
@@ -713,6 +718,15 @@
     </div>
 
     <script>
+        // إظهار/إخفاء حقول تغيير كلمة المرور (مطويّة افتراضياً)
+        function togglePwFields(btn) {
+            var f = btn.parentElement.querySelector('.pw-fields');
+            if (!f) return;
+            var willShow = f.hasAttribute('hidden');
+            if (willShow) { f.removeAttribute('hidden'); } else { f.setAttribute('hidden', ''); }
+            btn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+        }
+
         function openProfileModal() {
             document.getElementById('profileModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';

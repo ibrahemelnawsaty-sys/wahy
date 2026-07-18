@@ -536,3 +536,32 @@ html[data-theme="dark"] .coins-stat-card { background: rgba(255, 255, 255, 0.06)
 html[data-theme="dark"] .points-rule { background: rgba(16, 185, 129, 0.10); }
 html[data-theme="dark"] .coins-history-item { background: rgba(255, 255, 255, 0.04); }
 html[data-theme="dark"] .coins-history-item:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* ============================================
+   زرّ طيّ «تغيير كلمة المرور» — يُظهر الحقول عند الضغط
+   ============================================ */
+.pw-toggle-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 18px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1.5px solid rgba(16, 185, 129, 0.28);
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1A202C;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    transition: background 0.2s, border-color 0.2s;
+}
+.pw-toggle-btn:hover { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.45); }
+.pw-toggle-btn .pw-chevron { font-size: 14px; color: #10B981; transition: transform 0.25s ease; }
+.pw-toggle-btn[aria-expanded="true"] .pw-chevron { transform: rotate(180deg); }
+.pw-fields { margin-top: 16px; animation: pwFieldsIn 0.25s ease; }
+@keyframes pwFieldsIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+html[data-theme="dark"] .pw-toggle-btn { color: #f1f5f9; background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.35); }
+html[data-theme="dark"] .pw-toggle-btn:hover { background: rgba(16, 185, 129, 0.22); }
