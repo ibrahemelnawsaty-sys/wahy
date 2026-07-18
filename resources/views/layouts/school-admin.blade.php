@@ -821,7 +821,47 @@
                 </div>
                 <div class="user-details">
                     <div class="user-name">{{ auth()->user()->name }}</div>
-                    <div class="user-role">{{ auth()->user()->school->name ?? 'مدير المدرسة' }}</div>
+                    @if(auth()->user()->hasMultipleSchools())
+                        <div style="position: relative;" id="schSchoolSwitcherContainer">
+                            <button type="button" id="schSchoolSwitcherBtn"
+                                    onclick="event.stopPropagation(); var m=document.getElementById('schSchoolSwitcherMenu'); m.style.display = (m.style.display==='block') ? 'none' : 'block';"
+                                    style="display: flex; align-items: center; gap: 6px; background: transparent; border: none; padding: 0; cursor: pointer; color: inherit; font: inherit;">
+                                <span class="user-role">{{ auth()->user()->activeSchool->name ?? 'مدير المدرسة' }}</span>
+                                <i class="fas fa-chevron-down" style="font-size: 10px; opacity: 0.8;"></i>
+                            </button>
+                            <div id="schSchoolSwitcherMenu" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 230px; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); z-index: 1200; overflow: hidden; padding: 6px;">
+                                <div style="padding: 8px 12px; font-size: 11px; font-weight: 700; color: #94a3b8;">تبديل المدرسة النشطة</div>
+                                {{-- نعتمد نفس مصدر managedSchoolIds (pivot ∪ school_id) كي تظهر المدرسة الأساسيّة حتى لو غابت عن الـpivot --}}
+                                @foreach(\App\Models\School::whereIn('id', auth()->user()->managedSchoolIds())->orderBy('name')->get() as $s)
+                                    @if((int) $s->id === (int) auth()->user()->activeSchoolId())
+                                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #f0fdf4; color: #059669; font-weight: 700; font-size: 13px;">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>{{ $s->name }}</span>
+                                        </div>
+                                    @else
+                                        <form method="POST" action="{{ route('switch.school', $s->id) }}" style="margin: 0;">
+                                            @csrf
+                                            <button type="submit"
+                                                    style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: none; border-radius: 8px; background: transparent; cursor: pointer; color: #334155; font-weight: 600; font-size: 13px; text-align: right; font-family: inherit;"
+                                                    onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                                                <i class="fas fa-school" style="color: #94a3b8;"></i>
+                                                <span>{{ $s->name }}</span>
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                        <script>
+                            document.addEventListener('click', function (e) {
+                                var c = document.getElementById('schSchoolSwitcherContainer');
+                                var m = document.getElementById('schSchoolSwitcherMenu');
+                                if (m && c && !c.contains(e.target)) { m.style.display = 'none'; }
+                            });
+                        </script>
+                    @else
+                        <div class="user-role">{{ auth()->user()->activeSchool->name ?? 'مدير المدرسة' }}</div>
+                    @endif
                 </div>
 
                 <!-- Dropdown Menu -->
@@ -989,7 +1029,7 @@
                             <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
                             <span class="nav-text">طلبات التسجيل</span>
                             @php
-                                $pendingCount = \App\Models\RegistrationRequest::where('school_id', auth()->user()->school_id)
+                                $pendingCount = \App\Models\RegistrationRequest::where('school_id', auth()->user()->activeSchoolId())
                                     ->where('status', 'pending')
                                     ->count();
                             @endphp
@@ -1004,7 +1044,7 @@
                                 $pendingActivitiesCount = \App\Models\Activity::whereNotNull('created_by')
                                     ->where('school_approval_status', 'pending')
                                     ->whereHas('creator', function ($q) {
-                                        $q->where('school_id', auth()->user()->school_id)->where('role', 'teacher');
+                                        $q->where('school_id', auth()->user()->activeSchoolId())->where('role', 'teacher');
                                     })
                                     ->count();
                             @endphp

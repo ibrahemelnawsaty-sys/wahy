@@ -107,10 +107,12 @@ class BulkMessageController extends Controller
             }
             // أمان: مُرسِل بلا مدرسة سيؤدي school_id=null إلى where IS NULL وبالتالي استهداف كل
             // المستخدمين بلا مدرسة عبر المنصّة — نرفض الطلب كما يفعل CheckSchoolAccess.
-            if (empty($sender->school_id)) {
+            // نحترم «المدرسة النشطة» (تعدّد المدارس) بدل school_id الافتراضيّة.
+            $senderSchoolId = $sender->activeSchoolId();
+            if (empty($senderSchoolId)) {
                 abort(403, 'لا يوجد مدرسة مرتبطة بحسابك. يرجى التواصل مع الإدارة.');
             }
-            $validated['school_id'] = $sender->school_id; // فرض مدرسة المُرسِل — يمنع استهداف مدارس أخرى
+            $validated['school_id'] = $senderSchoolId; // فرض مدرسة المُرسِل النشطة — يمنع استهداف مدارس أخرى
         }
 
         // rate limit للمُرسِل: حد أقصى 5 رسائل جماعية في الساعة لمنع الإرسال المتكرر بالخطأ
@@ -269,11 +271,12 @@ class BulkMessageController extends Controller
         $schoolId = $request->get('school_id');
 
         // نفس حصر مدير المدرسة المطبَّق في send() حتى تتطابق المعاينة مع الإرسال الفعلي
+        // (المدرسة النشطة عند التعدّد — يطابق فرض send()).
         if ($sender->role === 'school_admin') {
             if (! in_array($type, self::SCHOOL_SCOPED_TYPES, true)) {
                 return response()->json(['count' => 0]);
             }
-            $schoolId = $sender->school_id;
+            $schoolId = $sender->activeSchoolId();
         }
 
         $count = $this->getRecipients($type, $schoolId)->count();

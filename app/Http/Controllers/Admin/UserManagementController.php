@@ -69,13 +69,32 @@ class UserManagementController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:super_admin,school_admin,teacher,student,parent,technical_support',
-            'school_id' => 'required_if:role,school_admin,teacher,student,parent|nullable|exists:schools,id',
+            'school_id' => 'required_if:role,teacher,student,parent|nullable|exists:schools,id',
+            'school_ids' => 'required_if:role,school_admin|nullable|array',
+            'school_ids.*' => 'exists:schools,id',
+            'secondary_roles' => 'nullable|array',
+            'secondary_roles.*' => 'in:super_admin,school_admin,teacher,student,parent,technical_support',
             'phone' => 'nullable|string|max:20',
             'qr_code' => 'nullable|string|unique:users,qr_code',
             'status' => 'required|in:active,inactive,suspended',
         ], [
             'school_id.required_if' => 'يجب تحديد المدرسة لهذا الدور',
+            'school_ids.required_if' => 'يجب تحديد مدرسة واحدة على الأقل لمدير المدرسة',
         ]);
+
+        // تعدّد المدارس لمدير المدرسة: المدرسة الأساسيّة = أوّل المختارة، والباقي عبر pivot
+        $schoolIds = [];
+        if ($validated['role'] === 'school_admin' && ! empty($validated['school_ids'])) {
+            $schoolIds = array_values(array_unique(array_map('intval', $validated['school_ids'])));
+            $validated['school_id'] = $schoolIds[0];
+        }
+        unset($validated['school_ids']);
+
+        // الأدوار الثانوية: استبعاد الدور الأساسيّ نفسه (تفادي التكرار)
+        $validated['secondary_roles'] = $this->normalizeSecondaryRoles(
+            $validated['secondary_roles'] ?? [],
+            $validated['role']
+        );
 
         // توليد QR Code تلقائي إذا لم يتم إدخاله
         if (! $request->filled('qr_code')) {
@@ -88,6 +107,11 @@ class UserManagementController extends Controller
         $validated['password'] = Hash::make($validated['password']);
 
         $user = User::create($validated);
+
+        // مزامنة المدارس المُدارة (تشمل الأساسيّة)
+        if ($user->role === 'school_admin' && ! empty($schoolIds)) {
+            $user->managedSchools()->sync($schoolIds);
+        }
 
         return redirect()
             ->route('admin.users.index')
@@ -115,10 +139,36 @@ class UserManagementController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:super_admin,school_admin,teacher,student,parent,technical_support',
             'school_id' => 'nullable|exists:schools,id',
+            'school_ids' => 'required_if:role,school_admin|nullable|array',
+            'school_ids.*' => 'exists:schools,id',
+            'secondary_roles' => 'nullable|array',
+            'secondary_roles.*' => 'in:super_admin,school_admin,teacher,student,parent,technical_support',
             'phone' => 'nullable|string|max:20',
             'qr_code' => ['nullable', 'string', Rule::unique('users')->ignore($user->id)],
             'status' => 'required|in:active,inactive,suspended',
+        ], [
+            'school_ids.required_if' => 'يجب تحديد مدرسة واحدة على الأقل لمدير المدرسة',
         ]);
+
+        // تعدّد المدارس لمدير المدرسة: المدرسة الأساسيّة = أوّل المختارة، والباقي عبر pivot
+        $schoolIds = [];
+        $syncSchools = false;
+        if ($validated['role'] === 'school_admin' && ! empty($validated['school_ids'])) {
+            $schoolIds = array_values(array_unique(array_map('intval', $validated['school_ids'])));
+            // حافظ على المدرسة الأساسيّة القائمة إن كانت ضمن المختارة — الـmulti-select يرسل
+            // الخيارات بترتيب الـDOM لا ترتيب الاختيار، فأخذ [0] أعمى قد يقلب school_id المحروس.
+            $validated['school_id'] = in_array((int) $user->school_id, $schoolIds, true)
+                ? (int) $user->school_id
+                : $schoolIds[0];
+            $syncSchools = true;
+        }
+        unset($validated['school_ids']);
+
+        // الأدوار الثانوية: استبعاد الدور الأساسيّ نفسه (تفادي التكرار)
+        $validated['secondary_roles'] = $this->normalizeSecondaryRoles(
+            $validated['secondary_roles'] ?? [],
+            $validated['role']
+        );
 
         // تحديث كلمة المرور فقط إذا تم إدخالها
         if ($request->filled('password')) {
@@ -131,6 +181,14 @@ class UserManagementController extends Controller
         $validated['two_factor_enabled'] = $request->has('two_factor_enabled') ? true : false;
 
         $user->update($validated);
+
+        // مزامنة المدارس المُدارة (تشمل الأساسيّة). وعند التنزيل عن دور مدير المدرسة نُزيل
+        // صفوف admin_schools العالقة، وإلا بقيت managedSchoolIds() تمنحه وصولاً (CheckSchoolAccess/switchSchool).
+        if ($syncSchools) {
+            $user->managedSchools()->sync($schoolIds);
+        } elseif ($user->role !== 'school_admin') {
+            $user->managedSchools()->detach();
+        }
 
         return redirect()
             ->route('admin.users.index')
@@ -165,6 +223,20 @@ class UserManagementController extends Controller
         $user->update(['status' => $newStatus]);
 
         return back()->with('success', 'تم تغيير حالة المستخدم! ✅');
+    }
+
+    /**
+     * تطبيع الأدوار الثانوية: استبعاد الدور الأساسيّ + إزالة التكرار + إعادة الفهرسة.
+     *
+     * @param  array<int, string>  $secondaryRoles
+     * @return array<int, string>
+     */
+    private function normalizeSecondaryRoles(array $secondaryRoles, string $primaryRole): array
+    {
+        return array_values(array_unique(array_filter(
+            $secondaryRoles,
+            fn ($r) => $r !== $primaryRole
+        )));
     }
 
     /**

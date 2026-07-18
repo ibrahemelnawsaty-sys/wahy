@@ -136,6 +136,9 @@ Route::middleware('auth')->group(function () {
     // تبديل الأدوار — POST مع حماية CSRF (تم تغييرها من GET لمنع CSRF)
     Route::post('/switch-role/{role}', [\App\Http\Controllers\RoleSwitchController::class, 'switch'])->name('switch.role');
 
+    // تبديل المدرسة النشطة لمدير المدرسة (جلسة فقط — POST مع حماية CSRF)
+    Route::post('/switch-school/{school}', [\App\Http\Controllers\SchoolSwitchController::class, 'switch'])->name('switch.school');
+
     // ==================== الرسائل الجماعية ====================
     // يجب أن تكون قبل messages/{userId} لتجنب التعارض
     Route::prefix('messages/bulk')->name('messages.bulk.')->group(function () {

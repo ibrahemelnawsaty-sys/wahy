@@ -118,6 +118,9 @@
                 </div>
             </nav>
 
+            <!-- تبديل الأدوار -->
+            @include('components.role-switcher')
+
             <div class="admin-sidebar-footer">
                 <a href="{{ route('landing') }}" class="admin-nav-item">
                     <span class="admin-nav-icon">🏠</span>

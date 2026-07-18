@@ -246,7 +246,10 @@
                     </ul>
                 </div> --}}
             </nav>
-            
+
+            <!-- تبديل الأدوار -->
+            @include('components.role-switcher')
+
             <div class="admin-sidebar-footer">
                 <div class="admin-user-info" style="position: relative;" id="saAvatarDropdownContainer">
                     <div class="admin-user-avatar" id="saAvatarToggleBtn" style="cursor: pointer; overflow: hidden; padding: 0;">

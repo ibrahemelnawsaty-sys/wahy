@@ -34,7 +34,7 @@ class SchoolAdminController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        $school = $user->school;
+        $school = $user->activeSchool;
 
         if (! $school) {
             abort(403, 'لا يوجد مدرسة مرتبطة بحسابك');
@@ -172,7 +172,7 @@ class SchoolAdminController extends Controller
      */
     public function registrationLinks()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         // توليد tokens إذا لم تكن موجودة
         if (! $school->teacher_token || ! $school->student_token || ! $school->parent_token) {
@@ -188,7 +188,7 @@ class SchoolAdminController extends Controller
      */
     public function regenerateToken(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $role = $request->input('role');
 
         if (in_array($role, ['teacher', 'student', 'parent'])) {
@@ -206,7 +206,7 @@ class SchoolAdminController extends Controller
      */
     public function toggleRegistration(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $role = $request->input('role');
 
         if (in_array($role, ['teacher', 'student', 'parent'])) {
@@ -223,7 +223,7 @@ class SchoolAdminController extends Controller
 
     public function teachers()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $teachers = $school->users()
             ->where('role', 'teacher')
             ->with(['teachingClassrooms' => function ($query) {
@@ -238,14 +238,14 @@ class SchoolAdminController extends Controller
 
     public function createTeacher()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         return view('school-admin.teachers.create', compact('school'));
     }
 
     public function storeTeacher(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -267,7 +267,7 @@ class SchoolAdminController extends Controller
 
     public function editTeacher($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $teacher = User::where('school_id', $school->id)
             ->where('role', 'teacher')
             ->findOrFail($id);
@@ -277,7 +277,7 @@ class SchoolAdminController extends Controller
 
     public function updateTeacher(Request $request, $id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $teacher = User::where('school_id', $school->id)
             ->where('role', 'teacher')
             ->findOrFail($id);
@@ -301,7 +301,7 @@ class SchoolAdminController extends Controller
 
     public function deleteTeacher($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $teacher = User::where('school_id', $school->id)
             ->where('role', 'teacher')
             ->findOrFail($id);
@@ -315,7 +315,7 @@ class SchoolAdminController extends Controller
 
     public function students()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $students = $school->users()
             ->where('role', 'student')
             ->with(['classrooms' => function ($query) {
@@ -335,7 +335,7 @@ class SchoolAdminController extends Controller
 
     public function createStudent()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $classrooms = $school->classrooms()->where('status', 'active')->get();
 
         return view('school-admin.students.create', compact('school', 'classrooms'));
@@ -343,7 +343,7 @@ class SchoolAdminController extends Controller
 
     public function storeStudent(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -377,7 +377,7 @@ class SchoolAdminController extends Controller
 
     public function editStudent($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $student = User::where('school_id', $school->id)
             ->where('role', 'student')
             ->with('classrooms')
@@ -392,7 +392,7 @@ class SchoolAdminController extends Controller
      */
     public function showStudent($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $student = User::where('school_id', $school->id)
             ->where('role', 'student')
             ->with(['classrooms', 'school', 'streak', 'badges'])
@@ -417,7 +417,7 @@ class SchoolAdminController extends Controller
 
     public function updateStudent(Request $request, $id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $student = User::where('school_id', $school->id)
             ->where('role', 'student')
             ->findOrFail($id);
@@ -450,7 +450,7 @@ class SchoolAdminController extends Controller
 
     public function deleteStudent($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $student = User::where('school_id', $school->id)
             ->where('role', 'student')
             ->findOrFail($id);
@@ -464,9 +464,12 @@ class SchoolAdminController extends Controller
 
     public function parents()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $parents = $school->users()
-            ->where('role', 'parent')
+            ->where(function ($q) {
+                $q->where('role', 'parent')
+                    ->orWhereJsonContains('secondary_roles', 'parent');
+            })
             ->with(['children' => function ($query) {
                 $query->select('users.id', 'name', 'email')
                     ->withPivot('relationship')
@@ -484,7 +487,7 @@ class SchoolAdminController extends Controller
 
     public function createParent()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $students = $school->users()->where('role', 'student')->where('status', 'active')->get();
 
         return view('school-admin.parents.create', compact('school', 'students'));
@@ -492,7 +495,7 @@ class SchoolAdminController extends Controller
 
     public function storeParent(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -529,9 +532,12 @@ class SchoolAdminController extends Controller
 
     public function editParent($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $parent = User::where('school_id', $school->id)
-            ->where('role', 'parent')
+            ->where(function ($q) {
+                $q->where('role', 'parent')
+                    ->orWhereJsonContains('secondary_roles', 'parent');
+            })
             ->with('children')
             ->findOrFail($id);
         $students = $school->users()->where('role', 'student')->where('status', 'active')->get();
@@ -541,9 +547,12 @@ class SchoolAdminController extends Controller
 
     public function updateParent(Request $request, $id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $parent = User::where('school_id', $school->id)
-            ->where('role', 'parent')
+            ->where(function ($q) {
+                $q->where('role', 'parent')
+                    ->orWhereJsonContains('secondary_roles', 'parent');
+            })
             ->findOrFail($id);
 
         $validated = $request->validate([
@@ -575,7 +584,7 @@ class SchoolAdminController extends Controller
 
     public function deleteParent($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $parent = User::where('school_id', $school->id)
             ->where('role', 'parent')
             ->findOrFail($id);
@@ -589,7 +598,7 @@ class SchoolAdminController extends Controller
 
     public function classrooms()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $classrooms = $school->classrooms()
             ->with('teacher')
             ->withCount('students')
@@ -601,7 +610,7 @@ class SchoolAdminController extends Controller
 
     public function createClassroom()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $teachers = $school->users()->where('role', 'teacher')->where('status', 'active')->get();
         $students = $school->users()->where('role', 'student')->where('status', 'active')->get();
 
@@ -616,7 +625,7 @@ class SchoolAdminController extends Controller
 
     public function storeClassroom(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -669,7 +678,7 @@ class SchoolAdminController extends Controller
 
     public function editClassroom($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $classroom = Classroom::where('school_id', $school->id)->findOrFail($id);
         $teachers = $school->users()->where('role', 'teacher')->where('status', 'active')->get();
         $students = $school->users()->where('role', 'student')->where('status', 'active')->get();
@@ -679,7 +688,7 @@ class SchoolAdminController extends Controller
 
     public function updateClassroom(Request $request, $id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $classroom = Classroom::where('school_id', $school->id)->findOrFail($id);
 
         $validated = $request->validate([
@@ -733,7 +742,7 @@ class SchoolAdminController extends Controller
 
     public function deleteClassroom($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $classroom = Classroom::where('school_id', $school->id)->findOrFail($id);
 
         $classroom->delete();
@@ -745,7 +754,7 @@ class SchoolAdminController extends Controller
 
     public function registrationRequests()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $requests = RegistrationRequest::where('school_id', $school->id)
             ->latest()
             ->paginate(20);
@@ -755,7 +764,7 @@ class SchoolAdminController extends Controller
 
     public function approveRequest($id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $request = RegistrationRequest::where('school_id', $school->id)->findOrFail($id);
 
         // توليد كلمة مرور مؤقتة
@@ -816,7 +825,7 @@ class SchoolAdminController extends Controller
 
     public function rejectRequest(Request $request, $id)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $registrationRequest = RegistrationRequest::where('school_id', $school->id)->findOrFail($id);
 
         $validated = $request->validate([
@@ -848,7 +857,7 @@ class SchoolAdminController extends Controller
      */
     private function schoolActivitiesQuery()
     {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = Auth::user()->activeSchoolId();
 
         return Activity::whereNotNull('created_by')
             ->whereHas('creator', function ($q) use ($schoolId) {
@@ -861,7 +870,7 @@ class SchoolAdminController extends Controller
      */
     public function activityApprovals(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         $status = $request->get('status', 'pending');
 
@@ -963,7 +972,7 @@ class SchoolAdminController extends Controller
      */
     public function importUsers(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         $validated = $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:5120', // 5MB max
@@ -1009,7 +1018,7 @@ class SchoolAdminController extends Controller
      */
     public function excelManagement()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
 
         return view('school-admin.excel-management', compact('school'));
     }
@@ -1019,7 +1028,7 @@ class SchoolAdminController extends Controller
      */
     public function exportData(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $type = $request->input('type'); // students, teachers, parents, activities
 
         $filename = $type . '_' . date('Y-m-d_H-i-s') . '.xlsx';
@@ -1043,7 +1052,7 @@ class SchoolAdminController extends Controller
      */
     public function statistics()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $now = now();
 
         // ======== حساب إحصائيات المدرسة ========
@@ -1315,7 +1324,7 @@ class SchoolAdminController extends Controller
      */
     public function settings()
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $user = Auth::user();
 
         return view('school-admin.settings', compact('school', 'user'));
@@ -1326,7 +1335,7 @@ class SchoolAdminController extends Controller
      */
     public function updateSettings(Request $request)
     {
-        $school = Auth::user()->school;
+        $school = Auth::user()->activeSchool;
         $user = Auth::user();
 
         $section = $request->input('section', 'school');
@@ -1388,7 +1397,7 @@ class SchoolAdminController extends Controller
     public function parentEngagement()
     {
         $admin = Auth::user();
-        $schoolId = $admin->school_id;
+        $schoolId = $admin->activeSchoolId();
 
         // طلاب المدرسة
         $studentIds = User::where('role', 'student')
@@ -1479,12 +1488,13 @@ class SchoolAdminController extends Controller
 
         // التحقق من الصلاحية: يجب أن يكون الاستبيان موجّه لمدرسة هذا المدير
         // (للاستبيانات الخاصة بمدرسة معينة) أو عامًا
-        if ($survey->school_id && $survey->school_id !== $user->school_id) {
+        // تحويل الطرفين إلى int لتفادي false-403 حين يعيد السائق school_id كسلسلة ('5' !== 5)
+        if ($survey->school_id && (int) $survey->school_id !== (int) $user->activeSchoolId()) {
             abort(403, 'ليس لديك صلاحية الاطلاع على هذا الاستبيان');
         }
 
         $survey->load(['lesson.concept.value', 'value', 'linkedSurvey', 'questions']);
-        $comparisonData = $survey->getComparisonData($user->school_id);
+        $comparisonData = $survey->getComparisonData($user->activeSchoolId());
 
         if (isset($comparisonData['error'])) {
             return back()->with('error', $comparisonData['error']);
@@ -1502,7 +1512,7 @@ class SchoolAdminController extends Controller
         $surveys = \App\Models\Survey::where('survey_type', 'pre_post_assessment')
             ->where(function ($q) use ($user) {
                 $q->whereNull('school_id')
-                    ->orWhere('school_id', $user->school_id);
+                    ->orWhere('school_id', $user->activeSchoolId());
             })
             ->where('assessment_phase', 'post')
             ->with(['lesson.concept.value', 'value', 'linkedSurvey'])

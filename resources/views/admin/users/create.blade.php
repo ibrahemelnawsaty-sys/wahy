@@ -157,7 +157,7 @@
             </div>
 
             <!-- School -->
-            <div class="form-group">
+            <div class="form-group" id="schoolIdGroup">
                 <label class="form-label">المدرسة</label>
                 <select name="school_id" class="form-select">
                     <option value="">بدون مدرسة</option>
@@ -168,6 +168,48 @@
                     @endforeach
                 </select>
                 @error('school_id')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- Managed Schools (school_admin) -->
+            @php $selectedSchoolIds = old('school_ids', []); @endphp
+            <div class="form-group full-width" id="schoolIdsGroup" style="display: none;">
+                <label class="form-label">المدارس المُدارة (لمدير المدرسة)</label>
+                <select name="school_ids[]" class="form-select" multiple size="5" style="height: auto;">
+                    @foreach($schools as $school)
+                    <option value="{{ $school->id }}" {{ in_array($school->id, (array) $selectedSchoolIds) ? 'selected' : '' }}>
+                        {{ $school->name }}
+                    </option>
+                    @endforeach
+                </select>
+                <span class="error-message" style="color: #64748b;">اضغط Ctrl لاختيار عدّة مدارس. المدرسة الأولى المختارة هي الأساسيّة، ويبدّل المدير بينها.</span>
+                @error('school_ids')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- Secondary Roles -->
+            @php
+                $allRolesList = [
+                    'super_admin' => 'سوبر أدمن',
+                    'school_admin' => 'مدير مدرسة',
+                    'teacher' => 'معلم',
+                    'student' => 'طالب',
+                    'parent' => 'ولي أمر',
+                    'technical_support' => 'الدعم الفنيّ',
+                ];
+                $selectedSecondary = old('secondary_roles', []);
+            @endphp
+            <div class="form-group full-width">
+                <label class="form-label">الأدوار الثانوية (اختياري)</label>
+                <select name="secondary_roles[]" id="secondaryRolesSelect" class="form-select" multiple size="6" style="height: auto;">
+                    @foreach($allRolesList as $rKey => $rLabel)
+                    <option value="{{ $rKey }}" {{ in_array($rKey, (array) $selectedSecondary) ? 'selected' : '' }}>{{ $rLabel }}</option>
+                    @endforeach
+                </select>
+                <span class="error-message" style="color: #64748b;">اضغط Ctrl لاختيار أكثر من دور. يستطيع المستخدم التبديل بين أدواره. (الدور الأساسيّ يُستبعد تلقائياً.)</span>
+                @error('secondary_roles')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
             </div>
@@ -224,5 +266,39 @@
         </div>
     </form>
 </div>
+
+<script>
+(function () {
+    var roleSelect = document.querySelector('select[name="role"]');
+    var schoolIdsGroup = document.getElementById('schoolIdsGroup');
+    var schoolIdGroup = document.getElementById('schoolIdGroup');
+    var secondarySelect = document.getElementById('secondaryRolesSelect');
+
+    function sync() {
+        var role = roleSelect ? roleSelect.value : '';
+        var isSchoolAdmin = (role === 'school_admin');
+        // مدير المدرسة يستعمل «المدارس المُدارة» متعدّدة؛ نُخفي المفردة لتفادي ازدواج حقلَي مدرسة
+        if (schoolIdsGroup) {
+            schoolIdsGroup.style.display = isSchoolAdmin ? 'flex' : 'none';
+        }
+        if (schoolIdGroup) {
+            schoolIdGroup.style.display = isSchoolAdmin ? 'none' : '';
+        }
+        if (secondarySelect) {
+            Array.prototype.forEach.call(secondarySelect.options, function (opt) {
+                if (opt.value === role) {
+                    opt.disabled = true;
+                    opt.selected = false;
+                } else {
+                    opt.disabled = false;
+                }
+            });
+        }
+    }
+
+    if (roleSelect) { roleSelect.addEventListener('change', sync); }
+    sync();
+})();
+</script>
 
 @endsection

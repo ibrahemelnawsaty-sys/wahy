@@ -401,6 +401,16 @@
     <!-- Main Content Area -->
     <main class="student-main" id="student-main-content">
         @yield('content')
+
+        {{-- تبديل الأدوار (لطالب يحمل دوراً ثانوياً، نادر): المكوّن مصمَّم لسطح داكن بنصّ أبيض،
+             فنغلّفه بسطح داكن ثابت في الوضعين + هامش سفليّ يتجاوز شريط التنقّل — كي يُقرأ نهاراً وليلاً. --}}
+        @if(auth()->check() && auth()->user()->hasMultipleRoles())
+        <div style="max-width: 480px; margin: 8px auto 120px; padding: 0 16px;">
+            <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.18);">
+                @include('components.role-switcher')
+            </div>
+        </div>
+        @endif
     </main>
 
     <!-- Bottom Navigation (App-First) -->

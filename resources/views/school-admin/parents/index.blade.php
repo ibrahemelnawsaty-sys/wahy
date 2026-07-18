@@ -142,7 +142,10 @@
                                 <i class="fas fa-child me-1"></i>عرض الأبناء
                                 <i class="fas fa-chevron-down ms-1" id="icon-{{ $parent->id }}"></i>
                             </button>
-                            <form id="delete-parent-{{ $parent->id }}" action="{{ route('school-admin.parents.delete', $parent->id) }}" 
+                            {{-- الحذف يُتاح فقط لحساب وليّ أمر أساسيّ؛ مستخدم «+وليّ أمر» (دوره الأساسيّ معلّم/طالب...)
+                                 يُدار رابط أبنائه من «تعديل البيانات» ولا يُحذف حسابه كاملاً من هنا (كان يفشل بـ404). --}}
+                            @if($parent->role === 'parent')
+                            <form id="delete-parent-{{ $parent->id }}" action="{{ route('school-admin.parents.delete', $parent->id) }}"
                                   method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
@@ -150,6 +153,11 @@
                                     <i class="fas fa-trash me-1"></i>حذف
                                 </button>
                             </form>
+                            @else
+                            <span class="badge bg-light text-muted align-self-start" title="حساب متعدّد الأدوار — يُدار من إدارة المستخدمين">
+                                <i class="fas fa-user-tag me-1"></i>+وليّ أمر
+                            </span>
+                            @endif
                         </div>
                     </div>
                 </div>

@@ -66,8 +66,8 @@ class MessagesController extends Controller
         }
 
         if ($user->role === 'school_admin') {
-            // مدير المدرسة يستطيع مراسلة من في مدرسته فقط
-            $schoolId = $user->school_id;
+            // مدير المدرسة يستطيع مراسلة من في مدرسته النشطة فقط
+            $schoolId = $user->activeSchoolId();
 
             return $query->where('school_id', $schoolId)
                 ->whereIn('role', ['teacher', 'parent', 'student'])
@@ -300,8 +300,10 @@ class MessagesController extends Controller
             return true;
         }
 
-        // المستخدمان يجب أن يكونا في نفس المدرسة
-        if ($user1->school_id !== $user2->school_id) {
+        // المستخدمان يجب أن يكونا في نفس المدرسة (مدير المدرسة يحترم مدرسته النشطة عند التعدّد)
+        $u1School = $user1->role === 'school_admin' ? $user1->activeSchoolId() : $user1->school_id;
+        $u2School = $user2->role === 'school_admin' ? $user2->activeSchoolId() : $user2->school_id;
+        if ((int) $u1School !== (int) $u2School) {
             return false;
         }
 

@@ -180,6 +180,17 @@ class User extends Authenticatable
     }
 
     /**
+     * المدارس التي يديرها المستخدم (تعدّد المدارس لمدير المدرسة).
+     * pivot admin_schools؛ لا يشمل بالضرورة المدرسة الأساسيّة إن لم تُسجَّل هنا —
+     * لذا استعمل managedSchoolIds() للاتّحاد مع school_id.
+     */
+    public function managedSchools()
+    {
+        return $this->belongsToMany(School::class, 'admin_schools', 'user_id', 'school_id')
+            ->withTimestamps();
+    }
+
+    /**
      * الأبناء (لولي الأمر)
      */
     public function children()
@@ -655,6 +666,78 @@ class User extends Authenticatable
 
         // حفظ في الـ database أيضاً (اختياري)
         $this->update(['active_role' => $role]);
+
+        return true;
+    }
+
+    // ==================== تعدّد المدارس (مدير المدرسة) ====================
+
+    /**
+     * معرّفات كل المدارس التي يديرها المستخدم = صفوف pivot admin_schools ∪ [school_id].
+     * الاتّحاد يضمن توافقاً خلفياً لمديري مدرسة واحدة بلا صفوف pivot.
+     *
+     * @return array<int, int>
+     */
+    /** @var array<int,int>|null ذاكرة مؤقتة داخل الطلب (يُستدعى مراراً في اللايوت والمتحكّم) */
+    private ?array $memoManagedSchoolIds = null;
+
+    public function managedSchoolIds(): array
+    {
+        if ($this->memoManagedSchoolIds !== null) {
+            return $this->memoManagedSchoolIds;
+        }
+
+        $ids = $this->managedSchools()->pluck('schools.id')->all();
+
+        if ($this->school_id) {
+            $ids[] = (int) $this->school_id;
+        }
+
+        return $this->memoManagedSchoolIds = array_values(array_unique(array_map('intval', array_filter($ids, fn ($v) => $v !== null))));
+    }
+
+    /**
+     * هل يدير المستخدم أكثر من مدرسة؟
+     */
+    public function hasMultipleSchools(): bool
+    {
+        return count($this->managedSchoolIds()) > 1;
+    }
+
+    /**
+     * معرّف المدرسة النشطة حالياً: قيمة الجلسة إن كانت ضمن المدارس المُدارة، وإلا المدرسة الأساسيّة.
+     */
+    public function activeSchoolId(): ?int
+    {
+        $sessionSchool = session('active_school_' . $this->id);
+
+        if ($sessionSchool && in_array((int) $sessionSchool, $this->managedSchoolIds(), true)) {
+            return (int) $sessionSchool;
+        }
+
+        return $this->school_id ? (int) $this->school_id : null;
+    }
+
+    /**
+     * المدرسة النشطة ككائن (نظير school لكن يحترم الجلسة).
+     */
+    public function getActiveSchoolAttribute(): ?School
+    {
+        $id = $this->activeSchoolId();
+
+        return $id ? School::find($id) : null;
+    }
+
+    /**
+     * تبديل المدرسة النشطة (جلسة فقط — لا يُلمس عمود school_id المحروس).
+     */
+    public function switchSchool(int $schoolId): bool
+    {
+        if (! in_array($schoolId, $this->managedSchoolIds(), true)) {
+            return false;
+        }
+
+        session(['active_school_' . $this->id => $schoolId]);
 
         return true;
     }

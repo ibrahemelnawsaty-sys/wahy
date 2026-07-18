@@ -28,7 +28,7 @@ class CheckSchoolAccess
         // إذا كان الطلب يحتوي على school_id في المعاملات
         $schoolId = $request->route('school') ?? $request->input('school_id');
 
-        if ($schoolId && $user->school_id != $schoolId) {
+        if ($schoolId && ! in_array((int) $schoolId, $user->managedSchoolIds(), true)) {
             abort(403, 'ليس لديك صلاحية للوصول لبيانات هذه المدرسة');
         }
 
