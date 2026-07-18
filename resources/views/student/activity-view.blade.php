@@ -541,9 +541,12 @@
     .activity-description.rich-content ul, .activity-description.rich-content ol { padding-right: 24px; margin-bottom: 12px; }
     .activity-description.rich-content li { margin-bottom: 6px; }
     .activity-description.rich-content b, .activity-description.rich-content strong { font-weight: 700; }
-    .activity-description.rich-content h1, .activity-description.rich-content h2, .activity-description.rich-content h3 { margin-bottom: 10px; font-weight: 800; }
+    .activity-description.rich-content h1, .activity-description.rich-content h2, .activity-description.rich-content h3, .activity-description.rich-content h4 { margin-bottom: 10px; font-weight: 800; }
     /* إلغاء أي خلفية بيضاء/معتمة كتبها المؤلّف كي يبقى النص مقروءاً على البطاقة الزجاجية (حلّ «الخلفية البيضاء») */
     .activity-description.rich-content [style*="background"] { background: transparent !important; }
+    /* تحييد أي لون نصّ inline كتبه المؤلّف (المحرّر يفترض لوناً داكناً #1f2937) → يرث لون البطاقة
+       المقروء في الوضعين، بدل نصّ داكن على بطاقة داكنة ليلاً أو أبيض على فاتح نهاراً. */
+    .activity-description.rich-content [style*="color"] { color: inherit !important; }
     html[data-theme="light"] .activity-description.rich-content { color: #1e293b; }
 
     /* تفاعل الإجابة (كونفيتي/حزن + الحركات) مُستخرَج إلى partials/answer-celebration */

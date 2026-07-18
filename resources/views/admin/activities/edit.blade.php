@@ -251,8 +251,8 @@
             <div class="form-group full-width">
                 <label class="form-label">الوصف (يدعم تنسيقاً غنياً + إدراج صورة)</label>
                 {{-- محرّر نصوص غنيّ موحّد — يُحمّل الوصف القديم تلقائياً عند التعديل --}}
-                <div data-rich-editor="activityDesc" data-target="descriptionHidden" dir="rtl">{!! safe_html(old('description', $activity->description)) !!}</div>
-                <textarea name="description" id="descriptionHidden" hidden>{!! safe_html(old('description', $activity->description)) !!}</textarea>
+                <div data-rich-editor="activityDesc" data-target="descriptionHidden" dir="rtl" hidden>{!! safe_html(old('description', $activity->description)) !!}</div>
+                <textarea name="description" id="descriptionHidden" rows="6" dir="rtl" style="width:100%; min-height:150px; padding:12px 14px; border:2px solid #e2e8f0; border-radius:10px; font-family:inherit; font-size:15px; line-height:1.8; box-sizing:border-box;">{!! safe_html(old('description', $activity->description)) !!}</textarea>
                 @error('description')
                     <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
                 @enderror
@@ -289,6 +289,18 @@
                             <span class="type-name">ترتيب صور</span>
                         </label>
                     </div>
+                    {{-- نشاط قديم بنوع خارج الأربعة أعلاه: نعرض نوعه الحاليّ محدَّداً كي لا يمنع الحقلُ
+                         المطلوب (radio) حفظَ التعديل (كان يُفتَح بلا اختيار → يُحبَط الحفظ). --}}
+                    @php $__adminActivityTypes = ['quiz', 'exercise', 'project', 'image_order']; @endphp
+                    @if($activity->type && ! in_array($activity->type, $__adminActivityTypes, true))
+                    <div class="type-option">
+                        <input type="radio" name="type" value="{{ $activity->type }}" id="type_current" {{ old('type', $activity->type) == $activity->type ? 'checked' : '' }} onchange="handleTypeChange()">
+                        <label for="type_current" class="type-label">
+                            <span class="type-icon">🔧</span>
+                            <span class="type-name">{{ $activity->type }}</span>
+                        </label>
+                    </div>
+                    @endif
                 </div>
                 @error('type')
                     <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
@@ -504,7 +516,9 @@ if (questionsData) {
 
 // إظهار/إخفاء الحقول حسب نوع النشاط
 function handleTypeChange() {
-    const type = document.querySelector('input[name="type"]:checked').value;
+    const checked = document.querySelector('input[name="type"]:checked');
+    if (!checked) return; // نشاط قديم بلا نوع محدَّد — لا نرمي TypeError
+    const type = checked.value;
     const quizFields = document.querySelector('.quiz-fields');
     const projectFields = document.querySelector('.project-fields');
     const questionsSection = document.querySelector('.questions-section');

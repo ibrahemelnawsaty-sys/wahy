@@ -273,8 +273,8 @@
             <div class="form-group full-width">
                 <label class="form-label">الوصف</label>
                 {{-- محرّر نصوص غنيّ موحّد (ذاتيّ الاستضافة — يعمل بدون إنترنت) --}}
-                <div data-rich-editor="activityDesc" data-target="descriptionHidden" dir="rtl">{!! safe_html(old('description')) !!}</div>
-                <textarea name="description" id="descriptionHidden" hidden>{!! safe_html(old('description')) !!}</textarea>
+                <div data-rich-editor="activityDesc" data-target="descriptionHidden" dir="rtl" hidden>{!! safe_html(old('description')) !!}</div>
+                <textarea name="description" id="descriptionHidden" rows="6" dir="rtl" style="width:100%; min-height:150px; padding:12px 14px; border:2px solid #e2e8f0; border-radius:10px; font-family:inherit; font-size:15px; line-height:1.8; box-sizing:border-box;">{!! safe_html(old('description')) !!}</textarea>
                 @error('description')
                     <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
                 @enderror

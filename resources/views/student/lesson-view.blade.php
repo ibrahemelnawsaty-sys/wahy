@@ -195,7 +195,11 @@
     .rich-content ul, .rich-content ol { padding-right: 24px; margin-bottom: 12px; }
     .rich-content li { margin-bottom: 6px; }
     .rich-content b, .rich-content strong { font-weight: 700; }
-    .rich-content h1, .rich-content h2, .rich-content h3 { margin-bottom: 10px; }
+    .rich-content h1, .rich-content h2, .rich-content h3, .rich-content h4 { margin-bottom: 10px; }
+    /* تحييد خلفيّة/لون النصّ inline من المؤلّف كي يبقى المحتوى مقروءاً في الوضعين
+       (المحرّر يفترض لوناً داكناً #1f2937؛ وخلفيّة hiliteColor بيضاء) — يرثان سطح/لون البطاقة. */
+    .rich-content [style*="background"] { background: transparent !important; }
+    .rich-content [style*="color"] { color: inherit !important; }
     /* عرض الصور المُدرَجة بحجم مناسب */
     .rich-content figure, .rich-content figure img { max-width: 100%; }
     

@@ -137,6 +137,9 @@
                         placeholder.src = data.url;
                         placeholder.style.opacity = '1';
                         placeholder.removeAttribute('alt');
+                        // رفع الصورة لا يُطلق حدث input تلقائياً — نُطلقه يدوياً لتزامن الـtextarea فوراً
+                        const ed = placeholder.closest('[data-rich-editor]');
+                        if (ed) ed.dispatchEvent(new Event('input'));
                     }
                 } else {
                     if (placeholder) placeholder.remove();
@@ -209,11 +212,15 @@
     function syncWithHidden(editor, target) {
         const hidden = target ? document.getElementById(target) : null;
         if (!hidden) return;
+        // مزامنة مستمرّة: كل تعديل ينعكس فوراً على الحقل المُرسَل (textarea) — كي يصل الوصف
+        // دائماً حتى مع الإرسال البرمجيّ (.submit() الذي يتجاوز مستمعي submit) أو اعتراض
+        // حدث submit في اللايوت. الاعتماد على submit وحده كان يفقد المحتوى.
+        const sync = () => { hidden.value = editor.innerHTML; };
+        editor.addEventListener('input', sync);
+        editor.addEventListener('blur', sync);
         const form = editor.closest('form');
-        if (!form) return;
-        form.addEventListener('submit', () => {
-            hidden.value = editor.innerHTML;
-        });
+        if (form) form.addEventListener('submit', sync);
+        sync(); // مزامنة أوّليّة
     }
 
     function ensureStyles() {
@@ -260,6 +267,13 @@
         attachToolbarHandlers(toolbar, el);
         attachPasteSanitizer(el);
         syncWithHidden(el, el.dataset.target);
+
+        // تعزيز تدريجيّ (progressive enhancement): المحرّر يبدأ مخفياً والـtextarea البديلة ظاهرة
+        // كي يستطيع المستخدم الكتابة والحفظ حتى لو لم يُنفَّذ JS. الآن وقد نجحت التهيئة وارتبطت
+        // المزامنة، نُظهر المحرّر ونُخفي الـtextarea. يتمّ أخيراً فإن فشل شيء قبله بقيت البديلة صالحة.
+        el.hidden = false;
+        const hiddenTa = el.dataset.target ? document.getElementById(el.dataset.target) : null;
+        if (hiddenTa) { hiddenTa.hidden = true; hiddenTa.style.display = 'none'; }
     }
 
     function initAll() {
