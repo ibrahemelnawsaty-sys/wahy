@@ -85,3 +85,20 @@
 </div>
 </div>
 @endsection
+
+@push('scripts')
+@include('partials.answer-celebration')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // نفس عتبة دلالة الصفحة (👍/🏆 مقابل 💪 «حاول مرة أخرى»): 60% فأعلى احتفال، وإلا تشجيع/حزن
+        var __score = {{ (int) ($attempt->score ?? 0) }};
+        setTimeout(function () {
+            if (__score >= 60) {
+                if (window.celebrateCorrect) window.celebrateCorrect();
+            } else {
+                if (window.celebrateWrong) window.celebrateWrong();
+            }
+        }, 350);
+    });
+</script>
+@endpush
