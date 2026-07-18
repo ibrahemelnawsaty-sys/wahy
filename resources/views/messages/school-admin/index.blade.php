@@ -265,7 +265,7 @@ html[data-theme="dark"] .rb-parent{ color:#fbbf24; }
     color:var(--w-text,#0f172a);
     border-bottom-right-radius:5px;
 }
-.message-text{ font-size:14px; line-height:1.65; word-wrap:break-word; overflow-wrap:anywhere; }
+.message-text{ font-size:14px; line-height:1.65; word-wrap:break-word; overflow-wrap:anywhere; white-space:pre-line; }
 .message-time{ font-size:10.5px; opacity:.7; text-align:left; margin-top:5px; }
 .message.sent .message-time{ color:rgba(255,255,255,.85); }
 .message.received .message-time{ color:var(--w-text-muted,#475569); }
@@ -560,7 +560,7 @@ window.createMessageElement = function(message, isSent) {
     return `
         <div class="message ${messageClass}" data-message-id="${message.id}">
             <div class="message-bubble">
-                <div class="message-text">${escapeHtml(message.message)}</div>
+                <div class="message-text">${escapeHtml(messageToLines(message.message))}</div>
                 <div class="message-time">${time}</div>
             </div>
         </div>
@@ -677,6 +677,23 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// يحوّل فواصل الأسطر إلى أسطر نصّية: div/p/br القادمة من المحرّر الغنيّ (فكانت تظهر
+// كوسوم &lt;div&gt; مهرَّبة) و\n من الـtextarea، وينزع باقي الوسوم (عرض نصّيّ آمن).
+// النتيجة تُمرَّر لـescapeHtml وتُعرَض بـwhite-space:pre-line فتظهر الأسطر الجديدة صحيحة.
+function messageToLines(html) {
+    var s = String(html == null ? '' : html);
+    s = s.replace(/<br\s*\/?>/gi, '\n');
+    s = s.replace(/<\/(div|p)>/gi, '');
+    s = s.replace(/<(div|p)[^>]*>/gi, '\n');
+    s = s.replace(/<[^>]+>/g, '');
+    var ta = document.createElement('textarea');
+    ta.innerHTML = s;                 // فكّ الكيانات (&lt; &amp; &nbsp; ...)
+    s = ta.value;
+    s = s.replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g, '').replace(/\u00A0/g, ' ');
+    s = s.replace(/\n{3,}/g, '\n\n');
+    return s.replace(/^\n+|\n+$/g, '');
 }
 </script>
 
