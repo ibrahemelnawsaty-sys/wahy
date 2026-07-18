@@ -417,6 +417,8 @@ class AuthController extends Controller
                 return redirect()->route('student.dashboard');
             case 'parent':
                 return redirect()->route('parent.dashboard');
+            case 'technical_support':
+                return redirect()->route('support.dashboard');
             default:
                 Auth::logout();
 

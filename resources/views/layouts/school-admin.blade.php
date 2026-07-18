@@ -944,6 +944,13 @@
                             <span class="nav-text">مقارنات الاستبيانات</span>
                         </a>
                     </li>
+                    {{-- الدعم الفنيّ: رفع تذاكر ومتابعتها --}}
+                    <li class="nav-item">
+                        <a href="{{ route('tickets.index') }}" class="nav-link {{ request()->routeIs('tickets.*') ? 'active' : '' }}">
+                            <span class="nav-icon"><i class="fas fa-life-ring"></i></span>
+                            <span class="nav-text">الدعم الفنيّ</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 

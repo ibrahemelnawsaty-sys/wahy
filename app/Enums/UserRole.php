@@ -22,6 +22,7 @@ enum UserRole: string
     case Teacher = 'teacher';
     case Student = 'student';
     case Parent = 'parent';
+    case TechnicalSupport = 'technical_support';
 
     /**
      * التسمية بالعربي للعرض.
@@ -34,6 +35,7 @@ enum UserRole: string
             self::Teacher => 'معلم',
             self::Student => 'طالب',
             self::Parent => 'ولي أمر',
+            self::TechnicalSupport => 'الدعم الفنيّ',
         };
     }
 
@@ -46,11 +48,11 @@ enum UserRole: string
     }
 
     /**
-     * هل هذا الدور مرتبط بمدرسة (وليس super_admin)؟
+     * هل هذا الدور مرتبط بمدرسة؟ (super_admin والدعم الفنيّ منصّيّان بلا مدرسة).
      */
     public function isScopedToSchool(): bool
     {
-        return $this !== self::SuperAdmin;
+        return ! in_array($this, [self::SuperAdmin, self::TechnicalSupport], true);
     }
 
     /**

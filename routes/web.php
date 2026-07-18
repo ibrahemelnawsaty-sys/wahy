@@ -27,7 +27,11 @@ use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\Support\DashboardController as SupportDashboardController;
+use App\Http\Controllers\Support\SupportTicketController;
+use App\Http\Controllers\Support\SupportUserController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 
 // Health check endpoints
@@ -649,5 +653,43 @@ Route::middleware('auth')->group(function () {
         // الأنشطة العائلية
         Route::get('/family-activities/pending', [ParentController::class, 'pendingFamilyActivities'])->name('family-activities.pending');
         Route::post('/family-activities/{id}/approve', [ParentController::class, 'approveFamilyActivity'])->name('family-activities.approve');
+    });
+
+    // ==================== تذاكر الدعم الفنيّ (نهاية المستخدم — كل الأدوار) ====================
+    // عابرة للمدارس/الأدوار: بلا role ولا school.access (auth فقط).
+    Route::prefix('tickets')->name('tickets.')->group(function () {
+        Route::get('/', [TicketController::class, 'index'])->name('index');
+        Route::get('/create', [TicketController::class, 'create'])->name('create');
+        Route::post('/', [TicketController::class, 'store'])->name('store');
+        Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
+        Route::post('/{ticket}/reply', [TicketController::class, 'reply'])->name('reply');
+        Route::post('/{ticket}/close', [TicketController::class, 'close'])->name('close');
+    });
+
+    // ==================== لوحة الدعم الفنيّ ====================
+    // محروسة role:technical_support (والسوبر أدمن يمرّ تلقائياً عبر CheckRole). بلا school.access.
+    Route::prefix('support')->name('support.')->middleware(['role:technical_support'])->group(function () {
+        Route::get('/dashboard', [SupportDashboardController::class, 'index'])->name('dashboard');
+
+        // إدارة التذاكر
+        Route::prefix('tickets')->name('tickets.')->group(function () {
+            Route::get('/', [SupportTicketController::class, 'index'])->name('index');
+            Route::get('/{ticket}', [SupportTicketController::class, 'show'])->name('show');
+            Route::post('/{ticket}/reply', [SupportTicketController::class, 'reply'])->name('reply');
+            Route::post('/{ticket}/resolve', [SupportTicketController::class, 'resolve'])->name('resolve');
+            Route::post('/{ticket}/reopen', [SupportTicketController::class, 'reopen'])->name('reopen');
+            Route::post('/{ticket}/close', [SupportTicketController::class, 'close'])->name('close');
+            Route::post('/{ticket}/escalate', [SupportTicketController::class, 'escalate'])->name('escalate');
+            Route::post('/{ticket}/assign', [SupportTicketController::class, 'assign'])->name('assign');
+        });
+
+        // إدارة المستخدمين (صلاحيات محدودة — لا مساس بالسوبر أدمن)
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [SupportUserController::class, 'index'])->name('index');
+            Route::get('/{user}/edit', [SupportUserController::class, 'edit'])->name('edit');
+            Route::put('/{user}', [SupportUserController::class, 'update'])->name('update');
+            Route::post('/{user}/reset-password', [SupportUserController::class, 'resetPassword'])->name('reset-password');
+            Route::post('/{user}/toggle-status', [SupportUserController::class, 'toggleStatus'])->name('toggle-status');
+        });
     });
 });

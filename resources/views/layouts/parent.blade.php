@@ -627,6 +627,10 @@
                         @endphp
                         <span class="badge-notification" style="display: {{ $bulkUnreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="bulk_messages_unread" data-live-badge data-live-cap="9">{{ $bulkUnreadCount > 0 ? ($bulkUnreadCount > 9 ? '9+' : $bulkUnreadCount) : 0 }}</span>
                     </a>
+                    <a href="{{ route('tickets.index') }}" class="nav-link {{ request()->routeIs('tickets.*') ? 'active' : '' }}">
+                        <i class="fas fa-life-ring"></i>
+                        <span>الدعم الفنيّ</span>
+                    </a>
                 </nav>
             </div>
             

@@ -492,6 +492,11 @@ class User extends Authenticatable
         return $this->role === \App\Enums\UserRole::Parent->value;
     }
 
+    public function isTechnicalSupport(): bool
+    {
+        return $this->role === \App\Enums\UserRole::TechnicalSupport->value;
+    }
+
     /**
      * حساب العمر من تاريخ الميلاد
      */
@@ -617,6 +622,16 @@ class User extends Authenticatable
     }
 
     /**
+     * هل يملك المستخدم صلاحية سوبر أدمن فعليّة (أساسيّة أو ثانويّة قابلة للتبديل)؟
+     * يُستعمل لحماية حسابات السوبر أدمن من أفعال الأدوار الأقلّ ثقة (الدعم الفنيّ)
+     * حتى لو كان super_admin دوراً ثانوياً وليس العمود الأساسيّ.
+     */
+    public function hasSuperAdminRole(): bool
+    {
+        return in_array('super_admin', $this->getAllRoles(), true);
+    }
+
+    /**
      * التحقق من وجود أدوار متعددة
      */
     public function hasMultipleRoles(): bool
@@ -655,6 +670,7 @@ class User extends Authenticatable
             'teacher' => 'معلم',
             'parent' => 'ولي أمر',
             'student' => 'طالب',
+            'technical_support' => 'الدعم الفنيّ',
         ];
 
         return $roleNames[$role] ?? $role;
@@ -671,6 +687,7 @@ class User extends Authenticatable
             'teacher' => 'fas fa-chalkboard-teacher',
             'parent' => 'fas fa-users',
             'student' => 'fas fa-user-graduate',
+            'technical_support' => 'fas fa-headset',
         ];
 
         return $roleIcons[$role] ?? 'fas fa-user';
@@ -687,6 +704,7 @@ class User extends Authenticatable
             'teacher' => '/teacher/dashboard',
             'parent' => '/parent/dashboard',
             'student' => '/student/dashboard',
+            'technical_support' => '/support/dashboard',
         ];
 
         return $routes[$role] ?? '/dashboard';

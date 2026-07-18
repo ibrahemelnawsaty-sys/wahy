@@ -150,6 +150,7 @@
                     <option value="teacher" {{ old('role', $user->role) == 'teacher' ? 'selected' : '' }}>معلم</option>
                     <option value="student" {{ old('role', $user->role) == 'student' ? 'selected' : '' }}>طالب</option>
                     <option value="parent" {{ old('role', $user->role) == 'parent' ? 'selected' : '' }}>ولي أمر</option>
+                    <option value="technical_support" {{ old('role', $user->role) == 'technical_support' ? 'selected' : '' }}>الدعم الفنيّ</option>
                 </select>
                 @error('role')
                     <span class="error-message">{{ $message }}</span>

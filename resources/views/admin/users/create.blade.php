@@ -149,6 +149,7 @@
                     <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>معلم</option>
                     <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>طالب</option>
                     <option value="parent" {{ old('role') == 'parent' ? 'selected' : '' }}>ولي أمر</option>
+                    <option value="technical_support" {{ old('role') == 'technical_support' ? 'selected' : '' }}>الدعم الفنيّ</option>
                 </select>
                 @error('role')
                     <span class="error-message">{{ $message }}</span>

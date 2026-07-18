@@ -354,6 +354,11 @@
                             <span class="admin-nav-icon">📬</span>
                             <span class="admin-nav-text">صندوق الوارد</span>
                         </a>
+
+                        <a href="{{ route('tickets.index') }}" class="admin-nav-item {{ request()->routeIs('tickets.*') ? 'active' : '' }}">
+                            <span class="admin-nav-icon">🛟</span>
+                            <span class="admin-nav-text">الدعم الفنيّ</span>
+                        </a>
                     </div>
                 </div>
 

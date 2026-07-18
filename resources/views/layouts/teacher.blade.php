@@ -617,6 +617,10 @@
                     <span class="nav-icon">📚</span>
                     بنك الأنشطة
                 </a>
+                <a href="{{ route('tickets.index') }}" class="nav-item {{ request()->routeIs('tickets.*') ? 'active' : '' }}">
+                    <span class="nav-icon">🛟</span>
+                    الدعم الفنيّ
+                </a>
                 <a href="{{ route('teacher.settings') }}" class="nav-item {{ request()->is('teacher/settings*') ? 'active' : '' }}">
                     <span class="nav-icon">⚙️</span>
                     الإعدادات

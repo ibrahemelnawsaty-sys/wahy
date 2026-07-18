@@ -464,6 +464,22 @@
                 <span class="nav-item-badge" style="display: {{ $unreadMessages > 0 ? 'inline-flex' : 'none' }};" data-live="messages_unread" data-live-badge data-live-cap="9">{{ $unreadMessages > 0 ? ($unreadMessages > 9 ? '9+' : $unreadMessages) : 0 }}</span>
             </a>
             
+            <!-- Support -->
+            <a href="{{ route('tickets.index') }}" class="nav-item {{ request()->routeIs('tickets.*') ? 'active' : '' }}">
+                <div class="nav-item-icon-wrapper">
+                    <svg class="nav-item-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                        <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+                        <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+                        <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
+                    </svg>
+                    <div class="nav-item-indicator"></div>
+                </div>
+                <div class="nav-item-label">الدعم</div>
+            </a>
+
             <!-- Profile -->
             <a href="{{ route('student.profile') }}" class="nav-item {{ request()->routeIs('student.profile') ? 'active' : '' }}">
                 <div class="nav-item-icon-wrapper">

@@ -379,11 +379,14 @@ body::after {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 8px 14px;
+    /* 8px أفقيّ (بدل 14) ليتّسع شريط الطالب لـ6 عناصر على الشاشات الضيّقة دون تجاوز الكبسولة */
+    padding: 8px 8px;
     border-radius: 20px;
     cursor: pointer;
     text-decoration: none;
     color: #64748B;
+    min-width: 0;
+    flex: 1 1 0;
     position: relative;
     background: transparent;
     flex: 1;

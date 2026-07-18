@@ -174,6 +174,11 @@
     color: #9333ea;
 }
 
+.role-technical_support {
+    background: #cffafe;
+    color: #0e7490;
+}
+
 .status-badge {
     display: inline-block;
     padding: 6px 12px;
@@ -319,6 +324,7 @@
                     <option value="teacher" {{ request('role') == 'teacher' ? 'selected' : '' }}>معلم</option>
                     <option value="student" {{ request('role') == 'student' ? 'selected' : '' }}>طالب</option>
                     <option value="parent" {{ request('role') == 'parent' ? 'selected' : '' }}>ولي أمر</option>
+                    <option value="technical_support" {{ request('role') == 'technical_support' ? 'selected' : '' }}>الدعم الفنيّ</option>
                 </select>
             </div>
 
@@ -399,6 +405,7 @@
                             @case('teacher') معلم @break
                             @case('student') طالب @break
                             @case('parent') ولي أمر @break
+                            @case('technical_support') الدعم الفنيّ @break
                             @default {{ $user->role }}
                         @endswitch
                     </span>

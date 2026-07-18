@@ -17,7 +17,8 @@ class UserRoleTest extends TestCase
         $this->assertContains('teacher', $values);
         $this->assertContains('student', $values);
         $this->assertContains('parent', $values);
-        $this->assertCount(5, $values);
+        $this->assertContains('technical_support', $values);
+        $this->assertCount(6, $values);
     }
 
     public function test_options_returns_value_to_label_map(): void
@@ -29,6 +30,7 @@ class UserRoleTest extends TestCase
         $this->assertEquals('ولي أمر', $options['parent']);
         $this->assertEquals('مدير مدرسة', $options['school_admin']);
         $this->assertEquals('مدير عام', $options['super_admin']);
+        $this->assertEquals('الدعم الفنيّ', $options['technical_support']);
     }
 
     public function test_is_admin_returns_true_for_admin_roles_only(): void
@@ -47,6 +49,7 @@ class UserRoleTest extends TestCase
         $this->assertTrue(UserRole::Teacher->isScopedToSchool());
         $this->assertTrue(UserRole::Student->isScopedToSchool());
         $this->assertTrue(UserRole::Parent->isScopedToSchool());
+        $this->assertFalse(UserRole::TechnicalSupport->isScopedToSchool());
     }
 
     public function test_try_from_string_handles_null_and_invalid(): void

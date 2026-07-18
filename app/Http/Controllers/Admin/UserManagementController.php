@@ -68,7 +68,7 @@ class UserManagementController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:super_admin,school_admin,teacher,student,parent',
+            'role' => 'required|in:super_admin,school_admin,teacher,student,parent,technical_support',
             'school_id' => 'required_if:role,school_admin,teacher,student,parent|nullable|exists:schools,id',
             'phone' => 'nullable|string|max:20',
             'qr_code' => 'nullable|string|unique:users,qr_code',
@@ -113,7 +113,7 @@ class UserManagementController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'required|in:super_admin,school_admin,teacher,student,parent',
+            'role' => 'required|in:super_admin,school_admin,teacher,student,parent,technical_support',
             'school_id' => 'nullable|exists:schools,id',
             'phone' => 'nullable|string|max:20',
             'qr_code' => ['nullable', 'string', Rule::unique('users')->ignore($user->id)],
@@ -178,6 +178,7 @@ class UserManagementController extends Controller
             'teacher' => 'SA-TCH',
             'student' => 'SA-STU',
             'parent' => 'SA-PAR',
+            'technical_support' => 'TS',
             default => 'SA-USR'
         };
 
