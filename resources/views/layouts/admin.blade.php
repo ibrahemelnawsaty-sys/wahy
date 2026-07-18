@@ -212,6 +212,11 @@
                             <span class="admin-nav-text">القيم</span>
                         </a>
 
+                        <a href="{{ route('admin.badges.index') }}" class="admin-nav-item {{ request()->routeIs('admin.badges.*') ? 'active' : '' }}">
+                            <span class="admin-nav-icon">🏅</span>
+                            <span class="admin-nav-text">الشارات</span>
+                        </a>
+
                         <a href="{{ route('admin.concepts.index') }}" class="admin-nav-item {{ request()->routeIs('admin.concepts.*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">💡</span>
                             <span class="admin-nav-text">المفاهيم</span>

@@ -2,101 +2,78 @@
 
 namespace App\Listeners;
 
-use App\Events\ActivityCompleted;
-use App\Events\LevelUp;
-use App\Events\StreakUpdated;
+use App\Models\Badge;
+use App\Models\User;
+use App\Support\BadgeMetrics;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class CheckBadgeEligibility
 {
     /**
-     * فحص واسناد الأوسمة بناءً على الإنجازات
+     * محرّك منح الشارات المبنيّ على الشرط.
+     *
+     * عند أيّ من الأحداث الثلاثة (نشاط مكتمل / ترقّي مستوى / تحديث سلسلة) نُعيد تقييم
+     * الشارات النشطة **غير المكتسبة بعد** مقابل مقاييس الطالب، ونمنح ما تحقّق
+     * (المقياس الحاليّ >= condition_value).
      */
     public function handle($event)
     {
-        if ($event instanceof ActivityCompleted) {
-            $this->checkActivityBadges($event->student);
+        $student = $event->student ?? null;
+        if (! $student) {
+            return;
         }
 
-        if ($event instanceof LevelUp) {
-            $this->checkLevelBadges($event->student, $event->newLevel);
-        }
-
-        if ($event instanceof StreakUpdated) {
-            $this->checkStreakBadges($event->student, $event->streakDays);
-        }
+        $this->evaluateBadges($student);
     }
 
     /**
-     * أوسمة الأنشطة
+     * تقييم الشارات النشطة غير المكتسبة مقابل مقاييس الطالب.
      */
-    private function checkActivityBadges($student)
+    private function evaluateBadges($student): void
     {
-        $completedActivities = DB::table('activity_submissions')
-            ->where('student_id', $student->id)
-            ->where('status', 'completed')
-            ->count();
+        $badges = Badge::where('status', 'active')
+            ->whereNotNull('condition_type')
+            ->get();
 
-        $badges = [
-            ['activities' => 5, 'badge_id' => 1],   // أول 5 أنشطة
-            ['activities' => 10, 'badge_id' => 2],  // 10 أنشطة
-            ['activities' => 25, 'badge_id' => 3],  // 25 نشاط
-            ['activities' => 50, 'badge_id' => 4],  // 50 نشاط
-            ['activities' => 100, 'badge_id' => 5], // 100 نشاط
-        ];
+        if ($badges->isEmpty()) {
+            return;
+        }
 
-        foreach ($badges as $criteria) {
-            if ($completedActivities >= $criteria['activities']) {
-                $this->awardBadge($student->id, $criteria['badge_id']);
+        // نستبعد المكتسبة أولاً — إن كانت كلها مكتسبة نخرج قبل حساب أيّ مقياس (لا نمسّ شجرة المحتوى إطلاقاً).
+        $earnedIds = DB::table('user_badges')
+            ->where('user_id', $student->id)
+            ->pluck('badge_id')
+            ->all();
+
+        $unearned = $badges->whereNotIn('id', $earnedIds);
+        if ($unearned->isEmpty()) {
+            return;
+        }
+
+        // نحسب فقط المقاييس التي تطلبها الشارات غير المكتسبة (كسول + points يُحسب مرّة واحدة).
+        $neededTypes = $unearned->pluck('condition_type')->unique()->all();
+        $metrics = BadgeMetrics::compute($student, $neededTypes);
+
+        foreach ($unearned as $badge) {
+            $current = $metrics[$badge->condition_type] ?? null;
+            if ($current === null) {
+                continue;
+            }
+
+            if ($current >= (int) $badge->condition_value) {
+                $this->awardBadge($student->id, $badge->id, (int) $badge->coins_reward);
             }
         }
     }
 
     /**
-     * أوسمة المستويات
+     * إسناد الوسام للطالب — idempotent تحت التزامن (فحص + قفل + التقاط انتهاك المفتاح الفريد).
+     * يمنح coins = coins_reward للشارة.
      */
-    private function checkLevelBadges($student, $level)
+    private function awardBadge($studentId, $badgeId, int $coinsReward = 50)
     {
-        $levelBadges = [
-            ['level' => 5, 'badge_id' => 6],   // المستوى 5
-            ['level' => 10, 'badge_id' => 7],  // المستوى 10
-            ['level' => 25, 'badge_id' => 8],  // المستوى 25
-            ['level' => 50, 'badge_id' => 9],  // المستوى 50
-        ];
-
-        foreach ($levelBadges as $criteria) {
-            if ($level >= $criteria['level']) {
-                $this->awardBadge($student->id, $criteria['badge_id']);
-            }
-        }
-    }
-
-    /**
-     * أوسمة الاستمرارية
-     */
-    private function checkStreakBadges($student, $streakDays)
-    {
-        $streakBadges = [
-            ['days' => 7, 'badge_id' => 10],   // أسبوع متواصل
-            ['days' => 14, 'badge_id' => 11],  // أسبوعين
-            ['days' => 30, 'badge_id' => 12],  // شهر كامل
-            ['days' => 100, 'badge_id' => 13], // 100 يوم
-        ];
-
-        foreach ($streakBadges as $criteria) {
-            if ($streakDays >= $criteria['days']) {
-                $this->awardBadge($student->id, $criteria['badge_id']);
-            }
-        }
-    }
-
-    /**
-     * إسناد الوسام للطالب — atomic لمنع double-award race
-     */
-    private function awardBadge($studentId, $badgeId)
-    {
-        $justInserted = DB::transaction(function () use ($studentId, $badgeId) {
-            // قفل صفّي على الوسام لمنع race بين الـ events المتزامنة
+        $justInserted = DB::transaction(function () use ($studentId, $badgeId, $coinsReward) {
             $exists = DB::table('user_badges')
                 ->where('user_id', $studentId)
                 ->where('badge_id', $badgeId)
@@ -107,17 +84,26 @@ class CheckBadgeEligibility
                 return false;
             }
 
-            DB::table('user_badges')->insert([
-                'user_id' => $studentId,
-                'badge_id' => $badgeId,
-                'earned_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            try {
+                DB::table('user_badges')->insert([
+                    'user_id' => $studentId,
+                    'badge_id' => $badgeId,
+                    'earned_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (QueryException $e) {
+                // سباق عبر الطلبات: صفّ user_badges لم يكن موجوداً وقت القفل فمرّ حدثان معاً.
+                // الفهرس الفريد (user_id, badge_id) يرفض المكرّر — نعامله كـ«موجود مسبقاً» بلا منح مضاعف.
+                if ($this->isDuplicateKey($e)) {
+                    return false;
+                }
+                throw $e;
+            }
 
             DB::table('coins')->insert([
                 'user_id' => $studentId,
-                'coins' => 50,
+                'coins' => max(0, $coinsReward),
                 'source' => 'badge_earned',
                 'description' => 'حصلت على وسام جديد!',
                 'created_at' => now(),
@@ -129,11 +115,20 @@ class CheckBadgeEligibility
 
         // إطلاق Event مرة واحدة فقط — خارج المعاملة لتجنب تكرار الإشعار
         if ($justInserted) {
-            $user = \App\Models\User::find($studentId);
-            $badge = \App\Models\Badge::find($badgeId);
+            $user = User::find($studentId);
+            $badge = Badge::find($badgeId);
             if ($user && $badge) {
                 event(new \App\Events\BadgeEarned($user, $badge));
             }
         }
+    }
+
+    /**
+     * هل الاستثناء انتهاك مفتاح فريد/مكرّر؟ (SQLSTATE 23000 / رمز MySQL 1062).
+     */
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        return ($e->getCode() === '23000')
+            || (isset($e->errorInfo[1]) && (int) $e->errorInfo[1] === 1062);
     }
 }

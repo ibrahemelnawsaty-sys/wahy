@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ActivityManagementController;
+use App\Http\Controllers\Admin\BadgeController;
 use App\Http\Controllers\Admin\ConceptManagementController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LandingPageController;
@@ -236,6 +237,10 @@ Route::middleware('auth')->group(function () {
         // Value Management (المحتوى التعليمي)
         Route::resource('values', ValueManagementController::class);
         Route::post('/values/{value}/toggle-status', [ValueManagementController::class, 'toggleStatus'])->name('values.toggle-status');
+
+        // Badge Management (إدارة الشارات)
+        Route::resource('badges', BadgeController::class);
+        Route::post('/badges/{badge}/toggle-status', [BadgeController::class, 'toggleStatus'])->name('badges.toggle-status');
 
         // Messages Log (سجل الرسائل للأدمن)
         Route::prefix('messages-log')->name('messages-log.')->group(function () {

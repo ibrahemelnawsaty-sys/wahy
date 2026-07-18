@@ -13,6 +13,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Models\Value;
 use App\Services\AwardService;
+use App\Support\BadgeMetrics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -1839,12 +1840,12 @@ class StudentController extends Controller
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
 
-        // جميع الشارات المكتسبة
-        $badges = $user->badges()->orderByPivot('earned_at', 'desc')->get();
-        $totalBadges = $badges->count();
-
-        // الشارات النادرة (إذا كان هناك حقل rarity)
-        $rareBadges = $badges->where('rarity', 'rare')->count();
+        // معرّفات الشارات المكتسبة + تاريخ الكسب (لعرض المكتسبة ملوّنة + earned_at)
+        $earnedPivot = $user->badges()->get();
+        $earnedIds = $earnedPivot->pluck('id')->all();
+        $earnedAtById = $earnedPivot->mapWithKeys(
+            fn ($b) => [$b->id => optional($b->pivot)->earned_at]
+        );
 
         // التيجان — مصدر موحّد: جدول crowns (نفس مصدر صفحة التيجان والإحصائيات)
         $crowns = $user->crowns()->count();
@@ -1859,8 +1860,29 @@ class StudentController extends Controller
             ->map(fn ($crown) => $crown->value)
             ->filter();
 
+        // كل الشارات النشطة القابلة للكسب (لها شرط) — نستبعد الشارات القديمة عديمة الشرط
+        // كي لا تظهر للطالب كبطاقات مقفلة دائمة بلا طريقة كسب.
+        $allBadges = Badge::where('status', 'active')
+            ->whereNotNull('condition_type')
+            ->orderBy('order')
+            ->orderBy('id')
+            ->get();
+
+        // العدّاد يعتمد المجموعة المعروضة نفسها (المكتسبة ∩ المعروضة) فلا يتجاوز البسطُ المقامَ أبداً
+        $totalBadges = $allBadges->whereIn('id', $earnedIds)->count();
+
+        // مقاييس الطالب الستّة الحاليّة — من المصدر الموحّد نفسه لمحرّك المنح (تطابق شريط التقدّم مع عتبة المنح)
+        $studentMetrics = BadgeMetrics::compute($user, array_keys(Badge::CONDITION_TYPES));
+
+        // عدد الشارات المكتسبة النادرة/الخاصة (type=special) — لبطاقة الإحصائيات
+        $rareBadges = $allBadges->whereIn('id', $earnedIds)
+            ->where('type', 'special')->count();
+
         return view('student.badges', compact(
-            'badges',
+            'allBadges',
+            'earnedIds',
+            'earnedAtById',
+            'studentMetrics',
             'totalBadges',
             'rareBadges',
             'crowns',
