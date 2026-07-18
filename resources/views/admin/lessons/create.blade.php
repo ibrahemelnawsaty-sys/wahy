@@ -513,8 +513,8 @@
                 <h3 style="margin: 0 0 16px 0; color: #92400e; font-size: 18px; display: flex; align-items: center; gap: 8px;">
                     <span>🔥</span> نظام مكافأة الالتزام اليومي
                 </h3>
-                <p style="color: #92400e; font-size: 13px; margin-bottom: 16px;">
-                    عند تفعيل هذا النظام، يحصل الطالب على نقاط إضافية إذا أكمل أنشطة في عدد معين من الأيام
+                <p style="color: #92400e; font-size: 13px; margin-bottom: 16px; line-height: 1.8;">
+                    عند تفعيله، ينال الطالب مكافأة نقاط <strong>نهائية تُمنح مرّة واحدة فقط</strong> عند إكمال أنشطة في عدد الأيام المطلوب («الحد الأدنى من الأيام»). نقاط الأنشطة العاديّة تبقى منفصلة وتُحتسب يوميًا مع كل نشاط.
                 </p>
                 
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
@@ -524,25 +524,25 @@
 
                 <div id="streak_fields" style="display: {{ old('streak_enabled') ? 'grid' : 'none' }}; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                     <div>
-                        <label class="form-label" style="color: #92400e;">الحد الأدنى من الأيام</label>
+                        <label class="form-label" style="color: #92400e;">الحد الأدنى من الأيام <span style="color:#b45309;">(يُفعّل المكافأة)</span></label>
                         <input type="number" name="streak_min_days" class="form-input" value="{{ old('streak_min_days', 5) }}" min="1" max="30" placeholder="5">
-                        <small style="color: #92400e; font-size: 11px;">أقل عدد أيام للحصول على المكافأة</small>
+                        <small style="color: #92400e; font-size: 11px;">عدد الأيام المختلفة المطلوبة لمنح المكافأة النهائية مرّة واحدة</small>
                     </div>
                     <div>
-                        <label class="form-label" style="color: #92400e;">الحد الأعلى من الأيام</label>
+                        <label class="form-label" style="color: #92400e;">الحد الأعلى من الأيام <span style="color:#b45309;">(إرشادي فقط)</span></label>
                         <input type="number" name="streak_max_days" class="form-input" value="{{ old('streak_max_days', 10) }}" min="1" max="60" placeholder="10">
-                        <small style="color: #92400e; font-size: 11px;">أقصى مدة متوقعة للدرس</small>
+                        <small style="color: #92400e; font-size: 11px;">مؤشّر عرضيّ فقط — <strong>لا يؤثّر على منح المكافأة</strong></small>
                     </div>
                     <div>
                         <label class="form-label" style="color: #92400e;">نقاط المكافأة</label>
                         <input type="number" name="streak_bonus_points" class="form-input" value="{{ old('streak_bonus_points', 50) }}" min="0" placeholder="50">
-                        <small style="color: #92400e; font-size: 11px;">النقاط الإضافية عند التأهل</small>
+                        <small style="color: #92400e; font-size: 11px;">تُضاف مرّة واحدة نهائيًا عند بلوغ الحد الأدنى</small>
                     </div>
                 </div>
 
                 <div style="background: rgba(255,255,255,0.5); padding: 12px; border-radius: 8px; margin-top: 12px;" id="streak_example">
                     <strong style="color: #92400e;">📝 مثال:</strong>
-                    <span style="color: #78350f;" id="streak_example_text">إذا أكمل الطالب أنشطة في 5 أيام أو أكثر، سيحصل على 50 نقطة إضافية</span>
+                    <span style="color: #78350f;" id="streak_example_text">إذا أكمل الطالب أنشطة في 5 أيام مختلفة، يحصل مرّة واحدة نهائيًا على 50 نقطة مكافأة (إضافةً إلى نقاط الأنشطة اليوميّة المعتادة)</span>
                 </div>
             </div>
         </div>
@@ -901,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (streakExample && minDaysInput && bonusInput) {
             const minDays = minDaysInput.value || 5;
             const bonus = bonusInput.value || 50;
-            streakExample.textContent = `إذا أكمل الطالب أنشطة في ${minDays} أيام أو أكثر، سيحصل على ${bonus} نقطة إضافية`;
+            streakExample.textContent = `إذا أكمل الطالب أنشطة في ${minDays} أيام مختلفة، يحصل مرّة واحدة نهائيًا على ${bonus} نقطة مكافأة (إضافةً إلى نقاط الأنشطة اليوميّة المعتادة)`;
         }
     }
 

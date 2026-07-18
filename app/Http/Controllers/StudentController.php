@@ -197,6 +197,9 @@ class StudentController extends Controller
         // استخدام نفس الـ view مع المتغير الصحيح
         $totalPoints = $stats['total_points'] ?? 0;
 
+        // streak الالتزام لكل درس — تحميل واحد keyBy(lesson_id) لتجنّب N+1 في القائمة
+        $lessonStreaks = $user->lessonStreaks->keyBy('lesson_id');
+
         return view('student.dashboard', compact(
             'user',
             'school',
@@ -208,6 +211,7 @@ class StudentController extends Controller
             'currentLesson',
             'values',
             'totalPoints',
+            'lessonStreaks',
         ));
     }
 
@@ -1129,6 +1133,14 @@ class StudentController extends Controller
                                 $lessonMsg = '🏆 مكافأة الالتزام النهائية: +' . $lessonBonusPoints . ' نقطة!';
                                 $streakMessage = $streakMessage ? ($streakMessage . ' • ' . $lessonMsg) : $lessonMsg;
                             }
+                        } else {
+                            // يوم جديد سُجّل لكن المكافأة النهائية لم تُمنح بعد —
+                            // رسالة تحفيز تُشعِر الطالب أنه «بدأ» ويرى تقدّمه (بلا تكرار مع رسالة المكافأة).
+                            $lesson = $activity->lesson;
+                            if ($lesson && $lesson->hasStreakEnabled()) {
+                                $progressMsg = '🔥 يوم ' . $lessonStreak->completed_days . ' من ' . $lesson->streak_min_days . ' في التزام الدرس — استمرّ!';
+                                $streakMessage = $streakMessage ? ($streakMessage . ' • ' . $progressMsg) : $progressMsg;
+                            }
                         }
                     }
                 }
@@ -1952,7 +1964,12 @@ class StudentController extends Controller
             $currentLesson->progress = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
         }
 
-        return view('student.learn', compact('currentLesson', 'stats', 'streak'));
+        // streak الالتزام للدرس الحالي — يُمرَّر فقط عند تفعيل streak الدرس، وإلا null
+        $currentLessonStreak = ($currentLesson && $currentLesson->hasStreakEnabled())
+            ? $user->getLessonStreak($currentLesson->id)
+            : null;
+
+        return view('student.learn', compact('currentLesson', 'stats', 'streak', 'currentLessonStreak'));
     }
 
     /**

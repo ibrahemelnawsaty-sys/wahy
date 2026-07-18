@@ -36,6 +36,27 @@
                 <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 16px;">
                     {{ $currentLesson->description ?? 'ابدأ رحلتك في تعلم هذا الدرس' }}
                 </div>
+
+                {{-- مؤشّر مضغوط لمكافأة الالتزام اليومي (كهرماني ذاتي التباين) --}}
+                @if($currentLesson->hasStreakEnabled())
+                @php
+                    $__clsDone    = (int) (($currentLessonStreak ?? null)->completed_days ?? 0);
+                    $__clsMin     = (int) $currentLesson->streak_min_days;
+                    $__clsClaimed = (bool) (($currentLessonStreak ?? null)->bonus_claimed ?? false);
+                    $__clsPct     = $__clsMin > 0 ? min(100, round($__clsDone / $__clsMin * 100)) : 0;
+                @endphp
+                <div style="display:inline-flex; flex-direction:column; gap:6px; background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border:1.5px solid #f59e0b; border-radius:12px; padding:8px 14px; margin-bottom:16px; max-width:100%;">
+                    @if($__clsClaimed)
+                        <span style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:#92400e;"><span style="font-size:15px;">🏆</span> مكافأة الالتزام محقّقة!</span>
+                    @elseif($__clsDone > 0)
+                        <span style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:#92400e;"><span style="font-size:15px;">🔥</span> التزام: يوم {{ $__clsDone }} من {{ $__clsMin }} — استمرّ! 🚀</span>
+                        <span style="display:block; background:rgba(255,255,255,0.55); border-radius:8px; height:6px; overflow:hidden;"><span style="display:block; height:100%; border-radius:8px; background:linear-gradient(90deg,#f59e0b,#d97706); width:{{ $__clsPct }}%;"></span></span>
+                    @else
+                        <span style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:#92400e;"><span style="font-size:15px;">🔥</span> مكافأة التزام — ابدأ اليوم بأوّل نشاط!</span>
+                    @endif
+                </div>
+                @endif
+
                 <div class="hero-lesson-progress">
                     <!-- Progress Ring -->
                     <div class="progress-ring-container">

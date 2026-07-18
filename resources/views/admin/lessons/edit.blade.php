@@ -551,8 +551,8 @@
                 <h3 style="margin: 0 0 16px 0; color: #92400e; font-size: 18px; display: flex; align-items: center; gap: 8px;">
                     نظام مكافأة الالتزام اليومي
                 </h3>
-                <p style="color: #92400e; font-size: 13px; margin-bottom: 16px;">
-                    عند تفعيل هذا النظام، يحصل الطالب على نقاط إضافية إذا أكمل أنشطة في عدد معين من الأيام
+                <p style="color: #92400e; font-size: 13px; margin-bottom: 16px; line-height: 1.8;">
+                    عند تفعيله، ينال الطالب مكافأة نقاط <strong>نهائية تُمنح مرّة واحدة فقط</strong> عند إكمال أنشطة في عدد الأيام المطلوب («الحد الأدنى من الأيام»). نقاط الأنشطة العاديّة تبقى منفصلة وتُحتسب يوميًا مع كل نشاط.
                 </p>
                 
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
@@ -562,25 +562,25 @@
 
                 <div id="streak_fields" style="display: {{ old('streak_enabled', $lesson->streak_enabled) ? 'grid' : 'none' }}; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                     <div>
-                        <label class="form-label" style="color: #92400e;">الحد الأدنى من الأيام</label>
+                        <label class="form-label" style="color: #92400e;">الحد الأدنى من الأيام <span style="color:#b45309;">(يُفعّل المكافأة)</span></label>
                         <input type="number" name="streak_min_days" class="form-input" value="{{ old('streak_min_days', $lesson->streak_min_days ?? 5) }}" min="1" max="30" placeholder="5">
-                        <small style="color: #92400e; font-size: 11px;">أقل عدد أيام للحصول على المكافأة</small>
+                        <small style="color: #92400e; font-size: 11px;">عدد الأيام المختلفة المطلوبة لمنح المكافأة النهائية مرّة واحدة</small>
                     </div>
                     <div>
-                        <label class="form-label" style="color: #92400e;">الحد الأعلى من الأيام</label>
+                        <label class="form-label" style="color: #92400e;">الحد الأعلى من الأيام <span style="color:#b45309;">(إرشادي فقط)</span></label>
                         <input type="number" name="streak_max_days" class="form-input" value="{{ old('streak_max_days', $lesson->streak_max_days ?? 10) }}" min="1" max="60" placeholder="10">
-                        <small style="color: #92400e; font-size: 11px;">أقصى مدة متوقعة للدرس</small>
+                        <small style="color: #92400e; font-size: 11px;">مؤشّر عرضيّ فقط — <strong>لا يؤثّر على منح المكافأة</strong></small>
                     </div>
                     <div>
                         <label class="form-label" style="color: #92400e;">نقاط المكافأة</label>
                         <input type="number" name="streak_bonus_points" class="form-input" value="{{ old('streak_bonus_points', $lesson->streak_bonus_points ?? 50) }}" min="0" placeholder="50">
-                        <small style="color: #92400e; font-size: 11px;">النقاط الإضافية عند التأهل</small>
+                        <small style="color: #92400e; font-size: 11px;">تُضاف مرّة واحدة نهائيًا عند بلوغ الحد الأدنى</small>
                     </div>
                 </div>
 
                 <div style="background: rgba(255,255,255,0.5); padding: 12px; border-radius: 8px; margin-top: 12px;" id="streak_example">
                     <strong style="color: #92400e;">مثال:</strong>
-                    <span style="color: #78350f;" id="streak_example_text">إذا أكمل الطالب أنشطة في {{ $lesson->streak_min_days ?? 5 }} أيام أو أكثر، سيحصل على {{ $lesson->streak_bonus_points ?? 50 }} نقطة إضافية</span>
+                    <span style="color: #78350f;" id="streak_example_text">إذا أكمل الطالب أنشطة في {{ $lesson->streak_min_days ?? 5 }} أيام مختلفة، يحصل مرّة واحدة نهائيًا على {{ $lesson->streak_bonus_points ?? 50 }} نقطة مكافأة (إضافةً إلى نقاط الأنشطة اليوميّة المعتادة)</span>
                 </div>
             </div>
         </div>
@@ -914,7 +914,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (streakExample && minDaysInput && bonusInput) {
             var minDays = minDaysInput.value || 5;
             var bonus = bonusInput.value || 50;
-            streakExample.textContent = '\u0625\u0630\u0627 \u0623\u0643\u0645\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 \u0623\u0646\u0634\u0637\u0629 \u0641\u064A ' + minDays + ' \u0623\u064A\u0627\u0645 \u0623\u0648 \u0623\u0643\u062B\u0631\u060C \u0633\u064A\u062D\u0635\u0644 \u0639\u0644\u0649 ' + bonus + ' \u0646\u0642\u0637\u0629 \u0625\u0636\u0627\u0641\u064A\u0629';
+            streakExample.textContent = '\u0625\u0630\u0627 \u0623\u0643\u0645\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 \u0623\u0646\u0634\u0637\u0629 \u0641\u064A ' + minDays + ' \u0623\u064A\u0627\u0645 \u0645\u062E\u062A\u0644\u0641\u0629\u060C \u064A\u062D\u0635\u0644 \u0645\u0631\u0651\u0629 \u0648\u0627\u062D\u062F\u0629 \u0646\u0647\u0627\u0626\u064A\u064B\u0627 \u0639\u0644\u0649 ' + bonus + ' \u0646\u0642\u0637\u0629 \u0645\u0643\u0627\u0641\u0623\u0629 (\u0625\u0636\u0627\u0641\u0629\u064B \u0625\u0644\u0649 \u0646\u0642\u0627\u0637 \u0627\u0644\u0623\u0646\u0634\u0637\u0629 \u0627\u0644\u064A\u0648\u0645\u064A\u0651\u0629 \u0627\u0644\u0645\u0639\u062A\u0627\u062F\u0629)';
         }
     }
 

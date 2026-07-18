@@ -422,14 +422,22 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 36px;">🔥</span>
                 <div>
-                    <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">مكافأة الالتزام اليومي</h3>
-                    <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
-                        @if($__sClaimed)
-                            🎉 حصلت على المكافأة النهائية <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة — تُمنح مرّة واحدة فقط.
-                        @else
-                            كافئ نفسك بـ<strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة) عند إكمال أنشطة في <strong>{{ $__sMin }}</strong> أيام مختلفة.
-                        @endif
-                    </p>
+                    @if($__sClaimed)
+                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🏆 حصلت على مكافأة الالتزام!</h3>
+                        <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
+                            🎉 أُضيفت لك <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> — تُمنح مرّة واحدة فقط. أحسنت الالتزام!
+                        </p>
+                    @elseif($__sDone >= 1)
+                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🔥 بدأت رحلة الالتزام! يوم {{ $__sDone }} من {{ $__sMin }}</h3>
+                        <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
+                            باقٍ <strong>{{ $__sRemaining }}</strong> {{ $__sRemaining == 1 ? 'يوم' : 'أيام' }} لتنال <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة). أنجز نشاطاً كل يوم واستمرّ!
+                        </p>
+                    @else
+                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🌱 ابدأ رحلة الالتزام اليوم!</h3>
+                        <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
+                            أنجز نشاطاً في <strong>{{ $__sMin }}</strong> أيام مختلفة لتنال <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة). أوّل نشاط اليوم يبدأ رحلتك!
+                        </p>
+                    @endif
                 </div>
             </div>
             <div style="text-align: center; min-width: 128px;">

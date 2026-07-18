@@ -753,9 +753,41 @@
                                         <span style="font-size: 12px; color: #667eea; margin-right: auto;">📖 اضغط للتفاصيل</span>
                                     </div>
                                     <p style="color: #718096; font-size: 14px; line-height: 1.5;">{{ html_excerpt($lesson->description ?? $lesson->content, 100) }}</p>
+
+                                    {{-- شارة/شريط مكافأة الالتزام اليومي (كهرماني ذاتي التباين يُقرأ في الوضعين) --}}
+                                    @if($lesson->hasStreakEnabled())
+                                    @php
+                                        $__ls        = $lessonStreaks[$lesson->id] ?? null;
+                                        $__lsDone    = (int) ($__ls->completed_days ?? 0);
+                                        $__lsMin     = (int) $lesson->streak_min_days;
+                                        $__lsClaimed = (bool) ($__ls->bonus_claimed ?? false);
+                                        $__lsPct     = $__lsMin > 0 ? min(100, round($__lsDone / $__lsMin * 100)) : 0;
+                                    @endphp
+                                    <div style="margin-top:10px; background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border:1.5px solid #f59e0b; border-radius:12px; padding:9px 12px;">
+                                        @if($__lsClaimed)
+                                            <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800; color:#92400e;">
+                                                <span style="font-size:16px;">🏆</span>
+                                                <span>مكافأة الالتزام محقّقة!</span>
+                                            </div>
+                                        @elseif($__lsDone > 0)
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12.5px; font-weight:800; color:#92400e;">
+                                                <span style="display:flex; align-items:center; gap:6px;"><span style="font-size:15px;">🔥</span> التزام: يوم {{ $__lsDone }} من {{ $__lsMin }}</span>
+                                                <span style="font-size:11px; font-weight:700; color:#b45309;">🚀 استمرّ!</span>
+                                            </div>
+                                            <div style="margin-top:7px; background:rgba(255,255,255,0.55); border-radius:8px; height:7px; overflow:hidden;">
+                                                <div style="height:100%; border-radius:8px; background:linear-gradient(90deg,#f59e0b,#d97706); width:{{ $__lsPct }}%;"></div>
+                                            </div>
+                                        @else
+                                            <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800; color:#92400e;">
+                                                <span style="font-size:16px;">🔥</span>
+                                                <span>مكافأة التزام — ابدأ اليوم بأوّل نشاط!</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Activities -->
                             @if($lesson->activities->count() > 0)
                             <div class="student-activities" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
