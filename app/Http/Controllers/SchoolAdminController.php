@@ -1377,7 +1377,7 @@ class SchoolAdminController extends Controller
             abort(403, 'ليس لديك صلاحية الاطلاع على هذا الاستبيان');
         }
 
-        $survey->load(['lesson.concept.value', 'linkedSurvey', 'questions']);
+        $survey->load(['lesson.concept.value', 'value', 'linkedSurvey', 'questions']);
         $comparisonData = $survey->getComparisonData($user->school_id);
 
         if (isset($comparisonData['error'])) {
@@ -1399,7 +1399,7 @@ class SchoolAdminController extends Controller
                     ->orWhere('school_id', $user->school_id);
             })
             ->where('assessment_phase', 'post')
-            ->with(['lesson.concept.value', 'linkedSurvey'])
+            ->with(['lesson.concept.value', 'value', 'linkedSurvey'])
             ->latest()
             ->paginate(20);
 

@@ -372,6 +372,24 @@
     </a>
     @endif
 
+    {{-- استبيان التقييم القبلي/البعدي على مستوى القيمة (تلقائي مع تقدّم القيمة) --}}
+    @php $__valueAssessSurvey = ($valuePreSurvey ?? null) ?: ($valuePostSurvey ?? null); @endphp
+    @if($__valueAssessSurvey)
+    <a href="{{ route('survey.show', $__valueAssessSurvey->id) }}"
+       style="display:flex;align-items:center;gap:16px;text-decoration:none;background:linear-gradient(135deg,#0ea5e9,#0369a1);color:white;border-radius:16px;padding:18px 22px;margin-bottom:20px;box-shadow:0 8px 24px rgba(3,105,161,.35);">
+        <span style="font-size:36px;">🌟</span>
+        <div style="flex:1;">
+            <div style="font-weight:800;font-size:17px;margin-bottom:4px;">
+                @if($valuePreSurvey ?? null) تقييم القيمة: قبلي — أجب عليه قبل بدء دروس القيمة
+                @else 🏆 أتقنت القيمة! أجب على تقييم القيمة: بعدي
+                @endif
+            </div>
+            <div style="font-size:13px;opacity:.9;">{{ $__valueAssessSurvey->title }}</div>
+        </div>
+        <span style="background:rgba(255,255,255,.2);padding:10px 18px;border-radius:10px;font-weight:700;white-space:nowrap;">ابدأ الآن ←</span>
+    </a>
+    @endif
+
     <!-- Streak Progress Card -->
     @if($lesson->hasStreakEnabled() && isset($lessonStreak))
     <div class="streak-progress-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 2px solid #f59e0b;">

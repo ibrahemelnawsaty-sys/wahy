@@ -199,6 +199,11 @@
             {{ $comparisonData['pre_survey']->title }}
             @if($comparisonData['lesson'])
                 | الدرس: {{ $comparisonData['lesson']->title }}
+                @if(optional($comparisonData['lesson']->concept)->value)
+                    | القيمة: {{ $comparisonData['lesson']->concept->value->name }}
+                @endif
+            @elseif($comparisonData['value'] ?? null)
+                | القيمة: {{ $comparisonData['value']->icon }} {{ $comparisonData['value']->name }}
             @endif
         </p>
     </div>

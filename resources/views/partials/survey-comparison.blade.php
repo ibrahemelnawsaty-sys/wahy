@@ -26,10 +26,14 @@
     <h2 style="font-size: 22px; margin-bottom: 8px; color: #1e293b;">📊 مقارنة: {{ $survey->title }}</h2>
     <p style="color: #64748b; margin-bottom: 16px; font-size: 14px;">
         @if($survey->lesson)
-            الدرس: {{ $survey->lesson->title }} —
-            @if($survey->lesson->concept && $survey->lesson->concept->value)
-                القيمة: {{ $survey->lesson->concept->value->name }}
+            الدرس: {{ $survey->lesson->title }}
+            @if(optional($survey->lesson->concept)->value)
+                — القيمة: {{ $survey->lesson->concept->value->name }}
             @endif
+        @elseif($survey->value)
+            القيمة: {{ $survey->value->icon }} {{ $survey->value->name }}
+        @elseif(!empty($comparisonData['value']))
+            القيمة: {{ $comparisonData['value']->icon }} {{ $comparisonData['value']->name }}
         @endif
     </p>
 

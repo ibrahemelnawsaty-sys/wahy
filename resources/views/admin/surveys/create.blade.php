@@ -266,7 +266,28 @@
             </div>
         </div>
 
-        <!-- اختيار الدرس (يظهر فقط عند اختيار التقييم) -->
+        <!-- مبدّل هدف التقييم: درس أو قيمة (يظهر فقط عند اختيار التقييم) -->
+        <div class="form-group" id="assessmentTargetSection" style="display: none;">
+            <label class="form-label required">ربط التقييم بـ</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+                <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 3px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.3s;" id="target_lesson_label">
+                    <input type="radio" name="assessment_target" value="lesson" id="target_lesson" {{ old('assessment_target', 'lesson') == 'lesson' ? 'checked' : '' }} onchange="toggleAssessmentTarget()" style="width: 20px; height: 20px; accent-color: #8b5cf6;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 15px; color: #1e293b;">📚 درس</div>
+                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">يرتبط التقييم بدرس محدد</div>
+                    </div>
+                </label>
+                <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 3px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.3s;" id="target_value_label">
+                    <input type="radio" name="assessment_target" value="value" id="target_value" {{ old('assessment_target') == 'value' ? 'checked' : '' }} onchange="toggleAssessmentTarget()" style="width: 20px; height: 20px; accent-color: #8b5cf6;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 15px; color: #1e293b;">⭐ قيمة</div>
+                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">يرتبط التقييم بقيمة كاملة (كل دروسها)</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- اختيار الدرس (يظهر فقط عند اختيار التقييم بدرس) -->
         <div class="form-group" id="lessonSection" style="display: none;">
             <div style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); padding: 20px; border-radius: 12px; border: 3px solid #8b5cf6; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);">
                 <label class="form-label required" style="color: #5b21b6; font-size: 16px; margin-bottom: 12px; display: block;">📚 الدرس المرتبط بالتقييم</label>
@@ -293,6 +314,33 @@
                         ✅ سيتم إنشاء <strong>استبيانين تلقائياً</strong> (قبلي + بعدي) بنفس الأسئلة<br>
                         ✅ الاستبيان القبلي يظهر <strong>قبل بدء الدرس</strong><br>
                         ✅ الاستبيان البعدي يظهر <strong>بعد إتمام الدرس</strong><br>
+                        ✅ يمكنك عرض <strong>تقرير المقارنة</strong> لمعرفة مدى تحسن الطلاب
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- اختيار القيمة (يظهر فقط عند اختيار التقييم بقيمة) -->
+        <div class="form-group" id="valueSection" style="display: none;">
+            <div style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); padding: 20px; border-radius: 12px; border: 3px solid #8b5cf6; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);">
+                <label class="form-label required" style="color: #5b21b6; font-size: 16px; margin-bottom: 12px; display: block;">⭐ القيمة المرتبطة بالتقييم</label>
+                <select name="value_id" id="value_id" class="form-select" style="width: 100%; padding: 14px 16px; border: 2px solid #c4b5fd; border-radius: 10px; font-size: 14px; background: white;">
+                    <option value="">-- اختر القيمة --</option>
+                    @foreach($values as $value)
+                        <option value="{{ $value->id }}" {{ old('value_id') == $value->id ? 'selected' : '' }}>
+                            {{ $value->icon }} {{ $value->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('value_id')
+                    <span style="color: #dc2626; font-size: 13px; display: block; margin-top: 8px;">{{ $message }}</span>
+                @enderror
+                <div style="margin-top: 14px; padding: 12px; background: rgba(255,255,255,0.7); border-radius: 8px;">
+                    <p style="margin: 0; font-size: 13px; color: #6d28d9; line-height: 1.8;">
+                        <strong>💡 كيف يعمل التقييم القبلي والبعدي للقيمة:</strong><br>
+                        ✅ سيتم إنشاء <strong>استبيانين تلقائياً</strong> (قبلي + بعدي) بنفس الأسئلة<br>
+                        ✅ الاستبيان القبلي يظهر <strong>عند بدء الطالب أوّل درس في القيمة</strong><br>
+                        ✅ الاستبيان البعدي يظهر <strong>عند إتقان الطالب كل دروس القيمة</strong><br>
                         ✅ يمكنك عرض <strong>تقرير المقارنة</strong> لمعرفة مدى تحسن الطلاب
                     </p>
                 </div>
@@ -783,17 +831,21 @@ document.addEventListener('DOMContentLoaded', function() {
 // Toggle survey type (general vs assessment)
 function toggleSurveyType() {
     const isAssessment = document.getElementById('type_assessment').checked;
+    const assessmentTargetSection = document.getElementById('assessmentTargetSection');
     const lessonSection = document.getElementById('lessonSection');
+    const valueSection = document.getElementById('valueSection');
     const triggerField = document.querySelector('select[name="trigger_type"]');
     const generalLabel = document.getElementById('type_general_label');
     const assessmentLabel = document.getElementById('type_assessment_label');
     const targetSection = document.getElementById('targetSection');
-    
+
     // إزالة أو إضافة hidden input للمستهدفين
     let hiddenTarget = document.getElementById('hidden_target_students');
-    
+
     if (isAssessment) {
-        lessonSection.style.display = 'block';
+        assessmentTargetSection.style.display = 'block';
+        // إظهار قسم الدرس أو القيمة حسب المبدّل
+        toggleAssessmentTarget();
         targetSection.style.display = 'none';
         assessmentLabel.style.borderColor = '#8b5cf6';
         assessmentLabel.style.background = '#f5f3ff';
@@ -812,7 +864,9 @@ function toggleSurveyType() {
             document.querySelector('form').appendChild(hiddenTarget);
         }
     } else {
+        assessmentTargetSection.style.display = 'none';
         lessonSection.style.display = 'none';
+        valueSection.style.display = 'none';
         targetSection.style.display = 'block';
         generalLabel.style.borderColor = 'var(--color-primary)';
         generalLabel.style.background = '#f0fdf4';
@@ -842,6 +896,32 @@ function toggleSurveyType() {
         if (hiddenTrigger) {
             hiddenTrigger.remove();
         }
+    }
+}
+
+// Toggle assessment target (lesson vs value) — يعمل فقط داخل قسم التقييم
+function toggleAssessmentTarget() {
+    const valueRadio = document.getElementById('target_value');
+    const isValue = valueRadio && valueRadio.checked;
+    const lessonSection = document.getElementById('lessonSection');
+    const valueSection = document.getElementById('valueSection');
+    const lessonLabel = document.getElementById('target_lesson_label');
+    const valueLabel = document.getElementById('target_value_label');
+
+    if (isValue) {
+        lessonSection.style.display = 'none';
+        valueSection.style.display = 'block';
+        valueLabel.style.borderColor = '#8b5cf6';
+        valueLabel.style.background = '#f5f3ff';
+        lessonLabel.style.borderColor = '#e2e8f0';
+        lessonLabel.style.background = 'transparent';
+    } else {
+        lessonSection.style.display = 'block';
+        valueSection.style.display = 'none';
+        lessonLabel.style.borderColor = '#8b5cf6';
+        lessonLabel.style.background = '#f5f3ff';
+        valueLabel.style.borderColor = '#e2e8f0';
+        valueLabel.style.background = 'transparent';
     }
 }
 

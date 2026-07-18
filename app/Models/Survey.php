@@ -24,6 +24,7 @@ class Survey extends Model
         // حقول التقييم القبلي/البعدي
         'survey_type',
         'lesson_id',
+        'value_id',
         'linked_survey_id',
         'assessment_phase',
     ];
@@ -83,6 +84,14 @@ class Survey extends Model
     public function lesson(): BelongsTo
     {
         return $this->belongsTo(Lesson::class);
+    }
+
+    /**
+     * القيمة المرتبطة
+     */
+    public function value(): BelongsTo
+    {
+        return $this->belongsTo(Value::class);
     }
 
     /**
@@ -218,6 +227,7 @@ class Survey extends Model
             'pre_survey' => $preSurvey,
             'post_survey' => $postSurvey,
             'lesson' => $preSurvey->lesson,
+            'value' => $preSurvey->value,
             'questions' => $questions,
             'comparison' => $comparison,
             'stats' => [
@@ -314,10 +324,10 @@ class Survey extends Model
                 $q->where('is_mandatory', true)
                     ->orWhere('is_popup', true);
             })
-            // استبعاد استبيانات الدرس واليدوية من النافذة العامة — تُعرض في سياق الدرس لا كـ popup عام (Issue 19)
+            // استبعاد استبيانات الدرس/القيمة واليدوية من النافذة العامة — تُعرض في سياق الدرس/القيمة لا كـ popup عام (Issue 19)
             ->where(function ($q) {
                 $q->whereNull('trigger_type')
-                    ->orWhereNotIn('trigger_type', ['on_lesson_start', 'on_lesson_complete', 'manual']);
+                    ->orWhereNotIn('trigger_type', ['on_lesson_start', 'on_lesson_complete', 'on_value_start', 'on_value_complete', 'manual']);
             })
             ->where(function ($query) {
                 $query->whereNull('start_date')
@@ -359,6 +369,41 @@ class Survey extends Model
             ->where('survey_type', 'pre_post_assessment')
             ->where('assessment_phase', $phase)
             ->where('lesson_id', $lessonId)
+            ->where(function ($q) use ($user) {
+                $q->whereNull('school_id')->orWhere('school_id', $user->school_id);
+            })
+            ->where(function ($q) use ($targetType, $user) {
+                $q->whereJsonContains('target_roles', $targetType)
+                    ->orWhereJsonContains('target_roles', $user->role);
+            })
+            ->where(function ($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->whereDoesntHave('responses', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    /**
+     * استبيان تقييم (قبلي/بعدي) مُعلَّق لقيمة معيّنة — يُعرَض في سياق القيمة لا كنافذة عامة.
+     * يُرجع الاستبيان النشط لهذه القيمة والطور (pre/post) الذي يستهدف دور المستخدم ولم يُجب عليه بعد.
+     */
+    public static function pendingValueSurveyFor($user, int $valueId, string $phase): ?self
+    {
+        $targetType = self::roleToTargetType($user->role);
+        if (! $targetType) {
+            return null;
+        }
+
+        return self::where('status', 'active')
+            ->where('survey_type', 'pre_post_assessment')
+            ->where('assessment_phase', $phase)
+            ->where('value_id', $valueId)
             ->where(function ($q) use ($user) {
                 $q->whereNull('school_id')->orWhere('school_id', $user->school_id);
             })

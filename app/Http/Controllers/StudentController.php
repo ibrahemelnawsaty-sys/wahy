@@ -559,6 +559,23 @@ class StudentController extends Controller
             ? \App\Models\Survey::pendingLessonSurveyFor($user, $lesson->id, 'post')
             : null;
 
+        // استبيانات التقييم (قبلي/بعدي) على مستوى القيمة — تلقائي مع تقدّم القيمة
+        // القبلي: عند بدء الطالب أيّ درس في القيمة (أوّل تفاعل). البعدي: عند إتقان كل دروس القيمة.
+        $__value = optional(optional($lesson->concept)->value);
+        $valuePreSurvey = $__value->id
+            ? \App\Models\Survey::pendingValueSurveyFor($user, $__value->id, 'pre')
+            : null;
+        // نُقدّم الاستعلام الرخيص (استبيان قيمة بعديّ معلّق) قبل مسح الإتقان الثقيل، فلا يُشغَّل
+        // masteredValueIds (تحميل شجرة المحتوى كاملة) إلا عند وجود مرشّح فعليّ — تفادياً لانحدار
+        // الأداء على أكثر صفحة زيارةً (عرض الدرس).
+        $valuePostSurvey = null;
+        if ($__value->id) {
+            $__valuePostCandidate = \App\Models\Survey::pendingValueSurveyFor($user, $__value->id, 'post');
+            if ($__valuePostCandidate && in_array($__value->id, $this->masteredValueIds($user), true)) {
+                $valuePostSurvey = $__valuePostCandidate;
+            }
+        }
+
         return view('student.lesson-view', compact(
             'lesson',
             'activities',
@@ -571,6 +588,8 @@ class StudentController extends Controller
             'lessonStreak',
             'preSurvey',
             'postSurvey',
+            'valuePreSurvey',
+            'valuePostSurvey',
         ));
     }
 

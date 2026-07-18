@@ -449,7 +449,7 @@ class ParentDashboardController extends Controller
             return back()->with('error', 'هذا الاستبيان ليس من نوع التقييم القبلي/البعدي');
         }
 
-        $survey->load(['lesson.concept.value', 'linkedSurvey', 'questions']);
+        $survey->load(['lesson.concept.value', 'value', 'linkedSurvey', 'questions']);
 
         // فلترة على أبناء ولي الأمر فقط
         $childIds = $user->children()->pluck('users.id')->toArray();
@@ -480,7 +480,7 @@ class ParentDashboardController extends Controller
             ->whereHas('responses', function ($q) use ($childIds) {
                 $q->whereIn('user_id', $childIds);
             })
-            ->with(['lesson.concept.value', 'linkedSurvey'])
+            ->with(['lesson.concept.value', 'value', 'linkedSurvey'])
             ->latest()
             ->paginate(20);
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\Survey;
 use App\Models\SurveyQuestion;
+use App\Models\Value;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -45,8 +46,9 @@ class SurveyController extends Controller
     public function create()
     {
         $lessons = Lesson::with('concept.value')->orderBy('title')->get();
+        $values = Value::where('status', 'active')->orderBy('order')->get();
 
-        return view('admin.surveys.create', compact('lessons'));
+        return view('admin.surveys.create', compact('lessons', 'values'));
     }
 
     /**
@@ -55,6 +57,7 @@ class SurveyController extends Controller
     public function store(Request $request)
     {
         $surveyType = $request->input('survey_type', 'general');
+        $assessmentTarget = $request->input('assessment_target', 'lesson');
 
         $rules = [
             'title' => 'required|string|max:255',
@@ -67,7 +70,9 @@ class SurveyController extends Controller
             'is_popup' => 'boolean',
             'status' => 'required|in:draft,active,closed',
             'survey_type' => 'nullable|in:general,pre_post_assessment',
+            'assessment_target' => 'nullable|in:lesson,value',
             'lesson_id' => 'nullable|exists:lessons,id',
+            'value_id' => 'nullable|exists:values,id',
             'questions' => 'required|array|min:1',
             'questions.*.question_text' => 'required|string|max:500',
             'questions.*.question_type' => 'required|in:text,textarea,select,radio,checkbox,rating,scale',
@@ -79,9 +84,17 @@ class SurveyController extends Controller
             'questions.*.order' => 'nullable|integer|min:0',
         ];
 
-        // إذا كان تقييم قبلي/بعدي، الدرس مطلوب والمستهدفون = الطلاب تلقائياً
+        // إذا كان تقييم قبلي/بعدي، الهدف (درس أو قيمة) مطلوب والمستهدفون = الطلاب تلقائياً
         if ($surveyType === 'pre_post_assessment') {
-            $rules['lesson_id'] = 'required|exists:lessons,id';
+            if ($assessmentTarget === 'value') {
+                // الربط بقيمة: value_id مطلوب و lesson_id يبقى اختيارياً (null)
+                $rules['value_id'] = 'required|exists:values,id';
+                $rules['lesson_id'] = 'nullable|exists:lessons,id';
+            } else {
+                // الربط بدرس (الافتراضي): lesson_id مطلوب و value_id يبقى اختيارياً (null)
+                $rules['lesson_id'] = 'required|exists:lessons,id';
+                $rules['value_id'] = 'nullable|exists:values,id';
+            }
             // تعيين المستهدفين تلقائياً إذا لم يتم إرسالها
             if (! $request->filled('target_type')) {
                 $request->merge(['target_type' => ['students']]);
@@ -93,6 +106,7 @@ class SurveyController extends Controller
             'target_type.required' => 'يجب اختيار مستهدف واحد على الأقل',
             'target_type.min' => 'يجب اختيار مستهدف واحد على الأقل',
             'lesson_id.required' => 'يجب اختيار الدرس المرتبط بالتقييم',
+            'value_id.required' => 'يجب اختيار القيمة المرتبطة بالتقييم',
             'questions.required' => 'يجب إضافة سؤال واحد على الأقل',
             'questions.min' => 'يجب إضافة سؤال واحد على الأقل',
             'questions.*.question_text.required' => 'نص السؤال مطلوب',
@@ -120,21 +134,30 @@ class SurveyController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $surveyType) {
+        DB::transaction(function () use ($validated, $surveyType, $assessmentTarget) {
             if ($surveyType === 'pre_post_assessment') {
+                // تحديد عمود الهدف (درس أو قيمة) — متبادلان: واحد فقط غير-null
+                $isValueTarget = $assessmentTarget === 'value';
+                $lessonId = $isValueTarget ? null : ($validated['lesson_id'] ?? null);
+                $valueId = $isValueTarget ? ($validated['value_id'] ?? null) : null;
+                // مُشغِّلات السياق: القيمة (on_value_start/on_value_complete) أو الدرس (on_lesson_start/on_lesson_complete)
+                $preTrigger = $isValueTarget ? 'on_value_start' : 'on_lesson_start';
+                $postTrigger = $isValueTarget ? 'on_value_complete' : 'on_lesson_complete';
+
                 // إنشاء استبيان قبلي
                 $preSurvey = Survey::create([
                     'title' => $validated['title'] . ' (تقييم قبلي)',
                     'description' => $validated['description'] ?? null,
                     'target_roles' => $validated['target_type'],
                     'status' => $validated['status'],
-                    'trigger_type' => 'on_lesson_start',
+                    'trigger_type' => $preTrigger,
                     'requires_login' => true,
                     'is_mandatory' => $validated['is_mandatory'] ?? true,
                     'is_popup' => $validated['is_popup'] ?? true,
                     'created_by' => Auth::id(),
                     'survey_type' => 'pre_post_assessment',
-                    'lesson_id' => $validated['lesson_id'],
+                    'lesson_id' => $lessonId,
+                    'value_id' => $valueId,
                     'assessment_phase' => 'pre',
                 ]);
 
@@ -144,13 +167,14 @@ class SurveyController extends Controller
                     'description' => $validated['description'] ?? null,
                     'target_roles' => $validated['target_type'],
                     'status' => $validated['status'],
-                    'trigger_type' => 'on_lesson_complete',
+                    'trigger_type' => $postTrigger,
                     'requires_login' => true,
                     'is_mandatory' => $validated['is_mandatory'] ?? true,
                     'is_popup' => $validated['is_popup'] ?? true,
                     'created_by' => Auth::id(),
                     'survey_type' => 'pre_post_assessment',
-                    'lesson_id' => $validated['lesson_id'],
+                    'lesson_id' => $lessonId,
+                    'value_id' => $valueId,
                     'assessment_phase' => 'post',
                     'linked_survey_id' => $preSurvey->id,
                 ]);
@@ -258,7 +282,7 @@ class SurveyController extends Controller
         $rules = [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'trigger_type' => 'required|in:on_platform_open,on_login,on_first_login,on_lesson_start,on_lesson_complete,on_activity_complete,manual',
+            'trigger_type' => 'nullable|in:on_platform_open,on_login,on_first_login,on_lesson_start,on_lesson_complete,on_activity_complete,on_value_start,on_value_complete,manual',
             'requires_login' => 'boolean',
             'is_mandatory' => 'boolean',
             'is_popup' => 'boolean',
@@ -327,7 +351,9 @@ class SurveyController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'target_roles' => $targetRoles,
-                'trigger_type' => $validated['trigger_type'],
+                // استبيانات التقييم تحتفظ بمُشغِّلها الأصلي (on_lesson_*/on_value_*) — لا نسمح لنموذج
+                // التعديل بإفساده (كان يُعيده on_platform_open فيتحوّل لنافذة عامة إلزامية).
+                'trigger_type' => $survey->isAssessment() ? $survey->trigger_type : ($validated['trigger_type'] ?? $survey->trigger_type),
                 'requires_login' => $validated['requires_login'] ?? true,
                 'is_mandatory' => $isMandatory,
                 'is_popup' => $isPopup,
@@ -491,7 +517,7 @@ class SurveyController extends Controller
             return back()->with('error', 'هذا الاستبيان ليس من نوع التقييم القبلي/البعدي');
         }
 
-        $survey->load(['lesson.concept.value', 'linkedSurvey', 'questions']);
+        $survey->load(['lesson.concept.value', 'value', 'linkedSurvey', 'questions']);
         $comparisonData = $survey->getComparisonData();
 
         if (isset($comparisonData['error'])) {

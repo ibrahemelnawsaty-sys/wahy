@@ -250,6 +250,8 @@
             </div>
         </div>
 
+        {{-- التقييم القبلي/البعدي (درس أو قيمة) يحتفظ بمُشغِّله الأصلي — نُخفي الحقل حتى لا يُفسده التعديل --}}
+        @if($survey->survey_type !== 'pre_post_assessment')
         <div class="form-group">
             <label class="form-label required">متى يظهر الاستبيان</label>
             <select name="trigger_type" class="form-select" required>
@@ -265,6 +267,7 @@
                 <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
             @enderror
         </div>
+        @endif
 
         <div class="form-group">
             <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; border-radius: 12px; border: 3px solid #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);">

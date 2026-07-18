@@ -34,12 +34,14 @@
         @foreach($rows as $row)
         @php $st = $row['stats']; $imp = $st['avg_improvement'] ?? 0; @endphp
         <div style="background: white; border-radius: 16px; padding: 22px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border-right: 4px solid #8b5cf6;">
-            {{-- الدرس --}}
+            {{-- الدرس أو القيمة --}}
             @if($row['lesson'])
                 <p style="font-size: 13px; color: #64748b; margin: 0 0 2px;">📚 {{ $row['lesson']->title }}</p>
                 @if($row['lesson']->concept?->value)
                     <p style="font-size: 12px; color: #8b5cf6; margin: 0 0 14px; font-weight: 600;">💎 {{ $row['lesson']->concept->value->name }}</p>
                 @endif
+            @elseif($row['value'] ?? null)
+                <p style="font-size: 12px; color: #8b5cf6; margin: 0 0 14px; font-weight: 600;">💎 قيمة: {{ $row['value']->icon }} {{ $row['value']->name }}</p>
             @endif
 
             {{-- القبلي والبعدي جنباً إلى جنب --}}

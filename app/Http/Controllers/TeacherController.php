@@ -2248,7 +2248,7 @@ class TeacherController extends Controller
             abort(403, 'ليس لديك صلاحية الاطلاع على هذا الاستبيان');
         }
 
-        $survey->load(['lesson.concept.value', 'linkedSurvey', 'questions']);
+        $survey->load(['lesson.concept.value', 'value', 'linkedSurvey', 'questions']);
 
         // فلترة على طلاب فصول هذا المعلم فقط
         $studentIds = DB::table('classroom_student')
@@ -2290,7 +2290,7 @@ class TeacherController extends Controller
             ->where(function ($q) use ($user) {
                 $q->whereNull('school_id')->orWhere('school_id', $user->school_id);
             })
-            ->with(['lesson.concept.value', 'linkedSurvey'])
+            ->with(['lesson.concept.value', 'value', 'linkedSurvey'])
             ->latest()
             ->get();
 
@@ -2313,6 +2313,7 @@ class TeacherController extends Controller
                 'pre' => $post->linkedSurvey,
                 'post' => $post,
                 'lesson' => $post->lesson,
+                'value' => $post->value,
                 'stats' => $stats,
             ];
         })->values();

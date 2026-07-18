@@ -27,9 +27,11 @@
             <h3 style="font-size: 16px; margin-bottom: 8px; color: #1e293b;">{{ $survey->title }}</h3>
             @if($survey->lesson)
                 <p style="font-size: 13px; color: #64748b; margin-bottom: 4px;">📚 {{ $survey->lesson->title }}</p>
-            @endif
-            @if($survey->lesson && $survey->lesson->concept && $survey->lesson->concept->value)
-                <p style="font-size: 13px; color: #8b5cf6; margin-bottom: 12px;">💎 {{ $survey->lesson->concept->value->name }}</p>
+                @if(optional($survey->lesson->concept)->value)
+                    <p style="font-size: 13px; color: #8b5cf6; margin-bottom: 12px;">💎 {{ $survey->lesson->concept->value->name }}</p>
+                @endif
+            @elseif($survey->value)
+                <p style="font-size: 13px; color: #8b5cf6; margin-bottom: 12px;">💎 قيمة: {{ $survey->value->icon }} {{ $survey->value->name }}</p>
             @endif
             <a href="{{ route('school-admin.surveys.comparison', $survey->id) }}"
                style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
