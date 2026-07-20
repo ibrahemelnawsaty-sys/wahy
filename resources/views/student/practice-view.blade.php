@@ -40,6 +40,19 @@
     .empty-state { text-align: center; padding: 50px; color: rgba(255,255,255,0.5); }
     .empty-icon { font-size: 48px; margin-bottom: 10px; }
 
+    .pvp-btn { border: none; }
+    .pvp-alt-link { color: rgba(255,255,255,0.75); font-size: 13px; text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.35); padding-bottom: 2px; }
+    .pvp-alt-link:hover { color: #fff; }
+
+    /* شاشة انتظار مطابقة الخصم (نفس تجربة الصالة) */
+    .waiting-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; flex-direction: column; }
+    .waiting-overlay.active { display: flex; }
+    .waiting-spinner { width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .waiting-text { color: white; font-size: 22px; font-weight: 700; }
+    .waiting-sub { color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 8px; }
+    .cancel-btn { margin-top: 30px; background: rgba(255,255,255,0.1); color: white; padding: 10px 30px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; font-weight: 600; }
+
     @media (max-width: 768px) {
         .stats-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -83,7 +96,10 @@
             <div class="pvp-card">
                 <div class="pvp-title">🏆 {{ $challenge->title }}</div>
                 <div class="pvp-desc">ادخل التحدي وتنافس مع طالب آخر — الأسرع والأدق يفوز!</div>
-                <a href="{{ route('student.pvp.lobby') }}" class="pvp-btn">⚔️ ادخل التحدي الآن</a>
+                <button type="button" class="pvp-btn" onclick="joinChallenge({{ $challenge->id }})">⚔️ ادخل التحدي الآن</button>
+                <div style="margin-top:12px;position:relative;z-index:1;">
+                    <a href="{{ route('student.pvp.lobby') }}" class="pvp-alt-link">🎯 اختر منافساً محدّداً أو تابع مبارياتك</a>
+                </div>
                 <div class="pvp-info">
                     <span>📋 {{ $challenge->question_count }} سؤال</span>
                     <span>⏱️ {{ $challenge->time_limit }} ثانية/سؤال</span>
@@ -100,4 +116,72 @@
     </div>
 </div>
 </div>
+
+{{-- شاشة انتظار مطابقة الخصم --}}
+<div class="waiting-overlay" id="waitingOverlay">
+    <div class="waiting-spinner"></div>
+    <div class="waiting-text" id="waitingText">🔍 جاري البحث عن خصم...</div>
+    <div class="waiting-sub" id="waitingStatus">في انتظار طالب آخر ينضم للتحدي</div>
+    <button class="cancel-btn" onclick="cancelWaiting()">إلغاء</button>
+</div>
+
+<script>
+const PVP_CSRF = '{{ csrf_token() }}';
+let pollingInterval = null;
+let currentMatchId = null;
+
+// بدء التحدي مباشرةً: مطابقة عشوائية → لعب فور توفّر خصم (بلا صفحة وسيطة)
+function joinChallenge(challengeId) {
+    showWaiting('🔍 جاري البحث عن خصم...', 'في انتظار طالب آخر ينضم للتحدي');
+    fetch(`/student/pvp/${challengeId}/join`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': PVP_CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            currentMatchId = data.match_id;
+            if (data.status === 'playing') {
+                window.location.href = `/student/pvp/${data.match_id}/play`;
+            } else {
+                startPolling(data.match_id);
+            }
+        } else { hideWaiting(); }
+    })
+    .catch(() => hideWaiting());
+}
+
+function startPolling(matchId) {
+    pollingInterval = setInterval(() => {
+        fetch(`/student/pvp/${matchId}/status`, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'playing') {
+                clearInterval(pollingInterval);
+                document.getElementById('waitingText').textContent = '🎮 المباراة جاهزة!';
+                document.getElementById('waitingStatus').textContent = 'جارٍ نقلك للّعب…';
+                setTimeout(() => { window.location.href = `/student/pvp/${matchId}/play`; }, 1200);
+            } else if (data.status === 'declined') {
+                clearInterval(pollingInterval);
+                document.getElementById('waitingText').textContent = '😔 اعتذر منافسك';
+                document.getElementById('waitingStatus').textContent = 'لم يقبل التحدي هذه المرة.';
+            }
+        })
+        .catch(() => {});
+    }, 3000);
+}
+
+function showWaiting(text, sub) {
+    document.getElementById('waitingText').textContent = text;
+    document.getElementById('waitingStatus').textContent = sub;
+    document.getElementById('waitingOverlay').classList.add('active');
+}
+function hideWaiting() {
+    document.getElementById('waitingOverlay').classList.remove('active');
+}
+function cancelWaiting() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    hideWaiting();
+}
+</script>
 @endsection
