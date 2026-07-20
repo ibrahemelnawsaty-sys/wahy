@@ -33,6 +33,20 @@
     .empty-sub { color: rgba(255,255,255,0.5); margin-top: 8px; }
 
     .pagination-wrap { padding: 20px; display: flex; justify-content: center; }
+
+    /* ===== الوضع النهاري: .glass-card فاتحة (rgba white .65)، والأنماط الأساسيّة أعلاه مصمَّمة
+       للزجاج الداكن (نصّ أبيض) فتصير أبيض-على-فاتح غير مقروء. نقلبها لنصّ داكن مقروء نهاراً.
+       الوضع الليلي يبقى بالنصّ الأبيض على الزجاج الداكن (لا يُمَسّ). ===== */
+    html[data-theme="light"] .review-header-title { color: #1a202c; }
+    html[data-theme="light"] .review-header-sub { color: #64748b; }
+    html[data-theme="light"] .submissions-table thead th { background: rgba(102, 126, 234, 0.10); color: #334155; }
+    html[data-theme="light"] .submissions-table tbody td { color: #1e293b; border-bottom-color: rgba(15, 23, 42, 0.06); }
+    html[data-theme="light"] .submissions-table tbody tr:hover { background: rgba(102, 126, 234, 0.05); }
+    html[data-theme="light"] .student-email { color: #64748b; }
+    html[data-theme="light"] .empty-title { color: #1e293b; }
+    html[data-theme="light"] .empty-sub { color: #64748b; }
+    /* شارة القيمة: كانت نصّاً بنفسجيّاً فاتحاً (#c4b5fd) على سطح فاتح = غير مقروءة نهاراً */
+    html[data-theme="light"] .value-badge { background: rgba(139, 92, 246, 0.14); color: #6d28d9; }
 </style>
 @endpush
 
