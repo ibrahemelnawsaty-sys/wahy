@@ -1,6 +1,6 @@
 @extends('layouts.student-app')
 
-@section('title', 'التمارين السريعة')
+@section('title', 'التحديات')
 
 @push('styles')
 <style>
@@ -51,74 +51,34 @@
 <div class="practice-container fade-in">
     {{-- Hero --}}
     <div class="practice-hero">
-        <div style="font-size: 48px; margin-bottom: 8px;">⚡</div>
-        <h1 class="practice-title">التمارين السريعة</h1>
-        <p class="practice-subtitle">اختبر معلوماتك وتنافس مع زملائك</p>
+        <div style="font-size: 48px; margin-bottom: 8px;">⚔️</div>
+        <h1 class="practice-title">التحديات</h1>
+        <p class="practice-subtitle">تنافس مع زملائك في تحديات مباشرة — الأسرع والأدقّ يفوز!</p>
     </div>
 
     {{-- الإحصائيات --}}
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-value">{{ $practiceStats['completed'] }}</div>
-            <div class="stat-label">تمارين مكتملة</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ $practiceStats['avg_score'] }}%</div>
-            <div class="stat-label">متوسط الدرجة</div>
-        </div>
-        <div class="stat-card">
             <div class="stat-value">{{ $practiceStats['pvp_wins'] }}</div>
-            <div class="stat-label">انتصارات PvP</div>
+            <div class="stat-label">انتصارات</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">🔥</div>
-            <div class="stat-label">استمر بالتمرين!</div>
+            <div class="stat-value">{{ $practiceStats['matches_played'] }}</div>
+            <div class="stat-label">مباريات لعبتها</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ $practiceStats['available'] }}</div>
+            <div class="stat-label">تحديات متاحة</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">⚔️</div>
+            <div class="stat-label">استعدّ للتحدي!</div>
         </div>
     </div>
 
-    {{-- تمارين المعلم --}}
-    <h2 class="section-title">📝 تمارين من معلمك</h2>
-    @forelse($exercises as $exercise)
-        @php
-            $attempts = $myAttempts->get($exercise->id);
-            $attemptsCount = $attempts ? $attempts->count() : 0;
-            $bestScore = $attempts ? $attempts->max('score') : null;
-            $canAttempt = $attemptsCount < $exercise->max_attempts;
-        @endphp
-        <div class="exercise-card" onclick="{{ $canAttempt ? "window.location.href='".route('student.practice.start', $exercise->id)."'" : '' }}">
-            <div class="exercise-header">
-                <span class="exercise-title">{{ $exercise->title }}</span>
-                <div style="display: flex; gap: 8px;">
-                    <span class="exercise-badge badge-{{ $exercise->difficulty }}">
-                        {{ $exercise->difficulty == 'easy' ? 'سهل' : ($exercise->difficulty == 'medium' ? 'متوسط' : 'صعب') }}
-                    </span>
-                    @if($bestScore !== null)
-                        <span class="exercise-badge" style="background: {{ $bestScore >= 80 ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)' }}; color: {{ $bestScore >= 80 ? '#6ee7b7' : '#fcd34d' }};">
-                            أفضل: {{ $bestScore }}%
-                        </span>
-                    @endif
-                </div>
-            </div>
-            <div class="exercise-meta">
-                <span>📋 {{ count($exercise->questions ?? []) }} سؤال</span>
-                @if($exercise->time_limit)<span>⏱️ {{ $exercise->time_limit }} دقيقة</span>@endif
-                <span>🔄 {{ $attemptsCount }}/{{ $exercise->max_attempts }} محاولات</span>
-            </div>
-            @if(!$canAttempt)
-                <div style="color: #fca5a5; font-size: 12px; margin-top: 8px;">❌ استُنفدت جميع المحاولات</div>
-            @endif
-            <div class="exercise-teacher">👨‍🏫 {{ $exercise->teacher->name ?? 'المعلم' }}</div>
-        </div>
-    @empty
-        <div class="empty-state">
-            <div class="empty-icon">📝</div>
-            <p>لا توجد تمارين متاحة حالياً</p>
-        </div>
-    @endforelse
-
     {{-- تحديات PvP --}}
     <div class="pvp-section">
-        <h2 class="section-title">⚔️ تحدي طالب ضد طالب</h2>
+        <h2 class="section-title">⚔️ التحديات المتاحة</h2>
         @forelse($pvpChallenges as $challenge)
             <div class="pvp-card">
                 <div class="pvp-title">🏆 {{ $challenge->title }}</div>

@@ -2157,33 +2157,9 @@ class StudentController extends Controller
     public function practice()
     {
         $student = Auth::user();
-        $classroomIds = $student->classrooms()->pluck('classrooms.id');
 
-        // التمارين المتاحة من المعلمين
-        $exercises = \App\Models\PracticeExercise::where('is_active', true)
-            ->where(function ($q) use ($classroomIds) {
-                $q->whereIn('classroom_id', $classroomIds)
-                    ->orWhereNull('classroom_id');
-            })
-            ->where(function ($q) {
-                $q->whereNull('starts_at')->orWhere('starts_at', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('ends_at')->orWhere('ends_at', '>=', now());
-            })
-            ->with('teacher')
-            ->withCount('attempts')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // محاولات الطالب
-        $myAttempts = \App\Models\PracticeAttempt::where('student_id', $student->id)
-            ->whereNotNull('completed_at')
-            ->get()
-            ->groupBy('exercise_id');
-
-        // تحديات PvP النشطة (Issue #70/#95) — تفعيل أساسي:
-        // نضمن وجود تحدٍّ عام حقيقي (لا كائن وهمي id=0) ليعمل من صفحة التمارين والصالة وjoinPvpMatch معاً.
+        // صفحة التحديات فقط (أُزيلت التمارين بطلب المالك) — تحديات PvP النشطة.
+        // نضمن وجود تحدٍّ عام حقيقي (لا كائن وهمي id=0) ليعمل الدخول للصالة وjoinPvpMatch.
         $this->ensureDefaultPvpChallenge();
         $pvpChallenges = \Illuminate\Support\Facades\Schema::hasTable('pvp_challenges')
             ? \App\Models\PvpChallenge::where('is_active', true)->withCount('matches')->get()
@@ -2191,15 +2167,18 @@ class StudentController extends Controller
 
         $hasPvpMatches = \Illuminate\Support\Facades\Schema::hasTable('pvp_matches');
 
-        // إحصائيات التمارين
+        // إحصائيات التحديات
         $practiceStats = [
-            'completed' => \App\Models\PracticeAttempt::where('student_id', $student->id)->whereNotNull('completed_at')->count(),
-            'avg_score' => round(\App\Models\PracticeAttempt::where('student_id', $student->id)->whereNotNull('completed_at')->avg('score') ?? 0),
             'pvp_wins' => $hasPvpMatches ? \App\Models\PvpMatch::where('winner_id', $student->id)->count() : 0,
-            'streak' => 0,
+            'matches_played' => $hasPvpMatches
+                ? \App\Models\PvpMatch::where(function ($q) use ($student) {
+                    $q->where('player1_id', $student->id)->orWhere('player2_id', $student->id);
+                })->where('status', 'completed')->count()
+                : 0,
+            'available' => $pvpChallenges->count(),
         ];
 
-        return view('student.practice-view', compact('exercises', 'myAttempts', 'pvpChallenges', 'practiceStats'));
+        return view('student.practice-view', compact('pvpChallenges', 'practiceStats'));
     }
 
     /**
