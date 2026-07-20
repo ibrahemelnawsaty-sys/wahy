@@ -36,10 +36,18 @@
     <!-- Header -->
     <header class="header">
         <div class="container">
+            @php
+                $authSiteLogo = setting('site_logo');
+                $authSiteName = setting('site_name', 'قيمّ');
+            @endphp
             <nav class="navbar" role="navigation">
                 <a href="/" class="logo">
-                    <span class="logo-icon">🌟</span>
-                    <span class="logo-text">قيمّ</span>
+                    @if(!empty($authSiteLogo))
+                        <img src="{{ asset('storage/app/public/data/' . $authSiteLogo) }}" alt="{{ $authSiteName }}" class="logo-img" style="height:40px;width:auto;">
+                    @else
+                        <span class="logo-icon">🌟</span>
+                        <span class="logo-text">{{ $authSiteName }}</span>
+                    @endif
                 </a>
                 <div class="nav-links" id="navLinks">
                     <a href="/" class="nav-link">الرئيسية</a>

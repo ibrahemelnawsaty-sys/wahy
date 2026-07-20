@@ -45,6 +45,9 @@
     $twitterUrl   = $normalizeUrl($twitterUrl);
     $instagramUrl = $normalizeUrl($instagramUrl);
     $linkedinUrl  = $normalizeUrl($linkedinUrl);
+
+    // شعار الموقع المرفوع (نفس مصدر ومسار الصفحة الرئيسية) — يظهر بدل الإيموجي الثابت
+    $siteLogo = $siteLogo ?? setting('site_logo');
 @endphp
 
 <footer class="footer">
@@ -56,8 +59,12 @@
                     <div class="editable-element" data-element="footer-logo">
                         <x-element-actions />
                         <a href="/" class="footer-logo">
-                            <span class="logo-icon" data-editable="footer_logo_icon" data-section="footer">🌟</span>
-                            <span class="logo-text" data-editable="footer_logo_text" data-section="footer">{{ $siteName }}</span>
+                            @if(!empty($siteLogo))
+                                <img src="{{ asset('storage/app/public/data/' . $siteLogo) }}" alt="{{ $siteName }}" class="logo-img" data-editable-image="site_logo" style="height:40px;width:auto;">
+                            @else
+                                <span class="logo-icon" data-editable="footer_logo_icon" data-section="footer">🌟</span>
+                                <span class="logo-text" data-editable="footer_logo_text" data-section="footer">{{ $siteName }}</span>
+                            @endif
                         </a>
                     </div>
                     <div class="editable-element" data-element="footer-description">
