@@ -289,22 +289,25 @@
                     </div>
                 </div>
                 
+                {{-- الأزرار الثلاثة كانت <button> بلا أيّ إجراء (لا onclick/form/href) فلا تفعل شيئاً.
+                     المراجعة الفعليّة (قبول/رفض + الدرجة) تتمّ في صفحة teacher.review.single عبر submitReview
+                     الذي يتطلّب درجة يدويّة — فلا قبول/رفض فوريّ. نجعل الثلاثة روابط لصفحة المراجعة. --}}
                 <div style="display: flex; flex-direction: column; gap: 10px; min-width: 140px;">
-                    <button style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 12px 20px; border-radius: 15px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; box-shadow: 0 6px 15px rgba(72, 187, 120, 0.3); display: flex; align-items: center; justify-content: center; gap: 6px;"
+                    <a href="{{ route('teacher.review.single', $submission->id) }}" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 12px 20px; border-radius: 15px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; box-shadow: 0 6px 15px rgba(72, 187, 120, 0.3); display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;"
                             onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(72, 187, 120, 0.4)'"
                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 15px rgba(72, 187, 120, 0.3)'">
                         ✓ قبول
-                    </button>
-                    <button style="background: white; color: #f56565; padding: 12px 20px; border-radius: 15px; border: 2px solid #f56565; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px;"
+                    </a>
+                    <a href="{{ route('teacher.review.single', $submission->id) }}" style="background: white; color: #f56565; padding: 12px 20px; border-radius: 15px; border: 2px solid #f56565; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;"
                             onmouseover="this.style.background='#f56565'; this.style.color='white'"
                             onmouseout="this.style.background='white'; this.style.color='#f56565'">
                         ✕ رفض
-                    </button>
-                    <button style="background: #f7fafc; color: #4a5568; padding: 12px 20px; border-radius: 15px; border: 2px solid #e2e8f0; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s;"
+                    </a>
+                    <a href="{{ route('teacher.review.single', $submission->id) }}" style="background: #f7fafc; color: #4a5568; padding: 12px 20px; border-radius: 15px; border: 2px solid #e2e8f0; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;"
                             onmouseover="this.style.borderColor='#cbd5e0'"
                             onmouseout="this.style.borderColor='#e2e8f0'">
                         👁️ عرض
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
