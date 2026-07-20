@@ -687,7 +687,14 @@ class User extends Authenticatable
             return $this->memoManagedSchoolIds;
         }
 
-        $ids = $this->managedSchools()->pluck('schools.id')->all();
+        // تراجع آمن: لو لم يُرحَّل جدول admin_schools بعد على الإنتاج (php artisan migrate)
+        // أو تعذّر الاستعلام لأيّ سبب، نكتفي بالمدرسة الأساسيّة بدل إسقاط كل صفحات مدير المدرسة.
+        $ids = [];
+        try {
+            $ids = $this->managedSchools()->pluck('schools.id')->all();
+        } catch (\Throwable $e) {
+            $ids = [];
+        }
 
         if ($this->school_id) {
             $ids[] = (int) $this->school_id;

@@ -109,6 +109,22 @@ class MultiRoleMultiSchoolTest extends TestCase
         $this->assertFalse($sa->hasMultipleSchools());
     }
 
+    public function test_managed_schools_degrades_gracefully_when_pivot_table_missing(): void
+    {
+        // يُحاكي إنتاجاً نُشِر فيه الكود دون تشغيل php artisan migrate (جدول admin_schools غائب)
+        // — كان يُسقط كل صفحات مدير المدرسة بـ500 عبر hasMultipleSchools() في اللايوت.
+        $s1 = School::factory()->create();
+        $sa = User::factory()->create(['role' => 'school_admin', 'school_id' => $s1->id]);
+
+        \Illuminate\Support\Facades\Schema::drop('admin_schools');
+
+        // لا يرمي — يتراجع للمدرسة الأساسيّة
+        $this->assertSame([$s1->id], $sa->managedSchoolIds());
+        $this->assertFalse($sa->hasMultipleSchools());
+        $this->assertSame($s1->id, $sa->activeSchoolId());
+        $this->assertNotNull($sa->activeSchool);
+    }
+
     // ---------------- تعدّد الأدوار ----------------
 
     public function test_admin_assigns_secondary_parent_role_and_user_becomes_multirole(): void
