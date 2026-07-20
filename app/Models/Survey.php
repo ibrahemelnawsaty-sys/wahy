@@ -223,6 +223,11 @@ class Survey extends Model
             ];
         }
 
+        // متوسّطات القبلي/البعدي عبر الطلاب — يقرؤها قالب المقارنة (الأشرطة/البطاقات).
+        // كانت غائبة عن المُخرَج فيقع «Undefined array key» في القالب → ErrorException → 500.
+        $averagePre = $studentCount > 0 ? array_sum(array_column($comparison, 'pre_score')) / $studentCount : 0;
+        $averagePost = $studentCount > 0 ? array_sum(array_column($comparison, 'post_score')) / $studentCount : 0;
+
         return [
             'pre_survey' => $preSurvey,
             'post_survey' => $postSurvey,
@@ -230,6 +235,9 @@ class Survey extends Model
             'value' => $preSurvey->value,
             'questions' => $questions,
             'comparison' => $comparison,
+            'average_pre' => round($averagePre, 1),
+            'average_post' => round($averagePost, 1),
+            'average_improvement' => $studentCount > 0 ? round($totalImprovement / $studentCount, 1) : 0,
             'stats' => [
                 'total_pre_responses' => $preResponses->count(),
                 'total_post_responses' => $postResponses->count(),

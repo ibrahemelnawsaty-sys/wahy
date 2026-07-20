@@ -74,8 +74,8 @@
             <h3 style="font-size: 16px; margin-bottom: 12px; color: #1e293b;">المقارنة الإجمالية</h3>
             @php
                 $maxScore = max($comparisonData['average_pre'] ?? 1, $comparisonData['average_post'] ?? 1, 1);
-                $preWidth = ($comparisonData['average_pre'] / $maxScore) * 100;
-                $postWidth = ($comparisonData['average_post'] / $maxScore) * 100;
+                $preWidth = (($comparisonData['average_pre'] ?? 0) / $maxScore) * 100;
+                $postWidth = (($comparisonData['average_post'] ?? 0) / $maxScore) * 100;
             @endphp
             <div style="margin-bottom: 12px;">
                 <div style="font-size: 13px; margin-bottom: 4px; color: #64748b;">📋 قبل التعلّم</div>
