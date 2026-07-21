@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\EducationLevel;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,9 @@ class SchoolManagementController extends Controller
      */
     public function create()
     {
-        return view('admin.schools.create');
+        $educationLevels = EducationLevel::active()->ordered()->get();
+
+        return view('admin.schools.create', compact('educationLevels'));
     }
 
     /**
@@ -64,6 +67,8 @@ class SchoolManagementController extends Controller
             'contact_phone' => 'required|string|max:20',
             'qr_code' => 'nullable|string|unique:schools,qr_code',
             'status' => 'required|in:active,inactive',
+            'education_levels' => 'nullable|array',
+            'education_levels.*' => 'integer|exists:education_levels,id',
             'classrooms' => 'nullable|array',
             'classrooms.*.name' => 'nullable|string|max:255',
             'classrooms.*.grade_level' => 'nullable|string|max:255',
@@ -76,12 +81,20 @@ class SchoolManagementController extends Controller
 
         $validated['created_by'] = auth()->id();
 
-        // الفصول لا تنتمي لأعمدة schools — نفصلها قبل الإنشاء
+        // الفصول والمراحل لا تنتمي لأعمدة schools — نفصلها قبل الإنشاء
         $classroomRows = $validated['classrooms'] ?? [];
         unset($validated['classrooms']);
+        $levelIds = $validated['education_levels'] ?? [];
+        unset($validated['education_levels']);
 
-        $school = DB::transaction(function () use ($validated, $classroomRows) {
+        $school = DB::transaction(function () use ($validated, $classroomRows, $levelIds) {
             $school = School::create($validated);
+
+            // ربط المراحل الدراسية (pivot school_education_level)
+            if (! empty($levelIds)) {
+                $school->educationLevels()->sync($levelIds);
+            }
+
             foreach ($classroomRows as $row) {
                 $name = trim($row['name'] ?? '');
                 if ($name === '') {
@@ -131,7 +144,16 @@ class SchoolManagementController extends Controller
      */
     public function edit(School $school)
     {
-        return view('admin.schools.edit', compact('school'));
+        $linkedIds = $school->educationLevels()->pluck('education_levels.id')->all();
+
+        // المراحل النشطة + أيّ مرحلة مرتبطة حالياً (حتى لو صارت غير نشطة) كي لا يُلغى
+        // ربطها بصمت عند الحفظ.
+        $educationLevels = EducationLevel::where('status', true)
+            ->orWhereIn('id', $linkedIds)
+            ->ordered()
+            ->get();
+
+        return view('admin.schools.edit', compact('school', 'educationLevels', 'linkedIds'));
     }
 
     /**
@@ -148,9 +170,17 @@ class SchoolManagementController extends Controller
             'contact_phone' => 'required|string|max:20',
             'qr_code' => ['nullable', 'string', Rule::unique('schools')->ignore($school->id)],
             'status' => 'required|in:active,inactive',
+            'education_levels' => 'nullable|array',
+            'education_levels.*' => 'integer|exists:education_levels,id',
         ]);
 
+        // المراحل ليست عموداً في schools — نفصلها ونزامنها عبر pivot.
+        // غياب المفتاح/إلغاء تحديد الكل ⇒ [] ⇒ يفكّ كل الروابط (سلوك مقصود للتعديل).
+        $levelIds = $validated['education_levels'] ?? [];
+        unset($validated['education_levels']);
+
         $school->update($validated);
+        $school->educationLevels()->sync($levelIds);
 
         return redirect()
             ->route('admin.schools.index')

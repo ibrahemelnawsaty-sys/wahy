@@ -78,6 +78,16 @@
     justify-content: flex-end;
     margin-top: 24px;
 }
+
+.form-help { font-size: 12px; color: #64748b; margin: 0 0 12px; }
+.levels-section { grid-column: 1 / -1; margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 20px; }
+.levels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 4px; }
+.level-chip { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: border-color .15s, background .15s; font-size: 14px; color: #334155; background: #f8fafc; }
+.level-chip:hover { border-color: var(--color-primary); background: #fff; }
+.level-chip input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--color-primary); flex-shrink: 0; }
+.level-chip input:checked ~ span { font-weight: 700; color: var(--color-primary); }
+.levels-empty { font-size: 13px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; padding: 12px 16px; border-radius: 8px; }
+.levels-empty a { color: var(--color-primary); font-weight: 700; }
 </style>
 
 <div class="form-card">
@@ -129,6 +139,29 @@
                     <option value="active" {{ old('status', $school->status) == 'active' ? 'selected' : '' }}>نشط</option>
                     <option value="inactive" {{ old('status', $school->status) == 'inactive' ? 'selected' : '' }}>غير نشط</option>
                 </select>
+            </div>
+
+            {{-- المراحل الدراسية — ربط المدرسة بالمراحل (يحدّد الصفوف المتاحة عند إنشاء الفصول) --}}
+            <div class="form-group full-width levels-section">
+                <label class="form-label">المراحل الدراسية</label>
+                <p class="form-help">حدِّد المراحل التي تخدمها المدرسة. تُستخدم لتحديد الصفوف المتاحة عند إنشاء الفصول.</p>
+                @if($educationLevels->isEmpty())
+                    <div class="levels-empty">
+                        لا توجد مراحل دراسية بعد.
+                        <a href="{{ route('admin.education-levels') }}">أنشئ المراحل الدراسية أولاً</a> ثم عُد لربطها بالمدرسة.
+                    </div>
+                @else
+                    @php $checkedLevels = old('education_levels', $linkedIds); @endphp
+                    <div class="levels-grid">
+                        @foreach($educationLevels as $level)
+                            <label class="level-chip">
+                                <input type="checkbox" name="education_levels[]" value="{{ $level->id }}"
+                                       {{ in_array($level->id, $checkedLevels) ? 'checked' : '' }}>
+                                <span>{{ $level->name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
 
