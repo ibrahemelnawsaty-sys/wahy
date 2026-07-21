@@ -177,14 +177,21 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 10px; flex-direction: column;">
+                    <div style="display: flex; gap: 10px; flex-direction: column; min-width: 132px;">
                         @if($activity->status === 'active')
-                        <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;">✅ نشط</span>
+                        <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; text-align: center;">✅ نشط</span>
                         @elseif($activity->status === 'draft')
-                        <span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;">📝 مسودة</span>
+                        <span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; text-align: center;">📝 مسودة</span>
                         @else
-                        <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;">⏸️ غير نشط</span>
+                        <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; text-align: center;">⏸️ غير نشط</span>
                         @endif
+
+                        <a href="{{ route('teacher.activities.preview', $activity->id) }}"
+                           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none; text-align: center; white-space: nowrap; box-shadow: 0 4px 12px rgba(102,126,234,0.28); transition: transform 0.18s ease, box-shadow 0.2s ease;"
+                           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 18px rgba(102,126,234,0.4)';"
+                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.28)';">
+                            👁️ عرض النشاط
+                        </a>
                     </div>
                 </div>
             </div>

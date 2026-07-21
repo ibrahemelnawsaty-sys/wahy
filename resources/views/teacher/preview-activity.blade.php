@@ -104,6 +104,8 @@
 
     <div class="preview-container">
 
+        @php $isOwner = (int) $activity->created_by === (int) auth()->id(); @endphp
+
         {{-- شريط الأدوات --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <nav aria-label="breadcrumb">
@@ -113,9 +115,11 @@
                 </ol>
             </nav>
             <div class="d-flex gap-2">
+                @if($isOwner)
                 <a href="{{ route('teacher.activities.edit', $activity->id) }}" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-edit me-1"></i> تعديل
                 </a>
+                @endif
                 <a href="{{ route('teacher.activities') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-arrow-right me-1"></i> رجوع
                 </a>
@@ -243,9 +247,11 @@
                     <div class="text-center py-4 text-muted">
                         <i class="fas fa-exclamation-triangle fa-2x mb-3 text-warning"></i>
                         <p>لا توجد أسئلة لهذا النشاط بعد.</p>
+                        @if($isOwner)
                         <a href="{{ route('teacher.activities.edit', $activity->id) }}" class="btn btn-primary btn-sm">
                             إضافة أسئلة
                         </a>
+                        @endif
                     </div>
                 @endif
 
@@ -286,9 +292,11 @@
                     <div class="text-center py-4 text-muted">
                         <i class="fas fa-images fa-2x mb-3"></i>
                         <p>لا توجد صور بعد.</p>
+                        @if($isOwner)
                         <a href="{{ route('teacher.activities.edit', $activity->id) }}" class="btn btn-warning btn-sm">
                             إضافة صور
                         </a>
+                        @endif
                     </div>
                 @endif
 
@@ -336,9 +344,11 @@
 
         {{-- أزرار الإجراء --}}
         <div class="d-flex gap-3 justify-content-center mb-5">
+            @if($isOwner)
             <a href="{{ route('teacher.activities.edit', $activity->id) }}" class="btn btn-primary px-4">
                 <i class="fas fa-edit me-2"></i>تعديل النشاط
             </a>
+            @endif
             <a href="{{ route('teacher.activities') }}" class="btn btn-outline-secondary px-4">
                 <i class="fas fa-arrow-right me-2"></i>قائمة الأنشطة
             </a>

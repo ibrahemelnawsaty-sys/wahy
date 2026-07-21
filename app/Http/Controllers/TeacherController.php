@@ -60,9 +60,9 @@ class TeacherController extends Controller
                 ->pluck('student_id')
                 ->toArray();
 
-            // الأنشطة المعلقة لهذا الفصل
+            // الأنشطة التي تحتاج مراجعة لهذا الفصل (تصحيح يدوي + فشل تصحيح آلي)
             $classroom->pending_count = ActivitySubmission::whereIn('student_id', $classroomStudentIds)
-                ->where('status', 'pending')
+                ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)
                 ->count();
 
             // الأنشطة المكتملة لهذا الفصل — عدد أزواج (طالب × نشاط) لا DISTINCT
@@ -81,7 +81,7 @@ class TeacherController extends Controller
 
         // الأنشطة المعلقة (تحتاج مراجعة) - مع تحديد الحقول
         $pendingSubmissions = ActivitySubmission::whereIn('student_id', $studentIds)
-            ->where('status', 'pending')
+            ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)
             ->with(['student:id,name,avatar', 'activity:id,title'])
             ->select(['id', 'student_id', 'activity_id', 'submitted_at', 'status'])
             ->latest()
@@ -93,7 +93,7 @@ class TeacherController extends Controller
             'total_classrooms' => $classrooms->count(),
             'total_students' => count($studentIds),
             'pending_submissions' => ActivitySubmission::whereIn('student_id', $studentIds)
-                ->where('status', 'pending')->count(),
+                ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->count(),
             'reviewed_today' => ActivitySubmission::whereIn('student_id', $studentIds)
                 ->where('reviewed_by', $user->id)
                 ->whereDate('reviewed_at', today())
@@ -134,7 +134,7 @@ class TeacherController extends Controller
         // pending = بانتظار تصحيح يدوي (رفع/مقالي)، needs_review = لم يجتَز التصحيح الآلي
         // (إجابة خاطئة) — كلاهما يظهر للمعلم ليصحّح أو يسمح بإعادة المحاولة.
         $submissions = ActivitySubmission::whereIn('student_id', $studentIds)
-            ->whereIn('status', ['pending', 'needs_review'])
+            ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)
             ->with(['student', 'activity.lesson.concept.value'])
             ->latest('submitted_at')
             ->paginate(20);
@@ -801,8 +801,20 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
 
+        // يسمح بمعاينة: نشاط المعلّم نفسه (أياً كان، بنكاً أو درساً) — للتوافق مع صفحة
+        // «إدارة الأنشطة»؛ أو نشاط بنك مشترك معتمد؛ أو نشاط عامّ (بلا منشئ). هذه هي
+        // نفس قاعدة رؤية بنك الأنشطة تماماً — لا تسريب (مرئيّة أصلاً في القائمة).
         $activity = Activity::where('id', $id)
-            ->where('created_by', $user->id)
+            ->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                    ->orWhere(function ($sub) {
+                        $sub->where('is_activity_bank', true)
+                            ->where(function ($s2) {
+                                $s2->where('approval_status', 'approved')->whereNotNull('created_by')
+                                    ->orWhereNull('created_by');
+                            });
+                    });
+            })
             ->firstOrFail();
 
         return view('teacher.preview-activity', compact('activity'));
