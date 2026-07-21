@@ -151,7 +151,9 @@
                 <label for="role" class="form-label form-label-required">نوع الحساب</label>
                 <select id="role" name="role" class="form-select @error('role') error @enderror" required>
                     <option value="">اختر نوع الحساب</option>
-                    {{-- إزالة تسجيل «مدير مدرسة» ذاتياً: دور إداري يُنشئه السوبر أدمن فقط (منع رفض النموذج وتصعيد الصلاحيات) --}}
+                    {{-- تسجيل «مدير مدرسة» يُنشئ حساباً + مدرسةً بحالة «غير نشط» بانتظار موافقة الإدارة
+                         (لا تفعيل فوريّ ⇒ لا تصعيد صلاحيات). --}}
+                    <option value="school_admin" {{ old('role') == 'school_admin' ? 'selected' : '' }}>مدير مدرسة</option>
                     <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>معلم</option>
                     <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>طالب</option>
                     <option value="parent" {{ old('role') == 'parent' ? 'selected' : '' }}>ولي أمر</option>
@@ -159,6 +161,16 @@
                 @error('role')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
+            </div>
+
+            {{-- اسم المدرسة — يظهر فقط عند اختيار «مدير مدرسة» --}}
+            <div class="form-group" id="schoolNameGroup" style="display: {{ old('role') == 'school_admin' ? 'block' : 'none' }};">
+                <label for="school_name" class="form-label form-label-required">اسم المدرسة</label>
+                <input id="school_name" type="text" name="school_name" class="form-input @error('school_name') error @enderror" value="{{ old('school_name') }}" placeholder="أدخل اسم مدرستك" {{ old('role') == 'school_admin' ? 'required' : '' }}>
+                @error('school_name')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+                <span style="font-size:13px;color:var(--color-text-muted,#94a3b8);display:block;margin-top:6px;">ستُنشأ المدرسة في النظام وتُربط بحسابك، وتُفعَّل بعد موافقة الإدارة.</span>
             </div>
 
             <div class="form-group">
@@ -294,5 +306,24 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
         return false;
     }
 });
+
+// إظهار حقل «اسم المدرسة» فقط عند اختيار «مدير مدرسة» + ضبط required (حقل مخفيّ required يعطّل الإرسال)
+(function () {
+    const roleSelect = document.getElementById('role');
+    const schoolGroup = document.getElementById('schoolNameGroup');
+    const schoolInput = document.getElementById('school_name');
+    if (!roleSelect || !schoolGroup || !schoolInput) return;
+    function syncSchoolField() {
+        const isSchoolAdmin = roleSelect.value === 'school_admin';
+        schoolGroup.style.display = isSchoolAdmin ? 'block' : 'none';
+        if (isSchoolAdmin) {
+            schoolInput.setAttribute('required', 'required');
+        } else {
+            schoolInput.removeAttribute('required');
+        }
+    }
+    roleSelect.addEventListener('change', syncSchoolField);
+    syncSchoolField();
+})();
 </script>
 @endpush
