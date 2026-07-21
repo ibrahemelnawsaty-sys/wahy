@@ -1252,8 +1252,8 @@
         if (qIdx !== undefined) updateQuizImageOrder(parseInt(qIdx));
     });
     
-    @if(isset($submission) && $submission)
-        // Activity already submitted - show full progress
+    @if(isset($submission) && $submission && !$allowResubmit)
+        // Activity already submitted (no retry allowed) - show full progress
         setTimeout(() => {
             document.getElementById('progressBar').style.width = '100%';
         }, 300);
