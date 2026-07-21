@@ -68,10 +68,12 @@
                     <label style="display: block; font-weight: 700; color: #92400e; margin-bottom: 12px; font-size: 16px;">
                         🎯 عدد الأيام المطلوبة
                     </label>
-                    <input type="number" name="min_days" value="{{ $streakSettings['min_days'] }}" min="1" max="30"
-                           style="width: 100%; padding: 16px; border: 2px solid #fcd34d; border-radius: 10px; font-size: 20px; font-weight: 700; text-align: center; background: white;">
+                    <div style="width: 100%; padding: 16px; border: 2px solid #fcd34d; border-radius: 10px; font-size: 20px; font-weight: 700; text-align: center; background: #fffbeb; color: #92400e; box-sizing: border-box;">
+                        🔒 3 أيام (ثابت)
+                    </div>
+                    <input type="hidden" name="min_days" value="3">
                     <p style="color: #b45309; font-size: 13px; margin: 10px 0 0; text-align: center;">
-                        عدد الأيام التي يجب على الطالب إكمالها
+                        عدد الأيام ثابت (3 أيام) ليتوافق مع المثال التوضيحي أدناه
                     </p>
                 </div>
                 
@@ -115,7 +117,7 @@
     <h3 style="font-size: 20px; font-weight: 700; color: #92400e; margin: 0 0 20px 0;">📖 مثال عملي:</h3>
     <div style="background: white; border-radius: 12px; padding: 20px;">
         <p style="margin: 0 0 15px; color: #78350f; font-size: 15px; line-height: 1.8;">
-            <strong>الإعدادات:</strong> عدد الأيام المطلوبة = <span id="exMinDays">{{ $streakSettings['min_days'] }}</span> أيام، المكافأة = <span id="exBonus">{{ $streakSettings['bonus_points'] }}</span> نقطة
+            <strong>الإعدادات:</strong> عدد الأيام المطلوبة = <span id="exMinDays">3</span> أيام، المكافأة = <span id="exBonus">{{ $streakSettings['bonus_points'] }}</span> نقطة
         </p>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
             <div style="background: #fef3c7; padding: 15px; border-radius: 8px;">
@@ -163,10 +165,7 @@ document.getElementById('enabledToggle').addEventListener('change', function() {
     }
 });
 
-// تحديث المثال عند تغيير القيم
-document.querySelector('input[name="min_days"]').addEventListener('input', function() {
-    document.getElementById('exMinDays').textContent = this.value;
-});
+// تحديث المثال عند تغيير المكافأة (عدد الأيام ثابت = 3)
 document.querySelector('input[name="bonus_points"]').addEventListener('input', function() {
     document.getElementById('exBonus').textContent = this.value;
 });
