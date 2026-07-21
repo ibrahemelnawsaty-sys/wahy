@@ -4,6 +4,12 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/teacher-glass.css') }}?v={{ time() }}">
+<style>
+    /* صندوق «المكافأة التلقائية» — يتبع لون نصّ البطاقة (نهاراً/ليلاً) عبر color: inherit */
+    .reward-info-box { background: rgba(102,126,234,0.10); border: 1px solid rgba(102,126,234,0.28); border-radius: 12px; padding: 16px 18px; margin-bottom: 22px; }
+    .reward-info-title { display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 8px; color: inherit; }
+    .reward-info-text { margin: 0; font-size: 14px; line-height: 1.75; color: inherit; opacity: 0.92; }
+</style>
 @endpush
 
 @section('content')
@@ -166,24 +172,18 @@
                     </div>
                 </div>
 
-                <!-- XP Award -->
-                <div class="form-group">
-                    <label class="form-label">
-                        <span class="label-icon">✨</span>
-                        نقاط الخبرة (XP)
-                    </label>
-                    <input type="number" name="xp_awarded" class="form-input" min="0" max="50" value="10" required>
-                    <div class="help-text">من 0 إلى 50 نقطة حسب الإجابة</div>
-                </div>
-
-                <!-- Coins Award -->
-                <div class="form-group">
-                    <label class="form-label">
-                        <span class="label-icon">🪙</span>
-                        العملات الممنوحة
-                    </label>
-                    <input type="number" name="coins_awarded" class="form-input" min="0" max="20" value="5" required>
-                    <div class="help-text">من 0 إلى 20 عملة حسب الإجابة</div>
+                <!-- المكافأة محدَّدة مسبقاً بالنشاط وتُمنح تلقائياً حسب الدرجة — المعلّم يُقيّم فقط -->
+                @php $activityBasePoints = (int) ($submission->activity?->points ?? 10); @endphp
+                <div class="reward-info-box">
+                    <div class="reward-info-title">
+                        <span class="label-icon">🎁</span>
+                        مكافأة النشاط (تلقائية)
+                    </div>
+                    <p class="reward-info-text">
+                        نقاط هذا النشاط محدَّدة مسبقاً: <strong>{{ $activityBasePoints }} نقطة</strong>.
+                        يحصل الطالب على النقاط والعملات <strong>تلقائياً بحسب الدرجة التي تمنحها</strong>،
+                        تماماً كالأنشطة المُصحَّحة آلياً. أنت تُقيّم فقط — والنظام يوزّع المكافأة.
+                    </p>
                 </div>
 
                 <!-- Feedback -->

@@ -172,11 +172,11 @@ class TeacherController extends Controller
      */
     public function submitReview(Request $request, $id)
     {
+        // المعلّم يُقيّم فقط (الدرجة + ملاحظة). النقاط/العملات محدَّدة مسبقاً بالنشاط
+        // وتُحسب تلقائياً من درجته — لا يُدخلها المعلّم يدوياً.
         $request->validate([
             'score' => 'required|numeric|min:0|max:100',
             'feedback' => 'nullable|string|max:1000',
-            'xp_awarded' => 'required|integer|min:0|max:50',
-            'coins_awarded' => 'required|integer|min:0|max:20',
         ]);
 
         $user = Auth::user();
@@ -220,6 +220,14 @@ class TeacherController extends Controller
             $student = User::find($submission->student_id);
             $activityTitle = optional($submission->activity)->title ?? 'نشاط';
 
+            // المكافأة محدَّدة مسبقاً بنقاط النشاط وتُقاس بدرجة المعلّم — نفس صيغة
+            // التصحيح التلقائي (StudentController): XP = round(score/100 × activity.points)،
+            // coins = max(1, ⌊XP/2⌋). فنشاطٌ يُصحَّح يدوياً وآخر آلياً بنفس الدرجة/النقاط
+            // يمنحان المكافأة ذاتها. المعلّم يُدخل الدرجة فقط ولا يمنح النقاط يدوياً.
+            $activityPoints = (int) (optional($submission->activity)->points ?? 10);
+            $xpAward = (int) round(((float) $request->score / 100) * $activityPoints);
+            $coinsAward = max(1, (int) floor($xpAward / 2));
+
             // Pass-4 Batch 2: ONE atomic + idempotent award keyed on this submission.
             // Re-grading the same submission is a no-op — no double XP/coins and no
             // re-distribution. Student XP+coins and the teacher/parent/school fan-out
@@ -229,8 +237,8 @@ class TeacherController extends Controller
                     $submission->student_id,
                     'activity_submission',
                     (string) $submission->id,
-                    (int) $request->xp_awarded,
-                    (int) $request->coins_awarded,
+                    $xpAward,
+                    $coinsAward,
                     'إكمال نشاط: ' . $activityTitle,
                     distribute: true,
                 );
@@ -262,7 +270,7 @@ class TeacherController extends Controller
 
             if ($student && $submission->activity) {
                 try {
-                    event(new ActivityCompleted($student, $submission->activity, $request->score, $request->xp_awarded, $request->coins_awarded));
+                    event(new ActivityCompleted($student, $submission->activity, $request->score, $xpAward, $coinsAward));
                 } catch (\Throwable $e) {
                     \Log::warning('ActivityCompleted event failed: ' . $e->getMessage());
                 }
