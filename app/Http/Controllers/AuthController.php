@@ -469,7 +469,10 @@ class AuthController extends Controller
         $user->password = Hash::make($request->password);
         $user->password_change_required = false;
         $user->setRememberToken(\Illuminate\Support\Str::random(60));
-        $user->save();
+        // password_change_required حقل محروس في User::booted (يتطلّب super_admin/school_admin).
+        // هذه كتابة self-service مُخوَّلة (المستخدم يُصفّي علَمَ نفسه بعد إثبات كلمة المرور
+        // الحالية) — نتجاوز الحارس بـsaveQuietly، وإلا صار 403 على المستخدم الجديد المجبَر.
+        $user->saveQuietly();
 
         // تجديد session id لمنع session hijacking عند تغيير كلمة المرور
         $request->session()->regenerate();
@@ -590,7 +593,9 @@ class AuthController extends Controller
         $user->password = Hash::make($request->password);
         $user->password_change_required = false;
         $user->setRememberToken(\Illuminate\Support\Str::random(60));
-        $user->save();
+        // إعادة تعيين مُثبَتة بـtoken (زائر بلا جلسة) — تُصفّي علَم password_change_required
+        // المحروس؛ نتجاوز حارس User::booted بـsaveQuietly (الحارس يرفض الزائر بـ403).
+        $user->saveQuietly();
 
         // حذف الـ token
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();

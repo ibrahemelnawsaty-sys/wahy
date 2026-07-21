@@ -29,14 +29,21 @@
                 <td><strong>{{ $request->email }}</strong></td>
             </tr>
             <tr>
-                <td>كلمة المرور المؤقتة:</td>
+                <td>كلمة المرور:</td>
                 <td>
-                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); padding: 15px; border-radius: 8px; text-align: center; margin: 10px 0;">
-                        <code style="font-size: 24px; font-weight: 700; color: #10b981; letter-spacing: 2px; font-family: 'Courier New', monospace;">{{ $temporaryPassword }}</code>
-                    </div>
-                    <small style="color: #ef4444; font-weight: 600; display: block; margin-top: 8px;">
-                        ⚠️ ستُطلب منك تغيير كلمة المرور عند أول تسجيل دخول
-                    </small>
+                    @if(!empty($temporaryPassword))
+                        <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); padding: 15px; border-radius: 8px; text-align: center; margin: 10px 0;">
+                            <code style="font-size: 24px; font-weight: 700; color: #10b981; letter-spacing: 2px; font-family: 'Courier New', monospace;">{{ $temporaryPassword }}</code>
+                        </div>
+                        <small style="color: #ef4444; font-weight: 600; display: block; margin-top: 8px;">
+                            ⚠️ ستُطلب منك تغيير كلمة المرور عند أول تسجيل دخول
+                        </small>
+                    @else
+                        <strong style="color: #10b981;">كلمة المرور التي اخترتها عند التسجيل</strong>
+                        <small style="color: #6b7280; display: block; margin-top: 8px;">
+                            سجّل الدخول بنفس كلمة المرور التي أدخلتها عند تقديم طلبك. إن نسيتها فاستخدم «نسيت كلمة المرور».
+                        </small>
+                    @endif
                 </td>
             </tr>
             <tr>

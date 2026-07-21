@@ -20,7 +20,7 @@ class RegistrationApprovedMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(RegistrationRequest $request, $temporaryPassword)
+    public function __construct(RegistrationRequest $request, $temporaryPassword = null)
     {
         $this->request = $request;
         $this->temporaryPassword = $temporaryPassword;

@@ -767,22 +767,25 @@ class SchoolAdminController extends Controller
         $school = Auth::user()->activeSchool;
         $request = RegistrationRequest::where('school_id', $school->id)->findOrFail($id);
 
-        // توليد كلمة مرور مؤقتة
-        $temporaryPassword = 'Temp-' . strtoupper(Str::random(8));
+        // المستخدم اختار كلمة مروره عند التسجيل (مُخزَّنة مُجزّأة في الطلب) — نُبقيها كما هي
+        // ولا نُجبِره على تغييرها. نولّد كلمة مؤقتة + إجبار تغيير فقط إن كان الطلب بلا كلمة
+        // مرور (حالة نادرة/طلب أنشأه أدمن). (cast «hashed» على User لا يُعيد تجزئة قيمة مجزّأة.)
+        $hasChosenPassword = ! empty($request->password);
+        $temporaryPassword = $hasChosenPassword ? null : ('Temp-' . strtoupper(Str::random(8)));
 
         // تنفيذ ذرّي: إنشاء المستخدم + تحديث الطلب في معاملة واحدة
         try {
-            $user = DB::transaction(function () use ($request, $school, $temporaryPassword) {
+            $user = DB::transaction(function () use ($request, $school, $hasChosenPassword, $temporaryPassword) {
                 $user = User::create([
                     'name' => $request->name,
                     'email' => $request->email,
-                    'password' => Hash::make($temporaryPassword),
+                    'password' => $hasChosenPassword ? $request->password : Hash::make($temporaryPassword),
                     'role' => $request->role,
                     'school_id' => $school->id,
                     'phone' => $request->phone,
                     'status' => 'active',
                     'qr_code' => strtoupper($request->role) . '-' . strtoupper(uniqid()),
-                    'password_change_required' => true,
+                    'password_change_required' => ! $hasChosenPassword,
                 ]);
 
                 $request->update([
@@ -816,9 +819,15 @@ class SchoolAdminController extends Controller
             event(new \App\Events\StudentRegistered($user, Auth::user()));
         }
 
-        $msg = 'تم قبول الطلب وإنشاء الحساب' . ($emailSent
-            ? ' وإرسال كلمة المرور المؤقتة للمستخدم.'
-            : '. تنبيه: لم يتم إرسال البريد، يرجى تزويد المستخدم بكلمة المرور يدويًا: ' . $temporaryPassword);
+        $msg = 'تم قبول الطلب وإنشاء الحساب';
+        if ($temporaryPassword) {
+            $msg .= $emailSent
+                ? ' وإرسال كلمة المرور المؤقتة للمستخدم.'
+                : '. تنبيه: لم يتم إرسال البريد، يرجى تزويد المستخدم بكلمة المرور يدويًا: ' . $temporaryPassword;
+        } else {
+            $msg .= '. يسجّل المستخدم الدخول بكلمة المرور التي اختارها عند التسجيل'
+                . ($emailSent ? ' (أُرسِل إشعار بذلك).' : '.');
+        }
 
         return back()->with('success', $msg);
     }
