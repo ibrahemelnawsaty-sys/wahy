@@ -100,6 +100,16 @@
     font-size: 13px;
     margin-top: 4px;
 }
+
+.form-help { font-size: 12px; color: #64748b; margin: 0 0 4px; }
+.roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 4px; }
+.role-chip { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: border-color .15s, background .15s; font-size: 14px; color: #334155; background: #f8fafc; user-select: none; }
+.role-chip:hover { border-color: var(--color-primary); background: #fff; }
+.role-chip input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--color-primary); flex-shrink: 0; }
+.role-chip input:checked ~ span { font-weight: 700; color: var(--color-primary); }
+.role-chip.disabled { opacity: .5; cursor: not-allowed; background: #f1f5f9; }
+.role-chip.disabled:hover { border-color: #e2e8f0; }
+.role-warning { margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; }
 </style>
 
 <div class="form-card">
@@ -203,21 +213,31 @@
             @endphp
             <div class="form-group full-width">
                 <label class="form-label">الأدوار الثانوية (اختياري)</label>
-                <select name="secondary_roles[]" id="secondaryRolesSelect" class="form-select" multiple size="6" style="height: auto;">
+                <p class="form-help">يمكن للمستخدم امتلاك أكثر من دور والتبديل بينها. الدور الأساسيّ يُستبعد تلقائياً — وأزِل التحديد لإلغاء أيّ دور ثانويّ.</p>
+                <div class="roles-grid" id="secondaryRolesGrid">
                     @foreach($allRolesList as $rKey => $rLabel)
-                    <option value="{{ $rKey }}" {{ in_array($rKey, (array) $selectedSecondary) ? 'selected' : '' }}>{{ $rLabel }}</option>
+                    <label class="role-chip" data-role="{{ $rKey }}">
+                        <input type="checkbox" name="secondary_roles[]" value="{{ $rKey }}"
+                               {{ in_array($rKey, (array) $selectedSecondary) ? 'checked' : '' }}>
+                        <span>{{ $rLabel }}</span>
+                    </label>
                     @endforeach
-                </select>
-                <span class="error-message" style="color: #64748b;">اضغط Ctrl لاختيار أكثر من دور. يستطيع المستخدم التبديل بين أدواره. (الدور الأساسيّ يُستبعد تلقائياً.)</span>
+                </div>
+                <div id="roleSchoolWarning" class="role-warning" style="display: none;"></div>
                 @error('secondary_roles')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+                @error('secondary_roles.*')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
             </div>
 
-            <!-- QR Code -->
+            <!-- QR Code (يُولَّد تلقائياً — مقفل) -->
             <div class="form-group">
                 <label class="form-label">QR Code</label>
-                <input type="text" name="qr_code" class="form-input" value="{{ old('qr_code') }}" placeholder="سيتم توليده تلقائياً">
+                <input type="text" name="qr_code" class="form-input" value="{{ old('qr_code') }}" readonly
+                       style="background: #f1f5f9; cursor: not-allowed;" placeholder="يُولَّد تلقائياً عند الحفظ">
+                <span class="error-message" style="color: #64748b;">يُنشأ تلقائياً بحسب الدور — لا يمكن تعديله.</span>
                 @error('qr_code')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
@@ -272,31 +292,58 @@
     var roleSelect = document.querySelector('select[name="role"]');
     var schoolIdsGroup = document.getElementById('schoolIdsGroup');
     var schoolIdGroup = document.getElementById('schoolIdGroup');
-    var secondarySelect = document.getElementById('secondaryRolesSelect');
+    var schoolIdSelect = document.querySelector('select[name="school_id"]');
+    var schoolIdsSelect = document.querySelector('select[name="school_ids[]"]');
+    var grid = document.getElementById('secondaryRolesGrid');
+    var warn = document.getElementById('roleSchoolWarning');
+    var roleLabels = @json($allRolesList);
+    // الأدوار المرتبطة بمدرسة (تُعطَّل عملياً بلا مدرسة) — مطابق UserRole::isScopedToSchool
+    var schoolScoped = { school_admin: 1, teacher: 1, student: 1, parent: 1 };
 
     function sync() {
         var role = roleSelect ? roleSelect.value : '';
         var isSchoolAdmin = (role === 'school_admin');
         // مدير المدرسة يستعمل «المدارس المُدارة» متعدّدة؛ نُخفي المفردة لتفادي ازدواج حقلَي مدرسة
-        if (schoolIdsGroup) {
-            schoolIdsGroup.style.display = isSchoolAdmin ? 'flex' : 'none';
-        }
-        if (schoolIdGroup) {
-            schoolIdGroup.style.display = isSchoolAdmin ? 'none' : '';
-        }
-        if (secondarySelect) {
-            Array.prototype.forEach.call(secondarySelect.options, function (opt) {
-                if (opt.value === role) {
-                    opt.disabled = true;
-                    opt.selected = false;
+        if (schoolIdsGroup) { schoolIdsGroup.style.display = isSchoolAdmin ? 'flex' : 'none'; }
+        if (schoolIdGroup) { schoolIdGroup.style.display = isSchoolAdmin ? 'none' : ''; }
+
+        var flagged = [];
+        if (grid) {
+            Array.prototype.forEach.call(grid.querySelectorAll('.role-chip'), function (chip) {
+                var cb = chip.querySelector('input');
+                var r = chip.getAttribute('data-role');
+                if (r === role) {
+                    // الدور الأساسيّ لا يكون ثانوياً — عطّله وأزِل تحديده
+                    cb.checked = false;
+                    cb.disabled = true;
+                    chip.classList.add('disabled');
                 } else {
-                    opt.disabled = false;
+                    cb.disabled = false;
+                    chip.classList.remove('disabled');
                 }
+                if (cb.checked && schoolScoped[r]) { flagged.push(r); }
             });
+        }
+
+        // تحذير: دور ثانويّ يتطلّب مدرسة بينما المستخدم بلا مدرسة
+        var hasSchool = isSchoolAdmin
+            ? (schoolIdsSelect && schoolIdsSelect.selectedOptions.length > 0)
+            : (schoolIdSelect && schoolIdSelect.value !== '');
+        if (warn) {
+            if (flagged.length && !hasSchool) {
+                var names = flagged.map(function (r) { return roleLabels[r] || r; });
+                warn.innerHTML = '⚠️ الأدوار الثانوية (' + names.join('، ') + ') تتطلّب إسناد مدرسة — لن تُفعَّل لهذا المستخدم حتى تُسنِد له مدرسة.';
+                warn.style.display = 'block';
+            } else {
+                warn.style.display = 'none';
+            }
         }
     }
 
     if (roleSelect) { roleSelect.addEventListener('change', sync); }
+    if (schoolIdSelect) { schoolIdSelect.addEventListener('change', sync); }
+    if (schoolIdsSelect) { schoolIdsSelect.addEventListener('change', sync); }
+    if (grid) { grid.addEventListener('change', sync); }
     sync();
 })();
 </script>

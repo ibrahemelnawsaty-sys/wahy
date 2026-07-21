@@ -179,6 +179,33 @@
     color: #0e7490;
 }
 
+.secondary-roles-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.role-badge.role-secondary {
+    font-size: 11px;
+    padding: 3px 9px;
+    opacity: 0.92;
+}
+
+.multi-role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #7c3aed;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-top: 6px;
+}
+
 .status-badge {
     display: inline-block;
     padding: 6px 12px;
@@ -377,6 +404,16 @@
             </tr>
         </thead>
         <tbody>
+            @php
+                $roleLabels = [
+                    'super_admin' => 'سوبر أدمن',
+                    'school_admin' => 'مدير مدرسة',
+                    'teacher' => 'معلم',
+                    'student' => 'طالب',
+                    'parent' => 'ولي أمر',
+                    'technical_support' => 'الدعم الفنيّ',
+                ];
+            @endphp
             @foreach($users as $user)
             <tr>
                 <!-- User Info -->
@@ -398,17 +435,16 @@
 
                 <!-- Role -->
                 <td>
-                    <span class="role-badge role-{{ $user->role }}">
-                        @switch($user->role)
-                            @case('super_admin') سوبر أدمن @break
-                            @case('school_admin') مدير مدرسة @break
-                            @case('teacher') معلم @break
-                            @case('student') طالب @break
-                            @case('parent') ولي أمر @break
-                            @case('technical_support') الدعم الفنيّ @break
-                            @default {{ $user->role }}
-                        @endswitch
-                    </span>
+                    <span class="role-badge role-{{ $user->role }}">{{ $roleLabels[$user->role] ?? $user->role }}</span>
+                    @php $userSecondary = is_array($user->secondary_roles) ? $user->secondary_roles : []; @endphp
+                    @if(count($userSecondary) > 0)
+                        <div class="secondary-roles-wrap">
+                            @foreach($userSecondary as $sr)
+                                <span class="role-badge role-{{ $sr }} role-secondary" title="دور ثانويّ">{{ $roleLabels[$sr] ?? $sr }}</span>
+                            @endforeach
+                        </div>
+                        <span class="multi-role-tag" title="يملك أكثر من دور ويبدّل بينها">👥 متعدّد الأدوار</span>
+                    @endif
                 </td>
 
                 <!-- School -->
