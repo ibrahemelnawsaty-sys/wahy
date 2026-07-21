@@ -94,6 +94,14 @@ class ActivitySubmission extends Model
     public const SUBMITTED_STATUSES = ['completed', 'approved', 'pending', 'needs_review'];
 
     /**
+     * الحالات التي تتطلّب مراجعة/إجراءً من المعلّم:
+     *  - pending: تصحيح يدوي (رفع/مقالي)
+     *  - needs_review: لم يجتَز التصحيح الآلي (يمكن للمعلّم السماح بإعادة المحاولة)
+     * مصدر وحيد لعدّاد «تحتاج مراجعة» وطابور المراجعة (تفادي انحراف الفلترة).
+     */
+    public const PENDING_REVIEW_STATUSES = ['pending', 'needs_review'];
+
+    /**
      * Scope: تسليمات تم إنجازها نهائيًا (مُعتمدة فقط).
      * استخدام: ActivitySubmission::done() أو $student->activitySubmissions()->done()
      */

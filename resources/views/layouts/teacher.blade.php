@@ -494,6 +494,90 @@
             color: var(--w-text-muted) !important;
             border-right-color: #818cf8 !important;
         }
+
+        /* ============================================================
+           شريط علوي للمعلّم (زرّ القائمة + جرس الإشعارات) + إصلاح القائمة
+           الجانبية في الجوّال. مضاف أخيراً ليتفوّق على تغطية الوضع الليلي
+           في ترتيب المصدر (تطابق التخصّص + متأخّر = يفوز).
+           ============================================================ */
+        .teacher-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+        html[data-theme="dark"] .teacher-topbar {
+            background: #111827;
+            border-color: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        .topbar-menu-btn {
+            display: none;               /* يظهر في الجوّال فقط */
+            width: 44px; height: 44px;
+            align-items: center; justify-content: center;
+            border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff; font-size: 22px; line-height: 1; cursor: pointer;
+        }
+        .topbar-brand { font-weight: 800; font-size: 15px; color: #334155; }
+        html[data-theme="dark"] .topbar-brand { color: #f1f5f9; }
+        .topbar-spacer { flex: 1; }
+        .topbar-bell {
+            position: relative;
+            width: 44px; height: 44px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 12px; text-decoration: none;
+            background: rgba(102, 126, 234, 0.10);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            font-size: 22px; transition: transform .15s, background .2s;
+        }
+        html[data-theme="dark"] .topbar-bell { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.10); }
+        .topbar-bell:hover { transform: translateY(-2px); background: rgba(102, 126, 234, 0.18); }
+        .topbar-bell-badge {
+            position: absolute; top: -5px; inset-inline-end: -5px;
+            min-width: 18px; padding: 1px 5px;
+            background: #ef4444; color: #fff;
+            border-radius: 10px; font-size: 10px; font-weight: 800; text-align: center;
+            border: 2px solid #fff;
+        }
+        html[data-theme="dark"] .topbar-bell-badge { border-color: #111827; }
+
+        /* جوّال/لوحي: أظهِر زرّ القائمة، واجعل القائمة الجانبية معتمة تماماً
+           (شفافيتها كانت «تخرّب كل شيء» فوق المحتوى) + طبقة تعتيم خلفها. */
+        @media (max-width: 1024px) {
+            .topbar-menu-btn { display: inline-flex; }
+
+            html .teacher-sidebar,
+            html[data-theme="light"] .teacher-sidebar,
+            html[data-theme="dark"] .teacher-sidebar {
+                background: linear-gradient(160deg, #5b21b6 0%, #4c1d95 100%) !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                width: 284px;
+                max-width: 86vw;
+                box-shadow: -12px 0 44px rgba(0, 0, 0, 0.45) !important;
+            }
+
+            .sidebar-overlay {
+                position: fixed; inset: 0;
+                background: rgba(0, 0, 0, 0.55);
+                z-index: 999;
+                opacity: 0; visibility: hidden;
+                transition: opacity .3s ease, visibility .3s ease;
+            }
+            .sidebar-overlay.active { opacity: 1; visibility: visible; }
+        }
+        @media (min-width: 1025px) {
+            .sidebar-overlay { display: none !important; }
+        }
     </style>
     
     <!-- Glass Notifications CSS -->
@@ -643,26 +727,53 @@
         
         <!-- Main Content -->
         <main class="teacher-main" id="teacher-main-content">
+            <!-- Top Bar: زرّ القائمة (جوّال) + جرس الإشعارات -->
+            <div class="teacher-topbar">
+                <button class="topbar-menu-btn" onclick="toggleSidebar()" aria-label="فتح القائمة">☰</button>
+                <span class="topbar-brand">مركز التدريس</span>
+                <span class="topbar-spacer"></span>
+                @php
+                    try { $tchUnreadNotif = \App\Services\NotificationService::getUnreadCount(auth()->id()); }
+                    catch (\Throwable $e) { $tchUnreadNotif = 0; }
+                @endphp
+                <a href="{{ route('notifications.index') }}" class="topbar-bell" title="الإشعارات">
+                    🔔
+                    <span class="topbar-bell-badge" data-live="notifications_unread" data-live-badge data-live-cap="9"
+                          style="display: {{ $tchUnreadNotif > 0 ? 'inline-flex' : 'none' }};">
+                        {{ $tchUnreadNotif > 9 ? '9+' : $tchUnreadNotif }}
+                    </span>
+                </a>
+            </div>
+
             @yield('content')
         </main>
-        
-        <!-- Mobile Menu Button -->
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+
+        <!-- طبقة تعتيم خلف القائمة الجانبية في الجوّال -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     </div>
     
     <script>
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isOpen = sidebar.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('active', isOpen);
         }
-        
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) overlay.classList.remove('active');
+        }
+
         // Close sidebar on mobile when clicking outside
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 1024) {
                 const sidebar = document.getElementById('sidebar');
-                const menuBtn = document.querySelector('.mobile-menu-btn');
-                
-                if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-                    sidebar.classList.remove('open');
+                const menuBtn = document.querySelector('.topbar-menu-btn');
+
+                if (!sidebar.contains(e.target) && menuBtn && !menuBtn.contains(e.target)) {
+                    closeSidebar();
                 }
             }
         });
@@ -719,7 +830,7 @@
     <script src="{{ asset('js/glass-notifications.js') }}"></script>
 
     <!-- محرّر النصوص الغنيّ الموحّد (ذاتيّ الاستضافة — يعمل بدون إنترنت) -->
-    <script src="{{ asset('js/rich-editor.js') }}" defer></script>
+    <script src="{{ asset('js/rich-editor.js') }}?v={{ filemtime(public_path('js/rich-editor.js')) }}" defer></script>
 
     @stack('scripts')
     

@@ -126,19 +126,27 @@
     .btn-add-option:hover { background: #bbf7d0; border-color: #4ade80; }
 
     .media-upload {
+        display: flex;               /* الوسم <label> افتراضياً inline داخل الـwrapper — نجعله عموداً يملأ الخلية */
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        min-height: 160px;
+        box-sizing: border-box;
         border: 2px dashed #cbd5e1;
         border-radius: 16px;
-        padding: 30px;
+        padding: 24px 16px;
         text-align: center;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: border-color .25s, background .25s, transform .15s, box-shadow .25s;
         background: #fafbfc;
     }
-    .media-upload:hover { border-color: #10b981; background: #f0fdf4; }
+    .media-upload:hover { border-color: #10b981; background: #f0fdf4; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.12); }
     .media-upload input[type="file"] { display: none; }
-    .media-upload .icon { font-size: 40px; margin-bottom: 10px; }
-    .media-upload .text { color: #64748b; font-size: 14px; font-weight: 600; }
-    .media-upload .hint { color: #94a3b8; font-size: 12px; margin-top: 6px; }
+    .media-upload .icon { font-size: 38px; line-height: 1; margin: 0; }
+    .media-upload .text { color: #334155; font-size: 14px; font-weight: 700; }
+    .media-upload .hint { color: #94a3b8; font-size: 12px; margin: 0; }
     .media-preview {
         display: none;
         margin-top: 15px;

@@ -37,7 +37,7 @@
             <div style="font-size: 56px; animation: bounce 2s infinite;">👩‍🏫</div>
             <div>
                 <h1 style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 8px;">مرحباً أستاذ {{ auth()->user()->name }}</h1>
-                <p style="color: rgba(255,255,255,0.95); font-size: 16px;">لديك {{ $pendingSubmissions->count() }} أنشطة تحتاج مراجعة اليوم</p>
+                <p style="color: rgba(255,255,255,0.95); font-size: 16px;">لديك {{ $stats['pending_submissions'] ?? 0 }} أنشطة تحتاج مراجعة</p>
             </div>
         </div>
     </div>
@@ -66,7 +66,7 @@
          onclick="document.querySelector('#pending-section').scrollIntoView({behavior: 'smooth'})">
         <div style="position: absolute; top: -15px; right: -15px; width: 80px; height: 80px; background: rgba(255,255,255,0.15); border-radius: 50%; animation: bounce 3s infinite;"></div>
         <div style="font-size: 56px; margin-bottom: 15px; position: relative;">⏳</div>
-        <div style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 8px;">{{ $pendingSubmissions->count() }}</div>
+        <div style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 8px;">{{ $stats['pending_submissions'] ?? 0 }}</div>
         <div style="color: rgba(255,255,255,0.95); font-size: 15px; font-weight: 600;">تحتاج مراجعة</div>
     </div>
     
