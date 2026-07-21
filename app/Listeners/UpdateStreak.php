@@ -3,76 +3,17 @@
 namespace App\Listeners;
 
 use App\Events\ActivityCompleted;
-use Illuminate\Support\Facades\DB;
+use App\Services\StreakService;
 
 class UpdateStreak
 {
     /**
-     * تحديث الاستمرارية عند إكمال نشاط
+     * تحديث سلسلة الأيام المتتالية عند إكمال نشاط.
+     * (المنطق موحّد في StreakService — كان الكود القديم يكتب أعمدة
+     * current_days/longest_days غير الموجودة فيفشل صامتاً ويبقى العدّاد 0.)
      */
-    public function handle(ActivityCompleted $event)
+    public function handle(ActivityCompleted $event): void
     {
-        $student = $event->student;
-        $streak = $student->streak;
-
-        if (! $streak) {
-            // إنشاء streak جديد
-            DB::table('streaks')->insert([
-                'user_id' => $student->id,
-                'current_days' => 1,
-                'longest_days' => 1,
-                'last_activity_date' => now()->toDateString(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            return;
-        }
-
-        $lastActivityDate = \Carbon\Carbon::parse($streak->last_activity_date);
-        $today = now()->toDateString();
-
-        // إذا كان آخر نشاط اليوم، لا نعمل شيء
-        if ($lastActivityDate->toDateString() === $today) {
-            return;
-        }
-
-        // إذا كان آخر نشاط بالأمس، نزيد العداد
-        if ($lastActivityDate->toDateString() === now()->subDay()->toDateString()) {
-            $newCurrentDays = $streak->current_days + 1;
-            $newLongestDays = max($streak->longest_days, $newCurrentDays);
-
-            DB::table('streaks')
-                ->where('user_id', $student->id)
-                ->update([
-                    'current_days' => $newCurrentDays,
-                    'longest_days' => $newLongestDays,
-                    'last_activity_date' => $today,
-                    'updated_at' => now(),
-                ]);
-
-            // إعطاء مكافأة عند معالم الاستمرارية
-            if (in_array($newCurrentDays, [7, 14, 30, 50, 100])) {
-                DB::table('coins')->insert([
-                    'user_id' => $student->id,
-                    'coins' => $newCurrentDays, // مكافأة حسب الأيام
-                    'source' => 'streak_milestone',
-                    'description' => "إنجاز رائع! {$newCurrentDays} يوم متواصل 🔥",
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                event(new \App\Events\StreakUpdated($student, $newCurrentDays, true));
-            }
-        } else {
-            // إعادة تعيين الاستمرارية
-            DB::table('streaks')
-                ->where('user_id', $student->id)
-                ->update([
-                    'current_days' => 1,
-                    'last_activity_date' => $today,
-                    'updated_at' => now(),
-                ]);
-        }
+        StreakService::touch($event->student);
     }
 }

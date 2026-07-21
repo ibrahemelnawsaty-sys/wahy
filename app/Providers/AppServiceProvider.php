@@ -132,6 +132,12 @@ class AppServiceProvider extends ServiceProvider
             [\App\Listeners\UpdateStreak::class, 'handle'],
         );
 
+        // سلسلة الأيام المتتالية عند تسجيل الدخول (أيام حضور الطالب)
+        Event::listen(
+            \Illuminate\Auth\Events\Login::class,
+            [\App\Listeners\UpdateLoginStreak::class, 'handle'],
+        );
+
         Event::listen(
             \App\Events\LevelUp::class,
             [\App\Listeners\CheckBadgeEligibility::class, 'handle'],

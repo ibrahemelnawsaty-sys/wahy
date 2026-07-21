@@ -133,8 +133,8 @@ class GamificationService
             'current_level' => $currentLevel,
             'xp_for_next_level' => $xpForNextLevel,
             'progress_percentage' => round($progressPercentage, 1),
-            'streak_days' => $streak->current_days ?? 0,
-            'longest_streak' => $streak->longest_days ?? 0,
+            'streak_days' => $streak->current_streak ?? 0,
+            'longest_streak' => $streak->longest_streak ?? 0,
             'badges_count' => $badges,
         ];
     }
