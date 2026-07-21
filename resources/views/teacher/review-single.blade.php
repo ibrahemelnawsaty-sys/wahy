@@ -9,6 +9,23 @@
     .reward-info-box { background: rgba(102,126,234,0.10); border: 1px solid rgba(102,126,234,0.28); border-radius: 12px; padding: 16px 18px; margin-bottom: 22px; }
     .reward-info-title { display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 8px; color: inherit; }
     .reward-info-text { margin: 0; font-size: 14px; line-height: 1.75; color: inherit; opacity: 0.92; }
+
+    /* ===== عرض وصف النشاط الغنيّ (HTML من الأدمن/المعلّم) بشكل احترافي — مطابق لصفحة الطالب ===== */
+    .activity-description.rich-content { text-align: right; }
+    .activity-description.rich-content p { margin-bottom: 12px; }
+    .activity-description.rich-content p:last-child { margin-bottom: 0; }
+    .activity-description.rich-content img { max-width: 100%; height: auto; border-radius: 10px; margin: 12px 0; }
+    .activity-description.rich-content a { color: #2563eb; text-decoration: underline; }
+    .activity-description.rich-content ul, .activity-description.rich-content ol { padding-right: 24px; margin-bottom: 12px; }
+    .activity-description.rich-content li { margin-bottom: 6px; }
+    .activity-description.rich-content b, .activity-description.rich-content strong { font-weight: 700; }
+    .activity-description.rich-content h1, .activity-description.rich-content h2,
+    .activity-description.rich-content h3, .activity-description.rich-content h4 { margin-bottom: 10px; font-weight: 800; }
+    /* إلغاء أي خلفية بيضاء/معتمة كتبها المؤلّف كي يبقى النص مقروءاً على البطاقة (حلّ «الخلفية البيضاء») */
+    .activity-description.rich-content [style*="background"] { background: transparent !important; }
+    /* تحييد ألوان النصّ المضمّنة (المحرّر يفترض لوناً داكناً) → يرث لون البطاقة المقروء في الوضعين */
+    .activity-description.rich-content [style*="color"] { color: inherit !important; }
+    html[data-theme="dark"] .activity-description.rich-content a { color: #60a5fa; }
 </style>
 @endpush
 
@@ -82,7 +99,12 @@
             <!-- Activity Description -->
             <div class="info-section">
                 <h3 class="section-title">وصف النشاط</h3>
-                <div class="activity-description">{{ $submission->activity?->description }}</div>
+                @php $descHtml = trim(safe_html(normalize_message_html($submission->activity?->description))); @endphp
+                @if($descHtml !== '')
+                    <div class="activity-description rich-content">{!! $descHtml !!}</div>
+                @else
+                    <div class="no-content">لا يوجد وصف لهذا النشاط</div>
+                @endif
             </div>
 
             <!-- Student Answer -->

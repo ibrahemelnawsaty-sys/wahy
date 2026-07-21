@@ -185,9 +185,11 @@ if (! function_exists('safe_html')) {
         $html = preg_replace('#<\s*(' . $dangerousTags . ')\b[^>]*/?\s*>#i', '', (string) $html);
 
         // 2) إزالة event handlers (onclick, onerror, onload, …)
-        $html = preg_replace('#\son[a-z]+\s*=\s*"[^"]*"#i', '', (string) $html);
-        $html = preg_replace("#\son[a-z]+\s*=\s*'[^']*'#i", '', (string) $html);
-        $html = preg_replace('#\son[a-z]+\s*=\s*[^\s>]+#i', '', (string) $html);
+        //    الفاصل [\s/] وليس \s فقط: HTML يسمح بـ«/» فاصلاً بين السمات، فـ<img src=x/onerror=…>
+        //    كان ينجو (img/a/video ليست ضمن الوسوم الخطرة) = XSS مخزَّن. [\s/] يلتقط الحالتين.
+        $html = preg_replace('#[\s/]on[a-z]+\s*=\s*"[^"]*"#i', '', (string) $html);
+        $html = preg_replace("#[\s/]on[a-z]+\s*=\s*'[^']*'#i", '', (string) $html);
+        $html = preg_replace('#[\s/]on[a-z]+\s*=\s*[^\s>]+#i', '', (string) $html);
 
         // 3) إزالة javascript: و vbscript: و data: في href/src
         $html = preg_replace('#\b(href|src|action|formaction|srcdoc|xlink:href|background|poster)\s*=\s*"[^"]*\b(javascript|vbscript|data)\s*:[^"]*"#i', '', (string) $html);
