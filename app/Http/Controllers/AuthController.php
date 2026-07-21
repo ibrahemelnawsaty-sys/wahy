@@ -327,7 +327,9 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:teacher,student,parent',
+            'role' => 'required|in:teacher,student,parent,school_admin',
+            // اسم المدرسة مطلوب فقط لمدير المدرسة
+            'school_name' => 'required_if:role,school_admin|nullable|string|max:255',
             'password' => 'required|string|min:8|confirmed',
         ], [
             'name.required' => 'الاسم مطلوب',
@@ -336,6 +338,7 @@ class AuthController extends Controller
             'email.unique' => 'البريد الإلكتروني مستخدم مسبقاً',
             'role.required' => 'نوع الحساب مطلوب',
             'role.in' => 'نوع الحساب غير صحيح',
+            'school_name.required_if' => 'اسم المدرسة مطلوب لمدير المدرسة',
             'password.required' => 'كلمة المرور مطلوبة',
             'password.min' => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
@@ -345,19 +348,38 @@ class AuthController extends Controller
         $role = $request->role;
 
         try {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
-                'role' => $role,
-                'status' => 'inactive', // الحساب غير نشط حتى الموافقة عليه من الإدارة
-            ]);
+            $user = DB::transaction(function () use ($request, $role) {
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'password' => Hash::make($request->password),
+                    'role' => $role,
+                    'status' => 'inactive', // الحساب غير نشط حتى الموافقة عليه من الإدارة
+                ]);
 
-            // تعيين الدور باستخدام Spatie
-            if ($request->role) {
-                $user->assignRole($request->role);
-            }
+                // تعيين الدور باستخدام Spatie
+                if ($request->role) {
+                    $user->assignRole($request->role);
+                }
+
+                // مدير مدرسة: أنشئ المدرسة (غير نشطة) واربطها بالحساب — كلاهما بانتظار موافقة
+                // الإدارة (لا تفعيل فوريّ = لا تصعيد صلاحيات). admin() = belongsTo(User, created_by).
+                if ($role === 'school_admin') {
+                    $school = \App\Models\School::create([
+                        'name' => trim((string) $request->school_name),
+                        'created_by' => $user->id,
+                        'status' => 'inactive',
+                    ]);
+
+                    // school_id حقل حسّاس محروس عند التحديث (منع تصعيد الصلاحيات)؛ التسجيل سياق
+                    // موثوق ننشئ فيه المدرسة للتوّ، فنستخدم saveQuietly لتجاوز حارس الحقول الحسّاسة.
+                    $user->school_id = $school->id;
+                    $user->saveQuietly();
+                }
+
+                return $user;
+            });
 
             // إرسال إيميل تأكيد استلام الطلب
             try {
@@ -405,6 +427,12 @@ class AuthController extends Controller
 
         // الحصول على الدور النشط (يدعم تبديل الأدوار)
         $activeRole = session('active_role_' . $user->id, $user->active_role ?? $user->role);
+
+        // دفاع: لو الدور النشط لا يملكه المستخدم فعلاً (قيمة عالقة/فاسدة في العمود أو الجلسة)
+        // نعود للدور الأساسيّ بدل توجيهه للوحة دور لا يخصّه (تنكسر أو تُظهر خطأ).
+        if (! in_array($activeRole, $user->getAllRoles(), true)) {
+            $activeRole = $user->role;
+        }
 
         switch ($activeRole) {
             case 'super_admin':

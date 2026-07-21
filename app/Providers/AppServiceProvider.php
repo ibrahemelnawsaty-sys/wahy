@@ -138,6 +138,12 @@ class AppServiceProvider extends ServiceProvider
             [\App\Listeners\UpdateLoginStreak::class, 'handle'],
         );
 
+        // كل دخول يبدأ بالدور الأساسيّ (يمنع «الدخول يفتح لوحة دور مُبدَّل عالق ويُظهر خطأ»)
+        Event::listen(
+            \Illuminate\Auth\Events\Login::class,
+            [\App\Listeners\ResetActiveRoleOnLogin::class, 'handle'],
+        );
+
         Event::listen(
             \App\Events\LevelUp::class,
             [\App\Listeners\CheckBadgeEligibility::class, 'handle'],
