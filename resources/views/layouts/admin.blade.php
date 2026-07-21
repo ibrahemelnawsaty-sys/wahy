@@ -1326,7 +1326,7 @@
     <script>
         window.WAHY_EDITOR_UPLOAD_URL = "{{ route('editor.upload-image') }}";
     </script>
-    <script src="{{ asset('js/rich-editor.js') }}" defer></script>
+    <script src="{{ asset('js/rich-editor.js') }}?v={{ filemtime(public_path('js/rich-editor.js')) }}" defer></script>
 
     @include('partials.live-updates')
 

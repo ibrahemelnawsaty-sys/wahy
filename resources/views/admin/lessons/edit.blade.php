@@ -331,78 +331,14 @@
             <!-- المحتوى النصي - Quill Rich Text Editor (N2) -->
             <div class="form-group full-width conditional-field" id="content_field">
                 <label class="form-label">المحتوى النصي</label>
-                <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-                <style>
-                    #quillEditor { min-height: 280px; font-size: 15px; line-height: 1.9; direction: rtl; text-align: right; background: white; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; }
-                    .ql-toolbar { border-color: #e2e8f0 !important; border-top-right-radius: 8px; border-top-left-radius: 8px; background: #f8fafc; }
-                    .ql-container { border-color: #e2e8f0 !important; }
-                    .ql-editor { direction: rtl !important; text-align: right !important; min-height: 280px; font-family: 'IBM Plex Sans Arabic', Tahoma, sans-serif; }
-                    .ql-editor.ql-blank::before { right: 15px; left: auto; font-style: normal; }
-                </style>
-                <div id="quillEditor">{!! safe_html(old('content', $lesson->content)) !!}</div>
-                <textarea name="content" id="contentHidden" style="display:none;">{{ old('content', $lesson->content) }}</textarea>
+                {{-- محرّر نصوص غنيّ موحّد (ذاتيّ الاستضافة — يعمل بدون إنترنت) --}}
+                <div data-rich-editor="lessonContent" data-target="contentHidden" dir="rtl" hidden>{!! safe_html(old('content', $lesson->content)) !!}</div>
+                <textarea name="content" id="contentHidden" rows="10" dir="rtl" style="width:100%; min-height:200px; padding:12px 14px; border:2px solid #e2e8f0; border-radius:10px; font-family:inherit; font-size:15px; line-height:1.8; box-sizing:border-box;">{!! safe_html(old('content', $lesson->content)) !!}</textarea>
                 <small style="color: #64748b; font-size: 13px; margin-top: 8px; display: block;">💡 لتلوين النص: اختر النص أولاً ثم انقر على لوحة الألوان.</small>
                 @error('content')
                     <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
                 @enderror
 
-                <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-                <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    if (typeof Quill === 'undefined' || !document.getElementById('quillEditor')) return;
-
-                    const quill = new Quill('#quillEditor', {
-                        theme: 'snow',
-                        modules: {
-                            toolbar: [
-                                [{ 'header': [1, 2, 3, false] }],
-                                ['bold', 'italic', 'underline', 'strike'],
-                                [{ 'color': [] }, { 'background': [] }],
-                                [{ 'align': [] }],
-                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                ['link', 'image', 'blockquote'],
-                                ['clean']
-                            ]
-                        },
-                        placeholder: 'محتوى الدرس...'
-                    });
-
-                    const form = document.getElementById('quillEditor').closest('form');
-                    if (form) {
-                        form.addEventListener('submit', function() {
-                            document.getElementById('contentHidden').value = quill.root.innerHTML;
-                        });
-                    }
-
-                    const toolbar = quill.getModule('toolbar');
-                    toolbar.addHandler('image', function() {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = async () => {
-                            const file = input.files[0];
-                            if (!file) return;
-                            const formData = new FormData();
-                            formData.append('image', file);
-                            formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
-                            try {
-                                const r = await fetch('{{ route("editor.upload-image") }}', { method: 'POST', body: formData });
-                                const json = await r.json();
-                                if (json.url) {
-                                    const range = quill.getSelection(true);
-                                    quill.insertEmbed(range.index, 'image', json.url, 'user');
-                                    quill.setSelection(range.index + 1);
-                                } else {
-                                    alert('فشل رفع الصورة: ' + (json.message || ''));
-                                }
-                            } catch (e) {
-                                alert('خطأ في رفع الصورة');
-                            }
-                        };
-                        input.click();
-                    });
-                });
-                </script>
             </div>
 
             <!-- الصور -->

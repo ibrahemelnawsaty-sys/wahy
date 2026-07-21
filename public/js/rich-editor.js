@@ -2,18 +2,19 @@
  * Wahy Rich Editor — محرر نصوص خفيف موحّد لكل النماذج.
  *
  * الاستخدام في الـ Blade:
- *   <div data-rich-editor="lessonContent" data-target="contentHidden" dir="rtl">{!! old('content', $lesson->content) !!}</div>
- *   <textarea name="content" id="contentHidden" hidden>{!! old('content', $lesson->content) !!}</textarea>
+ *   <div data-rich-editor="lessonContent" data-target="contentHidden" dir="rtl" hidden>{!! old('content', $lesson->content) !!}</div>
+ *   <textarea name="content" id="contentHidden">{!! old('content', $lesson->content) !!}</textarea>
  *
  * المتطلبات:
  *   - meta[name=csrf-token] في الـ <head>
  *   - route('editor.upload-image') لرفع الصور
  *
  * خصائص:
- *   - تلوين النص والخلفية (يُكتب عبر inline styles في selection — موثوق في كل المتصفحات الحديثة)
+ *   - تلوين النص والخلفية (مع حفظ/استعادة التحديد كي لا يضيع عند فتح منتقي اللون)
+ *   - إضافة رابط عبر نافذة منبثقة احترافية (بدل prompt المتصفّح)
  *   - رفع صورة من جهاز المستخدم (multipart) بدلاً من URL فقط
  *   - تنظيف Paste (إزالة styles مسربة من Word)
- *   - مزامنة تلقائية مع textarea مخفي عند submit النموذج
+ *   - مزامنة مستمرّة مع textarea مُرسَل، وتعزيز تدريجيّ (المحرّر يبدأ مخفياً والـtextarea بديلة)
  */
 (function () {
     'use strict';
@@ -25,7 +26,32 @@
 
     const uploadUrl = window.WAHY_EDITOR_UPLOAD_URL || '/editor/upload-image';
 
-    function $(sel, root = document) { return root.querySelector(sel); }
+    // ===== حفظ/استعادة التحديد =====
+    // فتح منتقي الألوان الأصليّ أو النافذة المنبثقة يسحب التركيز من المحرّر فيضيع التحديد،
+    // فلا يُطبَّق اللون/الرابط على النصّ المختار. نحفظ المدى قبل ذلك ونستعيده قبل التنفيذ.
+    let savedRange = null;
+    let activeEditor = null;
+
+    function saveSelection(editor) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            // تأكّد أنّ التحديد داخل هذا المحرّر
+            if (editor.contains(range.commonAncestorContainer)) {
+                savedRange = range.cloneRange();
+                activeEditor = editor;
+            }
+        }
+    }
+
+    function restoreSelection() {
+        if (!savedRange || !activeEditor) return false;
+        activeEditor.focus();
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+        return true;
+    }
 
     function buildToolbar() {
         const tpl = document.createElement('div');
@@ -67,13 +93,18 @@
     }
 
     function execCmd(cmd, value = null) {
-        // execCommand لا يزال يعمل في كل المتصفحات الحديثة لمحرر contenteditable.
-        // لكن للتلوين نستخدم styleWithCSS=true ليكتب inline styles.
         try {
+            // styleWithCSS=true يجعل التلوين يُكتب inline style بدل وسوم <font> القديمة.
             document.execCommand('styleWithCSS', false, true);
-            document.execCommand(cmd, false, value);
+            const ok = document.execCommand(cmd, false, value);
+            // بعض المتصفّحات لا تدعم hiliteColor لخلفية النص → backColor بديلاً.
+            if (!ok && cmd === 'hiliteColor') {
+                document.execCommand('backColor', false, value);
+            }
         } catch (_) {
-            // تجاهل — fallback عبر Selection API يأتي لاحقاً عند الحاجة
+            if (cmd === 'hiliteColor') {
+                try { document.execCommand('backColor', false, value); } catch (__) {}
+            }
         }
     }
 
@@ -88,16 +119,81 @@
         execCmd('unlink');
     }
 
-    function openLinkPrompt() {
-        const url = window.prompt('أدخل رابط URL:', 'https://');
-        if (!url || url === 'https://') return;
-        const text = window.getSelection().toString();
-        if (text) {
-            execCmd('createLink', url);
-        } else {
-            const html = `<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`;
-            execCmd('insertHTML', html);
+    // ===== نافذة الرابط المنبثقة (احترافية، بدل prompt) =====
+    let linkModal = null;
+
+    function ensureLinkModal() {
+        if (linkModal) return linkModal;
+        const overlay = document.createElement('div');
+        overlay.className = 'wahy-rte-modal-overlay';
+        overlay.innerHTML = `
+            <div class="wahy-rte-modal" role="dialog" aria-modal="true" aria-label="إضافة رابط">
+                <div class="wahy-rte-modal-head"><span>🔗</span> إضافة رابط</div>
+                <label class="wahy-rte-modal-label">النص الظاهر</label>
+                <input type="text" class="wahy-rte-modal-input" data-field="text" placeholder="مثال: اضغط هنا">
+                <label class="wahy-rte-modal-label">الرابط (URL)</label>
+                <input type="url" class="wahy-rte-modal-input" data-field="url" placeholder="https://example.com" dir="ltr">
+                <div class="wahy-rte-modal-err" data-field="err"></div>
+                <div class="wahy-rte-modal-actions">
+                    <button type="button" class="wahy-rte-btn-cancel" data-field="cancel">إلغاء</button>
+                    <button type="button" class="wahy-rte-btn-insert" data-field="insert">إدراج الرابط</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        linkModal = overlay;
+        return overlay;
+    }
+
+    function normalizeUrl(url) {
+        url = (url || '').trim();
+        if (!url) return '';
+        // بريد؟ اتركه كما هو مع mailto عند اللزوم
+        if (/^mailto:/i.test(url) || /^tel:/i.test(url)) return url;
+        if (/^https?:\/\//i.test(url)) return url;
+        if (/^[\w.+-]+@[\w.-]+\.\w+$/.test(url)) return 'mailto:' + url;
+        return 'https://' + url.replace(/^\/+/, '');
+    }
+
+    function openLinkModal(editor) {
+        saveSelection(editor);
+        const selectedText = (window.getSelection().toString() || '').trim();
+
+        const overlay = ensureLinkModal();
+        const textInput = overlay.querySelector('[data-field="text"]');
+        const urlInput = overlay.querySelector('[data-field="url"]');
+        const errBox = overlay.querySelector('[data-field="err"]');
+        const cancelBtn = overlay.querySelector('[data-field="cancel"]');
+        const insertBtn = overlay.querySelector('[data-field="insert"]');
+
+        textInput.value = selectedText;
+        urlInput.value = '';
+        errBox.textContent = '';
+        overlay.classList.add('active');
+        setTimeout(() => urlInput.focus(), 40);
+
+        function close() {
+            overlay.classList.remove('active');
+            cancelBtn.onclick = insertBtn.onclick = overlay.onclick = null;
+            urlInput.onkeydown = textInput.onkeydown = null;
         }
+
+        function submit() {
+            const url = normalizeUrl(urlInput.value);
+            if (!url) { errBox.textContent = 'الرجاء إدخال رابط صحيح'; urlInput.focus(); return; }
+            const text = (textInput.value || '').trim() || url;
+            const html = `<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`;
+            close();
+            restoreSelection();
+            execCmd('insertHTML', html);
+            editor.dispatchEvent(new Event('input'));
+        }
+
+        cancelBtn.onclick = close;
+        insertBtn.onclick = submit;
+        overlay.onclick = (e) => { if (e.target === overlay) close(); };
+        urlInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } if (e.key === 'Escape') close(); };
+        textInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); urlInput.focus(); } if (e.key === 'Escape') close(); };
     }
 
     function uploadAndInsertImage(editor) {
@@ -112,7 +208,7 @@
             fileInput.remove();
             if (!file) return;
 
-            // عرض placeholder فوري
+            editor.focus();
             const placeholderId = 'rte_img_' + Date.now();
             const placeholderHtml = `<img id="${placeholderId}" alt="جارِ الرفع..." style="max-width:100%;height:auto;border-radius:8px;margin:8px 0;opacity:.4;">`;
             execCmd('insertHTML', placeholderHtml);
@@ -137,7 +233,6 @@
                         placeholder.src = data.url;
                         placeholder.style.opacity = '1';
                         placeholder.removeAttribute('alt');
-                        // رفع الصورة لا يُطلق حدث input تلقائياً — نُطلقه يدوياً لتزامن الـtextarea فوراً
                         const ed = placeholder.closest('[data-rich-editor]');
                         if (ed) ed.dispatchEvent(new Event('input'));
                     }
@@ -155,12 +250,12 @@
         fileInput.click();
     }
 
-    function escapeHtml(s) { return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
     function escapeAttr(s) { return escapeHtml(s); }
 
     function attachToolbarHandlers(toolbar, editor) {
         toolbar.addEventListener('mousedown', (e) => {
-            // منع فقدان الـ selection
+            // منع فقدان الـ selection عند ضغط الأزرار والقوائم (لا ينطبق على منتقي اللون).
             if (e.target.matches('button[data-cmd], select[data-cmd]')) {
                 e.preventDefault();
             }
@@ -170,10 +265,11 @@
             btn.addEventListener('click', () => {
                 const cmd = btn.dataset.cmd;
                 editor.focus();
-                if (cmd === 'link') return openLinkPrompt();
+                if (cmd === 'link') return openLinkModal(editor);
                 if (cmd === 'image') return uploadAndInsertImage(editor);
                 if (cmd === 'clear') return clearFormatting();
                 execCmd(cmd);
+                editor.dispatchEvent(new Event('input'));
             });
         });
 
@@ -182,15 +278,25 @@
                 const cmd = sel.dataset.cmd;
                 if (cmd === 'heading') applyHeading(editor, sel.value);
                 sel.value = '';
+                editor.dispatchEvent(new Event('input'));
             });
         });
 
         toolbar.querySelectorAll('input[type=color][data-cmd]').forEach(inp => {
+            // احفظ التحديد قبل أن يسرقه منتقي اللون الأصليّ (mousedown يسبق فتح المنتقي).
+            inp.addEventListener('mousedown', () => saveSelection(editor));
+            inp.addEventListener('focus', () => saveSelection(editor));
             inp.addEventListener('input', () => {
-                editor.focus();
+                restoreSelection();               // أعِد التحديد المحفوظ ثم لوّنه
                 execCmd(inp.dataset.cmd, inp.value);
+                saveSelection(editor);            // احفظ الجديد لتلوينات متتابعة
+                editor.dispatchEvent(new Event('input'));
             });
         });
+
+        // حدّث التحديد المحفوظ أثناء تحرير المستخدم داخل المحرّر
+        editor.addEventListener('keyup', () => saveSelection(editor));
+        editor.addEventListener('mouseup', () => saveSelection(editor));
     }
 
     function attachPasteSanitizer(editor) {
@@ -199,13 +305,13 @@
                 || (e.clipboardData || window.clipboardData).getData('text/plain');
             if (!text) return;
             e.preventDefault();
-            // إزالة style سمين من Word مع الإبقاء على bold/italic/color inline
             const cleaned = String(text)
                 .replace(/<\!--[\s\S]*?-->/g, '')
                 .replace(/<\/?(o:p|w:[^>]*|m:[^>]*|xml|meta|link|style|script)[^>]*>/gi, '')
                 .replace(/\sclass="[^"]*"/gi, '')
                 .replace(/\smso-[^:;"]*:[^;"]*;?/gi, '');
             execCmd('insertHTML', cleaned);
+            editor.dispatchEvent(new Event('input'));
         });
     }
 
@@ -213,14 +319,13 @@
         const hidden = target ? document.getElementById(target) : null;
         if (!hidden) return;
         // مزامنة مستمرّة: كل تعديل ينعكس فوراً على الحقل المُرسَل (textarea) — كي يصل الوصف
-        // دائماً حتى مع الإرسال البرمجيّ (.submit() الذي يتجاوز مستمعي submit) أو اعتراض
-        // حدث submit في اللايوت. الاعتماد على submit وحده كان يفقد المحتوى.
+        // دائماً حتى مع الإرسال البرمجيّ (.submit()) أو اعتراض حدث submit في اللايوت.
         const sync = () => { hidden.value = editor.innerHTML; };
         editor.addEventListener('input', sync);
         editor.addEventListener('blur', sync);
         const form = editor.closest('form');
         if (form) form.addEventListener('submit', sync);
-        sync(); // مزامنة أوّليّة
+        sync();
     }
 
     function ensureStyles() {
@@ -230,36 +335,52 @@
         css.textContent = `
             .wahy-rte-wrapper { border: 2px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff; }
             .wahy-rte-toolbar { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 10px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; align-items: center; }
-            .wahy-rte-toolbar button[data-cmd], .wahy-rte-toolbar select[data-cmd] { background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px; min-width: 32px; transition: .15s; }
+            .wahy-rte-toolbar button[data-cmd], .wahy-rte-toolbar select[data-cmd] { background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px; min-width: 32px; transition: .15s; color: #1f2937; }
             .wahy-rte-toolbar button[data-cmd]:hover { background: #eff6ff; border-color: #3b82f6; }
             .wahy-rte-toolbar select[data-cmd] { font-size: 13px; }
             .wahy-rte-toolbar .rte-sep { width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px; }
             .wahy-rte-toolbar .rte-color { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; cursor: pointer; }
             .wahy-rte-toolbar .rte-color input[type=color] { width: 22px; height: 22px; padding: 0; border: 0; background: transparent; cursor: pointer; }
-            [data-rich-editor] { min-height: 200px; padding: 14px 18px; outline: none; line-height: 1.8; font-size: 15px; }
+            [data-rich-editor] { min-height: 200px; padding: 14px 18px; outline: none; line-height: 1.8; font-size: 15px; background: #fff; color: #1f2937; }
             [data-rich-editor] img { max-width: 100%; height: auto; }
             [data-rich-editor]:focus { background: #fffef9; }
             [data-rich-editor] h2 { font-size: 22px; font-weight: 800; margin: 14px 0 8px; }
             [data-rich-editor] h3 { font-size: 18px; font-weight: 700; margin: 12px 0 6px; }
             [data-rich-editor] h4 { font-size: 16px; font-weight: 700; margin: 10px 0 6px; }
             [data-rich-editor] ul, [data-rich-editor] ol { padding-right: 24px; margin: 8px 0; }
+            [data-rich-editor] a { color: #2563eb; text-decoration: underline; }
+
+            /* نافذة الرابط المنبثقة */
+            .wahy-rte-modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(3px); z-index: 100000; display: none; align-items: center; justify-content: center; padding: 20px; }
+            .wahy-rte-modal-overlay.active { display: flex; }
+            .wahy-rte-modal { width: 100%; max-width: 440px; background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 24px 70px rgba(0,0,0,0.35); font-family: inherit; animation: wahyRteModalIn .18s ease-out; }
+            @keyframes wahyRteModalIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+            .wahy-rte-modal-head { font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+            .wahy-rte-modal-label { display: block; font-size: 13px; font-weight: 700; color: #475569; margin: 12px 0 6px; }
+            .wahy-rte-modal-input { width: 100%; box-sizing: border-box; padding: 11px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: border-color .15s; }
+            .wahy-rte-modal-input:focus { border-color: #667eea; }
+            .wahy-rte-modal-err { color: #dc2626; font-size: 13px; font-weight: 600; min-height: 18px; margin-top: 8px; }
+            .wahy-rte-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+            .wahy-rte-modal-actions button { padding: 10px 22px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; border: none; }
+            .wahy-rte-btn-cancel { background: #f1f5f9; color: #475569; }
+            .wahy-rte-btn-cancel:hover { background: #e2e8f0; }
+            .wahy-rte-btn-insert { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+            .wahy-rte-btn-insert:hover { filter: brightness(1.06); }
         `;
         document.head.appendChild(css);
     }
 
     function init(el) {
         if (el.dataset.rteReady === '1') return;
-        el.dataset.rteReady = '1';
-        el.setAttribute('contenteditable', 'true');
-        el.setAttribute('spellcheck', 'true');
 
         ensureStyles();
+        el.setAttribute('contenteditable', 'true');
+        el.setAttribute('spellcheck', 'true');
 
         const wrapper = document.createElement('div');
         wrapper.className = 'wahy-rte-wrapper';
         const toolbar = buildToolbar();
 
-        // Wrap editor element with our wrapper
         el.parentNode.insertBefore(wrapper, el);
         wrapper.appendChild(toolbar);
         wrapper.appendChild(el);
@@ -268,10 +389,12 @@
         attachPasteSanitizer(el);
         syncWithHidden(el, el.dataset.target);
 
-        // تعزيز تدريجيّ (progressive enhancement): المحرّر يبدأ مخفياً والـtextarea البديلة ظاهرة
-        // كي يستطيع المستخدم الكتابة والحفظ حتى لو لم يُنفَّذ JS. الآن وقد نجحت التهيئة وارتبطت
-        // المزامنة، نُظهر المحرّر ونُخفي الـtextarea. يتمّ أخيراً فإن فشل شيء قبله بقيت البديلة صالحة.
+        el.dataset.rteReady = '1';
+
+        // تعزيز تدريجيّ: المحرّر يبدأ مخفياً والـtextarea البديلة ظاهرة (تعمل بلا JS).
+        // بعد نجاح التهيئة: أظهِر المحرّر وأخفِ البديلة. (يجري أخيراً فإن فشل شيء بقيت البديلة صالحة.)
         el.hidden = false;
+        el.removeAttribute('hidden');
         const hiddenTa = el.dataset.target ? document.getElementById(el.dataset.target) : null;
         if (hiddenTa) { hiddenTa.hidden = true; hiddenTa.style.display = 'none'; }
     }
@@ -286,6 +409,5 @@
         initAll();
     }
 
-    // كشف API للاستخدام البرمجي
     window.WahyRichEditor = { init, initAll };
 })();
