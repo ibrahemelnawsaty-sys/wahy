@@ -23,15 +23,7 @@ class ResetActiveRoleOnLogin
             return;
         }
 
-        // امسح أيّ دور مُبدَّل من الجلسة
-        session()->forget('active_role_' . $user->id);
-
-        // صفّر العمود المُثبَّت إن كان يخالف الدور الأساسيّ (نفحص القيمة الخام لا الـaccessor
-        // الذي يُرجع الدور الأساسيّ عند null). active_role ليس ضمن الحقول الحسّاسة، لكن
-        // نستعمل saveQuietly لتفادي ضجيج الأحداث/السجلّ في مسار الدخول المتكرّر.
-        $raw = $user->getRawOriginal('active_role');
-        if (! empty($raw) && $raw !== $user->role) {
-            $user->forceFill(['active_role' => null])->saveQuietly();
-        }
+        // مسح الدور المُبدَّل من الجلسة + تصفير العمود المُثبَّت (مصدر واحد على User).
+        $user->clearActiveRole();
     }
 }

@@ -670,6 +670,48 @@ class User extends Authenticatable
         return true;
     }
 
+    /**
+     * سبب تعذّر فتح دور معيّن (null إن كان صالحاً للفتح).
+     * القاعدة الحالية: الأدوار المرتبطة بمدرسة تتطلّب مدرسة مُسنَدة (super_admin/الدعم الفنيّ
+     * منصّيّان بلا مدرسة). يُوسَّع مستقبلاً بأسباب أخرى.
+     */
+    public function roleBlockReason(string $role): ?string
+    {
+        $roleEnum = \App\Enums\UserRole::tryFromString($role);
+        if ($roleEnum === null) {
+            return null;
+        }
+
+        if ($roleEnum->isScopedToSchool()) {
+            $hasSchool = $role === 'school_admin'
+                ? ! empty($this->managedSchoolIds())
+                : ! empty($this->school_id);
+
+            if (! $hasSchool) {
+                return 'لا يمكن فتح دور «' . self::getRoleNameAr($role)
+                    . '» لأنّ حسابك غير مرتبط بأيّ مدرسة. تواصل مع الإدارة لإسنادك إلى مدرسة.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * إرجاع المستخدم إلى دوره الأساسيّ: مسح الدور المُبدَّل من الجلسة وتصفير العمود المُثبَّت.
+     * (نفس منطق ResetActiveRoleOnLogin — مصدر واحد.)
+     */
+    public function clearActiveRole(): void
+    {
+        if (session()->isStarted()) {
+            session()->forget('active_role_' . $this->id);
+        }
+
+        $raw = $this->getRawOriginal('active_role');
+        if (! empty($raw) && $raw !== $this->role) {
+            $this->forceFill(['active_role' => null])->saveQuietly();
+        }
+    }
+
     // ==================== تعدّد المدارس (مدير المدرسة) ====================
 
     /**

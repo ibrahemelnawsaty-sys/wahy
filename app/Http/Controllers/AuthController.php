@@ -434,6 +434,19 @@ class AuthController extends Controller
             $activeRole = $user->role;
         }
 
+        // شبكة أمان: دور ثانويّ مملوك لكنه معطوب (مثلاً مرتبط بمدرسة بلا مدرسة) → نوضّح
+        // السبب ونعرض خيار العودة للأساسيّ بدل توجيهه للوحة تنكسر. (لا نحجب الدور الأساسيّ.)
+        if ($activeRole !== $user->role) {
+            $blockReason = $user->roleBlockReason($activeRole);
+            if ($blockReason !== null) {
+                return view('auth.role-unavailable', [
+                    'roleName' => $user->getRoleNameAr($activeRole),
+                    'reason' => $blockReason,
+                    'primaryRoleName' => $user->getRoleNameAr($user->role),
+                ]);
+            }
+        }
+
         switch ($activeRole) {
             case 'super_admin':
                 return redirect()->route('admin.dashboard');

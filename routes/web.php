@@ -135,6 +135,7 @@ Route::middleware('auth')->group(function () {
 
     // تبديل الأدوار — POST مع حماية CSRF (تم تغييرها من GET لمنع CSRF)
     Route::post('/switch-role/{role}', [\App\Http\Controllers\RoleSwitchController::class, 'switch'])->name('switch.role');
+    Route::post('/switch-role-reset', [\App\Http\Controllers\RoleSwitchController::class, 'resetToPrimary'])->name('switch.role.reset');
 
     // تبديل المدرسة النشطة لمدير المدرسة (جلسة فقط — POST مع حماية CSRF)
     Route::post('/switch-school/{school}', [\App\Http\Controllers\SchoolSwitchController::class, 'switch'])->name('switch.school');

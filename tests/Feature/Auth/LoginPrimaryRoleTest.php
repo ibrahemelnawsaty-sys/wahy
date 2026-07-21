@@ -58,15 +58,16 @@ class LoginPrimaryRoleTest extends TestCase
 
     public function test_dashboard_respects_owned_active_role_within_session(): void
     {
-        School::factory()->create();
+        $school = School::factory()->create();
         $user = User::factory()->create([
             'role' => 'super_admin',
             'secondary_roles' => ['teacher'],
+            'school_id' => $school->id, // دور المعلّم يتطلّب مدرسة كي لا يُحجَب
             'status' => 'active',
             'password_change_required' => false,
         ]);
 
-        // محاكاة تبديل ضمن الجلسة لدور مملوك — يجب أن يُحترَم
+        // محاكاة تبديل ضمن الجلسة لدور مملوك (وصالح للفتح) — يجب أن يُحترَم
         $this->actingAs($user)
             ->withSession(['active_role_' . $user->id => 'teacher'])
             ->get(route('dashboard'))
