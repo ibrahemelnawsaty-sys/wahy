@@ -346,7 +346,7 @@
                     </div>
                     <div class="status-level">
                         <span>⭐</span>
-                        <span>المستوى {{ $stats['total_points'] ?? 0 > 100 ? floor(($stats['total_points'] ?? 0) / 100) : 1 }}</span>
+                        <span>المستوى {{ (int) floor(($stats['total_points'] ?? 0) / 100) + 1 }}</span>
                     </div>
                 </div>
             </div>
