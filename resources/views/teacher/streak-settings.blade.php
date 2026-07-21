@@ -68,12 +68,10 @@
                     <label style="display: block; font-weight: 700; color: #92400e; margin-bottom: 12px; font-size: 16px;">
                         🎯 عدد الأيام المطلوبة
                     </label>
-                    <div style="width: 100%; padding: 16px; border: 2px solid #fcd34d; border-radius: 10px; font-size: 20px; font-weight: 700; text-align: center; background: #fffbeb; color: #92400e; box-sizing: border-box;">
-                        🔒 3 أيام (ثابت)
-                    </div>
-                    <input type="hidden" name="min_days" value="3">
+                    <input type="number" name="min_days" value="{{ $streakSettings['min_days'] }}" min="1" max="30"
+                           style="width: 100%; padding: 16px; border: 2px solid #fcd34d; border-radius: 10px; font-size: 20px; font-weight: 700; text-align: center; background: #fffbeb; color: #92400e; box-sizing: border-box;">
                     <p style="color: #b45309; font-size: 13px; margin: 10px 0 0; text-align: center;">
-                        عدد الأيام ثابت (3 أيام) ليتوافق مع المثال التوضيحي أدناه
+                        عدد الأيام التي يُكمل فيها الطالب أنشطة للحصول على المكافأة (من 1 إلى 30)
                     </p>
                 </div>
                 
@@ -117,24 +115,24 @@
     <h3 style="font-size: 20px; font-weight: 700; color: #92400e; margin: 0 0 20px 0;">📖 مثال عملي:</h3>
     <div style="background: white; border-radius: 12px; padding: 20px;">
         <p style="margin: 0 0 15px; color: #78350f; font-size: 15px; line-height: 1.8;">
-            <strong>الإعدادات:</strong> عدد الأيام المطلوبة = <span id="exMinDays">3</span> أيام، المكافأة = <span id="exBonus">{{ $streakSettings['bonus_points'] }}</span> نقطة
+            <strong>الإعدادات:</strong> عدد الأيام المطلوبة = <span id="exMinDays">{{ $streakSettings['min_days'] }}</span> أيام، المكافأة = <span id="exBonus">{{ $streakSettings['bonus_points'] }}</span> نقطة
         </p>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
             <div style="background: #fef3c7; padding: 15px; border-radius: 8px;">
                 <div style="font-size: 24px; text-align: center;">📅</div>
                 <div style="font-weight: 700; color: #92400e; text-align: center;">أحمد</div>
                 <div style="font-size: 13px; color: #b45309; text-align: center; margin-top: 5px;">
-                    أكمل 3 أيام (السبت - الثلاثاء - الخميس)
+                    أكمل <span id="exAhmedDays">{{ $streakSettings['min_days'] }}</span> أيام (في أيام متفرّقة)
                 </div>
                 <div style="font-size: 14px; color: #166534; text-align: center; margin-top: 8px; font-weight: 600;">
-                    ✅ يحصل على {{ $streakSettings['bonus_points'] }} نقطة
+                    ✅ يحصل على <span id="exAhmedBonus">{{ $streakSettings['bonus_points'] }}</span> نقطة
                 </div>
             </div>
             <div style="background: #e0e7ff; padding: 15px; border-radius: 8px;">
                 <div style="font-size: 24px; text-align: center;">📅</div>
                 <div style="font-weight: 700; color: #4338ca; text-align: center;">سارة</div>
                 <div style="font-size: 13px; color: #4f46e5; text-align: center; margin-top: 5px;">
-                    أكملت يومين فقط حتى الآن
+                    أكملت <span id="exSaraDays">{{ max(0, (int) $streakSettings['min_days'] - 1) }}</span> أيام فقط حتى الآن
                 </div>
                 <div style="font-size: 14px; color: #b45309; text-align: center; margin-top: 8px; font-weight: 600;">
                     ⏳ تحتاج يوم إضافي
@@ -165,9 +163,21 @@ document.getElementById('enabledToggle').addEventListener('change', function() {
     }
 });
 
-// تحديث المثال عند تغيير المكافأة (عدد الأيام ثابت = 3)
-document.querySelector('input[name="bonus_points"]').addEventListener('input', function() {
-    document.getElementById('exBonus').textContent = this.value;
-});
+// تحديث المثال التوضيحي ديناميكياً مع عدد الأيام والمكافأة
+function updateStreakExample() {
+    const daysInput = document.querySelector('input[name="min_days"]');
+    const bonusInput = document.querySelector('input[name="bonus_points"]');
+    const days = Math.max(1, parseInt(daysInput.value) || 1);
+    const bonus = Math.max(0, parseInt(bonusInput.value) || 0);
+
+    document.getElementById('exMinDays').textContent = days;
+    document.getElementById('exBonus').textContent = bonus;
+    document.getElementById('exAhmedDays').textContent = days;
+    document.getElementById('exAhmedBonus').textContent = bonus;
+    document.getElementById('exSaraDays').textContent = Math.max(0, days - 1);
+}
+
+document.querySelector('input[name="min_days"]').addEventListener('input', updateStreakExample);
+document.querySelector('input[name="bonus_points"]').addEventListener('input', updateStreakExample);
 </script>
 @endsection
