@@ -533,21 +533,25 @@
         }
     }
 
-    /* ===== تنسيق وصف النشاط الغنيّ (من الأدمن/المعلم) — مطابق لصفحة الدرس ===== */
-    .activity-description.rich-content { text-align: right; color: rgba(255,255,255,0.9); }
+    /* ===== تنسيق وصف النشاط الغنيّ (من الأدمن/المعلم) — يُعرَض على «سطح أبيض» مطابق لخلفية
+       المحرّر، فتظهر ألوان المؤلّف كما اختارها بالضبط (WYSIWYG) وتبقى مقروءة في الوضعين. ===== */
+    .activity-description.rich-content {
+        text-align: right;
+        color: #1f2937;                 /* الافتراضي داكن على السطح الأبيض — نفس افتراض المحرّر */
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 14px;
+        padding: 18px 20px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        line-height: 1.9;
+    }
     .activity-description.rich-content p { margin-bottom: 12px; }
     .activity-description.rich-content img { max-width: 100%; height: auto; border-radius: 10px; margin: 12px 0; }
-    .activity-description.rich-content a { color: #60a5fa; text-decoration: underline; }
+    .activity-description.rich-content a { color: #2563eb; text-decoration: underline; }
     .activity-description.rich-content ul, .activity-description.rich-content ol { padding-right: 24px; margin-bottom: 12px; }
     .activity-description.rich-content li { margin-bottom: 6px; }
     .activity-description.rich-content b, .activity-description.rich-content strong { font-weight: 700; }
     .activity-description.rich-content h1, .activity-description.rich-content h2, .activity-description.rich-content h3, .activity-description.rich-content h4 { margin-bottom: 10px; font-weight: 800; }
-    /* إلغاء أي خلفية بيضاء/معتمة كتبها المؤلّف كي يبقى النص مقروءاً على البطاقة الزجاجية (حلّ «الخلفية البيضاء») */
-    .activity-description.rich-content [style*="background"] { background: transparent !important; }
-    /* تحييد أي لون نصّ inline كتبه المؤلّف (المحرّر يفترض لوناً داكناً #1f2937) → يرث لون البطاقة
-       المقروء في الوضعين، بدل نصّ داكن على بطاقة داكنة ليلاً أو أبيض على فاتح نهاراً. */
-    .activity-description.rich-content [style*="color"] { color: inherit !important; }
-    html[data-theme="light"] .activity-description.rich-content { color: #1e293b; }
 
     /* تفاعل الإجابة (كونفيتي/حزن + الحركات) مُستخرَج إلى partials/answer-celebration */
 </style>

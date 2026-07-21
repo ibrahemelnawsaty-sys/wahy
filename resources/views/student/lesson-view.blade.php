@@ -185,21 +185,23 @@
         margin-bottom: var(--spacing-lg);
     }
 
-    /* تنسيق محتوى محرر النصوص الغني داخل الدرس (Issue #20)
-       اللون الأبيض يُطبَّق فقط على .rich-content نفسه ليرث عبر الأبناء بدون
-       تجاوز ألوان المحرر (<font color>, <span style="color:...">). */
-    .rich-content { color: rgba(255, 255, 255, 0.9); }
+    /* تنسيق محتوى المحرّر الغنيّ داخل الدرس — يُعرَض على «سطح أبيض» مطابق لخلفية المحرّر،
+       فتظهر ألوان المؤلّف (نصّ وخلفيّة) كما اختارها بالضبط (WYSIWYG) وتبقى مقروءة. */
+    .rich-content {
+        color: #1f2937;
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 14px;
+        padding: 18px 20px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
     .rich-content p { margin-bottom: 12px; }
     .rich-content img { max-width: 100%; border-radius: 10px; margin: 12px 0; height: auto; }
-    .rich-content a { color: #60a5fa; text-decoration: underline; }
+    .rich-content a { color: #2563eb; text-decoration: underline; }
     .rich-content ul, .rich-content ol { padding-right: 24px; margin-bottom: 12px; }
     .rich-content li { margin-bottom: 6px; }
     .rich-content b, .rich-content strong { font-weight: 700; }
     .rich-content h1, .rich-content h2, .rich-content h3, .rich-content h4 { margin-bottom: 10px; }
-    /* تحييد خلفيّة/لون النصّ inline من المؤلّف كي يبقى المحتوى مقروءاً في الوضعين
-       (المحرّر يفترض لوناً داكناً #1f2937؛ وخلفيّة hiliteColor بيضاء) — يرثان سطح/لون البطاقة. */
-    .rich-content [style*="background"] { background: transparent !important; }
-    .rich-content [style*="color"] { color: inherit !important; }
     /* عرض الصور المُدرَجة بحجم مناسب */
     .rich-content figure, .rich-content figure img { max-width: 100%; }
     
