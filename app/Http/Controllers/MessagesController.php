@@ -32,7 +32,7 @@ class MessagesController extends Controller
 
         // إذا كان المستخدم طالباً، نحتاج stats و streak للتخطيط
         $data = ['conversations' => $conversations, 'availableUsers' => $availableUsers];
-        if ($user->role === 'student') {
+        if ($user->getCurrentRole() === 'student') {
             $user->load('streak');
             $stats = $this->getStudentStats($user);
             $streak = $user->streak;
@@ -40,8 +40,9 @@ class MessagesController extends Controller
             $data['streak'] = $streak;
         }
 
-        // توجيه كل دور لصفحته الخاصة
-        $viewPath = match ($user->role) {
+        // توجيه كل دور لصفحته الخاصة — حسب الدور النشط (المُبدَّل) لا العمود الأساسيّ، كي لا يرى
+        // مستخدمٌ بدّل دوره (مثال: مدير مدرسة → وليّ أمر) صفحةَ مراسلة دورٍ آخر (تسريب عبر الأدوار).
+        $viewPath = match ($user->getCurrentRole()) {
             'super_admin' => 'messages.admin.index',
             'school_admin' => 'messages.school-admin.index',
             'teacher' => 'messages.index', // موحّد مع الوليّ/الطالب على تصميم ملء-الصفحة المشترك؛ كان messages.teacher.index يُضمّن (@include) هذا الملفّ المُمتِدّ لتخطيط فيُنشئ تخطيطاً متداخلاً (قائمتان جانبيّتان)
@@ -60,12 +61,12 @@ class MessagesController extends Controller
     {
         $query = User::where('id', '!=', $user->id);
 
-        if ($user->role === 'super_admin') {
+        if ($user->getCurrentRole() === 'super_admin') {
             // السوبر أدمن يستطيع مراسلة الجميع
             return $query->orderBy('name')->get();
         }
 
-        if ($user->role === 'school_admin') {
+        if ($user->getCurrentRole() === 'school_admin') {
             // مدير المدرسة يستطيع مراسلة من في مدرسته النشطة فقط
             $schoolId = $user->activeSchoolId();
 
@@ -75,7 +76,7 @@ class MessagesController extends Controller
                 ->get();
         }
 
-        if ($user->role === 'teacher') {
+        if ($user->getCurrentRole() === 'teacher') {
             // المدرس يستطيع مراسلة:
             // 1. طلاب فصوله
             // 2. أولياء أمور طلاب فصوله
@@ -103,7 +104,7 @@ class MessagesController extends Controller
             return User::whereIn('id', $allIds)->orderBy('name')->get();
         }
 
-        if ($user->role === 'parent') {
+        if ($user->getCurrentRole() === 'parent') {
             // ولي الأمر يستطيع مراسلة:
             // 1. مدرسي أبنائه
             // 2. مدراء مدرسة أبنائه
@@ -129,7 +130,7 @@ class MessagesController extends Controller
             return User::whereIn('id', $allIds)->orderBy('name')->get();
         }
 
-        if ($user->role === 'student') {
+        if ($user->getCurrentRole() === 'student') {
             // الطالب يستطيع مراسلة:
             // 1. مدرسي فصوله
             // 2. مدراء مدرسته
@@ -218,7 +219,7 @@ class MessagesController extends Controller
 
         // إذا كان المستخدم طالباً، نحتاج stats و streak للتخطيط
         $data = ['conversation' => $conversation, 'messages' => $messages, 'otherUser' => $otherUser];
-        if ($currentUser->role === 'student') {
+        if ($currentUser->getCurrentRole() === 'student') {
             $currentUser->load('streak');
             $stats = $this->getStudentStats($currentUser);
             $streak = $currentUser->streak;
@@ -290,8 +291,9 @@ class MessagesController extends Controller
      */
     private function canMessage($user1, $user2)
     {
-        // السوبر أدمن يستطيع مراسلة الجميع
-        if ($user1->role === 'super_admin') {
+        // الدور النشط للمُرسِل (user1 = المستخدم الحاليّ دائمًا) لا العمود الأساسيّ — كي يتّسق
+        // مع الواجهة والصلاحيات عند تبديل الدور. أمّا user2 (الطرف الآخر) فيُقيَّم بدوره الأساسيّ.
+        if ($user1->getCurrentRole() === 'super_admin') {
             return true;
         }
 
@@ -301,7 +303,7 @@ class MessagesController extends Controller
         }
 
         // المستخدمان يجب أن يكونا في نفس المدرسة (مدير المدرسة يحترم مدرسته النشطة عند التعدّد)
-        $u1School = $user1->role === 'school_admin' ? $user1->activeSchoolId() : $user1->school_id;
+        $u1School = $user1->getCurrentRole() === 'school_admin' ? $user1->activeSchoolId() : $user1->school_id;
         $u2School = $user2->role === 'school_admin' ? $user2->activeSchoolId() : $user2->school_id;
         if ((int) $u1School !== (int) $u2School) {
             return false;

@@ -1,4 +1,5 @@
-@extends(auth()->user()->role === 'super_admin' ? 'layouts.admin' : (auth()->user()->role === 'school_admin' ? 'layouts.school-admin' : (auth()->user()->role === 'teacher' ? 'layouts.teacher' : (auth()->user()->role === 'parent' ? 'layouts.parent' : (auth()->user()->role === 'student' ? 'layouts.student-app' : 'layouts.student-app')))))
+@php($__layoutRole = auth()->user()->getCurrentRole())
+@extends($__layoutRole === 'super_admin' ? 'layouts.admin' : ($__layoutRole === 'school_admin' ? 'layouts.school-admin' : ($__layoutRole === 'teacher' ? 'layouts.teacher' : ($__layoutRole === 'parent' ? 'layouts.parent' : 'layouts.student-app'))))
 
 @section('page-title', 'الرسائل')
 
@@ -19,7 +20,7 @@
         <h1 class="msg-ph-title">الرسائل</h1>
     </div>
     <div class="msg-ph-crumbs">
-        <a href="{{ auth()->user()->role === 'school_admin' ? route('school-admin.dashboard') : route('dashboard') }}" class="msg-ph-link" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+        <a href="{{ auth()->user()->getCurrentRole() === 'school_admin' ? route('school-admin.dashboard') : route('dashboard') }}" class="msg-ph-link" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
             <i class="fas fa-home"></i> الرئيسية
         </a>
         <span class="msg-ph-sep">›</span>
@@ -744,7 +745,7 @@ html[data-theme="dark"] .student-app .user-list-item .user-name > span[style*="#
                 $otherUser = $conversation->getOtherUser(auth()->id());
                 $unreadCount = $conversation->unreadCount(auth()->id());
             @endphp
-            <div class="conversation-item" onclick="window.location.href='{{ auth()->user()->role === 'school_admin' ? route('school-admin.messages.show', $otherUser->id) : route('messages.show', $otherUser->id) }}'">
+            <div class="conversation-item" onclick="window.location.href='{{ auth()->user()->getCurrentRole() === 'school_admin' ? route('school-admin.messages.show', $otherUser->id) : route('messages.show', $otherUser->id) }}'">
                 <div class="conversation-user">
                     <div class="user-avatar">
                         @if($otherUser->avatar)
@@ -840,7 +841,7 @@ html[data-theme="dark"] .student-app .user-list-item .user-name > span[style*="#
         </div>
 
         <!-- خيار اختيار المدرسة (للسوبر أدمن فقط) -->
-        @if(auth()->user()->role === 'super_admin')
+        @if(auth()->user()->getCurrentRole() === 'super_admin')
             <div style="margin-bottom: 20px; padding: 18px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #3b82f6; border-radius: 12px;">
                 <h4 style="margin: 0 0 12px 0; color: #1e40af; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600;">
                     <i class="fas fa-school"></i> إرسال لجميع مستخدمي مدرسة
@@ -934,7 +935,7 @@ function hideUserSelect() {
 }
 
 function startConversation(userId) {
-    @if(auth()->user()->role === 'school_admin')
+    @if(auth()->user()->getCurrentRole() === 'school_admin')
         window.location.href = '/school-admin/messages/' + userId;
     @else
         window.location.href = '/messages/' + userId;

@@ -1,4 +1,5 @@
-@extends(auth()->user()->role === 'super_admin' ? 'layouts.admin' : (auth()->user()->role === 'school_admin' ? 'layouts.school-admin' : (auth()->user()->role === 'teacher' ? 'layouts.teacher' : (auth()->user()->role === 'parent' ? 'layouts.parent' : (auth()->user()->role === 'student' ? 'layouts.student-app' : 'layouts.student-app'))))))
+@php($__layoutRole = auth()->user()->getCurrentRole())
+@extends($__layoutRole === 'super_admin' ? 'layouts.admin' : ($__layoutRole === 'school_admin' ? 'layouts.school-admin' : ($__layoutRole === 'teacher' ? 'layouts.teacher' : ($__layoutRole === 'parent' ? 'layouts.parent' : 'layouts.student-app'))))
 
 @section('page-title', 'محادثة مع ' . $otherUser->name)
 
@@ -1019,7 +1020,7 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
 <div class="chat-page">
 
 <div style="margin-bottom: 24px;">
-    <button class="back-btn" onclick="window.location.href='{{ auth()->user()->role === 'school_admin' ? route('school-admin.messages.index') : route('messages.index') }}'">
+    <button class="back-btn" onclick="window.location.href='{{ auth()->user()->getCurrentRole() === 'school_admin' ? route('school-admin.messages.index') : route('messages.index') }}'">
         <span style="font-size: 18px;">→</span>
         <span>العودة للرسائل</span>
     </button>
@@ -1382,7 +1383,7 @@ function sendMessage() {
     sendBtn.innerHTML = '<span>جاري الإرسال...</span><i class="fas fa-spinner fa-spin"></i>';
     
     // إرسال الرسالة
-    fetch('{{ auth()->user()->role === 'school_admin' ? route('school-admin.messages.send') : route('messages.send') }}', {
+    fetch('{{ auth()->user()->getCurrentRole() === 'school_admin' ? route('school-admin.messages.send') : route('messages.send') }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

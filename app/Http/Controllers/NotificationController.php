@@ -21,9 +21,10 @@ class NotificationController extends Controller
 
         $unreadCount = NotificationService::getUnreadCount(Auth::id());
 
-        // تحديد الليوت المناسب حسب دور المستخدم
+        // تحديد الليوت المناسب حسب الدور النشط (المُبدَّل) لا العمود الأساسيّ — كي لا تظهر واجهة
+        // دورٍ آخر لمستخدم متعدّد الأدوار بدّل دوره (تسريب تنقّل عبر الأدوار).
         $user = Auth::user();
-        $role = $user->role ?? 'student';
+        $role = $user->getCurrentRole() ?? 'student';
 
         $layoutMap = [
             'super_admin' => 'layouts.admin',
