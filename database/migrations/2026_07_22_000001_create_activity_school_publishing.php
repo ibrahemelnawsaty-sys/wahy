@@ -46,9 +46,14 @@ return new class extends Migration
 
         // (3) إصلاح توافقيّ idempotent: الأنشطة المعتمَدة القائمة كانت مرئيّة للطلاب
         //     عالميّاً (approval_status='approved') → نُبقي ذلك بجعلها «مباشر لكل المدارس».
-        //     تُشغَّل مرّة أو أكثر بنفس النتيجة (شرط approval_status='approved' فقط).
+        //     **نستثني قوالب البنك (is_activity_bank=true)**: هذه لم تكن تُعرض للطلاب ضمن قوائم
+        //     الدروس، وكانت تُفتَح فقط عبر الثغرة الكامنة (فتح بلا درس بتخمين id) التي يسدّها هذا
+        //     التغيير — فلو حُوِّلت لـ'direct' لأعِدنا فتح الثغرة نفسها. تبقى 'none' (مخفيّة) كما
+        //     هي الحال للقوالب الجديدة (ActivityBankController::storeActivity لا يضبط all_schools_mode).
+        //     تُشغَّل مرّة أو أكثر بنفس النتيجة.
         DB::table('activities')
             ->where('approval_status', 'approved')
+            ->where('is_activity_bank', false)
             ->where('all_schools_mode', 'none')
             ->update(['all_schools_mode' => 'direct']);
     }

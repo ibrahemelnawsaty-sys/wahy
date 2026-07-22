@@ -808,8 +808,9 @@ class TeacherController extends Controller
         // نفس قاعدة رؤية بنك الأنشطة تماماً — لا تسريب (مرئيّة أصلاً في القائمة).
         $activity = Activity::with(['creator', 'lesson.concept.value', 'schools'])->findOrFail($id);
 
-        // بوّابة القراءة الموحّدة (ActivityPolicy@view): يملكه المعلّم أو نشاط بنك معتمَد — لا تسريب.
-        abort_unless($user->can('view', $activity), 403);
+        // بوّابة القراءة الموحّدة (ActivityPolicy@view): يملكه المعلّم أو نشاط بنك معتمَد.
+        // 404 (لا 403) للحفاظ على عقد «عدم تسريب وجود النشاط» كما كان الاستعلام المُقيَّد سابقًا.
+        abort_unless($user->can('view', $activity), 404);
 
         // الصفحة الموحّدة (تستبدل teacher.preview-activity المكسورة) — نفس عرض الأدمن + أزرار حسب الدور.
         return view('teacher.activities.show', compact('activity'));
@@ -968,7 +969,8 @@ class TeacherController extends Controller
             // تصفير النشر: لا يبقى محتوى مُعدَّل/مرفوض منشورًا للطلاب (§3 «الفارغ ≠ نشر»)
             'all_schools_mode' => 'none',
         ])->saveQuietly();
-        $activity->schools()->detach();   // إزالة صفوف النشر لكل المدارس
+        $activity->schools()->detach();      // إزالة نشر المدارس
+        $activity->classrooms()->detach();   // وإزالة الإسناد المرجعيّ للفصول (منع غسل الاعتماد بالتعديل)
         $this->notifySchoolAdminsOfPendingActivity($user, $activity);
 
         return redirect()->route('teacher.activities')
@@ -1009,7 +1011,8 @@ class TeacherController extends Controller
             // تصفير النشر: لا يبقى محتوى مُعدَّل/مرفوض منشورًا للطلاب (§3 «الفارغ ≠ نشر»)
             'all_schools_mode' => 'none',
         ])->saveQuietly();
-        $activity->schools()->detach();   // إزالة صفوف النشر لكل المدارس
+        $activity->schools()->detach();      // إزالة نشر المدارس
+        $activity->classrooms()->detach();   // وإزالة الإسناد المرجعيّ للفصول (منع غسل الاعتماد بالتعديل)
 
         // إشعار مدير/مديري المدرسة بإعادة الإرسال
         $this->notifySchoolAdminsOfPendingActivity($user, $activity);
@@ -2244,8 +2247,10 @@ class TeacherController extends Controller
 
         $exercise = \App\Models\PracticeExercise::where('teacher_id', $user->id)->findOrFail($id);
         $classrooms = Classroom::where('teacher_id', $user->id)->get();
-        // منتقي أسئلة التمرين من الأسئلة المعتمَدة فقط (المرحلة 5 — المعلّم لا يُنشئ أسئلة)
+        // المعتمَدة + أيّ أسئلة مخزَّنة سلفًا في هذا التمرين (وإن لم تعد معتمَدة) كي لا يُسقِطها
+        // التعديل صامتًا عند الحفظ (المرحلة 5 — المعلّم لا يُنشئ أسئلة جديدة).
         $questions = QuestionBank::where('status', 'approved')
+            ->orWhereIn('id', (array) ($exercise->questions ?? []))
             ->orderBy('created_at', 'desc')
             ->get();
 

@@ -166,6 +166,9 @@ class ActivityBankController extends Controller
             'rejection_reason' => $request->reason,
         ]);
 
+        // الرفض يسحب النشر: لا يبقى النشاط المرفوض مرئيًّا للطلاب
+        app(\App\Services\ActivityPublishingService::class)->revokePublishing($activity);
+
         // إشعار المعلم
         if ($activity->created_by) {
             \App\Services\NotificationService::create(

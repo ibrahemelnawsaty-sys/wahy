@@ -135,6 +135,9 @@ class ActivityApprovalController extends Controller
             'rejection_reason' => $request->rejection_reason,
         ]);
 
+        // الرفض يسحب النشر: نشاط سبق نشره (لمدرسته أو للكل) لا يبقى مرئيًّا للطلاب بعد رفضه
+        app(\App\Services\ActivityPublishingService::class)->revokePublishing($activity);
+
         // إرسال إشعار للمعلم — يمكنه تعديله وإعادة إرساله
         if ($activity->created_by) {
             $target = $activity->is_activity_bank ? route('teacher.activity-bank.index') : route('teacher.activities');
@@ -198,7 +201,9 @@ class ActivityApprovalController extends Controller
      */
     private function notifyClassroomStudentsOfApprovedActivity(Activity $activity): void
     {
-        if ($activity->is_activity_bank || ! $activity->classroom_id) {
+        // نُشعِر بحسب classroom_id فقط: adminApprove يضبط is_activity_bank=true دائمًا فلا نعتمد
+        // عليه هنا (نشاط البنك الخالص بلا classroom_id فيُستبعَد تلقائيًّا).
+        if (! $activity->classroom_id) {
             return;
         }
         $activity->loadMissing('classroom.students');

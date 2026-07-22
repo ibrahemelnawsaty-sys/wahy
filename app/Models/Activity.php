@@ -109,8 +109,11 @@ class Activity extends Model
                 return;
             }
 
+            // نستخدم مجموعة أدوار المستخدم (الأساسيّ + الثانويّة القابلة للتبديل) لا العمود الخام
+            // فقط — كي لا يُحجب مدير مدرسة يحمل الدور كدور ثانويّ/مُبدَّل (يوافق حارس المسار CheckRole).
             $actor = auth()->user();
-            if ($actor && in_array($actor->role, ['school_admin', 'super_admin'], true)) {
+            $roles = $actor ? (method_exists($actor, 'getAllRoles') ? $actor->getAllRoles() : [$actor->role]) : [];
+            if ($actor && array_intersect($roles, ['school_admin', 'super_admin'])) {
                 return;
             }
 
@@ -245,12 +248,17 @@ class Activity extends Model
                         ->where('publish_mode', 'direct');
                 });
             }
-            // أو نشاط بنك أُسنِد مرجعيًّا لأحد فصول الطالب (المرحلة 4ب — عزل بعضويّة الفصل)
+            // أو نشاط بنك **معتمَد** أُسنِد مرجعيًّا لأحد فصول الطالب (المرحلة 4ب — عزل بعضويّة الفصل).
+            // شرط approval_status='approved' دفاعٌ في العمق: تعديل المعلّم للنشاط يُصفّر الاعتماد،
+            // فلا يبقى محتوى مُعدَّل غير مُراجَع مرئيًّا عبر صفّ الإسناد حتى لو لم يُحذَف بعد.
             if (! empty($classroomIds)) {
-                $q->orWhereIn('id', function ($sub) use ($classroomIds) {
-                    $sub->select('activity_id')
-                        ->from('activity_classroom')
-                        ->whereIn('classroom_id', $classroomIds);
+                $q->orWhere(function ($q2) use ($classroomIds) {
+                    $q2->where('approval_status', 'approved')
+                        ->whereIn('id', function ($sub) use ($classroomIds) {
+                            $sub->select('activity_id')
+                                ->from('activity_classroom')
+                                ->whereIn('classroom_id', $classroomIds);
+                        });
                 });
             }
         });
@@ -271,8 +279,8 @@ class Activity extends Model
             return true;
         }
 
-        // إسناد مرجعيّ لأحد فصول الطالب
-        if (! empty($classroomIds)) {
+        // إسناد مرجعيّ لأحد فصول الطالب — يُشترَط أن يبقى معتمَدًا (لا محتوى مُعدَّل غير مُراجَع)
+        if (! empty($classroomIds) && $this->approval_status === 'approved') {
             return $this->classrooms()->whereIn('classrooms.id', $classroomIds)->exists();
         }
 

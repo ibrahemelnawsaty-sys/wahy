@@ -246,9 +246,10 @@
 <script>
 function showApproveModal(activityId) {
     document.getElementById('approveForm').action = '/admin/activity-approval/' + activityId + '/approve';
-    // إعادة الضبط للافتراضي عند كل فتح
+    // إعادة الضبط للافتراضي عند كل فتح (بما فيه إلغاء تحديد المدارس كي لا تتسرّب من نشاط سابق)
     document.querySelector('#approveForm input[name="scope"][value="all"]').checked = true;
     document.querySelector('#approveForm input[name="publish_mode"][value="direct"]').checked = true;
+    document.querySelectorAll('#schoolsPicker input[name="school_ids[]"]').forEach(function (cb) { cb.checked = false; });
     toggleScope();
     document.getElementById('approveModal').style.display = 'flex';
 }

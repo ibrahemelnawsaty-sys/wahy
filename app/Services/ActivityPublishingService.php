@@ -64,6 +64,18 @@ class ActivityPublishingService
     }
 
     /**
+     * إلغاء كل النشر: يُستدعى عند الرفض (أو أيّ تصفير) كي لا يبقى نشاطٌ مرفوض/مسحوب مرئيًّا للطلاب.
+     * يُزيل all_schools_mode + صفوف المدارس + الإسناد المرجعيّ للفصول. forceFill+saveQuietly
+     * لتجاوز الحارس (يعمل من أيّ مسار رفض مخوَّل بصرف النظر عن العمود الخام للدور).
+     */
+    public function revokePublishing(Activity $activity): void
+    {
+        $activity->schools()->detach();
+        $activity->classrooms()->detach();
+        $activity->forceFill(['all_schools_mode' => 'none'])->saveQuietly();
+    }
+
+    /**
      * إنشاء/تحديث صفّ نشر لمدرسة (idempotent عبر unique(activity_id, school_id)).
      */
     private function publishToSchool(Activity $activity, int $schoolId, string $publishMode, int $approverId): void

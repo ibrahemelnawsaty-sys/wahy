@@ -964,6 +964,9 @@ class SchoolAdminController extends Controller
             'school_rejection_reason' => $validated['rejection_reason'],
         ]);
 
+        // الرفض يسحب النشر: نشاط سبق نشره لمدرسته لا يبقى مرئيًّا لطلابها بعد رفضه
+        app(\App\Services\ActivityPublishingService::class)->revokePublishing($activity);
+
         // إشعار المعلّم — يمكنه التعديل وإعادة الإرسال
         if ($activity->created_by) {
             NotificationService::send(

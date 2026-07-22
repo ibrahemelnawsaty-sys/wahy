@@ -206,20 +206,15 @@ class StudentApiController extends Controller
 
         $activity = Activity::with(['lesson.concept.value', 'creator'])->findOrFail($id);
 
-        // Check access: النشاط يجب أن يكون ضمن فصول الطالب (activities بلا عمود school_id)
+        // بوّابة النشر الموحّدة (نفس StudentController::isActivityAccessibleByStudent): لا يُفتَح
+        // النشاط إلا إن كان نشطًا ومنشورًا مباشرةً لمدرسة الطالب أو مُسنَدًا لأحد فصوله. لا يكفي
+        // approval + عضويّة classroom_id (كانت تُسرّب أنشطة «البنك» المعتمَدة غير المنشورة عبر الجوّال).
         $classroomIds = $user->classrooms->pluck('id')->toArray();
-        if (! in_array($activity->classroom_id, $classroomIds, true)) {
+        if (($activity->status ?? 'active') !== 'active'
+            || ! $activity->isVisibleToStudentSchool($user->school_id, $classroomIds)) {
             return response()->json([
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول لهذا النشاط',
-            ], 403);
-        }
-
-        // بوّابة الاعتماد: لا يُفتَح نشاط معلّم غير معتمد (بأسئلته/مفاتيح إجاباته)
-        if (! $activity->isApproved()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'هذا النشاط غير متاح حالياً',
             ], 403);
         }
 
@@ -269,20 +264,14 @@ class StudentApiController extends Controller
         $user = $request->user();
         $activity = Activity::findOrFail($id);
 
-        // Check access: النشاط يجب أن يكون ضمن فصول الطالب (activities بلا عمود school_id)
+        // بوّابة النشر الموحّدة: لا يُقبَل تسليم/منح نقاط إلا على نشاط نشط منشور مباشرةً لمدرسة
+        // الطالب أو مُسنَد لأحد فصوله (يُغلق تسريب تسليم أنشطة البنك المعتمَدة غير المنشورة).
         $classroomIds = $user->classrooms->pluck('id')->toArray();
-        if (! in_array($activity->classroom_id, $classroomIds, true)) {
+        if (($activity->status ?? 'active') !== 'active'
+            || ! $activity->isVisibleToStudentSchool($user->school_id, $classroomIds)) {
             return response()->json([
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول لهذا النشاط',
-            ], 403);
-        }
-
-        // بوّابة الاعتماد: لا يُقبَل تسليم/منح نقاط على نشاط معلّم غير معتمد
-        if (! $activity->isApproved()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'هذا النشاط غير متاح حالياً',
             ], 403);
         }
 
