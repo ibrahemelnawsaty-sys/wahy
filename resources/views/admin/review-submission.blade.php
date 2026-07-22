@@ -77,25 +77,58 @@
             إجابة الطالب
         </h3>
 
-        @if($submission->answer)
-            @php
-                $answer = is_string($submission->answer) ? json_decode($submission->answer, true) : $submission->answer;
-            @endphp
+        @php
+            // إجابة الطالب: قد تكون نصّاً، ترتيب صور [{image_url,selected_order}], قائمة، أو كائن كويز.
+            $rawAns = $submission->answer;
+            $ansDecoded = is_string($rawAns) ? json_decode($rawAns, true) : (is_array($rawAns) ? $rawAns : null);
+            $ansImages = [];
+            $ansText = null;
+            if (is_array($ansDecoded)) {
+                $isList = array_is_list($ansDecoded);
+                if ($isList) {
+                    foreach ($ansDecoded as $it) {
+                        // http(s) فقط — إجابة من الطالب؛ منع javascript:/data: (XSS)
+                        if (is_array($it) && ! empty($it['image_url']) && preg_match('~^https?://~i', (string) $it['image_url'])) {
+                            $ansImages[] = ['url' => (string) $it['image_url'], 'order' => $it['selected_order'] ?? ($it['order'] ?? null)];
+                        }
+                    }
+                }
+                if (! empty($ansImages)) {
+                    usort($ansImages, fn ($a, $b) => ((int) ($a['order'] ?? 0)) <=> ((int) ($b['order'] ?? 0)));
+                } elseif ($isList) {
+                    $ansText = implode('، ', array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE), $ansDecoded));
+                } else {
+                    $lines = [];
+                    foreach ($ansDecoded as $k => $v) {
+                        $val = is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE);
+                        $lines[] = (is_numeric($k) ? ('السؤال ' . ((int) $k + 1) . ': ') : ($k . ': ')) . $val;
+                    }
+                    $ansText = implode("\n", $lines);
+                }
+            } elseif (is_string($rawAns)) {
+                $ansText = $rawAns;
+            }
+            $ansIsUrl = ($ansText !== null && preg_match('~^\s*https?://\S+\s*$~i', $ansText) === 1);
+        @endphp
 
-            @if(is_array($answer))
-                <div class="space-y-4">
-                    @foreach($answer as $key => $value)
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <div class="text-sm text-gray-500 mb-1">الإجابة {{ $loop->iteration }}</div>
-                            <div class="text-gray-800">{{ is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value }}</div>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="p-4 bg-gray-50 rounded-lg">
-                    <div class="text-gray-800 whitespace-pre-wrap">{{ html_excerpt($submission->answer, 2000) }}</div>
-                </div>
-            @endif
+        @if(! empty($ansImages))
+            {{-- ترتيب الصور: صور مصغّرة مرقّمة قابلة للضغط بترتيب الطالب --}}
+            <div class="flex flex-wrap gap-4">
+                @foreach($ansImages as $it)
+                    <div style="position:relative;width:130px;">
+                        <span style="position:absolute;top:-8px;inset-inline-start:-8px;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.25);z-index:1;">{{ $it['order'] ?? ($loop->index + 1) }}</span>
+                        <a href="{{ $it['url'] }}" target="_blank" rel="noopener noreferrer" title="فتح الصورة">
+                            <img src="{{ $it['url'] }}" alt="صورة {{ $loop->index + 1 }}" loading="lazy" style="width:130px;height:130px;object-fit:cover;border-radius:12px;border:2px solid rgba(102,126,234,.35);display:block;">
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+        @elseif($ansIsUrl)
+            <a href="{{ trim($ansText) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg font-bold hover:bg-blue-100" style="word-break:break-all;">🔗 فتح رابط الطالب</a>
+        @elseif($ansText !== null && $ansText !== '')
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="text-gray-800" style="white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;">{{ \Illuminate\Support\Str::limit($ansText, 3000) }}</div>
+            </div>
         @else
             <div class="text-gray-400 text-center py-4">لا توجد إجابة نصية</div>
         @endif
