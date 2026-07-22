@@ -1109,6 +1109,13 @@
                 </div>
             </div>
             <div class="header-right">
+                <!-- أنشطة المعلّمين بانتظار اعتماد المدير (تظهر بمجرّد الدخول) — $pendingActivitiesCount
+                     مُحتسَب في الشريط الجانبيّ الذي يسبق الترويسة في القالب. -->
+                <a href="{{ route('school-admin.activity-approvals') }}" class="header-btn" title="أنشطة معلّمين بانتظار الاعتماد" style="position: relative;">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span class="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #8b5cf6; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: 700; min-width: 18px; text-align: center; display: {{ ($pendingActivitiesCount ?? 0) > 0 ? 'inline-flex' : 'none' }};" data-live="school_activity_approvals_pending" data-live-badge>{{ ($pendingActivitiesCount ?? 0) > 0 ? $pendingActivitiesCount : 0 }}</span>
+                </a>
+
                 <!-- Settings Button -->
                 <a href="{{ route('school-admin.settings') }}" class="header-btn" title="الإعدادات">
                     <i class="fas fa-cog"></i>

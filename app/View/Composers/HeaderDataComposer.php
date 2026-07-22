@@ -2,6 +2,7 @@
 
 namespace App\View\Composers;
 
+use App\Models\Activity;
 use App\Models\ActivitySubmission;
 use App\Models\RegistrationRequest;
 use App\Models\SupportTicket;
@@ -39,6 +40,18 @@ class HeaderDataComposer
             $escalatedTicketsCount = 0;
         }
 
-        $view->with(compact('newUsersCount', 'newSubmissionsCount', 'escalatedTicketsCount'));
+        // أنشطة المعلّمين المعتمدة مدرسياً وبانتظار اعتماد الأدمن النهائيّ (طابور السوبر أدمن) —
+        // ليعرف المهامّ التي عليه بمجرّد الدخول. مغلّفة بـtry/catch (لا تكسر لايوت الأدمن).
+        try {
+            $pendingActivitiesCount = Activity::whereNotNull('created_by')
+                ->where('school_approval_status', 'approved')
+                ->where('approval_status', 'pending')
+                ->whereHas('creator', fn ($q) => $q->where('role', 'teacher'))
+                ->count();
+        } catch (\Throwable $e) {
+            $pendingActivitiesCount = 0;
+        }
+
+        $view->with(compact('newUsersCount', 'newSubmissionsCount', 'escalatedTicketsCount', 'pendingActivitiesCount'));
     }
 }

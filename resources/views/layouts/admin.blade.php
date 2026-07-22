@@ -464,6 +464,11 @@
                         <span>📝</span>
                         <span><span data-live="header_new_submissions">{{ $newSubmissionsCount ?? 0 }}</span> تقديم جديد</span>
                     </a>
+                    <!-- أنشطة المعلّمين بانتظار الاعتماد النهائيّ (تظهر للسوبر أدمن بمجرّد الدخول) -->
+                    <a href="{{ route('admin.activity-approval.index') }}" style="text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(139, 92, 246, 0.1); padding: 8px 14px; border-radius: 10px; color: #8b5cf6; font-weight: 600; font-size: 13px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(139,92,246,0.2)'" onmouseout="this.style.background='rgba(139,92,246,0.1)'">
+                        <span>📋</span>
+                        <span><span data-live="header_pending_activities">{{ $pendingActivitiesCount ?? 0 }}</span> نشاط بانتظار الاعتماد</span>
+                    </a>
 
                     <!-- User Info + Avatar Dropdown -->
                     <div class="admin-user-info">
