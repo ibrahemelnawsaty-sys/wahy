@@ -911,10 +911,9 @@ class StudentController extends Controller
 
             // تنفيذ ذرّي: فحص duplicate تحت قفل + إنشاء submission
             // #13 عدد المحاولات: يُسمح بإعادة الإرسال ما دامت المحاولات متبقية والنشاط لم يُعتمَد
-            // نهائيًّا من المعلّم (approved). تشمل الإعادة: needs_review/rejected/**pending** — إضافة
-            // pending تُصلح «لا يمكنه التقديم على محاولة ثانية» لأنشطة المراجعة اليدويّة (score=null
-            // فالإعادة تمنح 0 XP → لا استغلال). نستثني completed (منح XP على كل تسليم = استغلال
-            // مضاعفة النقاط) وapproved (نهائيّ من المعلّم).
+            // نهائيًّا من المعلّم (approved). تشمل الإعادة needs_review/rejected/pending/completed
+            // (الأخير لتحسين الدرجة). لا استغلال: المكافأة على «أفضل محاولة» (فرق تصاعديّ عبر
+            // awarded_points) فإعادة نشاطٍ ناجح لا تُضاعف النقاط/العملات. approved وحده نهائيّ.
             try {
                 $submissionResult = \Illuminate\Support\Facades\DB::transaction(function () use ($student, $id, $answerToStore, $status, $score, $maxAttempts, $parentApprovalStatus) {
                     // فحص duplicate تحت قفل صفّي — يمنع double-submit race
@@ -925,22 +924,31 @@ class StudentController extends Controller
 
                     if ($existing) {
                         $attemptsUsed = (int) ($existing->attempts ?? 1);
-                        $resubmittable = in_array($existing->status, ['needs_review', 'rejected', 'pending'], true);
+                        $resubmittable = in_array($existing->status, ['needs_review', 'rejected', 'pending', 'completed'], true);
 
                         // إعادة المحاولة مسموحة إن لم يُعتمد بعد ولم تُستنفد المحاولات
                         if ($resubmittable && $attemptsUsed < $maxAttempts) {
-                            $existing->update([
-                                'answer' => $answerToStore,
-                                'status' => $status,
-                                'score' => $score,
+                            // #13 «أفضل محاولة»: لا نُدهوِر أفضل نتيجة. إن كانت المحاولة الجديدة
+                            // مُصحَّحة آليًّا وأقلّ من الدرجة المحفوظة، نُبقي الإجابة/الحالة/الدرجة
+                            // الأفضل ونزيد المحاولات فقط — موافقةً لوعد الواجهة «تحتفظ بأفضل درجة»
+                            // (وإلا هبطت completed→needs_review وتدهورت الدرجة المرئية وعدّاد الإنجاز).
+                            $keepsBest = $score !== null && $existing->score !== null && $score < $existing->score;
+
+                            $payload = [
                                 'attempts' => $attemptsUsed + 1,
                                 'submitted_at' => now(),
-                                'feedback' => null,
+                            ];
+                            if (! $keepsBest) {
+                                $payload['answer'] = $answerToStore;
+                                $payload['status'] = $status;
+                                $payload['score'] = $score;
+                                $payload['feedback'] = null;
                                 // إعادة إرسال نشاطٍ يتطلّب موافقة الوليّ ⇒ يحتاج موافقة جديدة
-                                'parent_approval_status' => $parentApprovalStatus,
-                                'parent_approved_by' => null,
-                                'parent_approved_at' => null,
-                            ]);
+                                $payload['parent_approval_status'] = $parentApprovalStatus;
+                                $payload['parent_approved_by'] = null;
+                                $payload['parent_approved_at'] = null;
+                            }
+                            $existing->update($payload);
 
                             return ['duplicate' => false, 'submission' => $existing, 'exhausted' => false];
                         }
@@ -950,7 +958,7 @@ class StudentController extends Controller
                             return ['duplicate' => true, 'submission' => null, 'exhausted' => true];
                         }
 
-                        // مُعتمد نهائيًّا (approved) أو مكتمل بنجاح (completed) → لا إعادة إرسال
+                        // مُعتمد نهائيًّا من المعلّم (approved) → لا إعادة إرسال
                         return ['duplicate' => true, 'submission' => null, 'exhausted' => false];
                     }
 
@@ -1013,48 +1021,62 @@ class StudentController extends Controller
         $streakBonus = 0;
         $streakMessage = null;
 
-        // حساب النقاط الفعلية بناءً على الدرجة:
-        //  - الدرجة معروفة (تصحيح آلي) → النقاط = (درجة% × نقاط النشاط)
-        //  - الدرجة null (مراجعة يدوية) → 0 نقطة الآن، تُمنح بعد التصحيح من المعلم
-        // (لا يُسمح بمنح نقاط بدون تقييم حقيقي حتى لا يحصل الطالب على نقاط مقابل إجابة خاطئة)
-        if ($score !== null) {
-            $xp = (int) round(($score / 100) * $activityPoints);
-        } else {
-            $xp = 0;
-        }
+        // النقاط الفعلية بناءً على الدرجة (درجة% × نقاط النشاط)؛ null (مراجعة يدوية) → 0 الآن.
+        $xp = $score !== null ? (int) round(($score / 100) * $activityPoints) : 0;
+
+        // #13: منح المكافأة على «أفضل محاولة» مرّة واحدة — نمنح فقط الفرق التصاعديّ عن awarded_points
+        // المُسجَّل على التسليم، فلا تُضاعَف النقاط/العملات بإعادة نشاطٍ ناجح (completed retry) ولا
+        // يخسر الطالب أفضل نتيجة إن تراجع. المراجعة اليدويّة (score=null) لا تُمنح الآن — تُمنح عند
+        // تصحيح المعلّم. العملات تُشتقّ من XP فتتبعه بلا استغلال (كانت max(1,⌊0/2⌋)=1 على كل إعادة).
+        $xpDelta = 0;
+        $coinDelta = 0;
 
         try {
-            // Add XP
-            try {
-                Point::create([
-                    'user_id' => $student->id,
-                    'points' => $xp,
-                    'reason' => 'إكمال نشاط: ' . $activity->title,
-                    'activity_id' => $activity->id,
-                ]);
-            } catch (\Throwable $e) {
-                Log::error('Point creation failed: ' . $e->getMessage());
+            if ($score !== null && ! empty($submissionResult['submission'])) {
+                // قفل صفّيّ ذرّيّ: نحسب الفرق مقابل أفضل XP سابق ونُحدّثه (ضدّ سباق تسليمين)
+                [$xpDelta, $coinDelta] = \Illuminate\Support\Facades\DB::transaction(function () use ($submissionResult, $xp) {
+                    $sub = ActivitySubmission::lockForUpdate()->find($submissionResult['submission']->id);
+                    if (! $sub) {
+                        return [0, 0];
+                    }
+                    $priorXp = (int) ($sub->awarded_points ?? 0);
+                    $priorCoins = $priorXp > 0 ? max(1, (int) floor($priorXp / 2)) : 0;
+                    $curCoins = $xp > 0 ? max(1, (int) floor($xp / 2)) : 0;
+                    if ($xp > $priorXp) {
+                        $sub->update(['awarded_points' => $xp]); // أفضل XP حتى الآن
+                    }
+
+                    return [max(0, $xp - $priorXp), max(0, $curCoins - $priorCoins)];
+                }, 3);
             }
 
-            // مجموع نقاط الطالب يُحسب ديناميكياً من جدول points عبر علاقة hasMany — لا حاجة لعمود مكرر
-
-            // توزيع النقاط
-            try {
-                $this->distributePoints($student, $xp, 'activity_completion', $activity->title);
-            } catch (\Throwable $e) {
-                Log::error('Distribute points failed: ' . $e->getMessage());
-            }
-
-            // Add coins — فقط عند وجود درجة فعليّة (تصحيح آليّ). المراجعة اليدويّة (score=null)
-            // لا تمنح عملات الآن — تُمنح عند تصحيح المعلّم (AwardService)، موافقةً لنيّة «0 مكافأة
-            // حتى التصحيح». وإلا لأمكن حصد عملة (max(1,⌊0/2⌋)=1) بكلّ إعادة تسليم pending (استغلال #13).
-            if ($score !== null) {
+            // Add XP (الفرق التصاعديّ فقط)
+            if ($xpDelta > 0) {
                 try {
-                    $scoreText = ' | الدرجة: ' . $score . '% | ' . $xp . '/' . $activityPoints . ' نقطة';
+                    Point::create([
+                        'user_id' => $student->id,
+                        'points' => $xpDelta,
+                        'reason' => 'إكمال نشاط: ' . $activity->title,
+                        'activity_id' => $activity->id,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('Point creation failed: ' . $e->getMessage());
+                }
+
+                try {
+                    $this->distributePoints($student, $xpDelta, 'activity_completion', $activity->title);
+                } catch (\Throwable $e) {
+                    Log::error('Distribute points failed: ' . $e->getMessage());
+                }
+            }
+
+            // Add coins (الفرق التصاعديّ فقط)
+            if ($coinDelta > 0) {
+                try {
                     Coin::create([
                         'user_id' => $student->id,
-                        'coins' => max(1, (int) floor($xp / 2)),
-                        'reason' => 'إكمال نشاط: ' . $activity->title . $scoreText,
+                        'coins' => $coinDelta,
+                        'reason' => 'إكمال نشاط: ' . $activity->title . ' | الدرجة: ' . $score . '%',
                         'transaction_type' => 'earn',
                     ]);
                 } catch (\Throwable $e) {

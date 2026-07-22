@@ -22,7 +22,7 @@ class ActivitySubmission extends Model
 
     protected $fillable = [
         'activity_id', 'student_id', 'answer', 'file_path',
-        'score', 'status', 'attempts', 'reviewed_by', 'feedback',
+        'score', 'awarded_points', 'status', 'attempts', 'reviewed_by', 'feedback',
         'submitted_at', 'reviewed_at',
         'parent_approval_status', 'parent_approved_by', 'parent_approved_at',
     ];

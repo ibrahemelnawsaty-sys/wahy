@@ -290,16 +290,30 @@ class StudentApiController extends Controller
             'file' => 'sometimes|file|max:10240', // 10MB
         ]);
 
-        // Check if already submitted
+        // #13 توحيد مع الويب: احترام حدّ المحاولات ومنع إعادة فتح تسليمٍ نهائيّ. الجوّال لا يُصحّح
+        // آليًّا (يضبط pending دائمًا)، فنقصر الإعادة على الحالات غير المُصحَّحة/غير النهائيّة
+        // (pending/needs_review/rejected) — لا نُعيد فتح completed (ناجح، سنُنزله بلا تصحيح) ولا
+        // approved (معتمَد نهائيًّا). كان يحجب completed فقط ويتجاهل max_attempts (التفاف على الميزة).
+        $maxAttempts = max(1, (int) ($activity->max_attempts ?? 1));
+
         $existing = ActivitySubmission::where('activity_id', $id)
             ->where('student_id', $user->id)
             ->first();
 
-        if ($existing && $existing->status === 'completed') {
-            return response()->json([
-                'success' => false,
-                'message' => 'لقد قمت بتقديم هذا النشاط مسبقاً',
-            ], 400);
+        if ($existing) {
+            $resubmittable = in_array($existing->status, ['needs_review', 'rejected', 'pending'], true);
+            if (! $resubmittable) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يمكن إعادة تسليم هذا النشاط',
+                ], 400);
+            }
+            if ((int) ($existing->attempts ?? 1) >= $maxAttempts) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'استنفدت عدد محاولاتك لهذا النشاط (' . $maxAttempts . ').',
+                ], 400);
+            }
         }
 
         $data = [
@@ -308,6 +322,7 @@ class StudentApiController extends Controller
             // العمود الفعلي 'answer' (مفرد، نصّي) — نُرمّزه JSON بنفس اصطلاح الويب
             'answer' => json_encode($request->answers, JSON_UNESCAPED_UNICODE),
             'status' => 'pending',
+            'submitted_at' => now(),
         ];
 
         if ($request->hasFile('file')) {
@@ -316,9 +331,11 @@ class StudentApiController extends Controller
         }
 
         if ($existing) {
+            $data['attempts'] = (int) ($existing->attempts ?? 1) + 1;
             $existing->update($data);
             $submission = $existing;
         } else {
+            $data['attempts'] = 1;
             $submission = ActivitySubmission::create($data);
         }
 
