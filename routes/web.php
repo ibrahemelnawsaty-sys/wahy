@@ -471,6 +471,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity-approvals', [SchoolAdminController::class, 'activityApprovals'])->name('activity-approvals');
         Route::post('/activity-approvals/{id}/approve', [SchoolAdminController::class, 'approveActivity'])->name('activity-approvals.approve');
         Route::post('/activity-approvals/{id}/reject', [SchoolAdminController::class, 'rejectActivity'])->name('activity-approvals.reject');
+        // صفحة تفاصيل النشاط الموحّدة (المرحلة 4)
+        Route::get('/activities/{id}', [SchoolAdminController::class, 'showActivity'])->whereNumber('id')->name('activities.show');
 
         // Excel Import/Export
         Route::get('/excel-management', [SchoolAdminController::class, 'excelManagement'])->name('excel-management');
@@ -657,6 +659,8 @@ Route::middleware('auth')->group(function () {
         // الأنشطة العائلية
         Route::get('/family-activities/pending', [ParentController::class, 'pendingFamilyActivities'])->name('family-activities.pending');
         Route::post('/family-activities/{id}/approve', [ParentController::class, 'approveFamilyActivity'])->name('family-activities.approve');
+        // ميزة #23: موافقة الوليّ على نشاط عاديّ يتطلّب موافقته (قبل انتقاله للمعلّم)
+        Route::post('/family-activities/parent-approval/{id}/approve', [ParentController::class, 'approveParentActivity'])->name('family-activities.parent-approve');
     });
 
     // ==================== تذاكر الدعم الفنيّ (نهاية المستخدم — كل الأدوار) ====================

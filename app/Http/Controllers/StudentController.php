@@ -924,6 +924,9 @@ class StudentController extends Controller
             //    وقابل لإعادة المحاولة ضمن max_attempts، وليس ضمن طابور مراجعة المعلم (pending).
             $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
 
+            // ميزة #23: نشاط يتطلّب موافقة وليّ الأمر — لا يدخل طابور المعلّم إلا بعد موافقته.
+            $parentApprovalStatus = $activity->requires_parent_approval ? 'pending' : null;
+
             // تخزين مسار الملف ضمن الإجابة كـ JSON إن وجد
             $answerToStore = is_array($rawAnswer) ? json_encode($rawAnswer, JSON_UNESCAPED_UNICODE) : $rawAnswer;
             if ($uploadedPath) {
@@ -938,7 +941,7 @@ class StudentController extends Controller
             // تنفيذ ذرّي: فحص duplicate تحت قفل + إنشاء submission
             // يسمح بإعادة الإرسال إذا كان السابق needs_revision/rejected (لكن ليس completed/approved/pending)
             try {
-                $submissionResult = \Illuminate\Support\Facades\DB::transaction(function () use ($student, $id, $answerToStore, $status, $score, $maxAttempts) {
+                $submissionResult = \Illuminate\Support\Facades\DB::transaction(function () use ($student, $id, $answerToStore, $status, $score, $maxAttempts, $parentApprovalStatus) {
                     // فحص duplicate تحت قفل صفّي — يمنع double-submit race
                     $existing = ActivitySubmission::where('student_id', $student->id)
                         ->where('activity_id', $id)
@@ -958,6 +961,10 @@ class StudentController extends Controller
                                 'attempts' => $attemptsUsed + 1,
                                 'submitted_at' => now(),
                                 'feedback' => null,
+                                // إعادة إرسال نشاطٍ يتطلّب موافقة الوليّ ⇒ يحتاج موافقة جديدة
+                                'parent_approval_status' => $parentApprovalStatus,
+                                'parent_approved_by' => null,
+                                'parent_approved_at' => null,
                             ]);
 
                             return ['duplicate' => false, 'submission' => $existing, 'exhausted' => false];
@@ -980,6 +987,7 @@ class StudentController extends Controller
                         'score' => $score,
                         'attempts' => 1,
                         'submitted_at' => now(),
+                        'parent_approval_status' => $parentApprovalStatus,
                     ]);
 
                     return ['duplicate' => false, 'submission' => $submission, 'exhausted' => false];

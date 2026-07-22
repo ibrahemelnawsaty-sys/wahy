@@ -63,6 +63,7 @@ class ActivityManagementController extends Controller
             'points' => 'nullable|integer|min:0',
             'passing_score' => 'nullable|integer|min:0|max:100',
             'manual_review' => 'nullable|boolean',
+            'requires_parent_approval' => 'nullable|boolean',
             'order' => 'nullable|integer|min:0',
             'status' => 'required|in:active,inactive,draft',
 
@@ -83,6 +84,7 @@ class ActivityManagementController extends Controller
 
         // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
         $validated['manual_review'] = $request->boolean('manual_review');
+        $validated['requires_parent_approval'] = $request->boolean('requires_parent_approval');
 
         // Parse questions JSON
         if ($request->filled('questions')) {
@@ -129,6 +131,7 @@ class ActivityManagementController extends Controller
             'points' => 'nullable|integer|min:0',
             'passing_score' => 'nullable|integer|min:0|max:100',
             'manual_review' => 'nullable|boolean',
+            'requires_parent_approval' => 'nullable|boolean',
             'order' => 'nullable|integer|min:0',
             'status' => 'required|in:active,inactive,draft',
 
@@ -144,6 +147,7 @@ class ActivityManagementController extends Controller
 
         // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
         $validated['manual_review'] = $request->boolean('manual_review');
+        $validated['requires_parent_approval'] = $request->boolean('requires_parent_approval');
 
         // Parse questions JSON
         if ($request->filled('questions')) {

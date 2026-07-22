@@ -487,7 +487,57 @@ class ParentController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('parent.family-activities.pending', compact('submissions'));
+        // ميزة #23: تسليمات أنشطة عاديّة تتطلّب موافقة الوليّ (لأبنائه، بانتظار موافقته)
+        $childrenIds = Auth::user()->children()->pluck('users.id');
+        $parentApprovalSubmissions = \App\Models\ActivitySubmission::whereIn('student_id', $childrenIds)
+            ->where('parent_approval_status', 'pending')
+            ->with(['activity', 'student'])
+            ->latest('submitted_at')
+            ->get();
+        $parentApprovalPoints = max(0, (int) setting('parent_approval_points', 5));
+
+        return view('parent.family-activities.pending', compact('submissions', 'parentApprovalSubmissions', 'parentApprovalPoints'));
+    }
+
+    /**
+     * ميزة #23: موافقة وليّ الأمر على نشاط ابنه — يدخل بعدها طابور المعلّم، ويأخذ الوليّ نقاطاً.
+     */
+    public function approveParentActivity(Request $request, $submissionId)
+    {
+        try {
+            return \DB::transaction(function () use ($submissionId) {
+                $submission = \App\Models\ActivitySubmission::lockForUpdate()->findOrFail($submissionId);
+
+                // منع IDOR: الطالب يجب أن يكون من أبناء هذا الوليّ
+                $isChild = Auth::user()->children()->where('users.id', $submission->student_id)->exists();
+                if (! $isChild) {
+                    return back()->with('error', 'غير مصرح لك بمعالجة هذا النشاط');
+                }
+
+                // idempotency: عولج مسبقاً (وافق أو لا يتطلّب موافقة)
+                if (($submission->parent_approval_status ?? null) !== 'pending') {
+                    return back()->with('info', 'تمت معالجة هذا النشاط مسبقاً');
+                }
+
+                $submission->update([
+                    'parent_approval_status' => 'approved',
+                    'parent_approved_by' => Auth::id(),
+                    'parent_approved_at' => now(),
+                ]);
+
+                // نقاط وليّ الأمر (مقدار قابل للضبط) — مثبّتة على معرّف التسليم فلا تتضاعف
+                $points = max(0, (int) setting('parent_approval_points', 5));
+                if ($points > 0) {
+                    $this->givePointsOnce(Auth::id(), $points, 'الموافقة على نشاط الابن', 'parent_activity_approval', $submission->id);
+                }
+
+                return back()->with('success', "تمت الموافقة! انتقل النشاط إلى المعلّم، وحصلت على {$points} نقطة.");
+            }, 3);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('approveParentActivity failed', ['error' => $e->getMessage()]);
+
+            return back()->with('error', 'حدث خطأ أثناء معالجة الموافقة');
+        }
     }
 
     public function approveFamilyActivity(Request $request, $submissionId)

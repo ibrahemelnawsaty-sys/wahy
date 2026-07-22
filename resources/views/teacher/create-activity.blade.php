@@ -377,6 +377,14 @@
                 <div style="font-size:13px;color:#a16207;margin-top:4px;">عند تفعيله لا يُصحَّح النشاط آلياً — يذهب تسليم الطالب للمعلم لاعتماد الدرجة</div>
             </div>
         </label>
+
+        <label style="display:flex;align-items:center;gap:15px;padding:20px;background:linear-gradient(135deg,#e0e7ff 0%,#c7d2fe 100%);border-radius:16px;margin-top:16px;cursor:pointer;">
+            <input type="checkbox" name="requires_parent_approval" value="1" {{ old('requires_parent_approval') ? 'checked' : '' }} style="width:22px;height:22px;cursor:pointer;accent-color:#6366f1;flex-shrink:0;">
+            <div>
+                <div style="font-weight:700;color:#3730a3;font-size:16px;">👪 يتطلب اطّلاع وموافقة وليّ الأمر</div>
+                <div style="font-size:13px;color:#4338ca;margin-top:4px;">عند تفعيله لا ينتقل تسليم الطالب للمعلّم إلا بعد موافقة وليّ الأمر (ويأخذ الوليّ نقاطاً على موافقته)</div>
+            </div>
+        </label>
     </div>
 
     <!-- قسم بناء الصور (لنشاط ترتيب الصور) -->

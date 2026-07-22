@@ -24,6 +24,53 @@
         </div>
     @endif
 
+    {{-- ميزة #23: أنشطة عاديّة تتطلّب موافقة الوليّ قبل انتقالها للمعلّم --}}
+    @if(isset($parentApprovalSubmissions) && $parentApprovalSubmissions->count() > 0)
+        <div class="mb-3">
+            <h4 class="mb-1"><i class="fas fa-user-check text-primary me-2"></i>أنشطة تنتظر موافقتك</h4>
+            <p class="text-muted small mb-0">وافق على نشاط ابنك ليُرسَل إلى المعلّم — وتحصل على <strong>{{ $parentApprovalPoints ?? 5 }} نقطة</strong> على كل موافقة.</p>
+        </div>
+        <div class="row g-4 mb-5">
+            @foreach($parentApprovalSubmissions as $pa)
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-primary bg-opacity-10 border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-hourglass-half text-primary me-2"></i>بانتظار موافقتك</h5>
+                                <span class="badge bg-primary">+{{ $parentApprovalPoints ?? 5 }} نقطة لك</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width:50px;height:50px;">
+                                    {{ mb_substr($pa->student->name ?? '?', 0, 1, "UTF-8") }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ $pa->student->name ?? '-' }}</h6>
+                                    <small class="text-muted">الطالب</small>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-primary mb-2"><i class="fas fa-tasks me-2"></i>{{ $pa->activity?->title ?? 'نشاط' }}</h6>
+                                <p class="text-muted small mb-0">{{ html_excerpt($pa->activity?->description ?? '', 160) }}</p>
+                            </div>
+                            <div class="text-muted small mb-3">
+                                <i class="far fa-clock me-1"></i>
+                                تم التسليم: {{ optional($pa->submitted_at ?? $pa->created_at)->diffForHumans() }}
+                            </div>
+                            <form action="{{ route('parent.family-activities.parent-approve', $pa->id) }}" method="POST" onsubmit="return confirm('الموافقة على هذا النشاط وإرساله للمعلّم؟');">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-check me-2"></i>موافقة وإرسال للمعلّم
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     <!-- Submissions -->
     @if($submissions->count() > 0)
         <div class="row g-4">
@@ -219,12 +266,12 @@
         <div class="mt-4">
             {{ $submissions->links() }}
         </div>
-    @else
+    @elseif(! isset($parentApprovalSubmissions) || $parentApprovalSubmissions->count() === 0)
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center py-5">
                 <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
                 <h5>لا توجد أنشطة معلقة</h5>
-                <p class="text-muted mb-0">جميع الأنشطة العائلية تمت مراجعتها</p>
+                <p class="text-muted mb-0">لا توجد أنشطة تنتظر موافقتك حالياً</p>
             </div>
         </div>
     @endif

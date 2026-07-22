@@ -411,6 +411,16 @@
                 </label>
             </div>
 
+            <div class="form-group full-width">
+                <label style="display:flex;align-items:center;gap:12px;padding:16px;background:#eef2ff;border:2px solid #6366f1;border-radius:10px;cursor:pointer;">
+                    <input type="checkbox" name="requires_parent_approval" value="1" {{ old('requires_parent_approval', $activity->requires_parent_approval ?? false) ? 'checked' : '' }} style="width:20px;height:20px;cursor:pointer;accent-color:#6366f1;">
+                    <span>
+                        <span style="font-weight:700;color:#3730a3;">👪 يتطلب اطّلاع وموافقة وليّ الأمر</span>
+                        <small style="display:block;color:#4338ca;font-size:13px;margin-top:2px;">عند تفعيله لا ينتقل التسليم للمعلّم إلا بعد موافقة وليّ الأمر (ويأخذ الوليّ نقاطاً على موافقته)</small>
+                    </span>
+                </label>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">الترتيب</label>
                 <input type="number" name="order" class="form-input" value="{{ old('order', $activity->order) }}" min="0">

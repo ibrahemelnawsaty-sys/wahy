@@ -270,6 +270,18 @@
                             </div>
                             <small class="d-block" style="color:#a16207;margin-top:6px;">عند تفعيله لا يُصحَّح النشاط آلياً — يذهب تسليم الطالب للمعلم لاعتماد الدرجة</small>
                         </div>
+
+                        <div class="mb-1" style="padding:14px;background:#eef2ff;border:2px solid #6366f1;border-radius:12px;margin-top:12px;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="requires_parent_approval" id="requiresParentApproval" value="1"
+                                       style="accent-color:#6366f1;"
+                                       {{ old('requires_parent_approval', $activity->requires_parent_approval ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="requiresParentApproval" style="font-weight:700;color:#3730a3;">
+                                    👪 يتطلب اطّلاع وموافقة وليّ الأمر
+                                </label>
+                            </div>
+                            <small class="d-block" style="color:#4338ca;margin-top:6px;">عند تفعيله لا ينتقل التسليم للمعلّم إلا بعد موافقة وليّ الأمر (ويأخذ الوليّ نقاطاً على موافقته)</small>
+                        </div>
                     </div>
                 </div>
 

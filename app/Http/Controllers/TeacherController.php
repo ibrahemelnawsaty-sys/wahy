@@ -62,7 +62,7 @@ class TeacherController extends Controller
 
             // الأنشطة التي تحتاج مراجعة لهذا الفصل (تصحيح يدوي + فشل تصحيح آلي)
             $classroom->pending_count = ActivitySubmission::whereIn('student_id', $classroomStudentIds)
-                ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)
+                ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->parentCleared()
                 ->count();
 
             // الأنشطة المكتملة لهذا الفصل — عدد أزواج (طالب × نشاط) لا DISTINCT
@@ -81,7 +81,7 @@ class TeacherController extends Controller
 
         // الأنشطة المعلقة (تحتاج مراجعة) - مع تحديد الحقول
         $pendingSubmissions = ActivitySubmission::whereIn('student_id', $studentIds)
-            ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)
+            ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->parentCleared()
             ->with(['student:id,name,avatar', 'activity:id,title'])
             ->select(['id', 'student_id', 'activity_id', 'submitted_at', 'status'])
             ->latest()
@@ -93,7 +93,7 @@ class TeacherController extends Controller
             'total_classrooms' => $classrooms->count(),
             'total_students' => count($studentIds),
             'pending_submissions' => ActivitySubmission::whereIn('student_id', $studentIds)
-                ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->count(),
+                ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->parentCleared()->count(),
             'reviewed_today' => ActivitySubmission::whereIn('student_id', $studentIds)
                 ->where('reviewed_by', $user->id)
                 ->whereDate('reviewed_at', today())
@@ -134,7 +134,7 @@ class TeacherController extends Controller
         // pending = بانتظار تصحيح يدوي (رفع/مقالي)، needs_review = لم يجتَز التصحيح الآلي
         // (إجابة خاطئة) — كلاهما يظهر للمعلم ليصحّح أو يسمح بإعادة المحاولة.
         $submissions = ActivitySubmission::whereIn('student_id', $studentIds)
-            ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)
+            ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->parentCleared()
             ->with(['student', 'activity.lesson.concept.value'])
             ->latest('submitted_at')
             ->paginate(20);
@@ -716,6 +716,7 @@ class TeacherController extends Controller
             'points' => 'required|integer|min:1|max:100',
             'passing_score' => 'nullable|integer|min:0|max:100',
             'manual_review' => 'nullable|boolean',
+            'requires_parent_approval' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,draft',
             'order' => 'nullable|integer|min:0',
             'quiz_duration' => 'nullable|integer|min:1',
@@ -735,6 +736,7 @@ class TeacherController extends Controller
 
         // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
         $validated['manual_review'] = $request->boolean('manual_review');
+        $validated['requires_parent_approval'] = $request->boolean('requires_parent_approval');
 
         // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR / تسرب بين المدارس)
         if (! empty($validated['classroom_id'])) {
@@ -839,6 +841,7 @@ class TeacherController extends Controller
             'points' => 'required|integer|min:1|max:100',
             'passing_score' => 'nullable|integer|min:0|max:100',
             'manual_review' => 'nullable|boolean',
+            'requires_parent_approval' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,draft',
             'order' => 'nullable|integer|min:0',
             'quiz_duration' => 'nullable|integer|min:1',
@@ -852,6 +855,7 @@ class TeacherController extends Controller
 
         // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
         $validated['manual_review'] = $request->boolean('manual_review');
+        $validated['requires_parent_approval'] = $request->boolean('requires_parent_approval');
 
         // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR)
         if (! empty($validated['classroom_id'])) {
@@ -1726,6 +1730,7 @@ class TeacherController extends Controller
             'is_creative' => 'boolean',
             'passing_score' => 'nullable|integer|min:0|max:100',
             'manual_review' => 'nullable|boolean',
+            'requires_parent_approval' => 'nullable|boolean',
             'order' => 'nullable|integer|min:0',
             'quiz_duration' => 'nullable|integer|min:1',
             'max_attempts' => 'nullable|integer|min:1',
@@ -1743,6 +1748,7 @@ class TeacherController extends Controller
 
         // مفتاح "يتطلب موافقة/تصحيح المعلم يدوياً" (checkbox غير المُرسل = false)
         $validated['manual_review'] = $request->boolean('manual_review');
+        $validated['requires_parent_approval'] = $request->boolean('requires_parent_approval');
 
         // منع إسناد النشاط لفصل لا يدرّسه المعلم (IDOR / تسرب بين المدارس)
         if (! empty($validated['classroom_id'])) {

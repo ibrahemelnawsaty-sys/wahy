@@ -50,6 +50,7 @@ class Activity extends Model
         'points',
         'passing_score',
         'manual_review',
+        'requires_parent_approval',
         'duration_minutes',
         'quiz_duration',
         'max_attempts',
@@ -81,6 +82,7 @@ class Activity extends Model
         'is_activity_bank' => 'boolean',
         'is_featured' => 'boolean',
         'manual_review' => 'boolean',
+        'requires_parent_approval' => 'boolean',
         'bonus_points' => 'integer',
         'allow_team_formation' => 'boolean',
     ];

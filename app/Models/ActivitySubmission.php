@@ -24,12 +24,34 @@ class ActivitySubmission extends Model
         'activity_id', 'student_id', 'answer', 'file_path',
         'score', 'status', 'attempts', 'reviewed_by', 'feedback',
         'submitted_at', 'reviewed_at',
+        'parent_approval_status', 'parent_approved_by', 'parent_approved_at',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
+        'parent_approved_at' => 'datetime',
     ];
+
+    /**
+     * تسليمات اجتازت موافقة وليّ الأمر (أو لا تتطلّبها) — أي المؤهّلة لطابور المعلّم.
+     * تسليم بانتظار موافقة الوليّ (parent_approval_status='pending') يُستبعَد من المعلّم.
+     */
+    public function scopeParentCleared($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('parent_approval_status')
+                ->orWhere('parent_approval_status', 'approved');
+        });
+    }
+
+    /**
+     * وليّ الأمر الذي وافق على التسليم (ميزة #23).
+     */
+    public function approvingParent()
+    {
+        return $this->belongsTo(User::class, 'parent_approved_by');
+    }
 
     /**
      * Defense-in-depth: prevent students from tampering with score/status/feedback
