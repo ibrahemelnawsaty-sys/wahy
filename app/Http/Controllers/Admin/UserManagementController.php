@@ -220,7 +220,19 @@ class UserManagementController extends Controller
     public function toggleStatus(User $user)
     {
         $newStatus = $user->status === 'active' ? 'inactive' : 'active';
-        $user->update(['status' => $newStatus]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $newStatus) {
+            $user->update(['status' => $newStatus]);
+
+            // مدير مدرسة: زامِن حالة المدرسة التي أنشأها عند التسجيل مع حالة حسابه — فتُفعَّل
+            // المدرسة تلقائياً مع تفعيله (وتُعطَّل مع تعطيله). نقيّدها بـcreated_by كي لا نمسّ
+            // مدرسةً قائمة أُسنِد إليها لاحقاً (لا يملكها) بل فقط المدرسة التي أنشأها بنفسه.
+            if ($user->role === 'school_admin' && $user->school_id) {
+                School::where('id', $user->school_id)
+                    ->where('created_by', $user->id)
+                    ->update(['status' => $newStatus]);
+            }
+        });
 
         return back()->with('success', 'تم تغيير حالة المستخدم! ✅');
     }
