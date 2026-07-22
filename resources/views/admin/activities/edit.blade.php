@@ -804,7 +804,7 @@ function uploadQuestionImage(input, index) {
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
     })
     .then(function (r) { if (!r.ok) throw new Error('فشل رفع الصورة'); return r.json(); })
-    .then(function (d) { questions[index].media_url = d.url; renderQuestions(); })
+    .then(function (d) { questions[index].media_url = d.url ? new URL(d.url, window.location.origin).href : ''; renderQuestions(); })
     .catch(function (e) { alert('حدث خطأ أثناء الرفع: ' + e.message); });
 }
 

@@ -230,7 +230,8 @@
                 const placeholder = document.getElementById(placeholderId);
                 if (data.success && data.url) {
                     if (placeholder) {
-                        placeholder.src = data.url;
+                        // رابط مطلق: كي يُخزَّن المحتوى بـsrc http(s) يعمل في كل مكان (لا نسبيّ)
+                        placeholder.src = new URL(data.url, window.location.origin).href;
                         placeholder.style.opacity = '1';
                         placeholder.removeAttribute('alt');
                         const ed = placeholder.closest('[data-rich-editor]');

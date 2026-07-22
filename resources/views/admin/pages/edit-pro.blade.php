@@ -1961,7 +1961,7 @@ async function handleImageUpload(event) {
         const data = await response.json();
         
         if (data.success) {
-            document.getElementById('edit_url').value = data.url;
+            document.getElementById('edit_url').value = data.url ? new URL(data.url, window.location.origin).href : '';
             document.getElementById('uploadPreview').innerHTML = `
                 <img src="${data.url}" style="max-width: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <p style="color: #10b981; margin-top: 8px;">✓ تم الرفع بنجاح</p>
@@ -2003,7 +2003,7 @@ async function handleVideoUpload(event) {
         const data = await response.json();
         
         if (data.success) {
-            document.getElementById('edit_url').value = data.url;
+            document.getElementById('edit_url').value = data.url ? new URL(data.url, window.location.origin).href : '';
             document.getElementById('videoUploadPreview').innerHTML = `
                 <video src="${data.url}" controls style="max-width: 300px; border-radius: 8px;"></video>
                 <p style="color: #10b981; margin-top: 8px;">✓ تم الرفع بنجاح</p>
@@ -2038,7 +2038,7 @@ async function handleIconUpload(event) {
         const data = await response.json();
         
         if (data.success) {
-            document.getElementById('edit_icon').value = data.url;
+            document.getElementById('edit_icon').value = data.url ? new URL(data.url, window.location.origin).href : '';
             document.getElementById('iconUploadPreview').innerHTML = `
                 <img src="${data.url}" style="max-width: 100px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <p style="color: #10b981; margin-top: 8px;">✓ تم الرفع بنجاح</p>

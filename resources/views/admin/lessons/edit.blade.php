@@ -762,9 +762,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await res.json();
             if (data.url) {
-                document.getElementById('rteImageUrl').value = data.url;
+                // رابط مطلق: حقل type=url يرفض النسبيّ، ونحتاجه http(s) للعرض في كل مكان
+                const absUrl = new URL(data.url, window.location.origin).href;
+                document.getElementById('rteImageUrl').value = absUrl;
                 const preview = document.getElementById('rteImagePreviewImg');
-                preview.src = data.url;
+                preview.src = absUrl;
                 document.getElementById('rteImagePreviewBox').style.display = 'block';
                 statusEl.style.color = '#16a34a';
                 statusEl.textContent = '✓ تم الرفع — اضغط "إدراج" لإضافة الصورة للدرس';
