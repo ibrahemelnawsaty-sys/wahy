@@ -332,7 +332,7 @@
                         <div class="form-group">
                             <label class="form-label">عدد المحاولات المسموحة</label>
                             <input type="number" name="max_attempts" class="form-input" value="{{ old('max_attempts', 3) }}" min="1" placeholder="3">
-                            <small style="color: #64748b; font-size: 13px;">اترك فارغاً لمحاولات غير محدودة</small>
+                            <small style="color: #64748b; font-size: 13px;">عدد مرّات محاولة الطالب لهذا النشاط (الافتراضي 3).</small>
                         </div>
                     </div>
                 </div>

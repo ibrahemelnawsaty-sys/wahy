@@ -573,8 +573,14 @@
         </div>
         <div class="activity-title-header">{{ $activity->title ?? 'نشاط تعليمي' }}</div>
         @php
+            // #13 عدد المحاولات: يُسمح بإعادة الإرسال ما دامت المحاولات متبقية والحالة قابلة للإعادة
+            // (needs_review/rejected/pending — لا completed/approved). يُحسب مرّة ويُعاد استخدامه أدناه
+            // كي يتّسق إظهار النموذج مع منطق المتحكّم (كان يُخفى نموذج pending رغم توفّر المحاولات).
+            $allowResubmit = isset($submission) && $submission
+                && in_array($submission->status ?? '', ['needs_review', 'rejected', 'pending'], true)
+                && (int) ($submission->attempts ?? 1) < max(1, (int) ($activity->max_attempts ?? 1));
             $__timedQuiz = ($activity->quiz_duration ?? null) && $activity->type === 'quiz'
-                && ! (isset($submission) && $submission && ! in_array($submission->status ?? '', ['needs_review', 'rejected'], true));
+                && ! (isset($submission) && $submission && ! $allowResubmit);
         @endphp
         @if($__timedQuiz)
         <div id="quizTimer" data-duration="{{ (int) $activity->quiz_duration }}"
@@ -621,9 +627,7 @@
             <span class="activity-type-badge">{{ $typeIcon }} {{ $typeName }}</span>
         </div>
 
-        @php
-            $allowResubmit = isset($submission) && $submission && in_array($submission->status, ['needs_review', 'rejected'], true);
-        @endphp
+        {{-- $allowResubmit مُحتسَب أعلاه (يشمل pending + فحص المحاولات المتبقية) --}}
         @if(isset($submission) && $submission && !$allowResubmit)
         {{-- حالة النشاط المكتمل --}}
         <div style="text-align: center; padding: 30px 20px;">

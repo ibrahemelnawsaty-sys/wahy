@@ -910,7 +910,11 @@ class StudentController extends Controller
             }
 
             // تنفيذ ذرّي: فحص duplicate تحت قفل + إنشاء submission
-            // يسمح بإعادة الإرسال إذا كان السابق needs_revision/rejected (لكن ليس completed/approved/pending)
+            // #13 عدد المحاولات: يُسمح بإعادة الإرسال ما دامت المحاولات متبقية والنشاط لم يُعتمَد
+            // نهائيًّا من المعلّم (approved). تشمل الإعادة: needs_review/rejected/**pending** — إضافة
+            // pending تُصلح «لا يمكنه التقديم على محاولة ثانية» لأنشطة المراجعة اليدويّة (score=null
+            // فالإعادة تمنح 0 XP → لا استغلال). نستثني completed (منح XP على كل تسليم = استغلال
+            // مضاعفة النقاط) وapproved (نهائيّ من المعلّم).
             try {
                 $submissionResult = \Illuminate\Support\Facades\DB::transaction(function () use ($student, $id, $answerToStore, $status, $score, $maxAttempts, $parentApprovalStatus) {
                     // فحص duplicate تحت قفل صفّي — يمنع double-submit race
@@ -921,7 +925,7 @@ class StudentController extends Controller
 
                     if ($existing) {
                         $attemptsUsed = (int) ($existing->attempts ?? 1);
-                        $resubmittable = in_array($existing->status, ['needs_review', 'rejected'], true);
+                        $resubmittable = in_array($existing->status, ['needs_review', 'rejected', 'pending'], true);
 
                         // إعادة المحاولة مسموحة إن لم يُعتمد بعد ولم تُستنفد المحاولات
                         if ($resubmittable && $attemptsUsed < $maxAttempts) {
@@ -946,7 +950,7 @@ class StudentController extends Controller
                             return ['duplicate' => true, 'submission' => null, 'exhausted' => true];
                         }
 
-                        // مُعتمد/مكتمل/بانتظار مراجعة يدوية → لا إعادة إرسال
+                        // مُعتمد نهائيًّا (approved) أو مكتمل بنجاح (completed) → لا إعادة إرسال
                         return ['duplicate' => true, 'submission' => null, 'exhausted' => false];
                     }
 
@@ -1041,17 +1045,21 @@ class StudentController extends Controller
                 Log::error('Distribute points failed: ' . $e->getMessage());
             }
 
-            // Add coins
-            try {
-                $scoreText = $score !== null ? ' | الدرجة: ' . $score . '% | ' . $xp . '/' . $activityPoints . ' نقطة' : ' | ' . $xp . ' نقطة';
-                Coin::create([
-                    'user_id' => $student->id,
-                    'coins' => max(1, floor($xp / 2)),
-                    'reason' => 'إكمال نشاط: ' . $activity->title . $scoreText,
-                    'transaction_type' => 'earn',
-                ]);
-            } catch (\Throwable $e) {
-                Log::error('Coin creation failed: ' . $e->getMessage());
+            // Add coins — فقط عند وجود درجة فعليّة (تصحيح آليّ). المراجعة اليدويّة (score=null)
+            // لا تمنح عملات الآن — تُمنح عند تصحيح المعلّم (AwardService)، موافقةً لنيّة «0 مكافأة
+            // حتى التصحيح». وإلا لأمكن حصد عملة (max(1,⌊0/2⌋)=1) بكلّ إعادة تسليم pending (استغلال #13).
+            if ($score !== null) {
+                try {
+                    $scoreText = ' | الدرجة: ' . $score . '% | ' . $xp . '/' . $activityPoints . ' نقطة';
+                    Coin::create([
+                        'user_id' => $student->id,
+                        'coins' => max(1, (int) floor($xp / 2)),
+                        'reason' => 'إكمال نشاط: ' . $activity->title . $scoreText,
+                        'transaction_type' => 'earn',
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('Coin creation failed: ' . $e->getMessage());
+                }
             }
 
             // === نظام Streak الأنشطة (عام) ===

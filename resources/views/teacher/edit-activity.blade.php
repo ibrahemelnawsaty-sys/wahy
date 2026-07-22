@@ -157,6 +157,17 @@
                             </div>
                         </div>
 
+                        {{-- عدد المحاولات المسموحة (#13) — لكل الأنواع (مشاريع/رفع أيضًا)، لا الاختبارات فقط.
+                             كان الحقل غائبًا عن نموذج التعديل فلا يستطيع المعلّم تغيير العدد بعد الإنشاء. --}}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">عدد المحاولات المسموحة</label>
+                                <input type="number" name="max_attempts" class="form-control"
+                                       value="{{ old('max_attempts', $activity->max_attempts ?? 3) }}" min="1">
+                                <div class="form-text">عدد مرّات محاولة الطالب لهذا النشاط قبل استنفادها.</div>
+                            </div>
+                        </div>
+
                         {{-- Questions/Images Section --}}
                         <div id="questionsSection" style="display:{{ in_array($activity->type,['quiz','exercise','image_order'])?'block':'none' }};">
                             <hr>
