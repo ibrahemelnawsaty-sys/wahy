@@ -30,6 +30,8 @@
             <p style="margin-top: 5px;">{{ html_excerpt($activity->description) ?: 'لا يوجد وصف' }}</p>
         </div>
 
+        @include('activities.partials.media')
+
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;">
             <div style="background: #f9fafb; padding: 15px; border-radius: 10px;">
                 <div style="font-size: 12px; color: #6b7280;">النوع</div>

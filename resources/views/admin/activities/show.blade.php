@@ -290,6 +290,8 @@
     </div>
 </div>
 
+@include('activities.partials.media')
+
 @if($activity->questions && is_array($activity->questions) && count($activity->questions) > 0)
 <div class="questions-section">
     @php

@@ -761,9 +761,10 @@ class TeacherController extends Controller
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
 
-        // حفظ ملفّ «الوسائط المتعددة» المرفق (فيديو/صورة/صوت/مستند) في عمود attachment
-        if ($mediaPath = $this->storeUploadedActivityMedia($request)) {
-            $validated['attachment'] = $mediaPath;
+        // حفظ «الوسائط المتعددة» المرفوعة (فيديو/صوت/صورة/مستند) في عمود media
+        $media = $this->collectUploadedActivityMedia($request);
+        if (! empty($media)) {
+            $validated['media'] = $media;
         }
 
         // إنشاء النشاط
@@ -970,12 +971,22 @@ class TeacherController extends Controller
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
 
-        // استبدال ملفّ الوسائط المرفق إن رُفِع جديد (مع حذف القديم)
-        if ($mediaPath = $this->storeUploadedActivityMedia($request)) {
-            if ($activity->attachment && \Storage::disk('public')->exists($activity->attachment)) {
-                \Storage::disk('public')->delete($activity->attachment);
+        // الوسائط المتعددة: احذف المحدَّدة للحذف (remove_media[] = مؤشّرات) ثم أضِف المرفوعة الجديدة
+        $removeIdx = array_map('intval', (array) $request->input('remove_media', []));
+        $newMedia = $this->collectUploadedActivityMedia($request);
+        if ($removeIdx || $newMedia) {
+            $kept = [];
+            foreach (($activity->media ?? []) as $i => $item) {
+                if (in_array($i, $removeIdx, true)) {
+                    if (! empty($item['path']) && \Storage::disk('public')->exists($item['path'])) {
+                        \Storage::disk('public')->delete($item['path']);
+                    }
+
+                    continue;
+                }
+                $kept[] = $item;
             }
-            $validated['attachment'] = $mediaPath;
+            $validated['media'] = array_merge($kept, $newMedia);
         }
 
         // تحديث النشاط
@@ -1886,9 +1897,10 @@ class TeacherController extends Controller
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
 
-        // حفظ ملفّ «الوسائط المتعددة» المرفق (فيديو/صورة/صوت/مستند) في عمود attachment
-        if ($mediaPath = $this->storeUploadedActivityMedia($request)) {
-            $validated['attachment'] = $mediaPath;
+        // حفظ «الوسائط المتعددة» المرفوعة (فيديو/صوت/صورة/مستند) في عمود media
+        $media = $this->collectUploadedActivityMedia($request);
+        if (! empty($media)) {
+            $validated['media'] = $media;
         }
 
         // إنشاء النشاط
@@ -1904,28 +1916,64 @@ class TeacherController extends Controller
     }
 
     /**
-     * يخزّن ملفّ «الوسائط المتعددة» المرفوع مع النشاط (فيديو/صورة/صوت/مستند) في عمود attachment.
-     * العمود مفرد، فيؤخذ أوّل ملفّ مرفوع بالأولويّة (فيديو ثم صورة ثم صوت ثم مستند).
-     * يُرجِع مسار التخزين العامّ (activity-media/…) أو null إن لم يُرفَع شيء.
+     * يجمع كل ملفّات «الوسائط المتعددة» المرفوعة (فيديو/صوت/صورة/مستند) عبر مدخلات النموذج —
+     * يقبل المدخل المفرد أو المتعدّد (name="video" أو name="video[]") — ويخزّنها في القرص العامّ.
+     * يُرجِع مصفوفة [{type, path, name}]. مدخل attachment العامّ (نموذج التعديل) يُستنتَج نوعه.
      */
-    private function storeUploadedActivityMedia(Request $request): ?string
+    private function collectUploadedActivityMedia(Request $request): array
     {
-        $rules = [
-            'video' => 'file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-m4v|max:102400',
-            'image' => 'file|image|max:10240',
-            'audio' => 'file|mimetypes:audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/x-wav|max:20480',
-            'document' => 'file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:20480',
+        $specs = [
+            'video' => ['rule' => 'mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-m4v', 'max' => 102400, 'type' => 'video'],
+            'image' => ['rule' => 'image', 'max' => 10240, 'type' => 'image'],
+            'audio' => ['rule' => 'mimetypes:audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/x-wav', 'max' => 20480, 'type' => 'audio'],
+            'document' => ['rule' => 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx', 'max' => 20480, 'type' => 'document'],
+            // مدخل عامّ (نموذج التعديل name="attachment[]") — يُستنتَج النوع من الامتداد
+            'attachment' => ['rule' => 'mimes:mp4,mov,avi,webm,m4v,mp3,wav,ogg,m4a,aac,jpg,jpeg,png,gif,webp,pdf,doc,docx,ppt,pptx,xls,xlsx', 'max' => 102400, 'type' => null],
         ];
 
-        foreach ($rules as $field => $rule) {
-            if ($request->hasFile($field)) {
-                $request->validate([$field => $rule]);
+        $media = [];
+        foreach ($specs as $field => $spec) {
+            if (! $request->hasFile($field)) {
+                continue;
+            }
 
-                return $request->file($field)->store('activity-media', 'public');
+            $files = $request->file($field);
+            $isMulti = is_array($files);
+
+            // تحقّق يدعم المفرد والمتعدّد
+            $request->validate([
+                ($isMulti ? "{$field}.*" : $field) => "file|{$spec['rule']}|max:{$spec['max']}",
+            ]);
+
+            foreach (($isMulti ? $files : [$files]) as $file) {
+                $media[] = [
+                    'type' => $spec['type'] ?? $this->guessMediaType($file->getClientOriginalExtension()),
+                    'path' => $file->store('activity-media', 'public'),
+                    'name' => $file->getClientOriginalName(),
+                ];
             }
         }
 
-        return null;
+        return $media;
+    }
+
+    /**
+     * يستنتج نوع الوسيط من امتداد الملفّ (للمدخل العامّ attachment).
+     */
+    private function guessMediaType(string $ext): string
+    {
+        $ext = strtolower($ext);
+        if (in_array($ext, ['mp4', 'mov', 'avi', 'webm', 'm4v', 'ogv'], true)) {
+            return 'video';
+        }
+        if (in_array($ext, ['mp3', 'wav', 'ogg', 'm4a', 'aac'], true)) {
+            return 'audio';
+        }
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'], true)) {
+            return 'image';
+        }
+
+        return 'document';
     }
 
     /**

@@ -206,21 +206,36 @@
                         </div>
                         {{-- End Questions --}}
 
-                        {{-- Attachment --}}
-                        @if($activity->attachment)
-                            <div class="alert alert-info mt-3 mb-1">
-                                <i class="fas fa-paperclip me-2"></i>
-                                المرفق الحالي:
-                                <a href="{{ asset('storage/' . $activity->attachment) }}" target="_blank" class="alert-link">
-                                    {{ basename($activity->attachment) }}
-                                </a>
+                        {{-- الوسائط المتعددة --}}
+                        @php
+                            $__existingMedia = is_array($activity->media ?? null) ? $activity->media : [];
+                            if (empty($__existingMedia) && ! empty($activity->attachment)) {
+                                $__existingMedia = [['type' => null, 'path' => $activity->attachment, 'name' => basename($activity->attachment)]];
+                            }
+                        @endphp
+                        @if(! empty($__existingMedia))
+                            <div class="mb-2 mt-3">
+                                <label class="form-label">الوسائط الحالية (حدّد ما تريد حذفه):</label>
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    @foreach($__existingMedia as $__i => $__m)
+                                        @php $__p = $__m['path'] ?? ''; @endphp
+                                        <label style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+                                            <input type="checkbox" name="remove_media[]" value="{{ $__i }}">
+                                            <span>📎 {{ $__m['name'] ?? basename($__p) }}</span>
+                                            @if($__p)
+                                                <a href="{{ \Illuminate\Support\Str::startsWith($__p, ['http://','https://','/']) ? $__p : asset('storage/'.ltrim($__p,'/')) }}" target="_blank" style="margin-inline-start:auto; font-size:13px;">عرض</a>
+                                            @endif
+                                        </label>
+                                    @endforeach
+                                </div>
+                                <small class="text-muted">المحدَّدة ستُحذف عند الحفظ.</small>
                             </div>
                         @endif
                         <div class="mb-3 mt-2">
-                            <label class="form-label">مرفق جديد (اختياري)</label>
-                            <input type="file" name="attachment" class="form-control"
-                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                            <small class="text-muted">رفع ملف جديد سيستبدل المرفق الحالي</small>
+                            <label class="form-label">إضافة وسائط (اختياري) — فيديو/صوت/صورة/مستند</label>
+                            <input type="file" name="attachment[]" class="form-control" multiple
+                                   accept=".mp4,.mov,.webm,.m4v,.avi,.mp3,.wav,.ogg,.m4a,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp">
+                            <small class="text-muted">يمكن اختيار عدّة ملفّات (تُضاف للوسائط الحالية). الفيديو حتى 100MB.</small>
                         </div>
                     </div>
                 </div>

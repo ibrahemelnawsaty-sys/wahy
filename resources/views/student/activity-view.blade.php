@@ -574,11 +574,15 @@
         <div class="activity-title-header">{{ $activity->title ?? 'نشاط تعليمي' }}</div>
         @php
             // #13 عدد المحاولات: يُسمح بإعادة الإرسال ما دامت المحاولات متبقية والحالة قابلة للإعادة
-            // (needs_review/rejected/pending — لا completed/approved). يُحسب مرّة ويُعاد استخدامه أدناه
-            // كي يتّسق إظهار النموذج مع منطق المتحكّم (كان يُخفى نموذج pending رغم توفّر المحاولات).
-            $allowResubmit = isset($submission) && $submission
-                && in_array($submission->status ?? '', ['needs_review', 'rejected', 'pending'], true)
+            // (needs_review/rejected/pending/completed — لا approved النهائيّ). يُحسب مرّة ويُعاد استخدامه.
+            $__attemptsRemaining = isset($submission) && $submission
                 && (int) ($submission->attempts ?? 1) < max(1, (int) ($activity->max_attempts ?? 1));
+            $canRetry = isset($submission) && $submission && $__attemptsRemaining
+                && in_array($submission->status ?? '', ['needs_review', 'rejected', 'pending', 'completed'], true);
+            // إظهار النموذج: للحالات غير الناجحة مباشرةً، وللناجح (completed) فقط في وضع الإعادة
+            // (?retry=1) — كي يبقى الطالب الناجح على شاشة الإنجاز مع زرّ «أعد لتحسين درجتك».
+            $allowResubmit = $canRetry
+                && (($submission->status ?? '') !== 'completed' || request()->boolean('retry'));
             $__timedQuiz = ($activity->quiz_duration ?? null) && $activity->type === 'quiz'
                 && ! (isset($submission) && $submission && ! $allowResubmit);
         @endphp
@@ -622,7 +626,9 @@
         @if($activity->description)
         <div class="activity-description rich-content">{!! safe_html($activity->description) !!}</div>
         @endif
-        
+
+        @include('activities.partials.media')
+
         <div style="text-align: center;">
             <span class="activity-type-badge">{{ $typeIcon }} {{ $typeName }}</span>
         </div>
@@ -673,6 +679,16 @@
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3); padding: 12px 24px; border-radius: 50px; margin-bottom: 20px;">
                 <span style="font-size: 20px;" aria-hidden="true">📋</span>
                 <span style="color: #94a3b8; font-weight: 700; font-size: 16px;">تم التسليم</span>
+            </div>
+            @endif
+
+            {{-- #13: إعادة نشاطٍ اجتازه الطالب لتحسين درجته — المكافأة على أفضل محاولة (لا تُضاعَف ولا تُخصَم) --}}
+            @if($canRetry && ($submission->status ?? '') === 'completed')
+            <div style="margin-bottom: 20px;">
+                <a href="{{ url()->current() }}?retry=1" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px 26px; border-radius: 50px; font-weight: 700; font-size: 15px; text-decoration: none; box-shadow: 0 6px 18px rgba(102,126,234,0.4);">
+                    🔄 أعد المحاولة لتحسين درجتك (المحاولة {{ ((int) ($submission->attempts ?? 1)) + 1 }} من {{ (int) ($activity->max_attempts ?? 3) }})
+                </a>
+                <div style="color: rgba(255,255,255,0.6); font-size: 12.5px; margin-top: 8px;">تحتفظ بأفضل درجة — لا تُخصم نقاطك إن كانت المحاولة الجديدة أقلّ.</div>
             </div>
             @endif
 

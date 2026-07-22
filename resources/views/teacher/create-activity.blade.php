@@ -422,8 +422,8 @@
                 <label class="media-upload" onclick="this.querySelector('input').click()">
                     <div class="icon">🖼️</div>
                     <div class="text">إرفاق صورة</div>
-                    <div class="hint">JPG, PNG - حتى 5MB</div>
-                    <input type="file" name="image" accept="image/*" onchange="previewMedia(this, 'imagePreview')">
+                    <div class="hint">JPG, PNG — عدّة صور ممكن</div>
+                    <input type="file" name="image[]" accept="image/*" multiple onchange="previewMedia(this, 'imagePreview')">
                 </label>
                 <div class="media-preview" id="imagePreview"></div>
             </div>
@@ -431,8 +431,8 @@
                 <label class="media-upload" onclick="this.querySelector('input').click()">
                     <div class="icon">🎵</div>
                     <div class="text">إرفاق مقطع صوتي</div>
-                    <div class="hint">MP3, WAV - حتى 10MB</div>
-                    <input type="file" name="audio" accept="audio/*" onchange="previewMedia(this, 'audioPreview')">
+                    <div class="hint">MP3, WAV — عدّة مقاطع ممكن</div>
+                    <input type="file" name="audio[]" accept="audio/*" multiple onchange="previewMedia(this, 'audioPreview')">
                 </label>
                 <div class="media-preview" id="audioPreview"></div>
             </div>
@@ -440,8 +440,8 @@
                 <label class="media-upload" onclick="this.querySelector('input').click()">
                     <div class="icon">🎬</div>
                     <div class="text">إرفاق فيديو</div>
-                    <div class="hint">MP4, WebM - حتى 50MB</div>
-                    <input type="file" name="video" accept="video/*" onchange="previewMedia(this, 'videoPreview')">
+                    <div class="hint">MP4, WebM — عدّة مقاطع ممكن (حتى 100MB)</div>
+                    <input type="file" name="video[]" accept="video/*" multiple onchange="previewMedia(this, 'videoPreview')">
                 </label>
                 <div class="media-preview" id="videoPreview"></div>
             </div>
@@ -451,8 +451,8 @@
             <label class="media-upload" onclick="this.querySelector('input').click()">
                 <div class="icon">📄</div>
                 <div class="text">إرفاق مستند أو ملف</div>
-                <div class="hint">PDF, DOCX, PPTX - حتى 20MB</div>
-                <input type="file" name="document" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" onchange="previewMedia(this, 'docPreview')">
+                <div class="hint">PDF, DOCX, PPTX — عدّة ملفّات ممكن</div>
+                <input type="file" name="document[]" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" multiple onchange="previewMedia(this, 'docPreview')">
             </label>
             <div class="media-preview" id="docPreview"></div>
         </div>
@@ -512,23 +512,26 @@ function serializeQuestions() {
 
 function previewMedia(input, previewId) {
     const preview = document.getElementById(previewId);
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
+    if (!input.files || !input.files.length) { preview.style.display = 'none'; preview.innerHTML = ''; return; }
+    preview.style.display = 'block';
+    preview.innerHTML = '';
+    // معاينة كل الملفّات المختارة (يدعم الاختيار المتعدّد)
+    Array.from(input.files).forEach(function (file) {
         const url = URL.createObjectURL(file);
-        preview.style.display = 'block';
-        
+        const box = document.createElement('div');
+        box.style.marginBottom = '10px';
         if (file.type.startsWith('image/')) {
-            preview.innerHTML = `<img src="${url}" alt="معاينة" style="max-height: 200px;">`;
+            box.innerHTML = `<img src="${url}" alt="معاينة" style="max-height: 200px; max-width: 100%;">`;
         } else if (file.type.startsWith('audio/')) {
-            preview.innerHTML = `<audio controls src="${url}" style="width: 100%;"></audio>`;
+            box.innerHTML = `<audio controls src="${url}" style="width: 100%;"></audio>`;
         } else if (file.type.startsWith('video/')) {
-            preview.innerHTML = `<video controls src="${url}" style="max-height: 250px; width: 100%;"></video>`;
+            box.innerHTML = `<video controls src="${url}" style="max-height: 250px; width: 100%;"></video>`;
         } else {
-            preview.innerHTML = `<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 28px;">📄</span><span>${file.name}</span></div>`;
+            box.innerHTML = `<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 28px;">📄</span><span>${file.name}</span></div>`;
         }
-        
-        preview.innerHTML += `<div style="margin-top: 8px; font-size: 13px; color: #64748b;">${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</div>`;
-    }
+        box.innerHTML += `<div style="margin-top: 6px; font-size: 13px; color: #64748b;">${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</div>`;
+        preview.appendChild(box);
+    });
 }
 
 document.getElementById('isCreative').addEventListener('change', function() {

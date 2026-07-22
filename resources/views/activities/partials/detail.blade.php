@@ -143,6 +143,8 @@
     </div>
 </div>
 
+@include('activities.partials.media')
+
 @include('activities.partials.questions')
 
 @if($isSchoolAdmin && $schoolStatus === 'pending')

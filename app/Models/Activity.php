@@ -48,6 +48,8 @@ class Activity extends Model
         'due_date',
         'questions',
         'attachment',
+        // الوسائط المتعددة: مصفوفة [{type, path, name}] لعدّة ملفّات (فيديو/صوت/صورة/مستند)
+        'media',
         'points',
         'passing_score',
         'manual_review',
@@ -73,6 +75,7 @@ class Activity extends Model
 
     protected $casts = [
         'questions' => 'array',
+        'media' => 'array',
         'allowed_file_types' => 'array',
         'due_date' => 'datetime',
         'featured_at' => 'datetime',
