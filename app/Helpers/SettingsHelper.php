@@ -191,9 +191,36 @@ if (! function_exists('safe_html')) {
         $html = preg_replace("#[\s/]on[a-z]+\s*=\s*'[^']*'#i", '', (string) $html);
         $html = preg_replace('#[\s/]on[a-z]+\s*=\s*[^\s>]+#i', '', (string) $html);
 
-        // 3) إزالة javascript: و vbscript: و data: في href/src
-        $html = preg_replace('#\b(href|src|action|formaction|srcdoc|xlink:href|background|poster)\s*=\s*"[^"]*\b(javascript|vbscript|data)\s*:[^"]*"#i', '', (string) $html);
-        $html = preg_replace("#\b(href|src|action|formaction|srcdoc|xlink:href|background|poster)\s*=\s*'[^']*\b(javascript|vbscript|data)\s*:[^']*'#i", '', (string) $html);
+        // 3) تحييد المخطّطات الخطرة (javascript:/vbscript:/data:/about:) في السمات الحاملة
+        //    لروابط — مهما كان الاقتباس (مزدوج/مفرد/بلا اقتباس)، وبعد فكّ التشويش داخل القيمة:
+        //    فالمتصفح يُسقِط التاب/السطر/التحكّم (C0) وأحرف الكيانات (jav&#x09;ascript:) أثناء
+        //    تحليل المخطط فيُعيد تكوين javascript:. regex الاقتباس القديم كان يفوته كلُّ ذلك
+        //    (href غير مُقتبَس + التشويش) = XSS مخزَّن يُنفَّذ بالنقر في جلسة أعلى صلاحية.
+        $urlAttrs = 'href|src|action|formaction|srcdoc|xlink:href|background|poster';
+        $html = preg_replace_callback(
+            '#\b(' . $urlAttrs . ')\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)#i',
+            function ($m) {
+                $raw = $m[2];
+                // اقتطاع الاقتباس إن وُجد
+                if (strlen($raw) >= 2 && ($raw[0] === '"' || $raw[0] === "'") && $raw[strlen($raw) - 1] === $raw[0]) {
+                    $val = substr($raw, 1, -1);
+                } else {
+                    $val = $raw;
+                }
+                // تطبيع لكشف المخطط فقط (لا يمسّ الإخراج): فكّ الكيانات مرّتين ثمّ إزالة كل
+                // أحرف التحكّم C0 + المسافة + NBSP التي يُسقطها محلّل الروابط، ثمّ توحيد الحالة.
+                $probe = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $probe = html_entity_decode($probe, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $probe = preg_replace('/[\x00-\x20]|\xC2\xA0/', '', (string) $probe);
+                $probe = strtolower((string) $probe);
+                if (preg_match('#^(javascript|vbscript|data|about):#', $probe)) {
+                    return ''; // إسقاط السمة الخطرة بالكامل (يُبقي نصّ الوسم مرئياً وحميداً)
+                }
+
+                return $m[0];
+            },
+            (string) $html
+        );
 
         // 4) إزالة CSS expression() و @import و url(javascript:...) في style attribute
         $html = preg_replace('#\sstyle\s*=\s*"[^"]*\b(expression|@import|javascript|vbscript|behavior)\s*[:\(][^"]*"#i', '', (string) $html);

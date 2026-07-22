@@ -44,6 +44,19 @@
     .io-item img:hover { transform: translateY(-3px); border-color: #667eea; }
     .io-order { position: absolute; top: -8px; inset-inline-start: -8px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,0,0,0.25); z-index: 1; }
     @media (max-width: 640px) { .io-item, .io-item img { width: 104px; } .io-item img { height: 104px; } }
+
+    /* ===== #22: تمييز النشاط ليظهر في الأنشطة المميّزة لدى الأدمن ===== */
+    .feature-box { margin-top: 22px; padding: 16px 18px; border-radius: 14px; border: 1px dashed rgba(245,158,11,0.55); background: rgba(245,158,11,0.06); }
+    .feature-box.is-featured { border-style: solid; border-color: rgba(245,158,11,0.65); background: rgba(245,158,11,0.12); }
+    .feature-header, .feature-status { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .feature-icon { font-size: 26px; line-height: 1; }
+    .feature-title { font-weight: 800; color: inherit; }
+    .feature-sub { font-size: 12.5px; opacity: 0.82; color: inherit; margin-top: 2px; }
+    .feature-form .form-input { width: 100%; margin-bottom: 10px; }
+    .feature-btn { width: 100%; padding: 11px; border: none; border-radius: 10px; background: linear-gradient(135deg,#f59e0b,#d97706); color: #fff; font-weight: 800; cursor: pointer; font-size: 14px; }
+    .feature-btn:hover { filter: brightness(1.05); }
+    .feature-btn.unfeature { background: linear-gradient(135deg,#64748b,#475569); }
+    .feature-by-other { display: inline-block; font-size: 13px; opacity: 0.82; color: inherit; }
 </style>
 @endpush
 
@@ -304,6 +317,47 @@
 
                 <div id="submitMessage" class="submit-message" style="display: none;"></div>
             </form>
+
+            {{-- #22: تمييز هذا النشاط ليظهر ضمن الأنشطة المميّزة لدى الأدمن --}}
+            @if($submission->activity)
+                @php
+                    $isFeatured = (bool) $submission->activity->is_featured;
+                    $iAmFeaturer = (int) $submission->activity->featured_by === (int) auth()->id();
+                    $iAmCreator  = (int) $submission->activity->created_by === (int) auth()->id();
+                @endphp
+                <div class="feature-box {{ $isFeatured ? 'is-featured' : '' }}">
+                    @if($isFeatured)
+                        <div class="feature-status">
+                            <span class="feature-icon">⭐</span>
+                            <div>
+                                <div class="feature-title">هذا النشاط مميّز</div>
+                                <div class="feature-sub">يظهر ضمن الأنشطة المميّزة لدى الأدمن</div>
+                            </div>
+                        </div>
+                        @if($iAmFeaturer || $iAmCreator)
+                            <form method="POST" action="{{ route('teacher.activities.unfeature', $submission->activity->id) }}">
+                                @csrf
+                                <button type="submit" class="feature-btn unfeature">إلغاء التمييز</button>
+                            </form>
+                        @else
+                            <span class="feature-by-other">مميّز من معلّم آخر</span>
+                        @endif
+                    @else
+                        <form method="POST" action="{{ route('teacher.activities.feature', $submission->activity->id) }}" class="feature-form">
+                            @csrf
+                            <div class="feature-header">
+                                <span class="feature-icon">🌟</span>
+                                <div>
+                                    <div class="feature-title">تمييز هذا النشاط</div>
+                                    <div class="feature-sub">ليظهر ضمن الأنشطة المميّزة لدى الأدمن فيستعرضه كما تستعرضه</div>
+                                </div>
+                            </div>
+                            <input type="text" name="reason" class="form-input" maxlength="500" placeholder="سبب التمييز (اختياري)">
+                            <button type="submit" class="feature-btn">⭐ تمييز النشاط</button>
+                        </form>
+                    @endif
+                </div>
+            @endif
         </div>
 
     </div>
