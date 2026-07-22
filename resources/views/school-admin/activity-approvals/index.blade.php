@@ -85,17 +85,18 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-info mb-1"
-                                        onclick="showActivityDetails({{ $activity->id }})">
+                                    <a href="{{ route('school-admin.activities.show', $activity->id) }}"
+                                        class="btn btn-sm btn-info mb-1">
                                         <i class="fas fa-eye me-1"></i>عرض
-                                    </button>
+                                    </a>
                                     @if($activity->school_approval_status === 'pending')
                                         <form id="approve-activity-{{ $activity->id }}"
                                             action="{{ route('school-admin.activity-approvals.approve', $activity->id) }}"
                                             method="POST" class="d-inline">
                                             @csrf
+                                            <input type="hidden" name="publish_mode" value="direct">
                                             <button type="button" class="btn btn-sm btn-success"
-                                                onclick="confirmApproveActivity({{ $activity->id }}, @js($activity->title))">
+                                                onclick="openApproveActivity({{ $activity->id }}, @js($activity->title))">
                                                 <i class="fas fa-check me-1"></i>اعتماد
                                             </button>
                                         </form>
@@ -166,6 +167,41 @@
         </div>
     </div>
 
+    {{-- Modal اعتماد النشاط مع اختيار وضع النشر لمدرستي --}}
+    <div class="modal fade" id="approveActivityModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 18px; overflow: hidden;">
+                <div class="modal-header bg-success text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-check-circle me-2"></i>اعتماد النشاط لمدرستي</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-3">النشاط: <strong id="approveActivityTitle"></strong></p>
+                    <label class="form-label fw-bold mb-2">وضع النشر لطلاب مدرستك</label>
+                    <div class="form-check p-3 mb-2 border rounded-3">
+                        <input class="form-check-input" type="radio" name="approvePublishMode" id="apmDirect" value="direct" checked>
+                        <label class="form-check-label" for="apmDirect">
+                            <strong><i class="fas fa-users me-1 text-success"></i>مباشر للطلاب</strong>
+                            <small class="d-block text-muted">يظهر تلقائيًّا لطلاب مدرستك ضمن الدرس/الواجب.</small>
+                        </label>
+                    </div>
+                    <div class="form-check p-3 border rounded-3">
+                        <input class="form-check-input" type="radio" name="approvePublishMode" id="apmBank" value="bank">
+                        <label class="form-check-label" for="apmBank">
+                            <strong><i class="fas fa-box-archive me-1 text-secondary"></i>للبنك فقط</strong>
+                            <small class="d-block text-muted">يُتاح لمعلّمي مدرستك لإسناده لفصولهم — لا يظهر تلقائيًّا للطلاب.</small>
+                        </label>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0"><i class="fas fa-info-circle me-1"></i>سيُرفَع بعدها للإدارة للمراجعة النهائية ونشره لبقيّة المدارس.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-success" id="approveActivityConfirmBtn"><i class="fas fa-check me-1"></i>اعتماد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Modal الرفض مع سبب --}}
     <div class="modal fade" id="rejectActivityModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -199,16 +235,20 @@ function showActivityDetails(id) {
     modal.show();
 }
 
-function confirmApproveActivity(id, title) {
-    glassNotify.confirm(
-        'اعتماد النشاط',
-        `هل تعتمد النشاط "${title}"؟ سيُرفَع بعدها للإدارة للمراجعة النهائية.`,
-        function () {
-            document.getElementById('approve-activity-' + id).submit();
-        },
-        { confirmText: 'اعتماد', cancelText: 'إلغاء', type: 'success' }
-    );
+let _approveActivityId = null;
+function openApproveActivity(id, title) {
+    _approveActivityId = id;
+    document.getElementById('approveActivityTitle').textContent = title;
+    document.getElementById('apmDirect').checked = true;
+    new bootstrap.Modal(document.getElementById('approveActivityModal')).show();
 }
+document.getElementById('approveActivityConfirmBtn').addEventListener('click', function () {
+    if (!_approveActivityId) return;
+    const form = document.getElementById('approve-activity-' + _approveActivityId);
+    const mode = document.querySelector('input[name="approvePublishMode"]:checked').value;
+    form.querySelector('input[name="publish_mode"]').value = mode;
+    form.submit();
+});
 
 function openRejectActivity(id, title) {
     var form = document.getElementById('rejectActivityForm');

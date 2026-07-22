@@ -122,11 +122,17 @@ class ActivityBankController extends Controller
         $activity = Activity::where('is_activity_bank', true)->findOrFail($id);
         $user = Auth::user();
 
-        $activity->update([
-            'approval_status' => 'approved',
-            'approved_by' => $user->id,
-            'approved_at' => now(),
-        ]);
+        // إنفاذ ترتيب المراحل: لا اعتماد نهائيّ قبل اعتماد مدير المدرسة (نفس قيد المسار الرسميّ)
+        if ($activity->school_approval_status !== 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => 'يجب أن يعتمد مدير المدرسة النشاط أولاً قبل الاعتماد النهائيّ.',
+            ], 422);
+        }
+
+        // المسار الموحّد: نشر لكل المدارس «مباشر» + نقل للبنك (هذه الصفحة بلا مُنتقي — الافتراض direct)
+        app(\App\Services\ActivityPublishingService::class)
+            ->adminApprove($activity, 'all', 'direct', [], $user->id);
 
         // إشعار المعلم
         if ($activity->created_by) {
@@ -191,7 +197,7 @@ class ActivityBankController extends Controller
                 'question_approved',
                 '✅ تمت الموافقة على سؤالك',
                 "تمت الموافقة على سؤالك: {$question->title}",
-                route('teacher.question-bank.index'),
+                route('teacher.activity-bank.index'),
             );
         }
 
@@ -215,7 +221,7 @@ class ActivityBankController extends Controller
                 'question_rejected',
                 '❌ تم رفض سؤالك',
                 "تم رفض سؤالك: {$question->title}" . ($request->reason ? ". السبب: {$request->reason}" : ''),
-                route('teacher.question-bank.index'),
+                route('teacher.activity-bank.index'),
             );
         }
 

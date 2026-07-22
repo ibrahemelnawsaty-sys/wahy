@@ -902,18 +902,34 @@ class SchoolAdminController extends Controller
     }
 
     /**
+     * صفحة تفاصيل النشاط الموحّدة لمدير المدرسة (المرحلة 4) — عرض + أزرار اعتماد/رفض المرحلة 1.
+     */
+    public function showActivity($id)
+    {
+        $activity = Activity::with(['creator', 'lesson.concept.value', 'schools'])->findOrFail($id);
+
+        // بوّابة القراءة الموحّدة (ActivityPolicy@view): نشاط أنشأه معلّم من مدرسته المُدارة فقط.
+        abort_unless(Auth::user()->can('view', $activity), 403);
+
+        return view('school-admin.activities.show', compact('activity'));
+    }
+
+    /**
      * اعتماد نشاط معلّم (المرحلة الأولى) ⇒ يُرفَع للأدمن ويُشعَر السوبر أدمن.
      */
-    public function approveActivity($id)
+    public function approveActivity(Request $request, $id)
     {
-        $activity = $this->schoolActivitiesQuery()->findOrFail($id);
-
-        $activity->update([
-            'school_approval_status' => 'approved',
-            'school_approved_by' => Auth::id(),
-            'school_approved_at' => now(),
-            'school_rejection_reason' => null,
+        // وضع النشر لمدرسته: «مباشر للطلاب» أو «للبنك فقط» (يختاره المعتمِد — §متطلب 2)
+        $validated = $request->validate([
+            'publish_mode' => 'required|in:bank,direct',
         ]);
+
+        $activity = $this->schoolActivitiesQuery()->findOrFail($id);
+        $schoolId = Auth::user()->activeSchoolId();
+
+        // النشر مثبَّت على المدرسة النشطة (صفّ واحد) — تفاديًا لالتباس تعدّد المدارس (§8 عزل)
+        app(\App\Services\ActivityPublishingService::class)
+            ->schoolApprove($activity, $schoolId, $validated['publish_mode'], Auth::id());
 
         // إشعار السوبر أدمن (كلّهم) بوجود نشاط بانتظار الاعتماد النهائي
         $superAdmins = User::whereIn('role', ['admin', 'super_admin'])->pluck('id');

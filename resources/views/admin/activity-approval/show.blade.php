@@ -10,12 +10,9 @@
     </div>
     @if($activity->approval_status === 'pending')
     <div style="display: flex; gap: 10px;">
-        <form action="{{ route('admin.activity-approval.approve', $activity) }}" method="POST">
-            @csrf
-            <button type="submit" style="background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
-                ✅ الموافقة على النشاط
-            </button>
-        </form>
+        <button onclick="showApproveModal()" style="background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+            ✅ الموافقة على النشاط
+        </button>
         <button onclick="showRejectModal()" style="background: #ef4444; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
             ❌ رفض النشاط
         </button>
@@ -212,7 +209,68 @@
     </div>
 </div>
 
+<!-- Modal الموافقة: النطاق + وضع النشر + مدارس محدّدة -->
+<div id="approveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 560px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 20px;">✅ اعتماد النشاط ونشره</h3>
+        <form action="{{ route('admin.activity-approval.approve', $activity) }}" method="POST">
+            @csrf
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">نطاق النشر</label>
+                <label style="display:block; padding:12px; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:8px; cursor:pointer;">
+                    <input type="radio" name="scope" value="all" checked onchange="toggleScope()">
+                    <strong>كل المدارس</strong>
+                    <span style="display:block; font-size:12px; color:#6b7280; margin-right:22px;">يُنشر لجميع المدارس (الافتراضي).</span>
+                </label>
+                <label style="display:block; padding:12px; border:1px solid #e5e7eb; border-radius:8px; cursor:pointer;">
+                    <input type="radio" name="scope" value="specific" onchange="toggleScope()">
+                    <strong>مدارس محدّدة</strong>
+                    <span style="display:block; font-size:12px; color:#6b7280; margin-right:22px;">اختر المدارس المستهدفة فقط.</span>
+                </label>
+            </div>
+
+            <div id="schoolsPicker" style="display:none; margin-bottom: 18px; border:1px solid #e5e7eb; border-radius:8px; padding:12px; max-height:200px; overflow-y:auto;">
+                <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px;">اختر المدارس:</label>
+                @forelse($schools as $school)
+                    <label style="display:block; padding:6px 0; cursor:pointer;">
+                        <input type="checkbox" name="school_ids[]" value="{{ $school->id }}"> {{ $school->name }}
+                    </label>
+                @empty
+                    <div style="color:#9ca3af; font-size:13px;">لا توجد مدارس.</div>
+                @endforelse
+            </div>
+
+            <div style="margin-bottom: 22px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">وضع النشر</label>
+                <label style="display:block; padding:12px; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:8px; cursor:pointer;">
+                    <input type="radio" name="publish_mode" value="direct" checked>
+                    <strong>مباشر للطلاب</strong>
+                    <span style="display:block; font-size:12px; color:#6b7280; margin-right:22px;">يظهر تلقائيًّا للطلاب ضمن الدرس/الواجب.</span>
+                </label>
+                <label style="display:block; padding:12px; border:1px solid #e5e7eb; border-radius:8px; cursor:pointer;">
+                    <input type="radio" name="publish_mode" value="bank">
+                    <strong>للبنك فقط</strong>
+                    <span style="display:block; font-size:12px; color:#6b7280; margin-right:22px;">يختاره المعلّمون من البنك — لا يظهر تلقائيًّا للطلاب.</span>
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeApproveModal()" style="background: #e5e7eb; color: #374151; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">إلغاء</button>
+                <button type="submit" style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">تأكيد الاعتماد والنشر</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+function showApproveModal() { toggleScope(); document.getElementById('approveModal').style.display = 'flex'; }
+function closeApproveModal() { document.getElementById('approveModal').style.display = 'none'; }
+function toggleScope() {
+    const specific = document.querySelector('#approveModal input[name="scope"]:checked').value === 'specific';
+    document.getElementById('schoolsPicker').style.display = specific ? 'block' : 'none';
+}
+document.getElementById('approveModal').addEventListener('click', function(e) { if (e.target === this) closeApproveModal(); });
+
 function showRejectModal() { document.getElementById('rejectModal').style.display = 'flex'; }
 function closeRejectModal() { document.getElementById('rejectModal').style.display = 'none'; }
 document.getElementById('rejectModal').addEventListener('click', function(e) { if (e.target === this) closeRejectModal(); });

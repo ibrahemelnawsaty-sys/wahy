@@ -806,20 +806,89 @@ class TeacherController extends Controller
         // يسمح بمعاينة: نشاط المعلّم نفسه (أياً كان، بنكاً أو درساً) — للتوافق مع صفحة
         // «إدارة الأنشطة»؛ أو نشاط بنك مشترك معتمد؛ أو نشاط عامّ (بلا منشئ). هذه هي
         // نفس قاعدة رؤية بنك الأنشطة تماماً — لا تسريب (مرئيّة أصلاً في القائمة).
-        $activity = Activity::where('id', $id)
-            ->where(function ($q) use ($user) {
-                $q->where('created_by', $user->id)
-                    ->orWhere(function ($sub) {
-                        $sub->where('is_activity_bank', true)
-                            ->where(function ($s2) {
-                                $s2->where('approval_status', 'approved')->whereNotNull('created_by')
-                                    ->orWhereNull('created_by');
-                            });
-                    });
-            })
-            ->firstOrFail();
+        $activity = Activity::with(['creator', 'lesson.concept.value', 'schools'])->findOrFail($id);
 
-        return view('teacher.preview-activity', compact('activity'));
+        // بوّابة القراءة الموحّدة (ActivityPolicy@view): يملكه المعلّم أو نشاط بنك معتمَد — لا تسريب.
+        abort_unless($user->can('view', $activity), 403);
+
+        // الصفحة الموحّدة (تستبدل teacher.preview-activity المكسورة) — نفس عرض الأدمن + أزرار حسب الدور.
+        return view('teacher.activities.show', compact('activity'));
+    }
+
+    /**
+     * «اختيار من البنك — نسخة»: نسخة قابلة للتعديل من نشاط بنك معتمَد، مُسنَدة لفصل المعلّم،
+     * تدخل دورة الاعتماد من جديد. النسخ عبر replicate/save (create مُعفى من حارس النموذج).
+     */
+    public function cloneFromBank(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'classroom_id' => 'required|exists:classrooms,id',
+        ]);
+
+        $source = Activity::findOrFail($id);
+        // بوّابة القراءة الموحّدة + قيد «بنك معتمَد فقط» (لا يُنسخ نشاط غير معتمَد أو خاصّ)
+        abort_unless($user->can('view', $source), 403);
+        abort_unless($source->is_activity_bank && $source->approval_status === 'approved', 403, 'يُنسخ من البنك المعتمَد فقط');
+
+        // منع الإسناد لفصل لا يدرّسه المعلّم (IDOR / تسرّب بين المدارس)
+        abort_unless(
+            $user->teachingClassrooms()->whereKey($validated['classroom_id'])->exists(),
+            403,
+            'هذا الفصل ليس ضمن فصولك',
+        );
+
+        $clone = $source->replicate([
+            'is_featured', 'featured_by', 'featured_at', 'featured_reason',
+            'approval_status', 'approved_by', 'approved_at', 'rejection_reason',
+            'school_approval_status', 'school_approved_by', 'school_approved_at', 'school_rejection_reason',
+            'all_schools_mode',
+        ]);
+        $clone->created_by = $user->id;
+        $clone->is_activity_bank = false;
+        $clone->classroom_id = $validated['classroom_id'];
+        $clone->title = $source->title . ' (نسخة)';
+        $clone->school_approval_status = 'pending';
+        $clone->approval_status = 'pending';
+        $clone->all_schools_mode = 'none';
+        $clone->save();
+
+        $this->notifySchoolAdminsOfPendingActivity($user, $clone);
+
+        return redirect()->route('teacher.activities.edit', $clone->id)
+            ->with('success', 'تم إنشاء نسخة قابلة للتعديل. عدّلها ثم ستُرسَل للاعتماد قبل ظهورها للطلاب.');
+    }
+
+    /**
+     * «اختيار من البنك — مرجع بلا نسخ»: يُسنِد المعلّم نشاط بنك معتمَد لأحد فصوله دون نسخ.
+     * طلاب الفصل يرونه عبر بوّابة الرؤية (activity_classroom) — لا يُعدَّل النشاط الأصليّ.
+     */
+    public function referenceFromBank(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'classroom_ids' => 'required|array|min:1',
+            'classroom_ids.*' => 'integer|exists:classrooms,id',
+        ]);
+
+        $source = Activity::findOrFail($id);
+        abort_unless($user->can('view', $source), 403);
+        abort_unless($source->is_activity_bank && $source->approval_status === 'approved', 403, 'يُسنَد من البنك المعتمَد فقط');
+
+        // كل فصل مستهدف يجب أن يكون ضمن فصول المعلّم (IDOR / عزل)
+        $ownClassroomIds = $user->teachingClassrooms()->pluck('classrooms.id')->map(fn ($v) => (int) $v)->all();
+        $targets = array_values(array_intersect(array_map('intval', $validated['classroom_ids']), $ownClassroomIds));
+        abort_if(empty($targets), 403, 'اختر فصلاً من فصولك');
+
+        $payload = [];
+        foreach ($targets as $cid) {
+            $payload[$cid] = ['assigned_by' => $user->id];
+        }
+        $source->classrooms()->syncWithoutDetaching($payload);
+
+        return back()->with('success', 'تم إسناد النشاط لفصولك. سيظهر لطلابها مباشرةً.');
     }
 
     public function updateActivity(Request $request, $id)
@@ -896,7 +965,10 @@ class TeacherController extends Controller
             'approved_by' => null,
             'approved_at' => null,
             'rejection_reason' => null,
+            // تصفير النشر: لا يبقى محتوى مُعدَّل/مرفوض منشورًا للطلاب (§3 «الفارغ ≠ نشر»)
+            'all_schools_mode' => 'none',
         ])->saveQuietly();
+        $activity->schools()->detach();   // إزالة صفوف النشر لكل المدارس
         $this->notifySchoolAdminsOfPendingActivity($user, $activity);
 
         return redirect()->route('teacher.activities')
@@ -934,7 +1006,10 @@ class TeacherController extends Controller
             'approved_by' => null,
             'approved_at' => null,
             'rejection_reason' => null,
+            // تصفير النشر: لا يبقى محتوى مُعدَّل/مرفوض منشورًا للطلاب (§3 «الفارغ ≠ نشر»)
+            'all_schools_mode' => 'none',
         ])->saveQuietly();
+        $activity->schools()->detach();   // إزالة صفوف النشر لكل المدارس
 
         // إشعار مدير/مديري المدرسة بإعادة الإرسال
         $this->notifySchoolAdminsOfPendingActivity($user, $activity);
@@ -1860,45 +1935,7 @@ class TeacherController extends Controller
         }
     }
 
-    /**
-     * إضافة سؤال إلى بنك الأسئلة (يحتاج موافقة)
-     */
-    public function addQuestionToBank(Request $request)
-    {
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'lesson_id' => 'nullable|exists:lessons,id',
-            'title' => 'required|string|max:255',
-            'question_text' => 'required|string',
-            'question_type' => 'required|in:multiple_choice,true_false,short_answer,essay',
-            'options' => 'nullable|array',
-            'options.*.text' => 'nullable|string',
-            'options.*.is_correct' => 'nullable',
-            'correct_answer' => 'nullable|string',
-            'explanation' => 'nullable|string',
-            'points' => 'required|integer|min:1|max:50',
-            'difficulty' => 'required|in:easy,medium,hard',
-        ]);
-
-        // إضافة المعلم الحالي كمنشئ
-        $validated['created_by'] = $user->id;
-        $validated['status'] = 'pending';
-
-        // تحويل الخيارات إلى JSON إذا كانت موجودة
-        if (isset($validated['options']) && is_array($validated['options'])) {
-            // Filter out empty options
-            $options = array_filter($validated['options'], function ($opt) {
-                return ! empty($opt['text']);
-            });
-            $validated['options'] = json_encode(array_values($options));
-        }
-
-        // إنشاء السؤال
-        $question = QuestionBank::create($validated);
-
-        return redirect()->route('teacher.question-bank.index')->with('success', 'تم إضافة السؤال إلى بنك الأسئلة بنجاح. سيتم مراجعته من قبل الإدارة.');
-    }
+    // addQuestionToBank أُزيل (المرحلة 5): لم يعد المعلّم يُنشئ أسئلة بنك؛ إدارة الأسئلة للأدمن.
 
     /**
      * لوحة صدارة المعلمين (محلي ودولي)
@@ -2033,105 +2070,90 @@ class TeacherController extends Controller
             'shared_activities' => Activity::where('is_activity_bank', true)->where('approval_status', 'approved')->whereNotNull('created_by')->where('created_by', '!=', $user->id)->count(),
         ];
 
-        // الأسئلة من بنك الأسئلة (للـ Tab الثاني)
-        $questions = QuestionBank::where('created_by', $user->id)
-            ->with(['creator', 'lesson'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        // تبويب أسئلة المعلّم أُزيل (المرحلة 5) — لا حاجة لجلب $questions/$questionStats.
 
-        $questionStats = [
-            'total' => QuestionBank::where('created_by', $user->id)->count(),
-            'pending' => QuestionBank::where('created_by', $user->id)->where('status', 'pending')->count(),
-            'approved' => QuestionBank::where('created_by', $user->id)->where('status', 'approved')->count(),
-            'rejected' => QuestionBank::where('created_by', $user->id)->where('status', 'rejected')->count(),
-        ];
+        // فصول المعلّم لمُنتقيات «استخدام من البنك» (نسخة/مرجع)
+        $classrooms = $user->teachingClassrooms()->get();
 
-        return view('teacher.activity-bank', compact('activities', 'stats', 'questions', 'questionStats'));
+        return view('teacher.activity-bank', compact('activities', 'stats', 'classrooms'));
     }
 
-    /**
-     * صفحة إضافة سؤال جديد
-     */
-    public function createQuestion()
-    {
-        $user = Auth::user();
-        $visibleValueIds = \App\Models\Value::visibleForSchool($user->school_id)->pluck('id');
-        $lessons = \App\Models\Lesson::whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))->get();
-
-        return view('teacher.create-question', compact('lessons'));
-    }
-
-    /**
-     * بنك الأسئلة
-     */
-    public function questionBank()
-    {
-        $user = Auth::user();
-
-        // الأسئلة في بنك الأسئلة
-        $questions = QuestionBank::where('created_by', $user->id)
-            ->with(['creator', 'lesson.concept.value', 'approver'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        // إحصائيات
-        $stats = [
-            'total' => QuestionBank::where('created_by', $user->id)->count(),
-            'pending' => QuestionBank::where('created_by', $user->id)->where('status', 'pending')->count(),
-            'approved' => QuestionBank::where('created_by', $user->id)->where('status', 'approved')->count(),
-            'rejected' => QuestionBank::where('created_by', $user->id)->where('status', 'rejected')->count(),
-        ];
-
-        return view('teacher.question-bank', compact('questions', 'stats'));
-    }
+    // createQuestion + questionBank أُزيلا (المرحلة 5): واجهة بنك أسئلة المعلّم مُزالة، والبيانات باقية.
 
     // ==================== الأنشطة المميزة ====================
 
     /**
-     * تمييز نشاط
+     * تمييز نشاط (#22): يجوز للمعلّم تمييز نشاطٍ أنشأه، أو نشاطٍ يراجع تسليم أحد
+     * طلّابه له (مشاريع/أنشطة تتطلّب موافقة المعلّم) — ليظهر ضمن الأنشطة المميّزة
+     * لدى الأدمن فيستعرضه كما يستعرضه المعلّم.
      */
     public function featureActivity(Request $request, $activityId)
     {
         $validated = $request->validate([
-            'reason' => 'required|string|max:500',
+            'reason' => 'nullable|string|max:500',
         ]);
 
         $activity = Activity::findOrFail($activityId);
+        $user = Auth::user();
 
-        // التحقق من أن المعلم هو منشئ النشاط
-        if ($activity->created_by !== Auth::id()) {
+        if (! $this->teacherMayFeatureActivity($activity, $user)) {
             return back()->with('error', 'لا يمكنك تمييز هذا النشاط');
         }
 
-        $activity->update([
+        // is_featured/featured_* ضمن حقول Activity المحروسة (booted) التي تمنع المعلّم
+        // من التمييز الذاتيّ. هذا المسار مُصرَّح به ومُتحقَّق منه، فنكتب الحقول بأمان عبر
+        // forceFill()->saveQuietly() لتجاوز الحارس عمداً (النمط الموثَّق للحقول المحروسة).
+        $activity->forceFill([
             'is_featured' => true,
-            'featured_by' => Auth::id(),
+            'featured_by' => $user->id,
             'featured_at' => now(),
-            'featured_reason' => $validated['reason'],
-        ]);
+            'featured_reason' => $validated['reason'] ?? ('تمييز من المعلّم: ' . $user->name),
+        ])->saveQuietly();
 
-        return back()->with('success', 'تم تمييز النشاط بنجاح وسيظهر للسوبر أدمن');
+        return back()->with('success', 'تم تمييز النشاط بنجاح وسيظهر ضمن الأنشطة المميّزة لدى الأدمن');
     }
 
     /**
-     * إلغاء تمييز نشاط
+     * إلغاء تمييز نشاط — للمنشئ أو لمن ميّزه فقط (كي لا يُلغي معلّمٌ تمييزَ زميله).
      */
     public function unfeatureActivity($activityId)
     {
         $activity = Activity::findOrFail($activityId);
+        $user = Auth::user();
 
-        if ($activity->created_by !== Auth::id()) {
+        if ((int) $activity->created_by !== (int) $user->id && (int) $activity->featured_by !== (int) $user->id) {
             return back()->with('error', 'لا يمكنك إلغاء تمييز هذا النشاط');
         }
 
-        $activity->update([
+        $activity->forceFill([
             'is_featured' => false,
             'featured_by' => null,
             'featured_at' => null,
             'featured_reason' => null,
-        ]);
+        ])->saveQuietly();
 
         return back()->with('success', 'تم إلغاء تمييز النشاط');
+    }
+
+    /**
+     * هل يجوز لهذا المعلّم تمييز هذا النشاط؟ منشئه، أو نشاطٌ قدّم له أحد طلّابه
+     * (طالبٌ في أحد فصول المعلّم) تسليماً — فيكون للمعلّم صلاحية مراجعته أصلاً.
+     */
+    private function teacherMayFeatureActivity(Activity $activity, User $user): bool
+    {
+        if ((int) $activity->created_by === (int) $user->id) {
+            return true;
+        }
+
+        return ActivitySubmission::where('activity_id', $activity->id)
+            ->whereExists(function ($q) use ($user) {
+                $q->select(DB::raw(1))
+                    ->from('classroom_student')
+                    ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
+                    ->whereColumn('classroom_student.student_id', 'activity_submissions.student_id')
+                    ->where('classrooms.teacher_id', $user->id);
+            })
+            ->exists();
     }
 
     // ==================== نظام التمارين ====================
@@ -2166,8 +2188,8 @@ class TeacherController extends Controller
         $user = Auth::user();
 
         $classrooms = Classroom::where('teacher_id', $user->id)->get();
-        $questions = QuestionBank::where('created_by', $user->id)
-            ->orWhere('status', 'approved')
+        // منتقي أسئلة التمرين من الأسئلة المعتمَدة فقط (المرحلة 5 — المعلّم لا يُنشئ أسئلة)
+        $questions = QuestionBank::where('status', 'approved')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -2222,8 +2244,8 @@ class TeacherController extends Controller
 
         $exercise = \App\Models\PracticeExercise::where('teacher_id', $user->id)->findOrFail($id);
         $classrooms = Classroom::where('teacher_id', $user->id)->get();
-        $questions = QuestionBank::where('created_by', $user->id)
-            ->orWhere('status', 'approved')
+        // منتقي أسئلة التمرين من الأسئلة المعتمَدة فقط (المرحلة 5 — المعلّم لا يُنشئ أسئلة)
+        $questions = QuestionBank::where('status', 'approved')
             ->orderBy('created_at', 'desc')
             ->get();
 

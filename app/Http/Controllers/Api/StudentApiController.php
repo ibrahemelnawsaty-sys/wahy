@@ -134,10 +134,10 @@ class StudentApiController extends Controller
     {
         $user = $request->user();
 
-        // ملاحظة: جدول activities لا يملك عمود school_id — عزل المدرسة يتم عبر فصول الطالب أدناه
+        // بوّابة النشر: لا تُسرَّب إلا الأنشطة المنشورة مباشرةً لمدرسة الطالب (يستبدل بوّابة الاعتماد)
         $query = Activity::with(['lesson.concept.value'])
             ->where('status', 'active')
-            ->where('approval_status', 'approved');   // بوّابة الاعتماد — لا تُسرَّب أنشطة معلّم غير معتمدة عبر الـAPI
+            ->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all());
 
         // Filter by classroom if student
         if ($user->role === 'student') {

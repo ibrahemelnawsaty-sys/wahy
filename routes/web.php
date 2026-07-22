@@ -532,9 +532,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/activity-bank', [TeacherController::class, 'addActivityToBank'])->name('activity-bank.store');
         Route::get('/activity-bank', [TeacherController::class, 'activityBank'])->name('activity-bank.index');
         Route::get('/activity-bank/create', [TeacherController::class, 'createActivity'])->name('activity-bank.create');
-        Route::post('/question-bank', [TeacherController::class, 'addQuestionToBank'])->name('question-bank.store');
-        Route::get('/question-bank', [TeacherController::class, 'questionBank'])->name('question-bank.index');
-        Route::get('/question-bank/create', [TeacherController::class, 'createQuestion'])->name('question-bank.create');
+        // اختيار من البنك: نسخة قابلة للتعديل / إسناد مرجعيّ بلا نسخ (المرحلة 4ب)
+        Route::post('/activity-bank/{id}/clone', [TeacherController::class, 'cloneFromBank'])->whereNumber('id')->name('activity-bank.clone');
+        Route::post('/activity-bank/{id}/reference', [TeacherController::class, 'referenceFromBank'])->whereNumber('id')->name('activity-bank.reference');
+        // واجهة «بنك الأسئلة» للمعلّم أُزيلت (المرحلة 5) — تُدار الأسئلة من الأدمن؛ بيانات QuestionBank باقية.
 
         // Teams Management
         Route::get('/teams', [TeacherController::class, 'teams'])->name('teams');

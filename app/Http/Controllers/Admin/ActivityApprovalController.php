@@ -52,7 +52,10 @@ class ActivityApprovalController extends Controller
             'rejected' => $base()->where('approval_status', 'rejected')->count(),
         ];
 
-        return view('admin.activity-approval.index', compact('activities', 'stats', 'status'));
+        // قائمة المدارس لمُنتقي «مدارس محدّدة» عند الاعتماد
+        $schools = \App\Models\School::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.activity-approval.index', compact('activities', 'stats', 'status', 'schools'));
     }
 
     /**
@@ -62,7 +65,9 @@ class ActivityApprovalController extends Controller
     {
         $activity->load(['creator.school', 'lesson.concept.value', 'approver']);
 
-        return view('admin.activity-approval.show', compact('activity'));
+        $schools = \App\Models\School::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.activity-approval.show', compact('activity', 'schools'));
     }
 
     /**
@@ -73,12 +78,21 @@ class ActivityApprovalController extends Controller
         // إنفاذ ترتيب المراحل: لا اعتماد نهائيّ قبل اعتماد مدير المدرسة (المرحلة الأولى)
         abort_unless($activity->school_approval_status === 'approved', 404);
 
-        $activity->update([
-            'approval_status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'rejection_reason' => null,
+        // نطاق النشر (كل المدارس افتراضيًّا / مدارس محدّدة) + وضع النشر (مباشر/بنك) — §متطلب 1+2
+        $validated = $request->validate([
+            'scope' => 'required|in:all,specific',
+            'publish_mode' => 'required|in:bank,direct',
+            'school_ids' => 'required_if:scope,specific|array',
+            'school_ids.*' => 'integer|exists:schools,id',
         ]);
+
+        app(\App\Services\ActivityPublishingService::class)->adminApprove(
+            $activity,
+            $validated['scope'],
+            $validated['publish_mode'],
+            $validated['school_ids'] ?? [],
+            Auth::id(),
+        );
 
         // نشاط درسٍ صار الآن ظاهراً للطلاب → أشعِر طلاب الفصل (كان يُرسَل عند الإنشاء، أُجِّل للاعتماد)
         $this->notifyClassroomStudentsOfApprovedActivity($activity);
@@ -145,7 +159,12 @@ class ActivityApprovalController extends Controller
         $request->validate([
             'activity_ids' => 'required|array',
             'activity_ids.*' => 'exists:activities,id',
+            'publish_mode' => 'nullable|in:bank,direct',
         ]);
+
+        // الاعتماد المجمّع يَنشر «لكل المدارس» بالوضع المختار (افتراضيًّا مباشر — حفاظًا على السلوك السابق)
+        $mode = $request->input('publish_mode', 'direct');
+        $publisher = app(\App\Services\ActivityPublishingService::class);
 
         $activities = Activity::whereIn('id', $request->activity_ids)
             ->where('approval_status', 'pending')
@@ -153,12 +172,7 @@ class ActivityApprovalController extends Controller
             ->get();
 
         foreach ($activities as $activity) {
-            $activity->update([
-                'approval_status' => 'approved',
-                'approved_by' => Auth::id(),
-                'approved_at' => now(),
-                'rejection_reason' => null,
-            ]);
+            $publisher->adminApprove($activity, 'all', $mode, [], Auth::id());
 
             $this->notifyClassroomStudentsOfApprovedActivity($activity);
 

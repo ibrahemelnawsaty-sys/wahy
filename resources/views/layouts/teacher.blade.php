@@ -697,7 +697,7 @@
                     <span class="nav-icon">📊</span>
                     التحليلات
                 </a>
-                <a href="{{ route('teacher.activity-bank.index') }}" class="nav-item {{ request()->is('teacher/activity-bank*') || request()->is('teacher/question-bank*') ? 'active' : '' }}">
+                <a href="{{ route('teacher.activity-bank.index') }}" class="nav-item {{ request()->is('teacher/activity-bank*') ? 'active' : '' }}">
                     <span class="nav-icon">📚</span>
                     بنك الأنشطة
                 </a>

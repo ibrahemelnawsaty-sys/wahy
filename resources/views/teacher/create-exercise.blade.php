@@ -98,7 +98,7 @@
             </div>
             @else
             <div style="text-align: center; padding: 40px; background: #f8fafc; border-radius: 12px;">
-                <p style="color: #94a3b8;">لا توجد أسئلة في بنك الأسئلة. <a href="{{ route('teacher.question-bank.create') }}" style="color: #667eea;">أضف أسئلة أولاً</a></p>
+                <p style="color: #94a3b8;">لا توجد أسئلة معتمَدة في البنك بعد. تُضاف الأسئلة وتُعتمَد من الإدارة، ثم تظهر هنا لاختيارها.</p>
             </div>
             @endif
         </div>

@@ -46,9 +46,6 @@
         <button class="bank-tab active" id="tab-activities" onclick="switchTab('activities')">
             📚 الأنشطة ({{ $stats['total'] ?? $activities->total() }})
         </button>
-        <button class="bank-tab" id="tab-questions" onclick="switchTab('questions')">
-            ❓ الأسئلة ({{ isset($questions) ? $questions->total() : 0 }})
-        </button>
     </div>
 </div>
 
@@ -192,6 +189,12 @@
                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.28)';">
                             👁️ عرض النشاط
                         </a>
+                        @if($activity->created_by != auth()->id() && $activity->approval_status === 'approved')
+                        <button type="button" onclick="openUseFromBank({{ $activity->id }}, @js($activity->title))"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap;">
+                            ➕ استخدام من البنك
+                        </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -205,54 +208,7 @@
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════ TAB: الأسئلة --}}
-<div id="panel-questions" class="tab-panel">
-    <div class="animate-up" style="background: white; border-radius: 25px; padding: 35px; box-shadow: 0 15px 50px rgba(0,0,0,0.08);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 style="font-size: 24px; font-weight: 700; color: #1a202c;">❓ أسئلتي في البنك</h2>
-            <a href="{{ route('teacher.question-bank.create') }}" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 14px;">
-                ➕ إضافة سؤال جديد
-            </a>
-        </div>
-
-        @if(isset($questions) && $questions->count() > 0)
-        @foreach($questions as $question)
-        <div class="hover-lift" style="background: linear-gradient(135deg, #fdf4ff, #fce7f3); border-radius: 16px; padding: 20px; margin-bottom: 14px; border: 2px solid #f0abfc;">
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f093fb, #f5576c); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">❓</div>
-                <div style="flex: 1;">
-                    <h3 style="font-size: 17px; font-weight: 700; color: #1a202c; margin-bottom: 6px;">{{ $question->title }}</h3>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="background: #e0e7ff; color: #4338ca; padding: 3px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;">{{ $question->question_type }}</span>
-                        @php
-                            $qStatusColor = $question->status === 'approved' ? '#dcfce7:#15803d' : ($question->status === 'rejected' ? '#fee2e2:#dc2626' : '#fef3c7:#d97706');
-                            [$qBg, $qFg] = explode(':', $qStatusColor);
-                        @endphp
-                        <span style="background: {{ $qBg }}; color: {{ $qFg }}; padding: 3px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;">
-                            {{ $question->status === 'approved' ? '✅ معتمد' : ($question->status === 'rejected' ? '❌ مرفوض' : '⏳ بانتظار الموافقة') }}
-                        </span>
-                        <span style="background: #f1f5f9; color: #475569; padding: 3px 10px; border-radius: 8px; font-size: 12px;">{{ $question->created_at->diffForHumans() }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endforeach
-        @if(isset($questions) && $questions->hasPages())
-        <div style="margin-top: 24px; display: flex; justify-content: center;">
-            {{ $questions->links() }}
-        </div>
-        @endif
-        @else
-        <div style="text-align: center; padding: 60px; color: #94a3b8;">
-            <div style="font-size: 60px; margin-bottom: 16px;">📭</div>
-            <p style="font-size: 16px; font-weight: 600;">لا توجد أسئلة بعد</p>
-            <a href="{{ route('teacher.question-bank.create') }}" style="display: inline-block; margin-top: 16px; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 700; text-decoration: none;">
-                ➕ أضف أول سؤال
-            </a>
-        </div>
-        @endif
-    </div>
-</div>
+{{-- تبويب «الأسئلة» للمعلّم أُزيل (المرحلة 5): تُدار الأسئلة من الأدمن؛ بيانات QuestionBank باقية لتغذية PvP/التمارين. --}}
 
 {{-- Add Activity Modal — منسّق ومتجاوب على الجوال (Issue 48) --}}
 <style>
@@ -414,7 +370,78 @@
     </div>
 </div>
 
+{{-- Modal: استخدام من البنك (نسخة قابلة للتعديل / إسناد مرجعيّ بلا نسخ) --}}
+<div id="useFromBankModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1200; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:20px; padding:30px; max-width:560px; width:92%; max-height:90vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h3 style="font-size:20px; font-weight:800; color:#1a202c;">➕ استخدام من البنك</h3>
+            <button type="button" onclick="closeUseFromBank()" style="background:none; border:none; font-size:26px; cursor:pointer; color:#94a3b8; line-height:1;">×</button>
+        </div>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">النشاط: <strong id="ufbTitle"></strong></p>
+
+        @if($classrooms->isEmpty())
+            <div style="background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:12px; padding:16px; font-size:14px;">
+                لا توجد فصول مسندة إليك بعد — أضِف فصلاً أولاً لتتمكّن من استخدام أنشطة البنك.
+            </div>
+        @else
+            {{-- (1) نسخة قابلة للتعديل --}}
+            <div style="border:2px solid #e2e8f0; border-radius:14px; padding:18px; margin-bottom:16px;">
+                <div style="font-weight:800; color:#0f172a; margin-bottom:4px;">📝 نسخة قابلة للتعديل</div>
+                <p style="color:#64748b; font-size:13px; margin-bottom:12px;">نسخة خاصّة بك تعدّلها كما تشاء، وتدخل دورة الاعتماد (مدير المدرسة ثم الإدارة) قبل ظهورها للطلاب.</p>
+                <form id="ufbCloneForm" method="POST">
+                    @csrf
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <select name="classroom_id" required style="flex:1; min-width:180px; padding:11px 14px; border:2px solid #e2e8f0; border-radius:10px; font-size:14px;">
+                            <option value="">اختر الفصل…</option>
+                            @foreach($classrooms as $classroom)
+                                <option value="{{ $classroom->id }}">{{ $classroom->name }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white; padding:11px 20px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">إنشاء نسخة</button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- (2) إسناد مرجعيّ بلا نسخ --}}
+            <div style="border:2px solid #e2e8f0; border-radius:14px; padding:18px;">
+                <div style="font-weight:800; color:#0f172a; margin-bottom:4px;">🔗 إسناد مباشر (بلا نسخ)</div>
+                <p style="color:#64748b; font-size:13px; margin-bottom:12px;">يظهر النشاط لطلاب الفصول المختارة كما هو — دون نسخ ودون تعديل.</p>
+                <form id="ufbRefForm" method="POST">
+                    @csrf
+                    <div style="max-height:180px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px; padding:10px; margin-bottom:12px;">
+                        @foreach($classrooms as $classroom)
+                            <label style="display:block; padding:6px 0; cursor:pointer; font-size:14px;">
+                                <input type="checkbox" name="classroom_ids[]" value="{{ $classroom->id }}"> {{ $classroom->name }}
+                            </label>
+                        @endforeach
+                    </div>
+                    <button type="submit" style="background:linear-gradient(135deg,#10b981,#059669); color:white; padding:11px 20px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">إسناد للفصول المختارة</button>
+                </form>
+            </div>
+        @endif
+    </div>
+</div>
+
 <script>
+let _ufbId = null;
+function openUseFromBank(id, title) {
+    _ufbId = id;
+    document.getElementById('ufbTitle').textContent = title;
+    var cloneForm = document.getElementById('ufbCloneForm');
+    var refForm = document.getElementById('ufbRefForm');
+    if (cloneForm) { cloneForm.action = '/teacher/activity-bank/' + id + '/clone'; cloneForm.reset(); }
+    if (refForm) { refForm.action = '/teacher/activity-bank/' + id + '/reference'; refForm.reset(); }
+    document.getElementById('useFromBankModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closeUseFromBank() {
+    document.getElementById('useFromBankModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+document.getElementById('useFromBankModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeUseFromBank();
+});
+
 function switchTab(tab) {
     document.querySelectorAll('.bank-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));

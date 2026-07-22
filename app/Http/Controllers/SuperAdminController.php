@@ -762,7 +762,7 @@ class SuperAdminController extends Controller
                 'question_approved',
                 '✅ تمت الموافقة على سؤالك',
                 "تمت الموافقة على سؤالك: {$question->title}",
-                route('teacher.question-bank.index'),
+                route('teacher.activity-bank.index'),
             );
         }
 
@@ -792,7 +792,7 @@ class SuperAdminController extends Controller
             'question_rejected',
             '❌ تم رفض سؤالك',
             "تم رفض سؤالك: {$question->title}" . ($request->reason ? ". السبب: {$request->reason}" : ''),
-            route('teacher.question-bank.index'),
+            route('teacher.activity-bank.index'),
         );
 
         return response()->json([
@@ -1416,7 +1416,9 @@ class SuperAdminController extends Controller
     public function showFeaturedActivity($id)
     {
         $activity = \App\Models\Activity::where('is_featured', true)
-            ->with(['featuredBy', 'lesson', 'creator', 'submissions'])
+            ->with(['featuredBy', 'lesson.concept.value', 'creator', 'submissions' => function ($q) {
+                $q->with('student')->latest('submitted_at');
+            }])
             ->findOrFail($id);
 
         return view('super-admin.featured-activity-details', compact('activity'));

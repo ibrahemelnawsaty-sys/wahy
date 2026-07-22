@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -66,6 +67,8 @@ class Activity extends Model
         'school_approved_by',
         'school_approved_at',
         'school_rejection_reason',
+        // نشر «لكل المدارس» (none/bank/direct) — يُضبط عند اعتماد الأدمن
+        'all_schools_mode',
     ];
 
     protected $casts = [
@@ -95,7 +98,7 @@ class Activity extends Model
     protected static function booted(): void
     {
         static::updating(function (self $activity) {
-            $sensitive = ['approval_status', 'approved_by', 'approved_at', 'is_featured', 'featured_by', 'featured_at', 'rejection_reason', 'school_approval_status', 'school_approved_by', 'school_approved_at', 'school_rejection_reason'];
+            $sensitive = ['approval_status', 'approved_by', 'approved_at', 'is_featured', 'featured_by', 'featured_at', 'rejection_reason', 'school_approval_status', 'school_approved_by', 'school_approved_at', 'school_rejection_reason', 'all_schools_mode'];
 
             $changed = collect($sensitive)->filter(fn ($field) => $activity->isDirty($field));
             if ($changed->isEmpty()) {
@@ -161,6 +164,119 @@ class Activity extends Model
     public function isPendingSchoolApproval(): bool
     {
         return $this->school_approval_status === 'pending';
+    }
+
+    // ==================== النشر متعدّد المدارس (المرحلة 1) ====================
+
+    /**
+     * المدارس التي نُشِر لها النشاط (نشر موجَّه) + وضع النشر لكلٍّ (بنك/مباشر).
+     */
+    public function schools(): BelongsToMany
+    {
+        return $this->belongsToMany(School::class, 'activity_school')
+            ->withPivot(['publish_mode', 'published_by', 'published_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * الفصول التي أُسنِد لها النشاط من البنك «بلا نسخ» (المرحلة 4ب — مرجع).
+     */
+    public function classrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class, 'activity_classroom')
+            ->withPivot('assigned_by')
+            ->withTimestamps();
+    }
+
+    /**
+     * هل النشاط منشور «لكل المدارس»؟ (بأيّ وضع)
+     */
+    public function isPublishedToAllSchools(): bool
+    {
+        return in_array($this->all_schools_mode, ['bank', 'direct'], true);
+    }
+
+    /**
+     * هل النشاط «مباشر للطلاب» في المدرسة المعطاة؟
+     * مباشر لكل المدارس، أو صفّ موجَّه لهذه المدرسة بوضع direct.
+     */
+    public function isDirectToSchool(int $schoolId): bool
+    {
+        if ($this->all_schools_mode === 'direct') {
+            return true;
+        }
+
+        return $this->schools()
+            ->where('schools.id', $schoolId)
+            ->wherePivot('publish_mode', 'direct')
+            ->exists();
+    }
+
+    /**
+     * هل النشاط متاح في «بنك» المدرسة المعطاة؟ (يشمل direct لأنّه ⊇ bank)
+     */
+    public function isAvailableInBankToSchool(int $schoolId): bool
+    {
+        if ($this->isPublishedToAllSchools()) {
+            return true;
+        }
+
+        return $this->schools()->where('schools.id', $schoolId)->exists();
+    }
+
+    /**
+     * Scope موحّد لرؤية الطالب: النشاط «مباشر للطلاب» في مدرسة الطالب.
+     * مصدر وحيد يستبدل الفلتر القديم where('approval_status','approved') في كل مسارات
+     * قراءة الطالب — يمنع الانحراف ويفرض عزل المدرسة بنية (§4/§12). النشر المباشر
+     * (all_schools_mode='direct' أو صفّ activity_school بوضع direct لهذه المدرسة) يتضمّن
+     * ضمناً أنّ النشاط معتمَد (يُضبط فقط عند الاعتماد)، فلا حاجة لفحص approval_status هنا.
+     */
+    public function scopeVisibleToStudent($query, ?int $schoolId, array $classroomIds = [])
+    {
+        return $query->where(function ($q) use ($schoolId, $classroomIds) {
+            // منشور مباشرةً لكل المدارس
+            $q->where('all_schools_mode', 'direct');
+            // أو منشور مباشرةً لمدرسة الطالب تحديداً (subquery صريح على الـpivot — أمتن من whereHas)
+            if ($schoolId) {
+                $q->orWhereIn('id', function ($sub) use ($schoolId) {
+                    $sub->select('activity_id')
+                        ->from('activity_school')
+                        ->where('school_id', $schoolId)
+                        ->where('publish_mode', 'direct');
+                });
+            }
+            // أو نشاط بنك أُسنِد مرجعيًّا لأحد فصول الطالب (المرحلة 4ب — عزل بعضويّة الفصل)
+            if (! empty($classroomIds)) {
+                $q->orWhereIn('id', function ($sub) use ($classroomIds) {
+                    $sub->select('activity_id')
+                        ->from('activity_classroom')
+                        ->whereIn('classroom_id', $classroomIds);
+                });
+            }
+        });
+    }
+
+    /**
+     * هل هذا النشاط مرئيّ للطالب؟ (نسخة كائن — لبوّابة الوصول المباشر)
+     * تُغلق الثغرة: نشاط بلا درس (نشاط بنك) لم يعد يُفتَح بتخمين id، إلا إن كان منشورًا
+     * مباشرةً لمدرسته أو مُسنَدًا مرجعيًّا لأحد فصوله (المرحلة 4ب).
+     */
+    public function isVisibleToStudentSchool(?int $schoolId, array $classroomIds = []): bool
+    {
+        if ($this->all_schools_mode === 'direct') {
+            return true;
+        }
+
+        if ($schoolId && $this->isDirectToSchool($schoolId)) {
+            return true;
+        }
+
+        // إسناد مرجعيّ لأحد فصول الطالب
+        if (! empty($classroomIds)) {
+            return $this->classrooms()->whereIn('classrooms.id', $classroomIds)->exists();
+        }
+
+        return false;
     }
 
     /**

@@ -110,15 +110,8 @@
             <div style="color: rgba(255,255,255,0.9); font-size: 13px;">إضافة نشاط إبداعي</div>
         </a>
         
-        <!-- بنك الأسئلة -->
-        <a href="{{ route('teacher.question-bank.index') }}" class="hover-lift" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 18px; padding: 25px; text-align: center; text-decoration: none; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3); transition: all 0.3s; cursor: pointer;"
-           onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 12px 32px rgba(16, 185, 129, 0.4)'"
-           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(16, 185, 129, 0.3)'">
-            <div style="font-size: 48px; margin-bottom: 12px;">❓</div>
-            <div style="color: white; font-size: 18px; font-weight: 700; margin-bottom: 6px;">بنك الأسئلة</div>
-            <div style="color: rgba(255,255,255,0.9); font-size: 13px;">إضافة سؤال جديد</div>
-        </a>
-        
+        {{-- بطاقة «بنك الأسئلة» للمعلّم أُزيلت (المرحلة 5) — إدارة الأسئلة للأدمن. --}}
+
         <!-- لوحة صدارة المعلمين -->
         <a href="{{ route('teacher.leaderboard.teachers', ['scope' => 'local']) }}" class="hover-lift" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 18px; padding: 25px; text-align: center; text-decoration: none; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3); transition: all 0.3s; cursor: pointer;"
            onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 12px 32px rgba(245, 158, 11, 0.4)'"

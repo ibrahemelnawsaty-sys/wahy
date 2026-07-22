@@ -16,21 +16,38 @@ class ActivityPolicy
     }
 
     /**
-     * عرض نشاط واحد — يجب أن يكون من نفس المدرسة (أو super_admin).
+     * عرض تفاصيل نشاط واحد (صفحة التفاصيل الموحّدة — المرحلة 4).
+     *
+     * العزل عبر «مدرسة المُنشئ» لا الفصل (النشاط لا يملك school_id، ومعظمه بلا classroom_id):
+     *  - أدمن/سوبر أدمن: الكل.
+     *  - المعلّم: نشاطه هو، أو نشاط بنك معتمَد (متاح للاختيار من البنك المشترك).
+     *  - مدير المدرسة: نشاط أنشأه أحد معلّمي مدرسته (ضمن مدارسه المُدارة).
      */
     public function view(User $user, Activity $activity): bool
     {
-        if ($user->role === 'super_admin') {
+        if (in_array($user->role, ['admin', 'super_admin'], true)) {
             return true;
         }
 
-        // النشاط مرتبط بدرس ضمن مدرسة المستخدم
-        if ($activity->classroom_id) {
-            return $user->school_id !== null
-                && $activity->classroom?->school_id === $user->school_id;
+        if ($user->role === 'teacher') {
+            return $user->id === $activity->created_by
+                || ($activity->is_activity_bank && $activity->approval_status === 'approved');
         }
 
-        return true; // أنشطة عامة (لم تُربط بفصل)
+        if ($user->role === 'school_admin') {
+            $creatorSchoolId = $activity->creator?->school_id;
+            if ($creatorSchoolId === null) {
+                return false;
+            }
+
+            $managed = method_exists($user, 'managedSchoolIds')
+                ? $user->managedSchoolIds()
+                : array_filter([$user->school_id]);
+
+            return in_array($creatorSchoolId, $managed, true);
+        }
+
+        return false;
     }
 
     /**

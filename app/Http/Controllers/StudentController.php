@@ -58,7 +58,9 @@ class StudentController extends Controller
 
         $upcomingHomework = Activity::where('is_homework', true)
             ->where('status', 'active')
-            ->where('approval_status', 'approved')
+            // النشر المباشر لمدرسة الطالب يستبدل بوّابة الاعتماد ويُغلق تسريب
+            // orWhereNull(classroom_id) العالميّ: لا يظهر إلا ما نُشِر مباشرةً لمدرسته.
+            ->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all())
             ->where(function ($query) use ($classroomIds) {
                 $query->whereIn('classroom_id', $classroomIds)
                     ->orWhereNull('classroom_id');
@@ -104,7 +106,7 @@ class StudentController extends Controller
 
         // حساب تقدم الدرس الحالي (نعتبر أي تسليم إنجازاً للنشاط)
         if ($currentLesson) {
-            $activityIds = $currentLesson->activities()->where('status', 'active')->where('approval_status', 'approved')->pluck('id')->toArray();
+            $activityIds = $currentLesson->activities()->where('status', 'active')->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all())->pluck('id')->toArray();
             $totalActivities = count($activityIds);
             $completedActivities = ActivitySubmission::where('student_id', $user->id)
                 ->whereIn('activity_id', $activityIds)
@@ -117,7 +119,7 @@ class StudentController extends Controller
         $values = Value::visibleForSchool($user->school_id)
             ->with([
                 'concepts.lessons' => fn ($q) => $q->where('status', 'active'),
-                'concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')->where('approval_status', 'approved'),
+                'concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all()),
             ])
             ->orderBy('order')
             ->get();
@@ -391,7 +393,7 @@ class StudentController extends Controller
         }
 
         $values = Value::visibleForSchool($user->school_id)
-            ->with(['concepts.lessons.activities'])
+            ->with(['concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all())])
             ->get();
 
         $mastered = [];
@@ -400,7 +402,7 @@ class StudentController extends Controller
             $done = 0;
             foreach ($value->concepts as $concept) {
                 foreach ($concept->lessons->where('status', 'active') as $lesson) {
-                    $actIds = $lesson->activities->where('status', 'active')->where('approval_status', 'approved')->pluck('id')->all();
+                    $actIds = $lesson->activities->where('status', 'active')->pluck('id')->all();
                     if (empty($actIds)) {
                         continue;
                     }
@@ -493,7 +495,7 @@ class StudentController extends Controller
         }
 
         // جلب الأنشطة النشطة فقط مرتّبة — لا تُعرض الأنشطة غير النشطة للطالب
-        $activities = $lesson->activities()->where('status', 'active')->where('approval_status', 'approved')->orderBy('order')->get();
+        $activities = $lesson->activities()->where('status', 'active')->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all())->orderBy('order')->get();
 
         // ✅ استعلام واحد فقط لكل تسليمات الطالب على هذه الأنشطة (إصلاح N+1)
         $submissionsByActivity = ActivitySubmission::where('student_id', $user->id)
@@ -801,7 +803,7 @@ class StudentController extends Controller
         $nextActivity = $lesson
             ? Activity::where('lesson_id', $lesson->id)
                 ->where('status', 'active')
-                ->where('approval_status', 'approved')
+                ->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all())
                 ->where('id', '>', $id)
                 ->orderBy('id')
                 ->first()
@@ -821,15 +823,16 @@ class StudentController extends Controller
             return false;
         }
 
-        // بوّابة الاعتماد: نشاط المعلّم لا يُفتح/يُسلَّم للطالب إلا بعد اعتماده (المدرسة ثم الأدمن).
-        // الافتراضي approved ⇒ لا انحدار للأنشطة القائمة/أنشطة الأدمن. يسدّ ثغرة الفتح المباشر بالرابط.
-        if (! $activity->isApproved()) {
+        // بوّابة النشر: لا يُفتح/يُسلَّم النشاط للطالب إلا إن كان «مباشراً» لمدرسته
+        // (all_schools_mode='direct' أو صفّ activity_school بوضع direct لمدرسته) أو مُسنَدًا
+        // مرجعيًّا لأحد فصوله. تستبدل بوّابة الاعتماد القديمة، وتسدّ ثغرة فتح نشاط البنك بتخمين id.
+        if (! $activity->isVisibleToStudentSchool($student->school_id, $student->classrooms->pluck('id')->all())) {
             return false;
         }
 
         $lesson = $activity->lesson;
         if (! $lesson) {
-            return true; // نشاط منفصل بدون درس → نسمح به (نشاط مخصص للفصل)
+            return true; // نشاط بلا درس لكنه منشور مباشرةً لمدرسته (اجتاز فحص النشر أعلاه)
         }
 
         $concept = $lesson->concept ?? null;
@@ -1963,7 +1966,7 @@ class StudentController extends Controller
 
         // حساب تقدم الدرس الحالي (نعتبر أي تسليم إنجازاً للنشاط)
         if ($currentLesson) {
-            $activityIds = $currentLesson->activities()->where('status', 'active')->where('approval_status', 'approved')->pluck('id')->toArray();
+            $activityIds = $currentLesson->activities()->where('status', 'active')->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all())->pluck('id')->toArray();
             $totalActivities = count($activityIds);
             $completedActivities = ActivitySubmission::where('student_id', $user->id)
                 ->whereIn('activity_id', $activityIds)
@@ -2007,7 +2010,7 @@ class StudentController extends Controller
         $values = Value::visibleForSchool($user->school_id)
             ->with([
                 'concepts.lessons' => fn ($q) => $q->where('status', 'active'),
-                'concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')->where('approval_status', 'approved'),
+                'concepts.lessons.activities' => fn ($q) => $q->where('status', 'active')->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all()),
             ])
             ->orderBy('order')
             ->get();
@@ -2025,7 +2028,7 @@ class StudentController extends Controller
 
                         continue;
                     }
-                    $actIds = $lesson->activities->where('status', 'active')->where('approval_status', 'approved')->pluck('id')->all();
+                    $actIds = $lesson->activities->where('status', 'active')->pluck('id')->all();
                     $lesson->is_completed = ! empty($actIds) && count(array_diff($actIds, $completedActivityIds)) === 0;
                     if (! empty($actIds)) {
                         $valTotal++;
