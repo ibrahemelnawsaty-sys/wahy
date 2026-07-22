@@ -201,14 +201,25 @@ class ActivityApprovalController extends Controller
      */
     private function notifyClassroomStudentsOfApprovedActivity(Activity $activity): void
     {
-        // نُشعِر بحسب classroom_id فقط: adminApprove يضبط is_activity_bank=true دائمًا فلا نعتمد
-        // عليه هنا (نشاط البنك الخالص بلا classroom_id فيُستبعَد تلقائيًّا).
         if (! $activity->classroom_id) {
             return;
         }
         $activity->loadMissing('classroom.students');
-        $students = optional($activity->classroom)->students ?? collect();
-        foreach ($students as $student) {
+        $classroom = $activity->classroom;
+        if (! $classroom) {
+            return;
+        }
+
+        // لا نُشعِر إلا إن صار النشاط مرئيًّا مباشرةً لطلاب الفصل فعلاً: منشور «مباشر» لكل المدارس
+        // أو لمدرسة الفصل صراحةً. وضع «بنك» (all_schools_mode='bank' أو صفّ activity_school بوضع
+        // bank) لا يظهر تلقائيًّا للطلاب — فإشعار «نشاط جديد» عنه مضلِّل ويناقض دلالة الوضع.
+        $directlyVisible = $activity->all_schools_mode === 'direct'
+            || ($classroom->school_id && $activity->isDirectToSchool((int) $classroom->school_id));
+        if (! $directlyVisible) {
+            return;
+        }
+
+        foreach ($classroom->students as $student) {
             NotificationService::newActivity($student->id, $activity->title);
         }
     }

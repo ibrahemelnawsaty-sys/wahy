@@ -957,6 +957,10 @@ class SchoolAdminController extends Controller
 
         $activity = $this->schoolActivitiesQuery()->findOrFail($id);
 
+        // حارس حالة: لا يعكس مدير المدرسة قرار اعتمادٍ نهائيٍّ اتخذه الأدمن (§12.1) — فرفضٌ بعد
+        // اعتماد الأدمن كان سيسحب النشر العالميّ ونشرَ مدارس أخرى عبر revokePublishing الشامل.
+        abort_if($activity->approval_status === 'approved', 403, 'لا يمكن رفض نشاطٍ اعتمده الأدمن نهائيًّا.');
+
         $activity->update([
             'school_approval_status' => 'rejected',
             'school_approved_by' => Auth::id(),
@@ -964,8 +968,10 @@ class SchoolAdminController extends Controller
             'school_rejection_reason' => $validated['rejection_reason'],
         ]);
 
-        // الرفض يسحب النشر: نشاط سبق نشره لمدرسته لا يبقى مرئيًّا لطلابها بعد رفضه
-        app(\App\Services\ActivityPublishingService::class)->revokePublishing($activity);
+        // الرفض يسحب النشر **من مدرسة الفاعل فقط** (لا all_schools_mode ولا مدارس أخرى) — نشاطٌ
+        // سبق نشرُه لمدرسته لا يبقى مرئيًّا لطلابها بعد رفضه، دون تجاوز عزل المدارس الأخرى.
+        app(\App\Services\ActivityPublishingService::class)
+            ->unpublishFromSchool($activity, Auth::user()->activeSchoolId());
 
         // إشعار المعلّم — يمكنه التعديل وإعادة الإرسال
         if ($activity->created_by) {

@@ -288,6 +288,30 @@ class Activity extends Model
     }
 
     /**
+     * بوّابة وصول الطالب الكاملة: نشط + منشور مباشرةً لمدرسته (isVisibleToStudentSchool)
+     * + ضمن قيمة مفعّلة لمدرسته (Value::visibleForSchool). مصدرٌ وحيد يستدعيه الويب والـAPI
+     * معًا لمنع الانحراف — كان الجوّال (StudentApiController) يتجاوز بوّابة القيمة فيكشف الأسئلة
+     * والإجابات ويقبل التسليم على قيمة أخفتها المدرسة عمدًا.
+     */
+    public function isAccessibleByStudent(User $student): bool
+    {
+        if (($this->status ?? 'active') !== 'active') {
+            return false;
+        }
+
+        if (! $this->isVisibleToStudentSchool($student->school_id, $student->classrooms->pluck('id')->all())) {
+            return false;
+        }
+
+        $valueId = optional(optional($this->lesson)->concept)->value_id;
+        if (! $valueId || ! $student->school_id) {
+            return true; // بلا قيمة أو بلا مدرسة (كأدمن اختبار) → لا قيد قيمة
+        }
+
+        return in_array($valueId, Value::visibleForSchool($student->school_id)->pluck('id')->all(), true);
+    }
+
+    /**
      * الدرس الأساسي
      */
     public function lesson(): BelongsTo

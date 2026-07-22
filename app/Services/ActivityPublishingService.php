@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Activity;
+use Illuminate\Support\Facades\DB;
 
 /**
  * منطق النشر الموحّد للأنشطة (المرحلة 3).
@@ -24,14 +25,17 @@ class ActivityPublishingService
     {
         $publishMode = $this->normalizeMode($publishMode);
 
-        $activity->update([
-            'school_approval_status' => 'approved',
-            'school_approved_by' => $approverId,
-            'school_approved_at' => now(),
-            'school_rejection_reason' => null,
-        ]);
+        // ذرّيّة: الاعتماد + صفّ النشر يُثبَّتان معًا أو يُلغَيان معًا (لا حالة «معتمَد بلا نشر»).
+        DB::transaction(function () use ($activity, $schoolId, $publishMode, $approverId) {
+            $activity->update([
+                'school_approval_status' => 'approved',
+                'school_approved_by' => $approverId,
+                'school_approved_at' => now(),
+                'school_rejection_reason' => null,
+            ]);
 
-        $this->publishToSchool($activity, $schoolId, $publishMode, $approverId);
+            $this->publishToSchool($activity, $schoolId, $publishMode, $approverId);
+        });
     }
 
     /**
@@ -45,22 +49,26 @@ class ActivityPublishingService
         $publishMode = $this->normalizeMode($publishMode);
         $scope = $scope === 'specific' ? 'specific' : 'all';
 
-        $activity->update([
-            'approval_status' => 'approved',
-            'approved_by' => $approverId,
-            'approved_at' => now(),
-            'rejection_reason' => null,
-            // نقل تلقائيّ للبنك المشترك عند اعتماد الأدمن (§متطلب 3)
-            'is_activity_bank' => true,
-            // كل المدارس ⇒ العمود الصريح؛ مدارس محدّدة ⇒ لا نشر عالميّ (none) والنشر عبر الـpivot
-            'all_schools_mode' => $scope === 'all' ? $publishMode : 'none',
-        ]);
+        // ذرّيّة: الاعتماد + نقل البنك + كل صفوف نشر المدارس تُثبَّت معًا أو تُلغى معًا — فلا يبقى
+        // نشاطٌ «معتمَد ومنقول للبنك» بنشرٍ جزئيّ لبعض المدارس إن أخفق صفٌّ في منتصف الحلقة.
+        DB::transaction(function () use ($activity, $scope, $publishMode, $schoolIds, $approverId) {
+            $activity->update([
+                'approval_status' => 'approved',
+                'approved_by' => $approverId,
+                'approved_at' => now(),
+                'rejection_reason' => null,
+                // نقل تلقائيّ للبنك المشترك عند اعتماد الأدمن (§متطلب 3)
+                'is_activity_bank' => true,
+                // كل المدارس ⇒ العمود الصريح؛ مدارس محدّدة ⇒ لا نشر عالميّ (none) والنشر عبر الـpivot
+                'all_schools_mode' => $scope === 'all' ? $publishMode : 'none',
+            ]);
 
-        if ($scope === 'specific') {
-            foreach ($schoolIds as $sid) {
-                $this->publishToSchool($activity, (int) $sid, $publishMode, $approverId);
+            if ($scope === 'specific') {
+                foreach ($schoolIds as $sid) {
+                    $this->publishToSchool($activity, (int) $sid, $publishMode, $approverId);
+                }
             }
-        }
+        });
     }
 
     /**
@@ -73,6 +81,17 @@ class ActivityPublishingService
         $activity->schools()->detach();
         $activity->classrooms()->detach();
         $activity->forceFill(['all_schools_mode' => 'none'])->saveQuietly();
+    }
+
+    /**
+     * سحبُ نشرٍ من مدرسة واحدة فقط (رفض مدير المدرسة للمرحلة 1) — لا يمسّ نشرَ الأدمن العالميّ
+     * (all_schools_mode) ولا صفوفَ/فصولَ المدارس الأخرى (§12.1 عزل: فاعلٌ مدرسيّ لا يعكس قرارًا
+     * عالميّاً اتخذه الأدمن، ولا يؤثّر على مستأجرين آخرين). عكسُ revokePublishing الشامل المخصَّص
+     * لمسار رفض الأدمن حيث للفاعل صلاحيّة عالميّة.
+     */
+    public function unpublishFromSchool(Activity $activity, int $schoolId): void
+    {
+        $activity->schools()->detach([$schoolId]);
     }
 
     /**

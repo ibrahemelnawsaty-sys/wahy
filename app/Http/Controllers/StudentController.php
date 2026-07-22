@@ -818,41 +818,9 @@ class StudentController extends Controller
      */
     private function isActivityAccessibleByStudent(Activity $activity, $student): bool
     {
-        // النشاط غير النشط لا يُتاح للطالب إطلاقاً (لا فتحاً مباشراً بالرابط ولا تسليماً)
-        if (($activity->status ?? 'active') !== 'active') {
-            return false;
-        }
-
-        // بوّابة النشر: لا يُفتح/يُسلَّم النشاط للطالب إلا إن كان «مباشراً» لمدرسته
-        // (all_schools_mode='direct' أو صفّ activity_school بوضع direct لمدرسته) أو مُسنَدًا
-        // مرجعيًّا لأحد فصوله. تستبدل بوّابة الاعتماد القديمة، وتسدّ ثغرة فتح نشاط البنك بتخمين id.
-        if (! $activity->isVisibleToStudentSchool($student->school_id, $student->classrooms->pluck('id')->all())) {
-            return false;
-        }
-
-        $lesson = $activity->lesson;
-        if (! $lesson) {
-            return true; // نشاط بلا درس لكنه منشور مباشرةً لمدرسته (اجتاز فحص النشر أعلاه)
-        }
-
-        $concept = $lesson->concept ?? null;
-        if (! $concept) {
-            return true;
-        }
-
-        $valueId = $concept->value_id;
-        if (! $valueId) {
-            return true;
-        }
-
-        $schoolId = $student->school_id;
-        if (! $schoolId) {
-            return true; // مستخدم بدون مدرسة (admin اختبار) → نسمح
-        }
-
-        $visibleIds = \App\Models\Value::visibleForSchool($schoolId)->pluck('id')->toArray();
-
-        return in_array($valueId, $visibleIds, true);
+        // مصدر وحيد موحّد مع الجوّال (Activity::isAccessibleByStudent): نشط + منشور مباشرةً
+        // لمدرسته + ضمن قيمة مفعّلة لها. يمنع انحراف بوّابة القيمة بين الويب والـAPI.
+        return $activity->isAccessibleByStudent($student);
     }
 
     /**

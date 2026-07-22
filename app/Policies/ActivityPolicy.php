@@ -30,8 +30,20 @@ class ActivityPolicy
         }
 
         if ($user->role === 'teacher') {
-            return $user->id === $activity->created_by
-                || ($activity->is_activity_bank && $activity->approval_status === 'approved');
+            if ($user->id === $activity->created_by) {
+                return true;
+            }
+
+            if (! ($activity->is_activity_bank && $activity->approval_status === 'approved')) {
+                return false;
+            }
+
+            // نشاط عامّ (بلا منشئ) = منهج مشترك بلا مالك ولا يمرّ باعتماد «مدارس محدّدة»
+            // (طابور الأدمن يقصر على أنشطة المعلّمين) — يبقى متاحًا للجميع. أمّا نشاط معلّمٍ آخر
+            // فيُشترط أن يكون متاحًا في بنك مدرسة هذا المعلّم (منشور لكل المدارس أو لمدرسته
+            // صراحةً) — يمنع رؤية/اختيار نشاطٍ قصره الأدمن على مدارس أخرى (§12.1 عزل صارم).
+            return $activity->created_by === null
+                || ($user->school_id && $activity->isAvailableInBankToSchool((int) $user->school_id));
         }
 
         if ($user->role === 'school_admin') {

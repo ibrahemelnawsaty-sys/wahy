@@ -761,6 +761,11 @@ class TeacherController extends Controller
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
 
+        // حفظ ملفّ «الوسائط المتعددة» المرفق (فيديو/صورة/صوت/مستند) في عمود attachment
+        if ($mediaPath = $this->storeUploadedActivityMedia($request)) {
+            $validated['attachment'] = $mediaPath;
+        }
+
         // إنشاء النشاط
         $activity = Activity::create($validated);
 
@@ -832,6 +837,13 @@ class TeacherController extends Controller
         // بوّابة القراءة الموحّدة + قيد «بنك معتمَد فقط» (لا يُنسخ نشاط غير معتمَد أو خاصّ)
         abort_unless($user->can('view', $source), 403);
         abort_unless($source->is_activity_bank && $source->approval_status === 'approved', 403, 'يُنسخ من البنك المعتمَد فقط');
+        // عزل صارم (§12.1): لا يُنسخ إلا نشاطٌ عامّ (بلا منشئ) أو متاح في بنك مدرسة المعلّم
+        // فعلاً (منشور لكل المدارس أو لمدرسته صراحةً) — يمنع الالتفاف على تقييد «مدارس محدّدة».
+        abort_unless(
+            $source->created_by === null || ($user->school_id && $source->isAvailableInBankToSchool((int) $user->school_id)),
+            403,
+            'هذا النشاط غير متاح في بنك مدرستك',
+        );
 
         // منع الإسناد لفصل لا يدرّسه المعلّم (IDOR / تسرّب بين المدارس)
         abort_unless(
@@ -877,6 +889,13 @@ class TeacherController extends Controller
         $source = Activity::findOrFail($id);
         abort_unless($user->can('view', $source), 403);
         abort_unless($source->is_activity_bank && $source->approval_status === 'approved', 403, 'يُسنَد من البنك المعتمَد فقط');
+        // عزل صارم (§12.1): لا يُسنَد إلا نشاطٌ عامّ (بلا منشئ) أو متاح في بنك مدرسة المعلّم
+        // فعلاً — يمنع تسريب نشاطٍ قصره الأدمن على مدارس أخرى لطلاب مدرسته عبر activity_classroom.
+        abort_unless(
+            $source->created_by === null || ($user->school_id && $source->isAvailableInBankToSchool((int) $user->school_id)),
+            403,
+            'هذا النشاط غير متاح في بنك مدرستك',
+        );
 
         // كل فصل مستهدف يجب أن يكون ضمن فصول المعلّم (IDOR / عزل)
         $ownClassroomIds = $user->teachingClassrooms()->pluck('classrooms.id')->map(fn ($v) => (int) $v)->all();
@@ -949,6 +968,14 @@ class TeacherController extends Controller
         // تحويل أنواع الملفات المسموحة إلى JSON
         if (isset($validated['allowed_file_types'])) {
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
+        }
+
+        // استبدال ملفّ الوسائط المرفق إن رُفِع جديد (مع حذف القديم)
+        if ($mediaPath = $this->storeUploadedActivityMedia($request)) {
+            if ($activity->attachment && \Storage::disk('public')->exists($activity->attachment)) {
+                \Storage::disk('public')->delete($activity->attachment);
+            }
+            $validated['attachment'] = $mediaPath;
         }
 
         // تحديث النشاط
@@ -1859,6 +1886,11 @@ class TeacherController extends Controller
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
 
+        // حفظ ملفّ «الوسائط المتعددة» المرفق (فيديو/صورة/صوت/مستند) في عمود attachment
+        if ($mediaPath = $this->storeUploadedActivityMedia($request)) {
+            $validated['attachment'] = $mediaPath;
+        }
+
         // إنشاء النشاط
         $activity = Activity::create($validated);
 
@@ -1869,6 +1901,31 @@ class TeacherController extends Controller
         TeacherPoint::updateTeacherPoints($user->id);
 
         return redirect()->route('teacher.activity-bank.index')->with('success', 'تم إرسال النشاط للاعتماد. سيراجعه مدير المدرسة ثم الإدارة قبل ظهوره للطلاب.');
+    }
+
+    /**
+     * يخزّن ملفّ «الوسائط المتعددة» المرفوع مع النشاط (فيديو/صورة/صوت/مستند) في عمود attachment.
+     * العمود مفرد، فيؤخذ أوّل ملفّ مرفوع بالأولويّة (فيديو ثم صورة ثم صوت ثم مستند).
+     * يُرجِع مسار التخزين العامّ (activity-media/…) أو null إن لم يُرفَع شيء.
+     */
+    private function storeUploadedActivityMedia(Request $request): ?string
+    {
+        $rules = [
+            'video' => 'file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-m4v|max:102400',
+            'image' => 'file|image|max:10240',
+            'audio' => 'file|mimetypes:audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/x-wav|max:20480',
+            'document' => 'file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:20480',
+        ];
+
+        foreach ($rules as $field => $rule) {
+            if ($request->hasFile($field)) {
+                $request->validate([$field => $rule]);
+
+                return $request->file($field)->store('activity-media', 'public');
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -2051,14 +2108,28 @@ class TeacherController extends Controller
         $user = Auth::user();
 
         // الأنشطة في بنك الأنشطة
+        $schoolId = (int) ($user->school_id ?? 0);
         $activities = Activity::where('is_activity_bank', true)
-            ->where(function ($q) use ($user) {
+            ->where(function ($q) use ($user, $schoolId) {
                 $q->where('created_by', $user->id) // أنشطة المعلم
-                    ->orWhere(function ($subQ) {
+                    ->orWhereNull('created_by')     // الأنشطة العامة (بلا منشئ)
+                    // نشاط معلّمٍ آخر معتمَد: يظهر فقط إن كان متاحًا في بنك مدرسة هذا المعلّم
+                    // (منشور لكل المدارس bank/direct، أو له صفّ activity_school لمدرسته) —
+                    // يمنع تسريب نشاطٍ قصره الأدمن على مدارس أخرى (§12.1). مطابق لـisAvailableInBankToSchool.
+                    ->orWhere(function ($subQ) use ($schoolId) {
                         $subQ->where('approval_status', 'approved')
-                            ->whereNotNull('created_by');
-                    })
-                    ->orWhereNull('created_by'); // الأنشطة العامة
+                            ->whereNotNull('created_by')
+                            ->where(function ($avail) use ($schoolId) {
+                                $avail->whereIn('all_schools_mode', ['bank', 'direct']);
+                                if ($schoolId) {
+                                    $avail->orWhereIn('id', function ($sub) use ($schoolId) {
+                                        $sub->select('activity_id')
+                                            ->from('activity_school')
+                                            ->where('school_id', $schoolId);
+                                    });
+                                }
+                            });
+                    });
             })
             ->with(['creator', 'lesson.concept.value', 'classroom', 'approver'])
             ->orderBy('created_at', 'desc')

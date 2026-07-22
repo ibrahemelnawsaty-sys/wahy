@@ -34,10 +34,11 @@ class CheckHomeworkDueDates extends Command
         $now = Carbon::now();
         $in24Hours = $now->copy()->addHours(24);
 
-        // الواجبات التي موعدها خلال 24 ساعة
+        // الواجبات التي موعدها خلال 24 ساعة. لم نعد نفلتر بـapproval_status='approved': بعد ميزة
+        // النشر صار «معتمَد» ≠ «مرئيّ»، والرؤية تُحسَم لكلّ طالب عبر isVisibleToStudentSchool أدناه
+        // (تُغطّي الاتّجاهين: لا تذكير بما لا يُرى، وتذكير بالمنشور مباشرةً حتى قبل اعتماد الأدمن).
         $upcomingHomework = Activity::where('is_homework', true)
             ->where('status', 'active')
-            ->where('approval_status', 'approved')
             ->whereBetween('due_date', [$now, $in24Hours])
             ->with(['classroom.students', 'creator'])
             ->get();
@@ -60,6 +61,11 @@ class CheckHomeworkDueDates extends Command
             }
 
             foreach ($students as $student) {
+                // لا تُذكّر إلا من يرى الواجب فعلاً (منشور مباشرةً لمدرسته أو مُسنَد لأحد فصوله)
+                if (! $homework->isVisibleToStudentSchool($student->school_id, $student->classrooms->pluck('id')->all())) {
+                    continue;
+                }
+
                 // التحقق من أن الطالب لم يسلم بعد
                 $submission = ActivitySubmission::where('activity_id', $homework->id)
                     ->where('student_id', $student->id)
@@ -79,10 +85,9 @@ class CheckHomeworkDueDates extends Command
 
         $this->info("✅ تم إرسال {$notificationsSent} تذكير");
 
-        // التحقق من الواجبات المتأخرة
+        // التحقق من الواجبات المتأخرة (الرؤية تُحسَم لكلّ طالب أدناه، لا بـapproval_status)
         $overdueHomework = Activity::where('is_homework', true)
             ->where('status', 'active')
-            ->where('approval_status', 'approved')
             ->where('due_date', '<', $now)
             ->with(['classroom.students', 'creator'])
             ->get();
@@ -103,6 +108,11 @@ class CheckHomeworkDueDates extends Command
             }
 
             foreach ($students as $student) {
+                // لا تُنبّه إلا من يرى الواجب فعلاً
+                if (! $homework->isVisibleToStudentSchool($student->school_id, $student->classrooms->pluck('id')->all())) {
+                    continue;
+                }
+
                 // التحقق من أن الطالب لم يسلم بعد
                 $submission = ActivitySubmission::where('activity_id', $homework->id)
                     ->where('student_id', $student->id)

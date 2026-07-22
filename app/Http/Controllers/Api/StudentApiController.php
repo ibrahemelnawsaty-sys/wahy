@@ -139,6 +139,19 @@ class StudentApiController extends Controller
             ->where('status', 'active')
             ->visibleToStudent($user->school_id, $user->classrooms->pluck('id')->all());
 
+        // بوّابة القيمة (اتّساقًا مع details/submit والويب): لا تُدرَج أنشطةٌ تحت قيمة أخفتها
+        // المدرسة عبر school_active_values — كي لا تظهر بياناتها الوصفيّة في قائمة الجوّال ثم
+        // يُرفَض فتحُها/تسليمُها بـ403. أنشطة بلا قيمة (بلا درس/مفهوم/قيمة) تمرّ (لا قيد قيمة).
+        if ($user->school_id) {
+            $visibleValueIds = \App\Models\Value::visibleForSchool($user->school_id)->pluck('id')->all();
+            $query->where(function ($q) use ($visibleValueIds) {
+                $q->whereDoesntHave('lesson.concept')
+                    ->orWhereHas('lesson.concept', function ($c) use ($visibleValueIds) {
+                        $c->whereNull('value_id')->orWhereIn('value_id', $visibleValueIds);
+                    });
+            });
+        }
+
         // Filter by classroom if student
         if ($user->role === 'student') {
             $classroomIds = $user->classrooms->pluck('id')->toArray();
@@ -206,12 +219,10 @@ class StudentApiController extends Controller
 
         $activity = Activity::with(['lesson.concept.value', 'creator'])->findOrFail($id);
 
-        // بوّابة النشر الموحّدة (نفس StudentController::isActivityAccessibleByStudent): لا يُفتَح
-        // النشاط إلا إن كان نشطًا ومنشورًا مباشرةً لمدرسة الطالب أو مُسنَدًا لأحد فصوله. لا يكفي
-        // approval + عضويّة classroom_id (كانت تُسرّب أنشطة «البنك» المعتمَدة غير المنشورة عبر الجوّال).
-        $classroomIds = $user->classrooms->pluck('id')->toArray();
-        if (($activity->status ?? 'active') !== 'active'
-            || ! $activity->isVisibleToStudentSchool($user->school_id, $classroomIds)) {
+        // بوّابة الوصول الموحّدة (Activity::isAccessibleByStudent — نفس الويب تمامًا): نشط +
+        // منشور مباشرةً لمدرسته أو مُسنَد لأحد فصوله + ضمن قيمة مفعّلة لمدرسته. توحيد المصدر
+        // يغلق تجاوز الجوّال لبوّابة القيمة (كان يكشف الأسئلة/الإجابات على قيمة أخفتها المدرسة).
+        if (! $activity->isAccessibleByStudent($user)) {
             return response()->json([
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول لهذا النشاط',
@@ -264,11 +275,10 @@ class StudentApiController extends Controller
         $user = $request->user();
         $activity = Activity::findOrFail($id);
 
-        // بوّابة النشر الموحّدة: لا يُقبَل تسليم/منح نقاط إلا على نشاط نشط منشور مباشرةً لمدرسة
-        // الطالب أو مُسنَد لأحد فصوله (يُغلق تسريب تسليم أنشطة البنك المعتمَدة غير المنشورة).
-        $classroomIds = $user->classrooms->pluck('id')->toArray();
-        if (($activity->status ?? 'active') !== 'active'
-            || ! $activity->isVisibleToStudentSchool($user->school_id, $classroomIds)) {
+        // بوّابة الوصول الموحّدة (Activity::isAccessibleByStudent — نفس الويب): لا يُقبَل تسليم/
+        // منح نقاط إلا على نشاط نشط منشور مباشرةً لمدرسة الطالب أو مُسنَد لأحد فصوله + ضمن قيمة
+        // مفعّلة لمدرسته (يُغلق قبول التسليم/منح النقاط على قيمة أخفتها المدرسة عبر الجوّال).
+        if (! $activity->isAccessibleByStudent($user)) {
             return response()->json([
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول لهذا النشاط',

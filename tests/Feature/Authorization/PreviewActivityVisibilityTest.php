@@ -37,10 +37,13 @@ class PreviewActivityVisibilityTest extends TestCase
         $school = School::factory()->create();
         $teacher = User::factory()->teacher($school)->create();
         $other = User::factory()->teacher($school)->create();
+        // «مشترك» في النموذج الجديد = منشور فعلاً لبنك كل المدارس (all_schools_mode='bank')،
+        // كما يُنتجه اعتماد الأدمن scope=all mode=bank. مجرّد approved بلا نشر لم يعد «مشتركًا».
         $shared = Activity::factory()->create([
             'created_by' => $other->id,
             'is_activity_bank' => true,
             'approval_status' => 'approved',
+            'all_schools_mode' => 'bank',
         ]);
 
         $this->preview($teacher, $shared)->assertOk();
