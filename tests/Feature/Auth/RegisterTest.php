@@ -6,12 +6,30 @@ use App\Enums\UserRole;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RegisterTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // المتحكّم يُسند دور Spatie عند النجاح، وبذر الأدوار لا يعمل في الاختبارات
+        // (RefreshDatabase لا يبذر) — فننشئ الأدوار التي يحتاجها مسار التسجيل كي يكتمل
+        // المسار السعيد (User::create + assignRole معاً). بلا هذا يُطلق assignRole
+        // RoleDoesNotExist داخل الـtransaction فتتراجع ولا يُنشأ مستخدم.
+        foreach (['student', 'teacher', 'parent', 'school_admin'] as $name) {
+            Role::findOrCreate($name, 'web');
+        }
+
+        // التسجيل يُرسل بريد تأكيد — نُبقيه خاملاً.
+        Mail::fake();
+    }
 
     public function test_register_page_is_accessible(): void
     {
