@@ -601,7 +601,9 @@ function uploadOrderImage(input) {
     .then(function (r) { if (!r.ok) throw new Error('فشل رفع الصورة'); return r.json(); })
     .then(function (d) {
         if (d.url) {
-            urlInput.value = d.url;
+            // الرابط المُعاد قد يكون نسبياً (/storage/...)؛ حقل type=url يتطلّب رابطاً مطلقاً،
+            // ونحتاجه مطلقاً أيضاً كي يظهر في واجهة الطالب وصفحة المراجعة (http(s) فقط).
+            urlInput.value = new URL(d.url, window.location.origin).href;
             previewImg(urlInput);
             updateImageData();
         } else { alert('فشل رفع الصورة'); }

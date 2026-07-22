@@ -893,7 +893,8 @@ function uploadActivityImage(input, qIndex, imgIndex) {
         return response.json();
     })
     .then(function(data) {
-        questions[qIndex].images[imgIndex].url = data.url;
+        // نضمن رابطاً مطلقاً: حقل type=url يرفض النسبيّ، ونحتاجه http(s) لواجهة الطالب/المراجعة
+        questions[qIndex].images[imgIndex].url = data.url ? new URL(data.url, window.location.origin).href : '';
         renderQuestions();
     })
     .catch(function(error) {
