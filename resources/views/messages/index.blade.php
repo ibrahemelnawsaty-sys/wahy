@@ -543,6 +543,13 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
 @media (min-width:768px) and (max-width:1023px){
   .student-app .messages-container{ grid-template-columns:300px 1fr; gap:16px; }
 }
+/* ---- الكمبيوتر (#21): قشرة محتواة ومتمركزة تشبه صفحة المعلّم بدل حافّة-لحافّة ---- */
+@media (min-width:1024px){
+  .student-app .msg-inbox-shell{
+    width:100% !important; max-width:1280px !important; margin-inline:auto !important;
+    padding-inline:24px !important;
+  }
+}
 
 /* القائمة: سطح صلب + تمرير داخلي + رأس لاصق */
 .student-app .conversations-list{
