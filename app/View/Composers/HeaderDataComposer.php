@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\ActivitySubmission;
 use App\Models\RegistrationRequest;
 use App\Models\SupportTicket;
+use App\Models\User;
 use Illuminate\View\View;
 
 class HeaderDataComposer
@@ -19,10 +20,17 @@ class HeaderDataComposer
             return;
         }
 
-        // عدد طلبات التسجيل المعلّقة (Issue #46) — كان يَعدّ users المنشأين في آخر 24 ساعة،
-        // وهو معيار جامد لا يتأثر بقرار المسؤول. الآن يَعدّ الطلبات pending.
+        // «مستخدم جديد» = مستخدمون جدد جديرون بالانتباه. كان يَعدّ طلبات التسجيل المعلّقة فقط،
+        // فلا يظهر المستخدم المُنشأ مباشرةً (أدمن) ولا المُسجَّل ذاتياً (User غير نشط عبر /register)
+        // رغم ظهوره في الإحصاءات. الآن = طلبات معلّقة + (مستخدم غير نشط بانتظار التفعيل، أياً كان
+        // عمره) ∪ (مستخدم أُنشئ خلال آخر 7 أيام). مغلّف بـtry/catch (لا يكسر لايوت الأدمن).
         try {
-            $newUsersCount = RegistrationRequest::where('status', 'pending')->count();
+            $newUsersCount = RegistrationRequest::where('status', 'pending')->count()
+                + User::where('id', '!=', auth()->id()) // لا يَعدّ المسؤول الحاليّ نفسه
+                    ->where(function ($q) {
+                        $q->where('status', 'inactive')
+                            ->orWhere('created_at', '>=', now()->subDays(7));
+                    })->count();
         } catch (\Throwable $e) {
             $newUsersCount = 0;
         }
