@@ -40,7 +40,7 @@
     /* عرض إجابة «ترتيب الصور» احترافياً — صور مصغّرة مرقّمة قابلة للضغط */
     .image-order-answer { display: flex; flex-wrap: wrap; gap: 16px; }
     .io-item { position: relative; width: 130px; }
-    .io-item img { width: 130px; height: 130px; object-fit: cover; border-radius: 12px; border: 2px solid rgba(102,126,234,0.35); display: block; transition: transform .15s, border-color .15s; }
+    .io-item img { width: 150px; height: 150px; object-fit: contain; background: rgba(255,255,255,0.05); border-radius: 12px; border: 2px solid rgba(102,126,234,0.35); display: block; transition: transform .15s, border-color .15s; }
     .io-item img:hover { transform: translateY(-3px); border-color: #667eea; }
     .io-order { position: absolute; top: -8px; inset-inline-start: -8px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,0,0,0.25); z-index: 1; }
     @media (max-width: 640px) { .io-item, .io-item img { width: 104px; } .io-item img { height: 104px; } }

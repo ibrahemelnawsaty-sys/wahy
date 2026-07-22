@@ -309,8 +309,8 @@
                 @if(!empty($img['image_url']))
                     <div>
                         <img src="{{ $img['image_url'] }}" alt="{{ $img['caption'] ?? 'صورة ' . ($index+1) }}"
-                             style="width: 140px; height: 140px; object-fit: cover; border-radius: 8px;"
-                             onerror="this.outerHTML='<div style=\'width:140px;height:140px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:14px;\'>❌ صورة غير متاحة</div>';">
+                             style="width: 160px; height: 160px; object-fit: contain; background: #f1f5f9; border-radius: 8px;"
+                             onerror="this.outerHTML='<div style=\'width:160px;height:160px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:14px;\'>❌ صورة غير متاحة</div>';">
                     </div>
                 @else
                     <div style="width:140px;height:140px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:40px;">🖼️</div>
@@ -339,8 +339,8 @@
                         @if(!empty($img['url']))
                             <div>
                                 <img src="{{ $img['url'] }}" alt="{{ $img['description'] ?? 'صورة' }}"
-                                     style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;"
-                                     onerror="this.outerHTML='<div style=\'width:120px;height:120px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:13px;\'>❌ غير متاحة</div>';">
+                                     style="width: 140px; height: 140px; object-fit: contain; background: #f1f5f9; border-radius: 8px;"
+                                     onerror="this.outerHTML='<div style=\'width:140px;height:140px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:13px;\'>❌ غير متاحة</div>';">
                             </div>
                         @else
                             <div style="width:120px;height:120px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:32px;">🖼️</div>

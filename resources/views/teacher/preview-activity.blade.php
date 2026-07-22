@@ -72,7 +72,7 @@
         border-radius: 12px;
         padding: 10px;
     }
-    .image-item img { width: 140px; height: 140px; object-fit: cover; border-radius: 8px; }
+    .image-item img { width: 160px; height: 160px; object-fit: contain; background: #f1f5f9; border-radius: 8px; }
     .image-caption { font-size: 12px; color: #64748b; margin-top: 6px; }
     .order-badge {
         background: #667eea; color: white;
@@ -216,7 +216,7 @@
                                     <div style="text-align: center; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; padding: 8px;">
                                         <div style="background: var(--color-primary, #667eea); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-bottom: 6px;">{{ $imgIdx + 1 }}</div>
                                         @if(!empty($img['url']))
-                                            <div><img src="{{ $img['url'] }}" alt="{{ $img['description'] ?? '' }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;" onerror="this.outerHTML='<div style=\'width:120px;height:120px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:13px;\'>❌</div>';"></div>
+                                            <div><img src="{{ $img['url'] }}" alt="{{ $img['description'] ?? '' }}" style="width: 140px; height: 140px; object-fit: contain; background: #f1f5f9; border-radius: 8px;" onerror="this.outerHTML='<div style=\'width:140px;height:140px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:13px;\'>❌</div>';"></div>
                                         @else
                                             <div style="width:120px;height:120px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;">🖼️</div>
                                         @endif
