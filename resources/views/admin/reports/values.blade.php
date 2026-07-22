@@ -190,5 +190,48 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== الوضع الليلي (مقيّد بهذه الصفحة) ===== */
+html[data-theme="dark"] .value-card {
+    background: var(--w-card) !important;
+    border-color: var(--w-border) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+}
+
+html[data-theme="dark"] .value-card:hover {
+    box-shadow: 0 8px 18px rgba(0,0,0,0.5);
+}
+
+html[data-theme="dark"] .value-header {
+    border-bottom-color: var(--w-border) !important;
+}
+
+html[data-theme="dark"] .stat-item,
+html[data-theme="dark"] .value-description {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--w-border);
+}
+
+html[data-theme="dark"] .page-header h1,
+html[data-theme="dark"] .value-header h3,
+html[data-theme="dark"] .value-concepts h4 {
+    color: var(--w-text) !important;
+}
+
+html[data-theme="dark"] .page-header p,
+html[data-theme="dark"] .stat-label,
+html[data-theme="dark"] .value-description {
+    color: var(--w-text-muted) !important;
+}
+
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .empty-state p {
+    color: var(--w-text-muted) !important;
+}
+
+html[data-theme="dark"] .concept-tag {
+    background: rgba(99,102,241,0.22) !important;
+    color: #c7d2fe !important;
+}
 </style>
 @endsection

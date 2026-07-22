@@ -84,5 +84,19 @@
 .badge-primary { background: #dbeafe; color: #1e40af; }
 .badge-info { background: #e0e7ff; color: #3730a3; }
 .badge-success { background: #d1fae5; color: #065f46; }
+
+/* ===== الوضع الليليّ (مقيّد بهذه الصفحة) ===== */
+html[data-theme="dark"] .filters-card,
+html[data-theme="dark"] .table-card { background: var(--w-card) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.35); }
+html[data-theme="dark"] .page-header h1,
+html[data-theme="dark"] .filter-group label { color: var(--w-text) !important; }
+html[data-theme="dark"] .filter-group select { background: rgba(255,255,255,0.04) !important; border-color: var(--w-border) !important; color: var(--w-text) !important; }
+html[data-theme="dark"] .data-table th { background: rgba(255,255,255,0.04) !important; color: var(--w-text) !important; border-bottom-color: var(--w-border) !important; }
+html[data-theme="dark"] .data-table td { color: var(--w-text) !important; border-bottom-color: var(--w-border) !important; }
+html[data-theme="dark"] .data-table td strong { color: var(--w-text) !important; }
+html[data-theme="dark"] .text-center { color: var(--w-text-muted) !important; }
+html[data-theme="dark"] .badge-primary { background: rgba(59,130,246,0.22) !important; color: #bfdbfe !important; }
+html[data-theme="dark"] .badge-info { background: rgba(99,102,241,0.22) !important; color: #c7d2fe !important; }
+html[data-theme="dark"] .badge-success { background: rgba(16,185,129,0.22) !important; color: #a7f3d0 !important; }
 </style>
 @endsection

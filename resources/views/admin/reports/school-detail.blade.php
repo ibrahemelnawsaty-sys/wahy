@@ -58,5 +58,32 @@
 .ranking-item, .teacher-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; }
 .empty-state { text-align: center; padding: 40px; color: #94a3b8; }
 .badge-info { background: #e0e7ff; color: #3730a3; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+
+/* ===== الوضع الليلي: البطاقات معرَّفة بأصناف مخصّصة (لا inline ولا .bg-white) فلا تلتقطها
+   تغطية اللايوت — نصرّح بها هنا بمتغيّرات --w-* المشتركة (اتّباع الدستور). ===== */
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .section-card {
+    background: var(--w-card) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+html[data-theme="dark"] .ranking-item,
+html[data-theme="dark"] .teacher-item {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--w-border);
+}
+html[data-theme="dark"] .school-detail h1,
+html[data-theme="dark"] .section-card h3,
+html[data-theme="dark"] .stat-card h3,
+html[data-theme="dark"] .stat-card p,
+html[data-theme="dark"] .ranking-item span,
+html[data-theme="dark"] .ranking-item strong,
+html[data-theme="dark"] .teacher-item span {
+    color: var(--w-text) !important;
+}
+html[data-theme="dark"] .empty-state { color: var(--w-text-muted) !important; }
+html[data-theme="dark"] .badge-info {
+    background: rgba(99, 102, 241, 0.22) !important;
+    color: #c7d2fe !important;
+}
 </style>
 @endsection

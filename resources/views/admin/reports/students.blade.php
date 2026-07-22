@@ -279,5 +279,65 @@
 .pagination-wrapper {
     margin-top: 20px;
 }
+
+/* ===== الوضع الليلي (مقيّد بهذه الصفحة) ===== */
+html[data-theme="dark"] .filters-card,
+html[data-theme="dark"] .table-card {
+    background: var(--w-card) !important;
+    border-color: var(--w-border) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+}
+
+html[data-theme="dark"] .header-content h1,
+html[data-theme="dark"] .table-header h3,
+html[data-theme="dark"] .user-name {
+    color: var(--w-text) !important;
+}
+
+html[data-theme="dark"] .header-content p,
+html[data-theme="dark"] .user-email {
+    color: var(--w-text-muted) !important;
+}
+
+html[data-theme="dark"] .filter-group label {
+    color: var(--w-text) !important;
+}
+
+html[data-theme="dark"] .filter-group select,
+html[data-theme="dark"] .filter-group input {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: var(--w-border) !important;
+    color: var(--w-text) !important;
+}
+
+html[data-theme="dark"] .table-header {
+    border-bottom-color: var(--w-border) !important;
+}
+
+html[data-theme="dark"] .data-table th {
+    background: rgba(255,255,255,0.04) !important;
+    color: var(--w-text-muted) !important;
+    border-bottom-color: var(--w-border) !important;
+}
+
+html[data-theme="dark"] .data-table td {
+    color: var(--w-text) !important;
+    border-bottom-color: var(--w-border) !important;
+}
+
+html[data-theme="dark"] .badge-primary {
+    background: rgba(59,130,246,0.22) !important;
+    color: #bfdbfe !important;
+}
+
+html[data-theme="dark"] .badge-success {
+    background: rgba(16,185,129,0.22) !important;
+    color: #a7f3d0 !important;
+}
+
+html[data-theme="dark"] .badge-secondary {
+    background: rgba(148,163,184,0.22) !important;
+    color: #e2e8f0 !important;
+}
 </style>
 @endsection

@@ -620,20 +620,131 @@
     .page-header {
         flex-direction: column;
     }
-    
+
     .filters-form {
         width: 100%;
     }
-    
+
     .charts-row,
     .rankings-row {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== الوضع الليلي — أصناف غير مُغطّاة بتغطية اللايوت ===== */
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .chart-card,
+html[data-theme="dark"] .ranking-card,
+html[data-theme="dark"] .values-section,
+html[data-theme="dark"] .quick-links {
+    background: var(--w-card) !important;
+    border-color: var(--w-border) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+}
+
+html[data-theme="dark"] .stat-icon,
+html[data-theme="dark"] .ranking-item,
+html[data-theme="dark"] .value-card,
+html[data-theme="dark"] .quick-link {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--w-border);
+}
+
+html[data-theme="dark"] .ranking-item:hover,
+html[data-theme="dark"] .value-card:hover,
+html[data-theme="dark"] .quick-link:hover {
+    background: rgba(255,255,255,0.08) !important;
+}
+
+/* أيقونات الإحصائيات المُلوّنة تبقى بتدرّجها — لا نُسطّحها */
+html[data-theme="dark"] .stat-card.primary .stat-icon,
+html[data-theme="dark"] .stat-card.success .stat-icon,
+html[data-theme="dark"] .stat-card.warning .stat-icon,
+html[data-theme="dark"] .stat-card.info .stat-icon,
+html[data-theme="dark"] .stat-card.secondary .stat-icon {
+    border: none;
+}
+
+/* رؤوس البطاقات وحدودها الداخليّة */
+html[data-theme="dark"] .ranking-header {
+    border-bottom-color: var(--w-border) !important;
+}
+
+/* العناوين والأرقام داخل البطاقات */
+html[data-theme="dark"] .header-content h1,
+html[data-theme="dark"] .stat-content h3,
+html[data-theme="dark"] .chart-header h3,
+html[data-theme="dark"] .ranking-header h3,
+html[data-theme="dark"] .section-header h3,
+html[data-theme="dark"] .rank-info h4,
+html[data-theme="dark"] .value-card h4,
+html[data-theme="dark"] .quick-links h3,
+html[data-theme="dark"] .link-content h4 {
+    color: var(--w-text) !important;
+}
+
+/* النصوص الخافتة */
+html[data-theme="dark"] .header-content p,
+html[data-theme="dark"] .filter-group label,
+html[data-theme="dark"] .stat-content p,
+html[data-theme="dark"] .stat-meta,
+html[data-theme="dark"] .chart-header p,
+html[data-theme="dark"] .ranking-header p,
+html[data-theme="dark"] .rank-info p,
+html[data-theme="dark"] .rank-points small,
+html[data-theme="dark"] .section-header p,
+html[data-theme="dark"] .value-meta,
+html[data-theme="dark"] .link-content p {
+    color: var(--w-text-muted) !important;
+}
+
+/* حقول الفلترة */
+html[data-theme="dark"] .filter-group input {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: var(--w-border) !important;
+    color: var(--w-text) !important;
+}
+
+/* شارة المركز الفضّيّة الفاتحة */
+html[data-theme="dark"] .rank-badge.rank-silver {
+    background: rgba(255,255,255,0.12) !important;
+    color: var(--w-text) !important;
+}
+
+/* الحالة الفارغة */
+html[data-theme="dark"] .empty-state {
+    color: var(--w-text-muted) !important;
+}
+
+/* مركز التصدير — بطاقات وأزرار مضمّنة بخلفيّات فاتحة */
+html[data-theme="dark"] .quick-links[style*="d1fae5"] {
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] .quick-links h3 span[style*="color: #64748b"],
+html[data-theme="dark"] .quick-links h3 span[style*="color:#64748b"] {
+    color: var(--w-text-muted) !important;
+}
+html[data-theme="dark"] form button[type="submit"][style*="linear-gradient"] {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: var(--w-border) !important;
+}
+html[data-theme="dark"] form button[type="submit"][style*="linear-gradient"] span[style*="font-weight: 700"] {
+    color: var(--w-text) !important;
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// ألوان نصّ/شبكة المخطّطات حسب الثيم — نصّ الـcanvas لا يصله CSS، فنضبط افتراضات
+// Chart.js (تسميات المحاور + وسم الأسطوانة + خطوط الشبكة) لتُقرأ ليلاً.
+(function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (window.Chart && Chart.defaults) {
+        Chart.defaults.color = dark ? '#cbd5e1' : '#666';
+        Chart.defaults.borderColor = dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.1)';
+    }
+})();
+
 // Daily Progress Chart
 const dailyProgressCtx = document.getElementById('dailyProgressChart').getContext('2d');
 const dailyProgressChart = new Chart(dailyProgressCtx, {
