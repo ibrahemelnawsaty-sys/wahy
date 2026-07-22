@@ -1,5 +1,4 @@
-@php($__layoutRole = auth()->user()->getCurrentRole())
-@extends($__layoutRole === 'super_admin' ? 'layouts.admin' : ($__layoutRole === 'school_admin' ? 'layouts.school-admin' : ($__layoutRole === 'teacher' ? 'layouts.teacher' : ($__layoutRole === 'parent' ? 'layouts.parent' : 'layouts.student-app'))))
+@extends(auth()->user()->getCurrentRole() === 'super_admin' ? 'layouts.admin' : (auth()->user()->getCurrentRole() === 'school_admin' ? 'layouts.school-admin' : (auth()->user()->getCurrentRole() === 'teacher' ? 'layouts.teacher' : (auth()->user()->getCurrentRole() === 'parent' ? 'layouts.parent' : 'layouts.student-app'))))
 
 @section('title', 'صندوق الوارد')
 
