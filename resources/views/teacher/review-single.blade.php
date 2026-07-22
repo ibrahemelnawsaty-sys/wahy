@@ -26,6 +26,24 @@
     /* تحييد ألوان النصّ المضمّنة (المحرّر يفترض لوناً داكناً) → يرث لون البطاقة المقروء في الوضعين */
     .activity-description.rich-content [style*="color"] { color: inherit !important; }
     html[data-theme="dark"] .activity-description.rich-content a { color: #60a5fa; }
+
+    /* منع تجاوز النصّ الطويل (روابط/JSON) أفقياً — كان يدفع المحتوى ليعلو القائمة الجانبية */
+    .review-layout > * { min-width: 0; }
+    .student-answer { word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .student-answer a { color: #2563eb; text-decoration: underline; word-break: break-all; }
+
+    /* رابط الطالب كمربّع قابل للضغط */
+    .answer-link-box { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.30); border-radius: 12px; color: #2563eb; text-decoration: none; font-weight: 700; word-break: break-all; }
+    .answer-link-box:hover { background: rgba(37,99,235,0.15); }
+    html[data-theme="dark"] .answer-link-box { color: #93c5fd; border-color: rgba(147,197,253,0.35); }
+
+    /* عرض إجابة «ترتيب الصور» احترافياً — صور مصغّرة مرقّمة قابلة للضغط */
+    .image-order-answer { display: flex; flex-wrap: wrap; gap: 16px; }
+    .io-item { position: relative; width: 130px; }
+    .io-item img { width: 130px; height: 130px; object-fit: cover; border-radius: 12px; border: 2px solid rgba(102,126,234,0.35); display: block; transition: transform .15s, border-color .15s; }
+    .io-item img:hover { transform: translateY(-3px); border-color: #667eea; }
+    .io-order { position: absolute; top: -8px; inset-inline-start: -8px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,0,0,0.25); z-index: 1; }
+    @media (max-width: 640px) { .io-item, .io-item img { width: 104px; } .io-item img { height: 104px; } }
 </style>
 @endpush
 
@@ -109,7 +127,8 @@
 
             <!-- Student Answer -->
             @php
-                // إجابة الطالب مخزّنة في العمود answer؛ وعند رفع ملف تكون JSON: {note, file, file_url}
+                // إجابة الطالب في العمود answer؛ قد تكون: نصّ، ملف {note,file}, ترتيب صور
+                // [{image_url,selected_order}], قائمة (ترتيب كلمات/حروف)، أو كائن كويز.
                 $raw = $submission->answer;
                 $decoded = null;
                 if (is_string($raw)) {
@@ -122,15 +141,41 @@
                 $answerNote = null;
                 $answerFile = null;
                 $answerFileUrl = null;
+                $imageOrderItems = [];
 
                 if (is_array($decoded)) {
-                    if (array_key_exists('note', $decoded) || array_key_exists('file', $decoded)) {
+                    $isList = array_is_list($decoded);
+
+                    // (1) ترتيب صور: قائمة عناصرها {image_url, selected_order}
+                    if ($isList) {
+                        foreach ($decoded as $it) {
+                            // http(s) فقط — الإجابة من الطالب؛ نمنع javascript:/data: (XSS مخزّن على المعلّم)
+                            if (is_array($it) && ! empty($it['image_url']) && preg_match('~^https?://~i', (string) $it['image_url'])) {
+                                $imageOrderItems[] = [
+                                    'url' => (string) $it['image_url'],
+                                    'order' => $it['selected_order'] ?? ($it['order'] ?? null),
+                                ];
+                            }
+                        }
+                    }
+
+                    if (! empty($imageOrderItems)) {
+                        usort($imageOrderItems, fn ($a, $b) => ((int) ($a['order'] ?? 0)) <=> ((int) ($b['order'] ?? 0)));
+                    } elseif (array_key_exists('note', $decoded) || array_key_exists('file', $decoded)) {
+                        // (2) ملف مرفوع
                         $answerNote = is_scalar($decoded['note'] ?? null) ? $decoded['note'] : null;
                         $answerFile = $decoded['file'] ?? null;
-                        // نتجاهل file_url المخزّن — قد يكون قديماً/قصيراً؛ نبني الرابط الصحيح أدناه
-                    } else {
-                        // إجابة منظّمة (ترتيب/حروف/كويز) — اعرضها بصيغة مقروءة
+                    } elseif ($isList) {
+                        // (3) قائمة نصوص (ترتيب كلمات/حروف)
                         $answerNote = implode('، ', array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE), $decoded));
+                    } else {
+                        // (4) كائن كويز {رقم السؤال: الإجابة} → أسطر مقروءة
+                        $lines = [];
+                        foreach ($decoded as $k => $v) {
+                            $val = is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE);
+                            $lines[] = (is_numeric($k) ? ('السؤال ' . ((int) $k + 1) . ': ') : ($k . ': ')) . $val;
+                        }
+                        $answerNote = implode("\n", $lines);
                     }
                 } else {
                     $answerNote = is_string($raw) ? $raw : null;
@@ -140,17 +185,34 @@
                 if (! $answerFile && $submission->file_path) {
                     $answerFile = $submission->file_path;
                 }
-                // بناء رابط الملف بالاصطلاح العامل (نفس رفع صور الأنشطة: storage/app/public/data/…)
                 if ($answerFile) {
                     $answerFileUrl = \Illuminate\Support\Str::startsWith((string) $answerFile, 'http')
                         ? $answerFile
                         : asset('storage/app/public/data/' . ltrim((string) $answerFile, '/'));
                 }
+
+                // إجابة نصّية = رابط وحيد؟ نعرضه كمربّع قابل للضغط
+                $answerIsUrl = ($answerNote !== null && preg_match('~^\s*https?://\S+\s*$~i', $answerNote) === 1);
             @endphp
             <div class="info-section">
                 <h3 class="section-title">إجابة الطالب</h3>
-                @if($answerNote !== null && $answerNote !== '')
-                    <div class="student-answer">{{ html_excerpt($answerNote, 2000) }}</div>
+
+                @if(! empty($imageOrderItems))
+                    {{-- ترتيب الصور: صور مصغّرة مرقّمة بالترتيب الذي اختاره الطالب --}}
+                    <div class="image-order-answer">
+                        @foreach($imageOrderItems as $it)
+                            <div class="io-item">
+                                <span class="io-order">{{ $it['order'] ?? ($loop->index + 1) }}</span>
+                                <a href="{{ $it['url'] }}" target="_blank" rel="noopener noreferrer" title="فتح الصورة">
+                                    <img src="{{ $it['url'] }}" alt="صورة {{ $loop->index + 1 }}" loading="lazy">
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                @elseif($answerIsUrl)
+                    <a href="{{ trim($answerNote) }}" target="_blank" rel="noopener noreferrer" class="answer-link-box">🔗 فتح رابط الطالب</a>
+                @elseif($answerNote !== null && $answerNote !== '')
+                    <div class="student-answer">{!! nl2br(e(\Illuminate\Support\Str::limit($answerNote, 3000))) !!}</div>
                 @endif
 
                 @if($answerFile)
@@ -163,7 +225,7 @@
                     </div>
                 @endif
 
-                @if(($answerNote === null || $answerNote === '') && ! $answerFile)
+                @if(empty($imageOrderItems) && ($answerNote === null || $answerNote === '') && ! $answerFile)
                     <div class="no-content">لم يقدم الطالب إجابة نصية أو ملف</div>
                 @endif
             </div>
