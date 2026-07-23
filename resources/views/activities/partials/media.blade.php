@@ -26,10 +26,11 @@
                 @php
                     $__att = $__item['path'];
                     // رابط القرص العامّ الفعليّ (جذره storage/app/public/data). كان asset('storage/…')
-                    // خطأً (بلا app/public/data) فلا تظهر الوسائط (404). Storage::url يطابق إعداد القرص.
+                    // خطأً (بلا app/public/data) فلا تظهر الوسائط (404). نستخدم اصطلاح الأڤاتار الموثّق
+                    // العامل على الإنتاج (User::getAvatarUrlAttribute): asset('storage/app/public/data/').
                     $__url = \Illuminate\Support\Str::startsWith($__att, ['http://', 'https://', '/'])
                         ? $__att
-                        : \Illuminate\Support\Facades\Storage::disk('public')->url($__att);
+                        : asset('storage/app/public/data/' . ltrim($__att, '/'));
                     $__ext = strtolower(pathinfo(parse_url($__att, PHP_URL_PATH) ?? $__att, PATHINFO_EXTENSION));
                     $__type = $__item['type'] ?? null;
                     if (! in_array($__type, ['video', 'audio', 'image', 'document'], true)) {

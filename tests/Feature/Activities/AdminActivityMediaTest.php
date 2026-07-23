@@ -88,4 +88,22 @@ class AdminActivityMediaTest extends TestCase
         $url = Storage::disk('public')->url('activity-media/x.mp4');
         $this->assertStringContainsString('storage/app/public/data/activity-media/x.mp4', $url);
     }
+
+    /**
+     * جوهر شكوى المالك: فيديو مرفوع «لا يظهر». نُصيّر قالب العرض الفعليّ (المُضمَّن في
+     * صفحة الطالب/المراجعة/المعاينة) ونتأكّد أنّه يُخرِج عنصر <video> برابط القرص الصحيح.
+     */
+    public function test_media_partial_renders_video_with_correct_url(): void
+    {
+        $activity = Activity::factory()->make([
+            'media' => [
+                ['type' => 'video', 'path' => 'activity-media/lesson.mp4', 'name' => 'درس.mp4'],
+            ],
+        ]);
+
+        $html = view('activities.partials.media', ['activity' => $activity])->render();
+
+        $this->assertStringContainsString('<video', $html, 'يجب أن يُعرَض عنصر الفيديو');
+        $this->assertStringContainsString('storage/app/public/data/activity-media/lesson.mp4', $html, 'رابط الفيديو بمسار القرص العامّ الصحيح');
+    }
 }

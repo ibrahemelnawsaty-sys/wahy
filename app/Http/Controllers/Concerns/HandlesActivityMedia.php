@@ -18,9 +18,12 @@ trait HandlesActivityMedia
     protected function collectUploadedActivityMedia(Request $request): array
     {
         $specs = [
-            'video' => ['rule' => 'mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-m4v', 'max' => 102400, 'type' => 'video'],
+            // نستخدم mimes: (فحص بالامتداد ↔ خريطة MIME) لا mimetypes: (فحص MIME خام صارم) —
+            // فكثير من ملفّات mp4/mov السليمة يُكتشَف MIMEها بصيَغ مختلفة (video/mp4 مقابل
+            // application/octet-stream…) فتُرفَض بصمت. mimes أوسع وأمتن للرفع الحقيقيّ.
+            'video' => ['rule' => 'mimes:mp4,m4v,mov,avi,webm,mkv,ogv,3gp,3g2,mpeg,mpg', 'max' => 102400, 'type' => 'video'],
             'image' => ['rule' => 'image', 'max' => 10240, 'type' => 'image'],
-            'audio' => ['rule' => 'mimetypes:audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/x-wav', 'max' => 20480, 'type' => 'audio'],
+            'audio' => ['rule' => 'mimes:mp3,wav,ogg,oga,m4a,aac,weba,opus,mpga', 'max' => 20480, 'type' => 'audio'],
             'document' => ['rule' => 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx', 'max' => 20480, 'type' => 'document'],
             // مدخل عامّ (name="attachment[]") — يُستنتَج النوع من الامتداد
             'attachment' => ['rule' => 'mimes:mp4,mov,avi,webm,m4v,mp3,wav,ogg,m4a,aac,jpg,jpeg,png,gif,webp,pdf,doc,docx,ppt,pptx,xls,xlsx', 'max' => 102400, 'type' => null],
