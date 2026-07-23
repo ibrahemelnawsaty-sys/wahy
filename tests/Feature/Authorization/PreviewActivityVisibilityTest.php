@@ -86,4 +86,17 @@ class PreviewActivityVisibilityTest extends TestCase
 
         $this->preview($teacher, $pending)->assertNotFound();
     }
+
+    /** السوبر أدمن يتجاوز role:teacher فيصل هنا — يُحوَّل لصفحته لا لطبقة المعلّم (تسريب واجهة). */
+    public function test_super_admin_is_redirected_to_admin_view(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create();
+        $activity = Activity::factory()->create(['created_by' => $teacher->id]);
+
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $this->actingAs($admin)
+            ->get(route('teacher.activities.preview', $activity->id))
+            ->assertRedirect(route('admin.activities.show', $activity->id));
+    }
 }

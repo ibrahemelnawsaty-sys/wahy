@@ -809,6 +809,17 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
 
+        // تسريب واجهة عبر الأدوار: السوبر أدمن يتجاوز حارس role:teacher (CheckRole) فيصل هنا،
+        // فتظهر له طبقة المعلّم. لكلٍّ صفحة تفاصيل في طبقته: نُحوّل الأدمن/السوبر أدمن لصفحته
+        // ومدير المدرسة لصفحته (بحسب الدور النشط) — كي لا يرى واجهة دورٍ آخر.
+        $currentRole = method_exists($user, 'getCurrentRole') ? $user->getCurrentRole() : $user->role;
+        if (in_array($currentRole, ['super_admin', 'admin'], true)) {
+            return redirect()->route('admin.activities.show', $id);
+        }
+        if ($currentRole === 'school_admin') {
+            return redirect()->route('school-admin.activities.show', $id);
+        }
+
         // يسمح بمعاينة: نشاط المعلّم نفسه (أياً كان، بنكاً أو درساً) — للتوافق مع صفحة
         // «إدارة الأنشطة»؛ أو نشاط بنك مشترك معتمد؛ أو نشاط عامّ (بلا منشئ). هذه هي
         // نفس قاعدة رؤية بنك الأنشطة تماماً — لا تسريب (مرئيّة أصلاً في القائمة).
