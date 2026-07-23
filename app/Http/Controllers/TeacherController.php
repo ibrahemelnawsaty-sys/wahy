@@ -225,8 +225,17 @@ class TeacherController extends Controller
             // coins = max(1, ⌊XP/2⌋). فنشاطٌ يُصحَّح يدوياً وآخر آلياً بنفس الدرجة/النقاط
             // يمنحان المكافأة ذاتها. المعلّم يُدخل الدرجة فقط ولا يمنح النقاط يدوياً.
             $activityPoints = (int) (optional($submission->activity)->points ?? 10);
-            $xpAward = (int) round(((float) $request->score / 100) * $activityPoints);
-            $coinsAward = max(1, (int) floor($xpAward / 2));
+            $finalXp = (int) round(((float) $request->score / 100) * $activityPoints);
+            $finalCoins = $finalXp > 0 ? max(1, (int) floor($finalXp / 2)) : 0;
+
+            // مصالحة مع المنح الآليّ: تسليمٌ لم يجتَز التصحيح الآليّ (needs_review) يكون قد مُنِح
+            // مكافأةً جزئيّةً آلياً (عمود awarded_points، دفتر Point منفصل). نمنح هنا **الفرق
+            // التصاعديّ** فوقها فقط كي لا يحصل الطالب على مكافأتين (جزئيّ آليّ + كامل من المعلّم).
+            // تسليمُ المراجعة اليدويّة (pending، score=null) لم يُمنَح آلياً فـawarded_points=0 → المنح كامل.
+            $autoXp = (int) ($submission->awarded_points ?? 0);
+            $autoCoins = $autoXp > 0 ? max(1, (int) floor($autoXp / 2)) : 0;
+            $xpAward = max(0, $finalXp - $autoXp);
+            $coinsAward = max(0, $finalCoins - $autoCoins);
 
             // Pass-4 Batch 2: ONE atomic + idempotent award keyed on this submission.
             // Re-grading the same submission is a no-op — no double XP/coins and no

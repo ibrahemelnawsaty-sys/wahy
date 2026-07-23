@@ -73,6 +73,39 @@ class StudentSecurityTest extends TestCase
         $this->assertStringNotContainsString('is_correct', $questionsJson);
     }
 
+    public function test_teacher_review_does_not_double_award_over_auto_grade(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create();
+        $student = User::factory()->student($school)->create();
+        $classroom = \App\Models\Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
+        $student->classrooms()->attach($classroom->id);
+
+        $activity = Activity::factory()->create(['points' => 10, 'passing_score' => 60]);
+
+        // تسليمٌ لم يجتَز آلياً (50%) → needs_review، مُنِح جزئياً آلياً: awarded_points=5 + نقطة فعليّة
+        $submission = \App\Models\ActivitySubmission::create([
+            'student_id' => $student->id,
+            'activity_id' => $activity->id,
+            'answer' => 'x',
+            'status' => 'needs_review',
+            'score' => 50,
+            'awarded_points' => 5,
+            'attempts' => 1,
+            'submitted_at' => now(),
+        ]);
+        \App\Models\Point::create(['user_id' => $student->id, 'points' => 5, 'reason' => 'auto', 'activity_id' => $activity->id]);
+
+        // المعلّم يصحّح إلى 100% → يجب أن يمنح الفرق (5) لا الكامل (10)
+        $this->actingAs($teacher)
+            ->postJson(route('teacher.review.submit', $submission->id), ['score' => 100])
+            ->assertOk();
+
+        // الإجمالي = 10 (5 آليّ + 5 فرق المعلّم)، لا 15 (ازدواج)
+        $total = \App\Models\Point::where('user_id', $student->id)->sum('points');
+        $this->assertSame(10, (int) $total, 'لا ازدواج: الإجمالي = مكافأة النشاط الكاملة');
+    }
+
     public function test_conversation_sanitizes_stored_xss_before_broadcast(): void
     {
         $school = School::factory()->create();
