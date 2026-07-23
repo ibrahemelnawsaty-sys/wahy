@@ -205,4 +205,72 @@ class AdminPublishingFixesTest extends TestCase
         $this->assertSame('direct', $a->fresh()->all_schools_mode);
         $this->assertSame('direct', $b->fresh()->all_schools_mode);
     }
+
+    // ========== إشعار «نشاط جديد» يحترم بوّابة القيمة ==========
+
+    /** يبني نشاط درسٍ لفصلٍ فيه طالب، تحت القيمة $value، معلّق لاعتماد الأدمن. */
+    private function classroomActivityUnderValue(School $school, \App\Models\Value $value): array
+    {
+        $concept = Concept::factory()->create(['value_id' => $value->id]);
+        $lesson = Lesson::factory()->create(['concept_id' => $concept->id]);
+        $classroom = Classroom::factory()->create(['school_id' => $school->id]);
+        $student = User::factory()->student($school)->create();
+        $student->classrooms()->attach($classroom->id);
+        $activity = Activity::factory()->create([
+            'lesson_id' => $lesson->id,
+            'classroom_id' => $classroom->id,
+            'status' => 'active',
+            'approval_status' => 'pending',
+            'school_approval_status' => 'approved',
+            'all_schools_mode' => 'none',
+        ]);
+
+        return [$student, $activity];
+    }
+
+    public function test_new_activity_notification_skips_students_with_hidden_value(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $school = School::factory()->create();
+        $value = Value::factory()->create(['status' => 'active']);
+        $otherValue = Value::factory()->create(['status' => 'active']);
+        // المدرسة خصّصت قيمها لتشمل قيمةً أخرى فقط → قيمة النشاط مُخفاة عنها
+        \Illuminate\Support\Facades\DB::table('school_active_values')->insert([
+            'school_id' => $school->id,
+            'value_id' => $otherValue->id,
+        ]);
+
+        [$student, $activity] = $this->classroomActivityUnderValue($school, $value);
+
+        $this->actingAs($admin)->post(route('admin.activity-approval.approve', $activity), [
+            'scope' => 'all',
+            'publish_mode' => 'direct',
+        ])->assertRedirect();
+
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_type' => 'App\\Models\\User',
+            'notifiable_id' => $student->id,
+            'type' => 'new_activity',
+        ]);
+    }
+
+    public function test_new_activity_notification_sent_when_value_visible(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $school = School::factory()->create(); // بلا تخصيص → كل القيم مرئيّة
+        $value = Value::factory()->create(['status' => 'active']);
+
+        [$student, $activity] = $this->classroomActivityUnderValue($school, $value);
+
+        $this->actingAs($admin)->post(route('admin.activity-approval.approve', $activity), [
+            'scope' => 'all',
+            'publish_mode' => 'direct',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => 'App\\Models\\User',
+            'notifiable_id' => $student->id,
+            'type' => 'new_activity',
+        ]);
+    }
 }

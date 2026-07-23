@@ -206,7 +206,7 @@ class ActivityApprovalController extends Controller
         if (! $activity->classroom_id) {
             return;
         }
-        $activity->loadMissing('classroom.students');
+        $activity->loadMissing('classroom.students', 'lesson.concept');
         $classroom = $activity->classroom;
         if (! $classroom) {
             return;
@@ -222,7 +222,12 @@ class ActivityApprovalController extends Controller
         }
 
         foreach ($classroom->students as $student) {
-            NotificationService::newActivity($student->id, $activity->title);
+            // بوّابة الوصول الكاملة (تشمل بوّابة القيمة Value::visibleForSchool): لا نُشعِر طالباً
+            // بنشاطٍ تحت قيمةٍ أخفتها مدرسته — فكان يصطدم بـ403 عند الفتح ولا يجده في شجرته
+            // (إشعار مضلِّل يقود لبابٍ مغلق). isAccessibleByStudent المصدرُ الموحّد للويب والجوّال.
+            if ($activity->isAccessibleByStudent($student)) {
+                NotificationService::newActivity($student->id, $activity->title);
+            }
         }
     }
 }
