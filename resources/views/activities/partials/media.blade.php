@@ -25,9 +25,11 @@
             @foreach($__mediaItems as $__item)
                 @php
                     $__att = $__item['path'];
+                    // رابط القرص العامّ الفعليّ (جذره storage/app/public/data). كان asset('storage/…')
+                    // خطأً (بلا app/public/data) فلا تظهر الوسائط (404). Storage::url يطابق إعداد القرص.
                     $__url = \Illuminate\Support\Str::startsWith($__att, ['http://', 'https://', '/'])
                         ? $__att
-                        : asset('storage/' . ltrim($__att, '/'));
+                        : \Illuminate\Support\Facades\Storage::disk('public')->url($__att);
                     $__ext = strtolower(pathinfo(parse_url($__att, PHP_URL_PATH) ?? $__att, PATHINFO_EXTENSION));
                     $__type = $__item['type'] ?? null;
                     if (! in_array($__type, ['video', 'audio', 'image', 'document'], true)) {

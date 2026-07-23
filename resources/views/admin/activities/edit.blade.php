@@ -220,7 +220,7 @@
 <div class="form-card">
     <h2 style="margin-bottom: 24px;">✏️ تعديل نشاط: {{ $activity->title }}</h2>
 
-    <form method="POST" action="{{ route('admin.activities.update', $activity) }}">
+    <form method="POST" action="{{ route('admin.activities.update', $activity) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -440,6 +440,9 @@
                 @enderror
             </div>
         </div>
+
+        {{-- الوسائط المتعددة (اختياري) — الحالية + إضافة جديد، تظهر للطالب داخل النشاط --}}
+        @include('activities.partials.media-upload-form', ['activity' => $activity])
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">💾 تحديث النشاط</button>

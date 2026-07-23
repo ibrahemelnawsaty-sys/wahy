@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\HandlesActivityMedia;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\Lesson;
@@ -9,6 +10,8 @@ use Illuminate\Http\Request;
 
 class ActivityManagementController extends Controller
 {
+    use HandlesActivityMedia;
+
     public function index(Request $request)
     {
         $query = Activity::with('lesson.concept.value');
@@ -97,6 +100,12 @@ class ActivityManagementController extends Controller
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
         }
 
+        // الوسائط المتعددة المرفوعة (صور/صوت/فيديو/مستندات) — تظهر للطالب داخل النشاط
+        $media = $this->collectUploadedActivityMedia($request);
+        if (! empty($media)) {
+            $validated['media'] = $media;
+        }
+
         Activity::create($validated);
 
         return redirect()
@@ -158,6 +167,12 @@ class ActivityManagementController extends Controller
         // تحويل أنواع الملفات المسموحة إلى JSON
         if (isset($validated['allowed_file_types'])) {
             $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
+        }
+
+        // الوسائط المتعددة: حذف المحدَّد (remove_media[]) + إضافة المرفوع الجديد
+        $mergedMedia = $this->mergeActivityMedia($request, is_array($activity->media) ? $activity->media : []);
+        if ($mergedMedia !== null) {
+            $validated['media'] = $mergedMedia;
         }
 
         $activity->update($validated);

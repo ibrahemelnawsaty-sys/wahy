@@ -243,7 +243,7 @@
 <div class="form-card">
     <h2 style="margin-bottom: 24px;">🎯 إضافة نشاط جديد</h2>
 
-    <form method="POST" action="{{ route('admin.activities.store') }}">
+    <form method="POST" action="{{ route('admin.activities.store') }}" enctype="multipart/form-data">
         @csrf
 
         <div class="form-grid">
@@ -442,6 +442,9 @@
                 @enderror
             </div>
         </div>
+
+        {{-- الوسائط المتعددة (اختياري) — نفس ما لدى المعلّم، تظهر للطالب داخل النشاط --}}
+        @include('activities.partials.media-upload-form')
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">💾 حفظ النشاط</button>
