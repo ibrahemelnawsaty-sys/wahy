@@ -1119,6 +1119,15 @@ class TeacherController extends Controller
             ->where('created_by', $user->id)
             ->firstOrFail();
 
+        // حارس حذف هدّام: نشاطٌ له تسليمات أو منشور (لكل المدارس أو لمدارس محدّدة) لا يُحذف حذفاً
+        // صلباً — الحذف يُتلِف تسليمات الطلاب (onDelete cascade) عبر كل المدارس. عطِّله بدل حذفه.
+        if ($activity->submissions()->exists() || $activity->isPublishedToAllSchools() || $activity->schools()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا يمكن حذف نشاط له تسليمات أو منشور — عطِّله بدل حذفه.',
+            ], 403);
+        }
+
         // حذف المرفق
         if ($activity->attachment && \Storage::disk('public')->exists($activity->attachment)) {
             \Storage::disk('public')->delete($activity->attachment);
