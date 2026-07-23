@@ -140,4 +140,69 @@ class AdminPublishingFixesTest extends TestCase
         Sanctum::actingAs($student);
         $this->getJson('/api/v1/student/activities')->assertOk();
     }
+
+    // ========== #1: شاشة البنك تحترم وضع النشر المختار (كان مُثبَّتاً direct) ==========
+
+    private function bankPending(): Activity
+    {
+        $teacher = User::factory()->teacher(School::factory()->create())->create();
+
+        return Activity::factory()->create([
+            'created_by' => $teacher->id,
+            'is_activity_bank' => true,
+            'approval_status' => 'pending',
+            'school_approval_status' => 'approved',
+            'all_schools_mode' => 'none',
+        ]);
+    }
+
+    public function test_bank_approve_defaults_to_bank_mode(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $activity = $this->bankPending();
+
+        $this->actingAs($admin)
+            ->postJson("/admin/activity-bank/{$activity->id}/approve-activity", [])
+            ->assertOk();
+
+        // الافتراض «بنك» (لا يظهر مباشرةً للطلاب) — كان يُثبِّت direct
+        $this->assertSame('bank', $activity->fresh()->all_schools_mode);
+    }
+
+    public function test_bank_approve_honors_direct_mode(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $activity = $this->bankPending();
+
+        $this->actingAs($admin)
+            ->postJson("/admin/activity-bank/{$activity->id}/approve-activity", ['publish_mode' => 'direct'])
+            ->assertOk();
+
+        $this->assertSame('direct', $activity->fresh()->all_schools_mode);
+    }
+
+    // ========== #2: الاعتماد المجمّع يعمل من الواجهة ==========
+
+    public function test_bulk_approve_publishes_selected_activities(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $teacher = User::factory()->teacher(School::factory()->create())->create();
+        $make = fn () => Activity::factory()->create([
+            'created_by' => $teacher->id,
+            'approval_status' => 'pending',
+            'school_approval_status' => 'approved',
+            'all_schools_mode' => 'none',
+        ]);
+        $a = $make();
+        $b = $make();
+
+        $this->actingAs($admin)->post(route('admin.activity-approval.bulk-approve'), [
+            'activity_ids' => [$a->id, $b->id],
+            'publish_mode' => 'direct',
+        ])->assertRedirect();
+
+        $this->assertSame('approved', $a->fresh()->approval_status);
+        $this->assertSame('direct', $a->fresh()->all_schools_mode);
+        $this->assertSame('direct', $b->fresh()->all_schools_mode);
+    }
 }

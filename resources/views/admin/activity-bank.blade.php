@@ -316,6 +316,32 @@
     </div>
 </div>
 
+{{-- نافذة اختيار وضع النشر عند الموافقة — كان مُثبَّتاً «مباشر لكل الطلاب» بلا خيار --}}
+<div class="modal-overlay" id="approveModal" onclick="if(event.target===this)closeApproveModal()">
+    <div class="modal-box" style="max-width:520px;">
+        <h2 style="font-size:20px;font-weight:800;color:#1e293b;margin-bottom:8px;text-align:center;">✅ الموافقة على النشاط</h2>
+        <p style="color:#64748b;font-size:13px;text-align:center;margin-bottom:20px;">اختر كيف يُنشَر لكل المدارس.</p>
+        <div class="form-group" style="display:flex;flex-direction:column;gap:10px;">
+            <label style="display:flex;gap:10px;align-items:flex-start;padding:14px;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;">
+                <input type="radio" name="approveMode" value="bank" checked style="margin-top:4px;">
+                <span><strong>🏦 للبنك فقط</strong><br><span style="color:#64748b;font-size:13px;">يُتاح للمعلّمين لاستنساخه/إسناده — لا يظهر مباشرةً للطلاب.</span></span>
+            </label>
+            <label style="display:flex;gap:10px;align-items:flex-start;padding:14px;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;">
+                <input type="radio" name="approveMode" value="direct" style="margin-top:4px;">
+                <span><strong>🎯 مباشر للطلاب</strong><br><span style="color:#64748b;font-size:13px;">يظهر فوراً لكل طلاب كل المدارس.</span></span>
+            </label>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button onclick="confirmApprove()" style="flex:1;background:#dcfce7;color:#15803d;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;">
+                تأكيد الموافقة
+            </button>
+            <button onclick="closeApproveModal()" style="flex:1;background:#f1f5f9;color:#475569;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;">
+                إلغاء
+            </button>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 // ─── Tabs ─────────────────────────
@@ -347,8 +373,17 @@ async function confirmReject() {
 }
 
 // ─── Approve ───────────────────────
-async function approveActivity(id) {
-    await postAction(`/admin/activity-bank/${id}/approve-activity`, {}, `activity-${id}`, '✅ معتمد', 'badge-approved');
+let _approveId = null;
+function approveActivity(id) {
+    _approveId = id;
+    document.querySelector('#approveModal input[name="approveMode"][value="bank"]').checked = true;
+    document.getElementById('approveModal').classList.add('open');
+}
+function closeApproveModal() { document.getElementById('approveModal').classList.remove('open'); }
+async function confirmApprove() {
+    const mode = document.querySelector('#approveModal input[name="approveMode"]:checked').value;
+    closeApproveModal();
+    await postAction(`/admin/activity-bank/${_approveId}/approve-activity`, { publish_mode: mode }, `activity-${_approveId}`, '✅ معتمد', 'badge-approved');
 }
 async function approveQuestion(id) {
     await postAction(`/admin/activity-bank/${id}/approve-question`, {}, `question-${id}`, '✅ معتمد', 'badge-approved');

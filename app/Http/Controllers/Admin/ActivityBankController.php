@@ -130,17 +130,25 @@ class ActivityBankController extends Controller
             ], 422);
         }
 
-        // المسار الموحّد: نشر لكل المدارس «مباشر» + نقل للبنك (هذه الصفحة بلا مُنتقي — الافتراض direct)
+        // وضع النشر من مُنتقي الشاشة — الافتراض «بنك» (يطابق دلالة هذه الصفحة: إضافة للبنك المشترك
+        // للمعلّمين، لا بثّ مباشر لكل الطلاب). كان مُثبَّتاً 'direct' فيتجاوز خيار مدير المدرسة
+        // وينشر قالب المعلّم لكل طلاب كل المدارس دون علم الأدمن. النشر المباشر بنطاق مُتاح صراحةً هنا
+        // أو عبر شاشة اعتماد الأنشطة الرئيسيّة (بمُنتقي النطاق/المدارس).
+        $mode = $request->validate(['publish_mode' => 'nullable|in:bank,direct'])['publish_mode'] ?? 'bank';
+
         app(\App\Services\ActivityPublishingService::class)
-            ->adminApprove($activity, 'all', 'direct', [], $user->id);
+            ->adminApprove($activity, 'all', $mode, [], $user->id);
 
         // إشعار المعلم
         if ($activity->created_by) {
+            $body = $mode === 'direct'
+                ? "تمت الموافقة على نشاطك وأصبح ظاهراً للطلاب: {$activity->title}"
+                : "تمت الموافقة على نشاطك وأصبح متاحاً في بنك الأنشطة: {$activity->title}";
             \App\Services\NotificationService::create(
                 $activity->created_by,
                 'activity_approved',
                 '✅ تمت الموافقة على نشاطك',
-                "تمت الموافقة على نشاطك في بنك الأنشطة: {$activity->title}",
+                $body,
                 [],
                 route('teacher.activity-bank.index'),
             );

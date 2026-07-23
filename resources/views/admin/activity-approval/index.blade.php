@@ -8,6 +8,23 @@
     <p>مراجعة الأنشطة المقدمة من المعلمين للموافقة عليها أو رفضها</p>
 </div>
 
+{{-- أخطاء التحقّق — كانت لا تُعرَض فيبدو فشلُ الموافقة (مثلاً «مدارس محدّدة» بلا اختيار) كأنّ شيئاً لم يحدث --}}
+@if($errors->any())
+    <div style="background:#fee2e2;border:1px solid #fca5a5;color:#b91c1c;padding:14px 18px;border-radius:12px;margin-bottom:20px;">
+        <strong>تعذّر إتمام العمليّة:</strong>
+        <ul style="margin:8px 0 0;padding-inline-start:20px;">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+@if(session('success'))
+    <div style="background:#dcfce7;border:1px solid #86efac;color:#15803d;padding:14px 18px;border-radius:12px;margin-bottom:20px;">
+        {{ session('success') }}
+    </div>
+@endif
+
 <!-- إحصائيات -->
 <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
     <div class="stat-card" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; padding: 20px; border-radius: 15px;">
@@ -53,9 +70,21 @@
             <p>لا توجد أنشطة {{ $status == 'pending' ? 'في انتظار الموافقة' : '' }}</p>
         </div>
     @else
+        <form id="bulkApproveForm" method="POST" action="{{ route('admin.activity-approval.bulk-approve') }}">
+            @csrf
+            @if($status === 'pending')
+            <div id="bulkBar" style="display:none; align-items:center; gap:16px; flex-wrap:wrap; background:#ecfdf5; border:1px solid #a7f3d0; padding:12px 18px; border-radius:12px; margin-bottom:14px;">
+                <strong style="color:#065f46;"><span id="bulkCount">0</span> نشاط محدَّد</strong>
+                <span style="color:#065f46;">وضع النشر (لكل المدارس):</span>
+                <label style="cursor:pointer;"><input type="radio" name="publish_mode" value="direct" checked> 🎯 مباشر للطلاب</label>
+                <label style="cursor:pointer;"><input type="radio" name="publish_mode" value="bank"> 🏦 للبنك فقط</label>
+                <button type="submit" style="background:#10b981; color:white; padding:8px 18px; border-radius:8px; border:none; font-weight:700; cursor:pointer;">✅ اعتماد المحدَّد</button>
+            </div>
+            @endif
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                    @if($status === 'pending')<th style="padding: 15px; text-align: center; width:44px;"><input type="checkbox" id="selectAllActivities" onclick="toggleAllActivities(this)"></th>@endif
                     <th style="padding: 15px; text-align: right;">النشاط</th>
                     <th style="padding: 15px; text-align: right;">المعلم</th>
                     <th style="padding: 15px; text-align: right;">الدرس</th>
@@ -68,6 +97,11 @@
             <tbody>
                 @foreach($activities as $activity)
                 <tr style="border-bottom: 1px solid #e5e7eb;">
+                    @if($status === 'pending')
+                    <td style="padding: 15px; text-align: center;">
+                        <input type="checkbox" class="bulk-activity-cb" name="activity_ids[]" value="{{ $activity->id }}" form="bulkApproveForm" onchange="updateBulkBar()">
+                    </td>
+                    @endif
                     <td style="padding: 15px;">
                         <div style="font-weight: 600; color: #1f2937;">{{ $activity->title }}</div>
                         @if($activity->description)
@@ -157,6 +191,7 @@
                 @endforeach
             </tbody>
         </table>
+        </form>
 
         <div style="padding: 20px;">
             {{ $activities->withQueryString()->links() }}
@@ -244,6 +279,24 @@
 </div>
 
 <script>
+// ─── الاعتماد المجمّع ───────────────
+function toggleAllActivities(master) {
+    document.querySelectorAll('.bulk-activity-cb').forEach(function (cb) { cb.checked = master.checked; });
+    updateBulkBar();
+}
+function updateBulkBar() {
+    const checked = document.querySelectorAll('.bulk-activity-cb:checked').length;
+    const bar = document.getElementById('bulkBar');
+    if (bar) {
+        bar.style.display = checked > 0 ? 'flex' : 'none';
+        const count = document.getElementById('bulkCount');
+        if (count) count.textContent = checked;
+    }
+    const total = document.querySelectorAll('.bulk-activity-cb').length;
+    const master = document.getElementById('selectAllActivities');
+    if (master) master.checked = checked > 0 && checked === total;
+}
+
 function showApproveModal(activityId) {
     document.getElementById('approveForm').action = '/admin/activity-approval/' + activityId + '/approve';
     // إعادة الضبط للافتراضي عند كل فتح (بما فيه إلغاء تحديد المدارس كي لا تتسرّب من نشاط سابق)
