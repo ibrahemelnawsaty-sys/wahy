@@ -1,4 +1,4 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'إدارة الأنشطة')
 

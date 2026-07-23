@@ -25,6 +25,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
     @endif
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    {{-- Bootstrap RTL: صفحات المعلّم (إدارة الأنشطة/التعديل/بنك الأنشطة/الفرق…) مبنيّة بأصناف
+         Bootstrap (grid/card/btn/form-control) وكانت بلا تنسيق لأنّ الطبقة لم تُحمّله. يُحمَّل
+         قبل الـ<style> المخصّص فيبقى التصميم المخصّص هو المُهيمِن حيث يتعارضان (كما في طبقة مدير المدرسة). --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <style>
         :root {
             --color-primary: {{ $primaryColor }};
@@ -826,6 +830,9 @@
         })();
     </script>
     
+    <!-- Bootstrap JS Bundle (للمودالات/القوائم المنسدلة في صفحات المعلّم المبنيّة بـBootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- Glass Notifications JS -->
     <script src="{{ asset('js/glass-notifications.js') }}"></script>
 
