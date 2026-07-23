@@ -243,7 +243,8 @@ class StudentApiController extends Controller
                 'difficulty' => $activity->difficulty,
                 'points' => $activity->points,
                 'coins' => $activity->coins,
-                'questions' => $activity->questions,
+                // مُعقَّمة: بلا مفاتيح الإجابة الصحيحة (كان يُرجِع questions خامًا = تسريب الحلّ للطالب)
+                'questions' => $activity->questionsForStudent(),
                 // الوسائط المتعددة (صورة/صوت/فيديو/مستند) بروابط جاهزة — كان يُخرِج 'attachments'
                 // من خاصّية غير موجودة (null) فلا يستلم طالب الجوّال أيّ وسائط. media هو العمود الفعليّ.
                 'media' => $this->serializeActivityMedia($activity),

@@ -34,7 +34,13 @@
                     </div>
                 </div>
                 
-                <button onclick="openRatingModal({{ $teacher->id }}, '{{ $teacher->name }}', {{ $teacher->ratings->first()->rating ?? 0 }}, '{{ $teacher->ratings->first()->comment ?? '' }}')" 
+                {{-- سمات data-* (يُهرّبها Blade بأمان) بدل حقن الاسم/التعليق داخل نصّ JS في onclick —
+                     كان حقناً قابلاً لكسر السلسلة وتنفيذ كود (XSS من اسم/تعليق) وتعطّل الزرّ بعلامة اقتباس. --}}
+                <button data-teacher-id="{{ $teacher->id }}"
+                        data-teacher-name="{{ $teacher->name }}"
+                        data-rating="{{ $teacher->ratings->first()->rating ?? 0 }}"
+                        data-comment="{{ $teacher->ratings->first()->comment ?? '' }}"
+                        onclick="openRatingModalFromBtn(this)"
                         style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 12px 25px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; font-size: 15px;">
                     {{ $teacher->ratings->count() > 0 ? 'تعديل التقييم' : 'تقييم المعلم' }}
                 </button>
@@ -159,6 +165,15 @@ function closePremiumPopup() {
 }
 
 // ==================== Rating Modal ====================
+function openRatingModalFromBtn(btn) {
+    openRatingModal(
+        btn.dataset.teacherId,
+        btn.dataset.teacherName || '',
+        parseInt(btn.dataset.rating) || 0,
+        btn.dataset.comment || ''
+    );
+}
+
 function openRatingModal(teacherId, teacherName, existingRating = 0, existingComment = '') {
     document.getElementById('teacherId').value = teacherId;
     document.getElementById('modalTitle').textContent = `تقييم المعلم: ${teacherName}`;

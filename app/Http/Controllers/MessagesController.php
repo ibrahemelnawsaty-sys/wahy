@@ -186,10 +186,26 @@ class MessagesController extends Controller
         return response()->json([
             'success' => true,
             'conversation' => $conversation,
-            'messages' => $messages,
+            'messages' => $this->sanitizeMessages($messages),
             'otherUser' => ['id' => $otherUser->id, 'name' => $otherUser->name, 'avatar' => $otherUser->avatar, 'avatar_url' => $otherUser->avatar_url, 'role' => $otherUser->role],
             'currentUser' => $currentUser,
         ]);
+    }
+
+    /**
+     * تُعقّم حقل message في مجموعة رسائل قبل بثّها JSON. عارض المحادثة (messages/admin/index)
+     * يحقن ${msg.message} **خامّاً** في innerHTML/insertAdjacentHTML، والمُخزَّن غير مُعقَّم
+     * (normalize_message_html تُطبّع المسافات فقط) — فكانت رسالة طالب بـ<img onerror> تُنفَّذ في
+     * جلسة السوبر أدمن (تصعيد امتياز). safe_html يزيل السكربت/المعالِجات ويُبقي التنسيق الآمن.
+     */
+    private function sanitizeMessages($messages): array
+    {
+        return $messages->map(function ($m) {
+            $arr = $m->toArray();
+            $arr['message'] = safe_html($m->message);
+
+            return $arr;
+        })->all();
     }
 
     /**
@@ -265,9 +281,13 @@ class MessagesController extends Controller
             // تحديث وقت آخر رسالة
             $conversation->update(['last_message_at' => now()]);
 
+            $loaded = $message->load('sender:id,name,avatar,role');
+            $payload = $loaded->toArray();
+            $payload['message'] = safe_html($loaded->message); // مُعقَّم للحقن الآمن في العارض
+
             return response()->json([
                 'success' => true,
-                'message' => $message->load('sender:id,name,avatar,role'),
+                'message' => $payload,
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -360,7 +380,7 @@ class MessagesController extends Controller
         }
 
         return response()->json([
-            'messages' => $newMessages,
+            'messages' => $this->sanitizeMessages($newMessages),
             'hasNew' => $newMessages->isNotEmpty(),
         ]);
     }
@@ -393,7 +413,7 @@ class MessagesController extends Controller
                     'conversation_id' => $item->conversation_id,
                     'message_id' => $message->id,
                     'sender' => $message->sender,
-                    'message' => $message->message,
+                    'message' => safe_html($message->message),
                     'count' => $item->count,
                     'created_at' => $message->created_at,
                 ];

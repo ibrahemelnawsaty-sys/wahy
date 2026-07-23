@@ -964,9 +964,9 @@
                     <p style="color:rgba(255,255,255,0.5);font-size:14px;text-align:center;margin-bottom:20px;">اختر الرقم المناسب لكل صورة أو اسحبها للترتيب</p>
                     <div id="imageOrderContainer" style="display:flex;flex-wrap:wrap;gap:15px;justify-content:center;">
                         @foreach($shuffledImages as $idx => $img)
+                        {{-- لا data-original-order: كان يسرّب الترتيب الصحيح للـDOM (غشّ). الإجابة تُبنى من data-url + الاختيار --}}
                         <div class="image-order-item" draggable="true"
                              data-url="{{ $img['url'] }}"
-                             data-original-order="{{ $img['order'] }}"
                              style="cursor:grab;text-align:center;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px;transition:border-color 0.3s,transform 0.2s;position:relative;">
                             <select class="image-order-select" style="width:50px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-weight:700;text-align:center;margin-bottom:8px;font-size:14px;cursor:pointer;" onchange="updateImageOrderAnswer()">
                                 <option value="" selected style="color:#000;">#</option>

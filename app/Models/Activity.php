@@ -213,6 +213,52 @@ class Activity extends Model
     }
 
     /**
+     * الأسئلة **مُعقَّمة للطالب**: تُسقِط مفاتيح الإجابة الصحيحة قبل بثّها للعميل — مصدرٌ وحيد
+     * يستدعيه الجوّال (activityDetails) وأيّ سطح يبثّ questions خامًا. كان الجوّال يُرجِع
+     * $activity->questions خامًا فيقرأ الطالب الإجابة الصحيحة قبل الحلّ (غشّ يُفسد التقييم/الاقتصاد).
+     */
+    public function questionsForStudent(): array
+    {
+        $questions = is_array($this->questions) ? $this->questions : [];
+        $stripKeys = ['correct_index', 'correct', 'correct_answer', 'answer', 'word', 'target_word', 'target', 'expected', 'expected_answer'];
+
+        return array_map(function ($q) use ($stripKeys) {
+            if (! is_array($q)) {
+                return $q;
+            }
+            foreach ($stripKeys as $k) {
+                unset($q[$k]);
+            }
+            // الخيارات: أبقِ النصّ فقط، احذف علامة الصحّة
+            if (isset($q['options']) && is_array($q['options'])) {
+                $q['options'] = array_map(function ($opt) {
+                    if (is_array($opt)) {
+                        unset($opt['is_correct'], $opt['correct']);
+                    }
+
+                    return $opt;
+                }, $q['options']);
+            }
+            // ترتيب الصور (تنسيق الأدمن): احذف الترتيب المرجعيّ الصحيح من كل صورة
+            if (isset($q['images']) && is_array($q['images'])) {
+                $q['images'] = array_map(function ($img) {
+                    if (is_array($img)) {
+                        unset($img['order']);
+                    }
+
+                    return $img;
+                }, $q['images']);
+            }
+            // تنسيق المعلّم لترتيب الصور: كل «سؤال» صورةٌ بحقل order هو موضعها الصحيح
+            if (isset($q['image_url']) || isset($q['url'])) {
+                unset($q['order']);
+            }
+
+            return $q;
+        }, $questions);
+    }
+
+    /**
      * قاعدة تحقّق موحّدة لملفّ التسليم — **مصدرٌ وحيد** يستدعيه مسار الويب
      * (StudentController) ومسار الجوّال (Api\StudentApiController) معاً، فلا ينحرف
      * الإنفاذ بينهما. mimes مبنيّ على محتوى الملفّ (يرفض HTML/SVG/PHP المموّه = أمن)،
