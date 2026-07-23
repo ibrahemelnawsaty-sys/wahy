@@ -8,6 +8,9 @@
     <title>@yield('title', 'لوحة ولي الأمر - بناء القيم')</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {{-- Bootstrap RTL: صفحات وليّ الأمر (الأنشطة العائلية…) مبنيّة بأصناف Bootstrap وكانت بلا
+         تنسيق لأنّ الطبقة لم تُحمّله. قبل الـ<style> المخصّص فيبقى التصميم المخصّص هو المُهيمِن. --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     @stack('styles')
     <style>
         * {
@@ -689,7 +692,10 @@
     <main id="parent-main-content">
         @yield('content')
     </main>
-    
+
+    <!-- Bootstrap JS Bundle (للمودالات/القوائم المنسدلة في صفحات وليّ الأمر المبنيّة بـBootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- Real-Time Messages System -->
     <script src="{{ asset('js/messages-realtime.js') }}"></script>
     @stack('scripts')
