@@ -78,11 +78,13 @@
         </h3>
 
         @php
-            // إجابة الطالب: قد تكون نصّاً، ترتيب صور [{image_url,selected_order}], قائمة، أو كائن كويز.
+            // إجابة الطالب: نصّ، ترتيب صور [{image_url,selected_order}], رفع ملف {note,file,file_url},
+            // قائمة، أو كائن كويز. نتعرّف على صيغة رفع الملف صراحةً (كانت تُطبَع JSON خامًا).
             $rawAns = $submission->answer;
             $ansDecoded = is_string($rawAns) ? json_decode($rawAns, true) : (is_array($rawAns) ? $rawAns : null);
             $ansImages = [];
             $ansText = null;
+            $ansFile = null;
             if (is_array($ansDecoded)) {
                 $isList = array_is_list($ansDecoded);
                 if ($isList) {
@@ -95,6 +97,10 @@
                 }
                 if (! empty($ansImages)) {
                     usort($ansImages, fn ($a, $b) => ((int) ($a['order'] ?? 0)) <=> ((int) ($b['order'] ?? 0)));
+                } elseif (array_key_exists('note', $ansDecoded) || array_key_exists('file', $ansDecoded)) {
+                    // رفع ملف: {note, file, file_url} — الملاحظة نصّ، والملف مرفق
+                    $ansText = is_scalar($ansDecoded['note'] ?? null) ? (string) $ansDecoded['note'] : null;
+                    $ansFile = is_string($ansDecoded['file'] ?? null) ? $ansDecoded['file'] : null;
                 } elseif ($isList) {
                     $ansText = implode('، ', array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE), $ansDecoded));
                 } else {
@@ -108,6 +114,31 @@
             } elseif (is_string($rawAns)) {
                 $ansText = $rawAns;
             }
+
+            // احتياط عمود file_path القديم
+            if (! $ansFile && $submission->file_path) { $ansFile = $submission->file_path; }
+
+            // بناء رابط الملف من مسار تخزين التطبيق (نتجاهل file_url العميل — قد يُحقَن عبر API).
+            // نرفض المسارات المطلقة (://) والتجاوز (..) فلا نعرض إلا ملفّات تخزين التطبيق.
+            $ansFileUrl = null;
+            $ansExt = '';
+            if (is_string($ansFile) && $ansFile !== '' && ! preg_match('~://|\.\.~', $ansFile)) {
+                $ansFileUrl = asset('storage/app/public/data/' . ltrim($ansFile, '/'));
+                $ansExt = strtolower(pathinfo($ansFile, PATHINFO_EXTENSION));
+            } else {
+                $ansFile = null;
+            }
+            $ansFileKind = in_array($ansExt, ['jpg','jpeg','png','gif','webp','bmp','svg'], true) ? 'image'
+                : (in_array($ansExt, ['mp3','wav','ogg','m4a','aac'], true) ? 'audio'
+                : (in_array($ansExt, ['mp4','mov','webm','avi','mkv'], true) ? 'video' : 'file'));
+            $ansFileMeta = match(true) {
+                $ansExt === 'pdf' => ['📄', 'فتح / تحميل PDF'],
+                in_array($ansExt, ['doc','docx'], true) => ['📝', 'فتح / تحميل مستند'],
+                in_array($ansExt, ['xls','xlsx','csv'], true) => ['📊', 'فتح / تحميل جدول'],
+                in_array($ansExt, ['ppt','pptx'], true) => ['📈', 'فتح / تحميل عرض تقديميّ'],
+                default => ['📎', 'فتح / تحميل الملف'],
+            };
+
             $ansIsUrl = ($ansText !== null && preg_match('~^\s*https?://\S+\s*$~i', $ansText) === 1);
         @endphp
 
@@ -125,22 +156,33 @@
             </div>
         @elseif($ansIsUrl)
             <a href="{{ trim($ansText) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg font-bold hover:bg-blue-100" style="word-break:break-all;">🔗 فتح رابط الطالب</a>
-        @elseif($ansText !== null && $ansText !== '')
+        @elseif($ansText !== null && trim($ansText) !== '')
             <div class="p-4 bg-gray-50 rounded-lg">
                 <div class="text-gray-800" style="white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;">{{ \Illuminate\Support\Str::limit($ansText, 3000) }}</div>
             </div>
-        @else
+        @elseif(! $ansFile)
             <div class="text-gray-400 text-center py-4">لا توجد إجابة نصية</div>
         @endif
 
-        @if($submission->file_path)
+        {{-- مرفق الطالب: معاينة حسب النوع (صورة/صوت/فيديو) أو رابط تحميل (PDF/مستند/غيره) --}}
+        @if($ansFile && $ansFileUrl)
             <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-                <div class="text-sm text-gray-500 mb-2">مرفقات الطالب</div>
-                <a href="{{ asset('storage/app/public/data/' . $submission->file_path) }}" target="_blank" 
-                   class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800">
-                    <span>📎</span>
-                    فتح الملف
-                </a>
+                <div class="text-sm text-gray-500 mb-2">📎 مرفق الطالب</div>
+                @if($ansFileKind === 'image')
+                    <a href="{{ $ansFileUrl }}" target="_blank" rel="noopener noreferrer" title="فتح الصورة كاملة">
+                        <img src="{{ $ansFileUrl }}" alt="مرفق الطالب" loading="lazy" style="max-width:100%;max-height:420px;border-radius:12px;border:1px solid #e5e7eb;display:block;">
+                    </a>
+                @elseif($ansFileKind === 'audio')
+                    <audio controls preload="metadata" src="{{ $ansFileUrl }}" style="width:100%;max-width:420px;"></audio>
+                @elseif($ansFileKind === 'video')
+                    <video controls preload="metadata" src="{{ $ansFileUrl }}" style="width:100%;max-width:520px;border-radius:12px;"></video>
+                @else
+                    <a href="{{ $ansFileUrl }}" target="_blank" rel="noopener noreferrer" download
+                       class="inline-flex items-center gap-2 px-4 py-3 bg-white text-blue-700 rounded-lg font-bold hover:bg-blue-100 border border-blue-200" style="word-break:break-all;">
+                        <span>{{ $ansFileMeta[0] }}</span>
+                        {{ $ansFileMeta[1] }}
+                    </a>
+                @endif
             </div>
         @endif
     </div>

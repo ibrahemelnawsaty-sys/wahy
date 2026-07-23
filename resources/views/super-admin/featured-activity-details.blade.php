@@ -172,11 +172,17 @@
                 }
 
                 if (! $answerFile && $submission->file_path) { $answerFile = $submission->file_path; }
-                if ($answerFile) {
-                    $answerFileUrl = \Illuminate\Support\Str::startsWith((string) $answerFile, 'http')
-                        ? $answerFile
-                        : asset('storage/app/public/data/' . ltrim((string) $answerFile, '/'));
+                // بناء رابط الملف من مسار تخزين التطبيق فقط (رفض :// و.. — قد يُحقَن عبر API)
+                $answerExt = '';
+                if (is_string($answerFile) && $answerFile !== '' && ! preg_match('~://|\.\.~', $answerFile)) {
+                    $answerFileUrl = asset('storage/app/public/data/' . ltrim($answerFile, '/'));
+                    $answerExt = strtolower(pathinfo($answerFile, PATHINFO_EXTENSION));
+                } else {
+                    $answerFile = null;
                 }
+                $answerFileKind = in_array($answerExt, ['jpg','jpeg','png','gif','webp','bmp','svg'], true) ? 'image'
+                    : (in_array($answerExt, ['mp3','wav','ogg','m4a','aac'], true) ? 'audio'
+                    : (in_array($answerExt, ['mp4','mov','webm','avi','mkv'], true) ? 'video' : 'file'));
                 $answerIsUrl = ($answerNote !== null && preg_match('~^\s*https?://\S+\s*$~i', $answerNote) === 1);
                 $status = $submission->status ?? 'pending';
                 $statusClass = in_array($status, ['approved', 'pending', 'rejected'], true) ? $status : 'pending';
@@ -217,10 +223,18 @@
                     <div class="fad-answer" style="color:#94a3b8;">لم يقدّم الطالب إجابة نصّية</div>
                 @endif
 
-                @if($answerFile)
-                    <div class="fad-file">
-                        <span>📎</span>
-                        <a href="{{ $answerFileUrl }}" target="_blank" rel="noopener noreferrer">فتح / تحميل ملف الطالب</a>
+                @if($answerFile && $answerFileUrl)
+                    <div class="fad-file" style="display:block;">
+                        <div style="margin-bottom:8px;font-weight:700;">📎 مرفق الطالب</div>
+                        @if($answerFileKind === 'image')
+                            <a href="{{ $answerFileUrl }}" target="_blank" rel="noopener noreferrer" title="فتح الصورة كاملة"><img src="{{ $answerFileUrl }}" alt="مرفق" loading="lazy" style="max-width:100%;max-height:400px;border-radius:10px;border:1px solid #e2e8f0;display:block;"></a>
+                        @elseif($answerFileKind === 'audio')
+                            <audio controls preload="metadata" src="{{ $answerFileUrl }}" style="width:100%;max-width:420px;"></audio>
+                        @elseif($answerFileKind === 'video')
+                            <video controls preload="metadata" src="{{ $answerFileUrl }}" style="width:100%;max-width:520px;border-radius:10px;"></video>
+                        @else
+                            <a href="{{ $answerFileUrl }}" target="_blank" rel="noopener noreferrer" download>فتح / تحميل ملف الطالب</a>
+                        @endif
                     </div>
                 @endif
             </div>
