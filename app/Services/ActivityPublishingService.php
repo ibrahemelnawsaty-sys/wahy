@@ -64,9 +64,14 @@ class ActivityPublishingService
             ]);
 
             if ($scope === 'specific') {
-                foreach ($schoolIds as $sid) {
-                    $this->publishToSchool($activity, (int) $sid, $publishMode, $approverId);
-                }
+                // sync (لا syncWithoutDetaching) كي تعكس صفوفُ activity_school النطاقَ المطلوب
+                // **حصراً**: تُفصَل المدارس المُزالة من الاختيار (تضييق النطاق) وصفُّ المرحلة 1 إن
+                // لم يعُد ضمن المستهدَفة — فلا تبقى مدرسةٌ مرئيّةً خلافاً للقرار الأخير (عزل §12).
+                $activity->schools()->sync($this->schoolPivotMap($schoolIds, $publishMode, $approverId));
+            } else {
+                // scope='all': النشر عبر all_schools_mode وحده — نُفرّغ الصفوف الموجَّهة كي لا يبقى
+                // صفُّ direct عالقٌ من المرحلة 1 يُبقي رؤيةً مباشرةً تخالف وضع الأدمن (مثلاً 'bank').
+                $activity->schools()->detach();
             }
         });
     }
@@ -96,6 +101,7 @@ class ActivityPublishingService
 
     /**
      * إنشاء/تحديث صفّ نشر لمدرسة (idempotent عبر unique(activity_id, school_id)).
+     * يُستعمَل في مسار المرحلة 1 (schoolApprove) حيث الإضافة تراكميّة مقصودة.
      */
     private function publishToSchool(Activity $activity, int $schoolId, string $publishMode, int $approverId): void
     {
@@ -106,6 +112,27 @@ class ActivityPublishingService
                 'published_at' => now(),
             ],
         ]);
+    }
+
+    /**
+     * خريطة pivot لمجموعة مدارس (لـsync في مسار الأدمن — نطاق حصريّ).
+     *
+     * @param  int[]  $schoolIds
+     * @return array<int, array<string, mixed>>
+     */
+    private function schoolPivotMap(array $schoolIds, string $publishMode, int $approverId): array
+    {
+        $now = now();
+        $map = [];
+        foreach ($schoolIds as $sid) {
+            $map[(int) $sid] = [
+                'publish_mode' => $publishMode,
+                'published_by' => $approverId,
+                'published_at' => $now,
+            ];
+        }
+
+        return $map;
     }
 
     private function normalizeMode(string $mode): string

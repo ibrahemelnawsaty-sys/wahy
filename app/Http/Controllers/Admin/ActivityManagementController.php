@@ -104,6 +104,12 @@ class ActivityManagementController extends Controller
             $validated['media'] = $media;
         }
 
+        // نشرٌ مباشر: محتوى الأدمن (منهجيّ موثوق، مُعتمَد تلقائياً) يجب أن يظهر للطلاب فوراً.
+        // بدون هذا يبقى all_schools_mode='none' الافتراضيّ فيُولَد النشاط مخفيّاً عن كل الطلاب
+        // (انحدار أدخلته إعادة هيكلة النشر التي استبدلت فلتر approval_status='approved'). القيمة
+        // 'direct' تطابق بالضبط شرط الشفاء التوافقيّ في هجرة النشر (approved + lesson → direct).
+        $validated['all_schools_mode'] = 'direct';
+
         Activity::create($validated);
 
         return redirect()

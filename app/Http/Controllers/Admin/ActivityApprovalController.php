@@ -97,12 +97,14 @@ class ActivityApprovalController extends Controller
         // نشاط درسٍ صار الآن ظاهراً للطلاب → أشعِر طلاب الفصل (كان يُرسَل عند الإنشاء، أُجِّل للاعتماد)
         $this->notifyClassroomStudentsOfApprovedActivity($activity);
 
-        // إرسال إشعار للمعلم
+        // إرسال إشعار للمعلم — نعتمد على **وضع النشر المختار** لا is_activity_bank (الذي يضبطه
+        // adminApprove إلى true دائماً بالنقل التلقائيّ للبنك، فيجعل فرع «ظاهر لطلابك» ميّتاً).
         if ($activity->created_by) {
-            $target = $activity->is_activity_bank ? route('teacher.activity-bank.index') : route('teacher.activities');
-            $body = $activity->is_activity_bank
-                ? "تمت الموافقة على نشاط '{$activity->title}' وأصبح متاحاً في بنك الأنشطة لجميع المعلمين."
-                : "تمت الموافقة على نشاط '{$activity->title}' وأصبح ظاهراً لطلابك.";
+            $publishedDirect = $validated['publish_mode'] === 'direct';
+            $target = $publishedDirect ? route('teacher.activities') : route('teacher.activity-bank.index');
+            $body = $publishedDirect
+                ? "تمت الموافقة على نشاط '{$activity->title}' وأصبح ظاهراً للطلاب."
+                : "تمت الموافقة على نشاط '{$activity->title}' وأصبح متاحاً في بنك الأنشطة لجميع المعلمين.";
             NotificationService::send(
                 $activity->created_by,
                 'تمت الموافقة على نشاطك',

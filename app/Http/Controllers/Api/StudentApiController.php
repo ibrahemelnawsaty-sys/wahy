@@ -152,11 +152,10 @@ class StudentApiController extends Controller
             });
         }
 
-        // Filter by classroom if student
-        if ($user->role === 'student') {
-            $classroomIds = $user->classrooms->pluck('id')->toArray();
-            $query->whereIn('classroom_id', $classroomIds);
-        }
+        // ملاحظة: أُزيل فلتر whereIn('classroom_id') القديم — كان يُسقِط صامتاً كلَّ ما نشره
+        // الأدمن «مباشرةً لكل المدارس» (classroom_id=null) وأنشطة البنك المُسنَدة عبر
+        // activity_classroom، ويستبعد طلاب الفصول الأخرى المستهدفين. بوّابة visibleToStudent
+        // أعلاه تُرمِّز الوصول كاملاً (المدرسة/الـpivot/عضويّة الفصل) وتطابق مسار الويب.
 
         // Filter by type
         if ($request->has('type') && $request->type) {
@@ -187,11 +186,12 @@ class StudentApiController extends Controller
                         'points' => $activity->points,
                         'coins' => $activity->coins,
                         'is_team_activity' => $activity->is_team_activity,
-                        'lesson' => [
+                        // حارس null: نشاط بنك منشور مباشرةً قد يكون بلا درس بعد إزالة فلتر الفصل
+                        'lesson' => $activity->lesson ? [
                             'id' => $activity->lesson->id,
                             'title' => $activity->lesson->title,
                             'value' => $activity->lesson->concept->value->title ?? null,
-                        ],
+                        ] : null,
                         'submission' => $submission ? [
                             'id' => $submission->id,
                             'status' => $submission->status,
