@@ -510,7 +510,7 @@ function handleTypeChange() {
             questions.push({ type: 'image_order', question: '', images: [{ url: '', description: '' }, { url: '', description: '' }], points: 10 });
             renderQuestions();
         }
-    } else if (type === 'project') {
+    } else if (['project', 'upload', 'creative', 'practical'].includes(type)) {
         if (projectFields) projectFields.style.display = 'block';
     }
 }

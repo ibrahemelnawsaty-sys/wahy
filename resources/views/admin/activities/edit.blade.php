@@ -547,7 +547,7 @@ function handleTypeChange() {
         if (type === 'quiz' && quizFields) {
             quizFields.style.display = 'block';
         }
-    } else if (type === 'project') {
+    } else if (['project', 'upload', 'creative', 'practical'].includes(type)) {
         if (projectFields) projectFields.style.display = 'block';
     }
 }

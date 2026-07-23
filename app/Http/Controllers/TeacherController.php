@@ -756,10 +756,8 @@ class TeacherController extends Controller
             unset($validated['questions']); // حذف المفتاح لتجنب تعيينه null
         }
 
-        // تحويل أنواع الملفات المسموحة إلى JSON
-        if (isset($validated['allowed_file_types'])) {
-            $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
-        }
+        // allowed_file_types مصبوب array في الموديل فيُشفَّر تلقائياً؛ json_encode اليدويّ
+        // كان يُنتج تشفيراً مزدوجاً (يُقرأ نصًّا لا مصفوفة → accept=".pdf") فحُذف.
 
         // حفظ «الوسائط المتعددة» المرفوعة (فيديو/صوت/صورة/مستند) في عمود media
         $media = $this->collectUploadedActivityMedia($request);
@@ -977,10 +975,8 @@ class TeacherController extends Controller
             unset($validated['questions']);
         }
 
-        // تحويل أنواع الملفات المسموحة إلى JSON
-        if (isset($validated['allowed_file_types'])) {
-            $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
-        }
+        // allowed_file_types مصبوب array في الموديل فيُشفَّر تلقائياً؛ json_encode اليدويّ
+        // كان يُنتج تشفيراً مزدوجاً (يُقرأ نصًّا لا مصفوفة → accept=".pdf") فحُذف.
 
         // الوسائط المتعددة: احذف المحدَّدة للحذف (remove_media[] = مؤشّرات) ثم أضِف المرفوعة الجديدة
         $removeIdx = array_map('intval', (array) $request->input('remove_media', []));
@@ -998,6 +994,13 @@ class TeacherController extends Controller
                 $kept[] = $item;
             }
             $validated['media'] = array_merge($kept, $newMedia);
+        }
+
+        // إلغاء تأشير كل أنواع الملفّات يجب أن يُلغي القيد (يُكتب []) لا أن يكون عملية لاغية صامتة
+        // (المربّعات غير المؤشَّرة لا تُرسَل فيغيب المفتاح عن $validated). نفرض القيمة — ولو فارغة —
+        // لأنواع الرفع فقط كي لا نمسّ أنواعاً أخرى لا تعرض القسم.
+        if (in_array($validated['type'] ?? $activity->type, ['project', 'upload', 'creative', 'practical'], true)) {
+            $validated['allowed_file_types'] = array_values((array) $request->input('allowed_file_types', []));
         }
 
         // تحديث النشاط
@@ -1903,10 +1906,8 @@ class TeacherController extends Controller
             unset($validated['questions']);
         }
 
-        // تحويل أنواع الملفات المسموحة إلى JSON
-        if (isset($validated['allowed_file_types'])) {
-            $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
-        }
+        // allowed_file_types مصبوب array في الموديل فيُشفَّر تلقائياً؛ json_encode اليدويّ
+        // كان يُنتج تشفيراً مزدوجاً (يُقرأ نصًّا لا مصفوفة → accept=".pdf") فحُذف.
 
         // حفظ «الوسائط المتعددة» المرفوعة (فيديو/صوت/صورة/مستند) في عمود media
         $media = $this->collectUploadedActivityMedia($request);

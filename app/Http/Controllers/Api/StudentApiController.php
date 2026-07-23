@@ -285,9 +285,12 @@ class StudentApiController extends Controller
             ], 403);
         }
 
+        // نفس قاعدة الويب (الموديل): mimes مبنيّ على المحتوى + سقف max_file_size الخاصّ بالنشاط.
+        // كان 'sometimes|file|max:10240' بلا أيّ فحص نوع — يقبل أيّ ملفّ (html/svg/php) فيُخدَم
+        // من أصل التطبيق (XSS مخزَّن/تنفيذ)، ويتجاوز قيد النوع الذي يفرضه المعلّم للطالب.
         $request->validate([
             'answers' => 'required|array',
-            'file' => 'sometimes|file|max:10240', // 10MB
+            'file' => 'sometimes|' . $activity->submissionFileRule(),
         ]);
 
         // #13 توحيد مع الويب: احترام حدّ المحاولات ومنع إعادة فتح تسليمٍ نهائيّ. الجوّال لا يُصحّح

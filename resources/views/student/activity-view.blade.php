@@ -1161,7 +1161,10 @@
             @elseif(in_array($activity->type, ['upload', 'creative', 'project', 'practical']) || ($activity->question_type ?? null) === 'file_upload')
                 {{-- رفع ملف + وصف اختياري (Issue 55) — يشمل creative/project/practical لأنها كلها تتطلب تسليم ملف فعلي --}}
                 @php
-                    $allowed = $activity->allowed_file_types ?? ['pdf', 'jpg', 'jpeg', 'png', 'docx', 'mp4', 'mp3'];
+                    // العمود يخزّن فئات (image/video/…) لا امتدادات — نمرّرها عبر دوالّ الموديل
+                    // التي تُطبّع (وتشفي الصفوف المُشفَّرة مرّتين) وتبني accept/التلميح الصحيحَين.
+                    $allowedLabel = $activity->allowedFileTypesLabel();
+                    $allowedAccept = $activity->allowedFileAccept();
                     $maxMb = $activity->max_file_size ?? 10;
                     $isFileRequired = $activity->type === 'upload' || ($activity->question_type ?? null) === 'file_upload';
                 @endphp
@@ -1174,7 +1177,7 @@
                         @endif
                     </div>
                     <p style="color:rgba(255,255,255,0.55);font-size:13px;text-align:center;margin-bottom:14px;">
-                        الأنواع المسموحة: {{ implode('، ', is_array($allowed) ? $allowed : ['pdf']) }} — الحد الأقصى: {{ $maxMb }}MB
+                        الأنواع المسموحة: {{ $allowedLabel }} — الحد الأقصى: {{ $maxMb }}MB
                     </p>
                     <label for="activityFile"
                            style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,0.3);border-radius:14px;padding:30px;cursor:pointer;background:rgba(255,255,255,0.04);transition:.2s;">
@@ -1182,9 +1185,13 @@
                         <span style="color:white;font-weight:700;font-size:16px;">اضغط لاختيار ملف</span>
                         <span id="activityFileName" style="color:rgba(255,255,255,.6);font-size:13px;margin-top:6px;">لم يتم اختيار ملف</span>
                     </label>
+                    {{-- لا نضع required على input مخفيّ (display:none) — المتصفّح يُلغي الإرسال
+                         بصمت لأنّ الحقل غير قابل للتركيز (زرّ ميّت). الإلزام يُفرَض في JS بتنبيه واضح
+                         وفي الخادم (answer_file required لأنواع الرفع). --}}
                     <input type="file" id="activityFile" name="answer_file"
-                           accept="{{ '.' . implode(',.', is_array($allowed) ? $allowed : ['pdf']) }}"
-                           style="display:none;" {{ $isFileRequired ? 'required' : '' }}>
+                           accept="{{ $allowedAccept }}"
+                           data-file-required="{{ $isFileRequired ? '1' : '0' }}"
+                           style="display:none;">
                     <textarea name="answer" id="uploadDescription" rows="3"
                               class="text-input-field"
                               placeholder="@if($isFileRequired)ملاحظة اختيارية مع الملف...@else اشرح ما قمت به (نص أو ملف يكفي أحدهما)...@endif"
@@ -1456,6 +1463,15 @@
         const letterInput = document.getElementById('letterAnswer');
         const shortInput = document.getElementById('shortAnswerInput');
         const fileInput = document.getElementById('activityFile');
+
+        // إلزام الملفّ للأنشطة التي تتطلّبه (بدل required على input مخفيّ = زرّ ميّت صامت)
+        if (fileInput && fileInput.dataset.fileRequired === '1'
+            && (!fileInput.files || fileInput.files.length === 0)) {
+            showToast('⚠️ الرجاء اختيار ملف للرفع', 'warning');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'إرسال الإجابة ✓';
+            return;
+        }
 
         if (orderingInput && orderingInput.value) {
             answer = orderingInput.value;

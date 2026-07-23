@@ -95,10 +95,8 @@ class ActivityManagementController extends Controller
             $this->validateActivityQuestions($validated['questions']);
         }
 
-        // تحويل أنواع الملفات المسموحة إلى JSON
-        if (isset($validated['allowed_file_types'])) {
-            $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
-        }
+        // allowed_file_types مصبوب array في الموديل فيُشفَّر تلقائياً؛ json_encode اليدويّ
+        // كان يُنتج تشفيراً مزدوجاً (يُقرأ نصًّا لا مصفوفة → accept=".pdf") فحُذف.
 
         // الوسائط المتعددة المرفوعة (صور/صوت/فيديو/مستندات) — تظهر للطالب داخل النشاط
         $media = $this->collectUploadedActivityMedia($request);
@@ -164,15 +162,18 @@ class ActivityManagementController extends Controller
             $this->validateActivityQuestions($validated['questions']);
         }
 
-        // تحويل أنواع الملفات المسموحة إلى JSON
-        if (isset($validated['allowed_file_types'])) {
-            $validated['allowed_file_types'] = json_encode($validated['allowed_file_types']);
-        }
+        // allowed_file_types مصبوب array في الموديل فيُشفَّر تلقائياً؛ json_encode اليدويّ
+        // كان يُنتج تشفيراً مزدوجاً (يُقرأ نصًّا لا مصفوفة → accept=".pdf") فحُذف.
 
         // الوسائط المتعددة: حذف المحدَّد (remove_media[]) + إضافة المرفوع الجديد
         $mergedMedia = $this->mergeActivityMedia($request, is_array($activity->media) ? $activity->media : []);
         if ($mergedMedia !== null) {
             $validated['media'] = $mergedMedia;
+        }
+
+        // إلغاء تأشير كل الأنواع يُلغي القيد (يُكتب []) لا عملية لاغية صامتة — يُفرَض لأنواع الرفع فقط.
+        if (in_array($validated['type'] ?? $activity->type, ['project', 'upload', 'creative', 'practical'], true)) {
+            $validated['allowed_file_types'] = array_values((array) $request->input('allowed_file_types', []));
         }
 
         $activity->update($validated);

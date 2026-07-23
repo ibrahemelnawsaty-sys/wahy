@@ -854,16 +854,19 @@ class StudentController extends Controller
             }
 
             // التحقق + دعم رفع الملفات (Issue 55)
+            // الأنواع التي يكون الملفّ فيها إلزامياً (مطابق لـ$isFileRequired في القالب) — نفرضه
+            // خادمياً بدل الاعتماد على required في input مخفيّ (كان زرّاً ميّتاً صامتاً).
+            $requiresFile = $activity->type === 'upload' || ($activity->question_type ?? null) === 'file_upload';
             $rules = [
                 'answer' => 'required',
                 'xp' => 'nullable|integer',
             ];
-            if ($request->hasFile('answer_file')) {
-                $allowed = is_array($activity->allowed_file_types) && ! empty($activity->allowed_file_types)
-                    ? implode(',', $activity->allowed_file_types)
-                    : 'pdf,jpg,jpeg,png,gif,docx,doc,mp3,mp4';
-                $maxKb = max(1, (int) ($activity->max_file_size ?? 10)) * 1024;
-                $rules['answer_file'] = "file|mimes:{$allowed}|max:{$maxKb}";
+            if ($requiresFile) {
+                // قاعدة موحّدة (الموديل) تُطبَّق على الويب والـAPI معاً — تشتقّ الامتدادات من
+                // الفئات المخزَّنة والسقف من max_file_size (كان mimes:image يرفض كلَّ ملفّ).
+                $rules['answer_file'] = 'required|' . $activity->submissionFileRule();
+            } elseif ($request->hasFile('answer_file')) {
+                $rules['answer_file'] = $activity->submissionFileRule();
             }
             $request->validate($rules);
 

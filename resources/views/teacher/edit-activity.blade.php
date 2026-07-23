@@ -168,6 +168,44 @@
                             </div>
                         </div>
 
+                        {{-- إعدادات رفع الملفّات (مشروع/رفع/إبداعي/عمليّ) — كانت غائبة عن نموذج
+                             التعديل فتعذّر على المعلّم تغيير الأنواع/الحجم بعد الإنشاء. التأشير من
+                             allowedFileCategories() (يشفي الصفوف القديمة المُشفَّرة مرّتين). --}}
+                        @php $__allowedCats = old('allowed_file_types', $activity->allowedFileCategories()); $__allowedCats = is_array($__allowedCats) ? $__allowedCats : []; @endphp
+                        <div id="fileSettings" style="display:{{ in_array($activity->type,['project','upload','creative','practical'])?'block':'none' }};">
+                            <hr>
+                            <label class="form-label fw-bold d-block mb-2">📁 إعدادات رفع الملفّات</label>
+                            <div class="mb-3">
+                                <label class="form-label">أنواع الملفات المسموحة</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <label class="border rounded px-3 py-2 d-flex align-items-center gap-2" style="cursor:pointer;">
+                                        <input type="checkbox" name="allowed_file_types[]" value="document" {{ in_array('document',$__allowedCats)?'checked':'' }}>
+                                        <span>📄 مستندات (PDF, Word, Excel)</span>
+                                    </label>
+                                    <label class="border rounded px-3 py-2 d-flex align-items-center gap-2" style="cursor:pointer;">
+                                        <input type="checkbox" name="allowed_file_types[]" value="image" {{ in_array('image',$__allowedCats)?'checked':'' }}>
+                                        <span>🖼️ صور (JPG, PNG, GIF)</span>
+                                    </label>
+                                    <label class="border rounded px-3 py-2 d-flex align-items-center gap-2" style="cursor:pointer;">
+                                        <input type="checkbox" name="allowed_file_types[]" value="video" {{ in_array('video',$__allowedCats)?'checked':'' }}>
+                                        <span>🎥 فيديو (MP4, AVI, MOV)</span>
+                                    </label>
+                                    <label class="border rounded px-3 py-2 d-flex align-items-center gap-2" style="cursor:pointer;">
+                                        <input type="checkbox" name="allowed_file_types[]" value="audio" {{ in_array('audio',$__allowedCats)?'checked':'' }}>
+                                        <span>🎵 صوت (MP3, WAV, AAC)</span>
+                                    </label>
+                                </div>
+                                <div class="form-text">اختر أنواع الملفات التي يمكن للطلاب رفعها (إلغاء الكلّ = السماح بكلّ الأنواع).</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">الحد الأقصى لحجم الملف (MB)</label>
+                                    <input type="number" name="max_file_size" class="form-control"
+                                           value="{{ old('max_file_size', $activity->max_file_size ?? 10) }}" min="1" max="100">
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Questions/Images Section --}}
                         <div id="questionsSection" style="display:{{ in_array($activity->type,['quiz','exercise','image_order'])?'block':'none' }};">
                             <hr>
@@ -337,6 +375,8 @@ const activityTypeEl = document.getElementById('activityType');
 activityTypeEl.addEventListener('change', function() {
     const t = this.value;
     document.getElementById('quizSettings').style.display    = ['quiz','exercise'].includes(t) ? 'block' : 'none';
+    const fileSettings = document.getElementById('fileSettings');
+    if (fileSettings) fileSettings.style.display = ['project','upload','creative','practical'].includes(t) ? 'block' : 'none';
     document.getElementById('questionsSection').style.display = ['quiz','exercise','image_order'].includes(t) ? 'block' : 'none';
     document.getElementById('qSectionTitle').textContent = t === 'image_order' ? '🖼️ صور النشاط' : '❓ الأسئلة';
     const btn = document.querySelector('#qbuilder .btn-add-q');

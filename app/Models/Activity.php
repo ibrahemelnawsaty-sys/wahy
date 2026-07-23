@@ -94,6 +94,139 @@ class Activity extends Model
     ];
 
     /**
+     * خريطة «فئة الملف» → الامتدادات. العمود allowed_file_types يخزّن فئات
+     * (document/image/video/audio) لا امتدادات — فكان نموذج الطالب والمتحكّم
+     * يعاملانها امتدادات خطأً (accept=".image" وmimes:image يرفضان كل شيء).
+     */
+    public const FILE_CATEGORY_EXTENSIONS = [
+        // القوائم موسَّعة لتغطية ما تسلّمه مجموعات MIME في accept فعلياً (heic صور آيفون،
+        // bmp/avif سطح المكتب، opus/amr رسائل واتساب الصوتية) فلا يقبل المنتقي ملفّاً ثمّ يرفضه
+        // الخادم. svg مستبعَد عمداً (XSS مخزَّن). التحقّق mimes مبنيّ على المحتوى (أمن).
+        'image' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp', 'avif'],
+        'video' => ['mp4', 'm4v', 'mov', 'avi', 'webm', 'mkv', '3gp', '3g2', 'mpeg', 'mpg'],
+        'audio' => ['mp3', 'wav', 'aac', 'ogg', 'oga', 'm4a', 'opus', 'amr', 'flac'],
+        'document' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'],
+    ];
+
+    private const FILE_CATEGORY_LABELS = [
+        'image' => 'صور',
+        'video' => 'فيديو',
+        'audio' => 'صوت',
+        'document' => 'مستندات',
+    ];
+
+    /**
+     * الفئات المسموحة مطبَّعةً إلى مصفوفة نظيفة. يعالج:
+     * - الصفوف المُشفَّرة مرّتين (json_encode يدويّ + صبّ array) فتُقرأ نصًّا — يشفيها ذاتياً.
+     * - القيمة الفارغة/غير الصالحة → افتراضيّ آمن واسع.
+     * - امتدادات قديمة مُخزَّنة مباشرةً (توافق خلفيّ) تُمرَّر كما هي.
+     */
+    public function allowedFileCategories(): array
+    {
+        $raw = $this->allowed_file_types;
+
+        // صبّ array يفكّ طبقة واحدة فقط؛ الصفوف المُشفَّرة مرّتين تبقى سلسلة JSON — نفكّها.
+        $guard = 0;
+        while (is_string($raw) && $guard++ < 5) {
+            $trimmed = trim($raw);
+            if ($trimmed === '' || $trimmed === 'null') {
+                $raw = [];
+                break;
+            }
+            if ($trimmed[0] !== '[' && $trimmed[0] !== '"') {
+                $raw = [$trimmed]; // امتداد/فئة مفردة نصّية قديمة
+                break;
+            }
+            $decoded = json_decode($trimmed, true);
+            if ($decoded === null) {
+                $raw = [];
+                break;
+            }
+            $raw = $decoded;
+        }
+
+        $list = array_values(array_filter(array_map(
+            fn ($v) => is_string($v) ? strtolower(trim($v)) : null,
+            is_array($raw) ? $raw : []
+        ), fn ($v) => $v !== null && $v !== ''));
+
+        return $list ?: ['image', 'video', 'audio', 'document'];
+    }
+
+    /**
+     * الامتدادات المسطّحة المقابلة للفئات المسموحة — لتحقّق mimes ولسمة accept.
+     */
+    public function allowedFileExtensions(): array
+    {
+        $exts = [];
+        foreach ($this->allowedFileCategories() as $cat) {
+            if (isset(self::FILE_CATEGORY_EXTENSIONS[$cat])) {
+                $exts = array_merge($exts, self::FILE_CATEGORY_EXTENSIONS[$cat]);
+            } else {
+                $exts[] = ltrim($cat, '.'); // امتداد قديم مُخزَّن مباشرةً
+            }
+        }
+
+        return array_values(array_unique(array_filter($exts)));
+    }
+
+    /**
+     * سمة accept لمُنتقي الملفّات: مجموعات MIME للوسائط (image/*,video/*,audio/*)
+     * + امتدادات المستندات/القديمة. أودّ للجوّال والمتصفّح.
+     */
+    public function allowedFileAccept(): string
+    {
+        $cats = $this->allowedFileCategories();
+        $parts = [];
+        foreach (['image', 'video', 'audio'] as $mimeCat) {
+            if (in_array($mimeCat, $cats, true)) {
+                $parts[] = $mimeCat . '/*';
+            }
+        }
+        foreach ($cats as $cat) {
+            if (in_array($cat, ['image', 'video', 'audio'], true)) {
+                continue;
+            }
+            if (isset(self::FILE_CATEGORY_EXTENSIONS[$cat])) {
+                foreach (self::FILE_CATEGORY_EXTENSIONS[$cat] as $e) {
+                    $parts[] = '.' . $e;
+                }
+            } else {
+                $parts[] = '.' . ltrim($cat, '.');
+            }
+        }
+
+        return implode(',', array_values(array_unique($parts))) ?: '*/*';
+    }
+
+    /**
+     * وصف عربيّ للأنواع المسموحة (للتلميح تحت زرّ الرفع لدى الطالب).
+     */
+    public function allowedFileTypesLabel(): string
+    {
+        $out = [];
+        foreach ($this->allowedFileCategories() as $cat) {
+            $out[] = self::FILE_CATEGORY_LABELS[$cat] ?? $cat;
+        }
+
+        return implode('، ', array_values(array_unique($out)));
+    }
+
+    /**
+     * قاعدة تحقّق موحّدة لملفّ التسليم — **مصدرٌ وحيد** يستدعيه مسار الويب
+     * (StudentController) ومسار الجوّال (Api\StudentApiController) معاً، فلا ينحرف
+     * الإنفاذ بينهما. mimes مبنيّ على محتوى الملفّ (يرفض HTML/SVG/PHP المموّه = أمن)،
+     * وmax من max_file_size الخاصّ بالنشاط لا سقفاً صلباً.
+     */
+    public function submissionFileRule(): string
+    {
+        $exts = implode(',', $this->allowedFileExtensions());
+        $maxKb = max(1, (int) ($this->max_file_size ?? 10)) * 1024;
+
+        return "file|mimes:{$exts}|max:{$maxKb}";
+    }
+
+    /**
      * Defense-in-depth: prevent teachers from self-approving or self-featuring
      * AFTER the activity is created. CREATE is trusted because controllers force
      * approval_status='pending' for teacher-submitted activities.

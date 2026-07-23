@@ -272,8 +272,8 @@
         </div>
     </div>
 
-    <!-- إعدادات المشروع (مشروع فقط) -->
-    <div class="form-card fade-in" id="projectSettingsSection" style="display: {{ old('type') == 'project' ? 'block' : 'none' }};">
+    <!-- إعدادات رفع الملفّات — لكل نوع يقبل تسليم ملفّ (مشروع/رفع/إبداعي/عمليّ) -->
+    <div class="form-card fade-in" id="projectSettingsSection" style="display: {{ in_array(old('type'), ['project', 'upload', 'creative', 'practical']) ? 'block' : 'none' }};">
         <h3>📁 إعدادات المشروع</h3>
         <div class="form-group">
             <label class="form-label">أنواع الملفات المسموحة</label>
@@ -492,7 +492,7 @@ function selectType(card, type) {
     }
     const projectSettings = document.getElementById('projectSettingsSection');
     if (projectSettings) {
-        projectSettings.style.display = type === 'project' ? 'block' : 'none';
+        projectSettings.style.display = ['project', 'upload', 'creative', 'practical'].includes(type) ? 'block' : 'none';
     }
 
     // Rewrite hidden field with the correct shape for the selected type
