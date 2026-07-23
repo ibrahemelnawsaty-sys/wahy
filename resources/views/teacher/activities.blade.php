@@ -2,6 +2,17 @@
 
 @section('title', 'إدارة الأنشطة')
 
+@push('styles')
+<style>
+    /* أصناف كانت مستعمَلة في القالب دون تعريف بعد تحميل Bootstrap:
+       - bg-gold: شارة النقاط كانت ترث لون Bootstrap الأبيض على بطاقة بيضاء → نقاط غير مرئيّة.
+       - glass-effect: بطاقات كانت تظهر بيضاء عاديّة بلا التأثير الزجاجيّ المقصود. */
+    .badge.bg-gold { background-color: #f59e0b !important; color: #fff !important; }
+    .glass-effect { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); box-shadow: 0 6px 22px rgba(15, 23, 42, 0.07); }
+    html[data-theme="dark"] .glass-effect { background: rgba(30, 41, 59, 0.92); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35); }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid py-4">
     <!-- Header -->

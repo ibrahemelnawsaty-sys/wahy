@@ -243,9 +243,10 @@ class StudentApiController extends Controller
                 'difficulty' => $activity->difficulty,
                 'points' => $activity->points,
                 'coins' => $activity->coins,
-                'instructions' => $activity->instructions,
                 'questions' => $activity->questions,
-                'attachments' => $activity->attachments,
+                // الوسائط المتعددة (صورة/صوت/فيديو/مستند) بروابط جاهزة — كان يُخرِج 'attachments'
+                // من خاصّية غير موجودة (null) فلا يستلم طالب الجوّال أيّ وسائط. media هو العمود الفعليّ.
+                'media' => $this->serializeActivityMedia($activity),
                 'is_team_activity' => $activity->is_team_activity,
                 'due_date' => $activity->due_date,
                 'lesson' => $activity->lesson ? [
@@ -265,6 +266,45 @@ class StudentApiController extends Controller
                 ] : null,
             ],
         ], 200);
+    }
+
+    /**
+     * يبني وسائط النشاط بروابط جاهزة للجوّال — من عمود media (مصفوفة {type,path,name}) مع
+     * توافق خلفيّ للمرفق المفرد القديم attachment. نفس اصطلاح الرابط والنوع في قالب العرض الويبيّ.
+     */
+    private function serializeActivityMedia(Activity $activity): array
+    {
+        $items = [];
+        foreach ((is_array($activity->media) ? $activity->media : []) as $m) {
+            if (empty($m['path'])) {
+                continue;
+            }
+            $items[] = $this->mediaItem($m['path'], $m['type'] ?? null, $m['name'] ?? null);
+        }
+        if (empty($items) && ! empty($activity->attachment)) {
+            $items[] = $this->mediaItem($activity->attachment, null, null);
+        }
+
+        return $items;
+    }
+
+    private function mediaItem(string $path, ?string $type, ?string $name): array
+    {
+        $url = \Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '/'])
+            ? $path
+            : asset('storage/app/public/data/' . ltrim($path, '/'));
+        $ext = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION));
+        if (! in_array($type, ['video', 'audio', 'image', 'document'], true)) {
+            $type = in_array($ext, ['mp4', 'mov', 'avi', 'webm', 'mkv', 'm4v', '3gp', 'mpeg', 'mpg'], true) ? 'video'
+                : (in_array($ext, ['mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'opus'], true) ? 'audio'
+                : (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'bmp'], true) ? 'image' : 'document'));
+        }
+
+        return [
+            'type' => $type,
+            'name' => $name ?: basename($path),
+            'url' => $url,
+        ];
     }
 
     /**
