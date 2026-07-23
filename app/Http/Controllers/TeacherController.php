@@ -164,6 +164,12 @@ class TeacherController extends Controller
             abort(403, 'ليس لديك صلاحية لمراجعة هذا النشاط');
         }
 
+        // بوّابة موافقة وليّ الأمر (#23): التسليم المعلّق لموافقة الوليّ مُستبعَد من القائمة عبر
+        // parentCleared، لكنّ الرابط المباشر كان يتجاوزها — لا يراجعه المعلّم قبل موافقة الوليّ.
+        if ($submission->parent_approval_status === 'pending') {
+            abort(403, 'هذا التسليم بانتظار موافقة وليّ الأمر');
+        }
+
         return view('teacher.review-single', compact('submission'));
     }
 
@@ -195,6 +201,11 @@ class TeacherController extends Controller
 
                 if (! $hasAccess) {
                     throw new \Illuminate\Auth\Access\AuthorizationException('ليس لديك صلاحية');
+                }
+
+                // بوّابة موافقة وليّ الأمر (#23) — لا تصحيح قبل موافقة الوليّ (كالقائمة parentCleared)
+                if ($submission->parent_approval_status === 'pending') {
+                    throw new \Illuminate\Auth\Access\AuthorizationException('بانتظار موافقة وليّ الأمر');
                 }
 
                 $submission->update([
@@ -1162,7 +1173,9 @@ class TeacherController extends Controller
             ->join('concepts', 'lessons.concept_id', '=', 'concepts.id')
             ->join('values', 'concepts.value_id', '=', 'values.id')
             ->where('activity_submissions.student_id', $student->id)
-            ->where('activity_submissions.status', 'completed')
+            // DONE_STATUSES (completed + approved) — كان 'completed' فقط يُسقِط الأنشطة المُقيَّمة
+            // يدوياً من المعلّم (approved) من «الأداء حسب القيم» والمتوسّطات.
+            ->whereIn('activity_submissions.status', \App\Models\ActivitySubmission::DONE_STATUSES)
             ->select(
                 'values.name as value_name',
                 DB::raw('COUNT(*) as activities_count'),
@@ -1417,7 +1430,9 @@ class TeacherController extends Controller
             'leader_id' => 'required|exists:users,id',
             'member_ids' => 'required|array|min:1',
             'member_ids.*' => 'exists:users,id',
-            'status' => 'nullable|in:active,inactive',
+            // enum جدول teams هو [active, archived] — كان 'inactive' يمرّ التحقّق ثمّ يتعطّل عند
+            // الكتابة (MySQL) فتُفقَد كلُّ التعديلات.
+            'status' => 'nullable|in:active,archived',
         ]);
 
         // التحقق على مستوى الكائن: القائد والأعضاء طلاب في مدرسة المعلم فقط (منع IDOR عبر المدارس)
@@ -2358,7 +2373,9 @@ class TeacherController extends Controller
             'description' => 'nullable|string|max:1000',
             'type' => 'required|in:quiz,review,challenge',
             'difficulty' => 'required|in:easy,medium,hard',
-            'classroom_id' => 'nullable|exists:classrooms,id',
+            // classroom_id مقيَّد بفصول هذا المعلّم — كان nullable|exists عاماً فيمكن حقن تمرين في
+            // فصل معلّمٍ آخر/مدرسة أخرى (IDOR كتابة + حصد نقاط عبر المدارس).
+            'classroom_id' => ['nullable', \Illuminate\Validation\Rule::exists('classrooms', 'id')->where('teacher_id', $user->id)],
             'time_limit' => 'nullable|integer|min:1|max:120',
             'max_attempts' => 'required|integer|min:1|max:10',
             'question_ids' => 'required|array|min:1',
@@ -2418,7 +2435,8 @@ class TeacherController extends Controller
             'description' => 'nullable|string|max:1000',
             'type' => 'required|in:quiz,review,challenge',
             'difficulty' => 'required|in:easy,medium,hard',
-            'classroom_id' => 'nullable|exists:classrooms,id',
+            // مقيَّد بفصول المعلّم (IDOR كتابة عبر الفصول/المدارس)
+            'classroom_id' => ['nullable', \Illuminate\Validation\Rule::exists('classrooms', 'id')->where('teacher_id', $user->id)],
             'time_limit' => 'nullable|integer|min:1|max:120',
             'max_attempts' => 'required|integer|min:1|max:10',
             'question_ids' => 'required|array|min:1',

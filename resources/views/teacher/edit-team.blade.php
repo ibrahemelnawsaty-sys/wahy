@@ -90,7 +90,7 @@
                 <label>الحالة</label>
                 <select name="status">
                     <option value="active"   {{ old('status', $team->status) === 'active'   ? 'selected' : '' }}>نشط</option>
-                    <option value="inactive" {{ old('status', $team->status) === 'inactive' ? 'selected' : '' }}>غير نشط</option>
+                    <option value="archived" {{ old('status', $team->status) === 'archived' ? 'selected' : '' }}>مؤرشَف</option>
                 </select>
             </div>
 

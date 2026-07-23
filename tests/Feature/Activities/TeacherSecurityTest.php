@@ -58,6 +58,42 @@ class TeacherSecurityTest extends TestCase
         $this->assertFalse($streak->recordActivityDay(), 'لا عدّ لليوم نفسه مرّتين بعد إعادة التعيين');
     }
 
+    public function test_exercise_cannot_target_another_teachers_classroom(): void
+    {
+        $school = School::factory()->create();
+        $teacherA = User::factory()->teacher($school)->create();
+        $teacherB = User::factory()->teacher($school)->create();
+        $classroomB = Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacherB->id]);
+        $q = \App\Models\QuestionBank::create([
+            'created_by' => $teacherB->id, 'title' => 'Q', 'question_text' => 'Q?',
+            'question_type' => 'true_false', 'correct_answer' => 'true', 'points' => 10,
+            'difficulty' => 'easy', 'status' => 'approved',
+        ]);
+
+        // المعلّم A يحاول حقن تمرين في فصل المعلّم B → يُرفَض بخطأ تحقّق classroom_id
+        $this->actingAs($teacherA)->post(route('teacher.exercises.store'), [
+            'title' => 'تمرين', 'type' => 'quiz', 'difficulty' => 'easy',
+            'classroom_id' => $classroomB->id, 'max_attempts' => 3, 'question_ids' => [$q->id],
+        ])->assertSessionHasErrors('classroom_id');
+    }
+
+    public function test_teacher_cannot_review_submission_pending_parent_approval(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create();
+        $student = User::factory()->student($school)->create();
+        $classroom = Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
+        $student->classrooms()->attach($classroom->id);
+        $activity = Activity::factory()->create(['points' => 10]);
+        $submission = ActivitySubmission::create([
+            'student_id' => $student->id, 'activity_id' => $activity->id, 'answer' => 'x',
+            'status' => 'pending', 'parent_approval_status' => 'pending', 'attempts' => 1, 'submitted_at' => now(),
+        ]);
+
+        // بانتظار موافقة الوليّ → لا يفتحه المعلّم عبر الرابط المباشر
+        $this->actingAs($teacher)->get(route('teacher.review.single', $submission->id))->assertForbidden();
+    }
+
     public function test_streak_settings_are_scoped_per_teacher(): void
     {
         $school = School::factory()->create();
