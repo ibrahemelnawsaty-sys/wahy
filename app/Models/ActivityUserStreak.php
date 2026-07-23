@@ -56,6 +56,16 @@ class ActivityUserStreak extends Model
                 return false;
             }
 
+            // حارس «يوم واحد» صلب: حتى لو صُفِّرت activity_dates (دورة جديدة بعد صرف مكافأة نفس
+            // اليوم)، لا نَعُدّ اليومَ التقويميّ نفسه مرّتين — يمنع حصد مكافآت متعدّدة في اليوم الواحد
+            // عند min_days=1 (كان resetStreak يمسح التاريخ فيُعاد عدّ اليوم مع كل تسليم).
+            $last = $fresh->last_activity_date ? $fresh->last_activity_date->format('Y-m-d') : null;
+            if ($last === $today) {
+                $this->setRawAttributes($fresh->getAttributes(), true);
+
+                return false;
+            }
+
             $dates[] = $today;
             $fresh->completed_days = count($dates);
             $fresh->activity_dates = $dates;
@@ -120,7 +130,7 @@ class ActivityUserStreak extends Model
         $this->completed_days = 0;
         $this->activity_dates = [];
         $this->bonus_claimed = false;
-        $this->last_activity_date = null;
+        // لا نُصفّر last_activity_date: يبقى حارساً ضدّ إعادة عدّ اليوم نفسه بعد صرف مكافأة (حصد).
         $this->save();
     }
 

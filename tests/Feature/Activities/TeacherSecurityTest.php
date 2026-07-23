@@ -1,0 +1,74 @@
+<?php
+
+namespace Tests\Feature\Activities;
+
+use App\Models\Activity;
+use App\Models\ActivitySubmission;
+use App\Models\ActivityUserStreak;
+use App\Models\Classroom;
+use App\Models\School;
+use App\Models\Setting;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/**
+ * إصلاحات أمن تجربة المعلّم (المراجعة الخصميّة الشاملة):
+ *  - submitReview يُزامن awarded_points (يمنع ازدواج المنح عبر تصحيح→سماح بالإعادة→إعادة تسليم).
+ *  - سلسلة الأنشطة غير قابلة للحصد في اليوم الواحد (حارس last_activity_date).
+ *  - إعدادات السلسلة لكل معلّم (user_id) لا عالميّة (عزل المدارس).
+ */
+class TeacherSecurityTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_review_syncs_awarded_points_to_final_grade(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create();
+        $student = User::factory()->student($school)->create();
+        $classroom = Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
+        $student->classrooms()->attach($classroom->id);
+        $activity = Activity::factory()->create(['points' => 10, 'passing_score' => 60]);
+
+        $submission = ActivitySubmission::create([
+            'student_id' => $student->id, 'activity_id' => $activity->id, 'answer' => 'x',
+            'status' => 'needs_review', 'score' => 50, 'awarded_points' => 5, 'attempts' => 1, 'submitted_at' => now(),
+        ]);
+
+        $this->actingAs($teacher)
+            ->postJson(route('teacher.review.submit', $submission->id), ['score' => 100])
+            ->assertOk();
+
+        // awarded_points يُزامَن للدرجة النهائيّة (10) — فإعادةُ التسليم لاحقاً تحسب فرقاً = 0 (لا ازدواج)
+        $this->assertSame(10, (int) $submission->fresh()->awarded_points);
+    }
+
+    public function test_streak_bonus_not_farmable_same_day(): void
+    {
+        $school = School::factory()->create();
+        $student = User::factory()->student($school)->create();
+        $streak = ActivityUserStreak::getOrCreate($student->id);
+
+        // اليوم الأول: يُسجَّل
+        $this->assertTrue($streak->recordActivityDay());
+        // صرف المكافأة + إعادة تعيين الدورة (min_days=1)
+        $streak->resetStreak();
+        // تسليمٌ آخر **نفس اليوم**: يجب ألّا يُسجَّل يومٌ جديد (لا مكافأة ثانية)
+        $this->assertFalse($streak->recordActivityDay(), 'لا عدّ لليوم نفسه مرّتين بعد إعادة التعيين');
+    }
+
+    public function test_streak_settings_are_scoped_per_teacher(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create();
+
+        $this->actingAs($teacher)->put(route('teacher.streak.update'), [
+            'enabled' => 1, 'min_days' => 3, 'max_days' => 7, 'bonus_points' => 50,
+        ])->assertRedirect();
+
+        // صفّ خاصّ بالمعلّم (user_id) لا عالميّ (NULL) — لا يتحكّم بطلاب مدارس أخرى
+        $this->assertDatabaseHas('settings', ['key' => 'streak_bonus_points', 'user_id' => $teacher->id, 'value' => '50']);
+        $this->assertDatabaseMissing('settings', ['key' => 'streak_bonus_points', 'user_id' => null]);
+    }
+}

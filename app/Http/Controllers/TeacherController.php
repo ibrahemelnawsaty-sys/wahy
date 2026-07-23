@@ -255,6 +255,17 @@ class TeacherController extends Controller
                 \Log::warning('activity award failed: ' . $e->getMessage());
             }
 
+            // نُثبّت الحدّ الأعلى المُمنوح على الدرجة النهائيّة **بعد** حساب الفرق (لا قبله، وإلّا صار
+            // autoXp=finalXp فالفرق 0). وإلّا لو «سمح المعلّم بإعادة المحاولة» ثمّ أعاد الطالب التسليم،
+            // حسب مسارُ الطالب الفرقَ مقابل awarded_points القديم (الجزئيّ) فمُنِح ثانيةً = ازدواج.
+            if ($finalXp > $autoXp) {
+                try {
+                    $submission->update(['awarded_points' => $finalXp]);
+                } catch (\Throwable $e) {
+                    \Log::warning('awarded_points sync failed: ' . $e->getMessage());
+                }
+            }
+
             try {
                 NotificationService::activityGraded($submission->student_id, $activityTitle, $request->score, $request->feedback);
             } catch (\Throwable $e) {
@@ -592,8 +603,9 @@ class TeacherController extends Controller
     {
         $teacher = auth()->user();
 
-        // جلب الإعدادات الحالية من جدول settings
+        // جلب إعدادات **هذا المعلّم** فقط (لا كل الصفوف) — العزل يطابق getStreakSetting
         $settings = \App\Models\Setting::where('key', 'like', 'streak_%')
+            ->where('user_id', $teacher->id)
             ->get()
             ->keyBy('key');
 
@@ -647,9 +659,12 @@ class TeacherController extends Controller
             'streak_bonus_points' => $validated['bonus_points'],
         ];
 
+        // مفتاح المطابقة يشمل user_id — وإلّا كُتِب الصفُّ **العامّ** (user_id NULL) فصارت إعداداتُ
+        // معلّمٍ واحد إعداداتِ السلسلة لكل طلاب كل المدارس (كسر عزل + تصادم بين المعلّمين).
+        // getStreakSetting يقرأ صفَّ معلّم فصل الطالب أولاً، فالكتابة هنا يجب أن تُنشئه لهذا المعلّم.
         foreach ($settings as $key => $value) {
             \App\Models\Setting::updateOrCreate(
-                ['key' => $key],
+                ['key' => $key, 'user_id' => $teacher->id],
                 ['value' => $value],
             );
         }
