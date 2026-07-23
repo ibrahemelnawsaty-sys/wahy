@@ -66,6 +66,18 @@ class SurveyController extends Controller
             return $fail('هذا الاستبيان غير متاح حالياً', 400);
         }
 
+        // بوّابة الاستهداف (كـshow): مستخدمٌ مسجَّل لا يُجيب استبياناً غير موجّه لدوره — كان submit
+        // يتحقّق من النشاط فقط فيلوّث الطالبُ تقييماتِ القيمة/استبيانات أدوار أخرى. (الاستبيانات
+        // العامّة بلا target_roles تبقى مفتوحة للضيوف/الجميع.)
+        if ($user && ! empty($survey->target_roles)) {
+            $targetType = \App\Models\Survey::roleToTargetType($user->role);
+            $isTargeted = in_array($user->role, $survey->target_roles, true)
+                || ($targetType && in_array($targetType, $survey->target_roles, true));
+            if (! $isTargeted) {
+                return $fail('هذا الاستبيان غير موجّه لك', 403);
+            }
+        }
+
         $survey->load('questions');
 
         // التحقق من الإجابات المطلوبة

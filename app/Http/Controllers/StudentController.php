@@ -2234,6 +2234,12 @@ class StudentController extends Controller
             abort(403);
         }
 
+        // بوّابة الإتاحة (is_active + نافذة starts_at/ends_at) — كان يمكن اللعب/حصد النقاط
+        // خارج نافذة المعلّم أو على تمرين مُعطَّل.
+        if (! $exercise->is_available) {
+            return back()->with('error', 'هذا التمرين غير متاح حالياً');
+        }
+
         // التحقق من عدد المحاولات
         $attemptsCount = \App\Models\PracticeAttempt::where('student_id', $student->id)
             ->where('exercise_id', $id)
@@ -2263,6 +2269,11 @@ class StudentController extends Controller
         // حُجب start — نفس فحص الملكية على المسارين.
         if (! $this->exerciseBelongsToStudent($exercise, $student)) {
             abort(403);
+        }
+
+        // بوّابة الإتاحة على الإرسال أيضاً (لا حصد نقاط خارج نافذة المعلّم عبر POST مباشر)
+        if (! $exercise->is_available) {
+            return back()->with('error', 'هذا التمرين غير متاح حالياً');
         }
 
         // Pass-4 Batch 2: enforce max_attempts on SUBMIT too. startExercise gated this,
@@ -2738,6 +2749,17 @@ class StudentController extends Controller
         $isPlayer2 = $match->player2_id === $student->id;
         if (! $isPlayer1 && ! $isPlayer2) {
             abort(403);
+        }
+
+        // بوّابة حالة: لا قبول إلا أثناء اللعب، ولا إعادة إرسال بعد التقديم. بدونها كان يمكن
+        // «الإرسال المسبق» أثناء الانتظار (waiting) لضمان الفوز، أو إعادة الإرسال لمباراة مكتملة
+        // فتُعاد determineWinner وتُفسَد النتيجة.
+        if ($match->status !== 'playing') {
+            abort(403, 'المباراة غير جارية حالياً');
+        }
+        $alreadySubmitted = $isPlayer1 ? $match->player1_answers !== null : $match->player2_answers !== null;
+        if ($alreadySubmitted) {
+            abort(403, 'لقد أرسلت إجاباتك بالفعل لهذه المباراة');
         }
 
         $answers = $request->input('answers', []);

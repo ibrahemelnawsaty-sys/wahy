@@ -160,11 +160,19 @@ class pvpWinnerPayoutAwardTest extends TestCase
         $this->assertSame(20, (int) Point::where('user_id', $winner->id)->sum('points'));
         $this->assertSame(10, (int) Coin::where('user_id', $winner->id)->sum('coins'));
 
-        // Replay the SAME event twice more (same match, both answers already stored).
-        $this->submitAsPlayer2($match, $player2, $question);
-        $this->submitAsPlayer2($match, $player2, $question);
+        // Replay the SAME event twice more. The match is now 'completed', so the status
+        // gate in submitPvpAnswers REJECTS the replay with 403 — stronger than mere award
+        // idempotency: the double-submit never reaches the award/determineWinner at all.
+        foreach ([1, 2] as $_replay) {
+            try {
+                $this->submitAsPlayer2($match, $player2, $question);
+                $this->fail('replay on a completed match must be rejected');
+            } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+                $this->assertSame(403, $e->getStatusCode());
+            }
+        }
 
-        // Ledger unchanged (key pvp_match/match.id already claimed) ...
+        // Ledger unchanged (replay blocked; and key pvp_match/match.id already claimed) ...
         $this->assertSame(1, DB::table('award_ledger')->count(), 'replay must not add a ledger row');
         // ... no new Point/Coin rows ...
         $this->assertSame($pointRowsAfterFirst, Point::where('user_id', $winner->id)->count(), 'no extra Point row');

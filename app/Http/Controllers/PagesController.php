@@ -49,6 +49,11 @@ class PagesController extends Controller
     {
         $survey = Survey::with('questions')->findOrFail($id);
 
+        // لا يُكشَف استبيانٌ غير نشط/منتهٍ عبر الرابط العامّ (البوّابة الكاملة للاستهداف في submit).
+        if (! $survey->isActive()) {
+            abort(404);
+        }
+
         return view('survey.show', compact('survey'));
     }
 
