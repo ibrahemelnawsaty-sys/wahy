@@ -1615,6 +1615,12 @@ class StudentController extends Controller
             return response()->json(['success' => false, 'message' => 'لا تملك هذا العنصر']);
         }
 
+        // بوّابة نوع: العناصر الاستهلاكيّة فقط تُستخدَم. بدونها كان عنصرٌ تجميليّ (أڤاتار/ثيم/شارة)
+        // يحمل metadata.effect يمنح نقاطاً/عملات عند «الاستخدام» = سكّ اقتصاد. (يطابق حارس equipItem.)
+        if (! in_array($item->type, ['power_up', 'special'], true)) {
+            return response()->json(['success' => false, 'message' => 'هذا العنصر لا يُستخدَم']);
+        }
+
         $current = $user->purchases()->where('shop_item_id', $itemId)->first();
         if ($current && $current->pivot->used_at) {
             return response()->json(['success' => false, 'message' => 'استخدمت هذا العنصر مسبقاً']);

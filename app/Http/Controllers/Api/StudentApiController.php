@@ -102,7 +102,12 @@ class StudentApiController extends Controller
      */
     public function valuesTree(Request $request)
     {
-        $values = Value::with(['concepts.lessons'])->get();
+        // بوّابة القيمة + الحالة (كالويب): لا تكشف الجوّالُ قيماً أخفتها المدرسة (school_active_values)
+        // ولا دروساً غير نشطة — كان ->get() يكشف كلَّ القيم والدروس بلا تقييد.
+        $values = Value::visibleForSchool($request->user()->school_id)
+            ->with(['concepts.lessons' => fn ($q) => $q->where('status', 'active')])
+            ->orderBy('order')
+            ->get();
 
         $tree = $values->map(function ($value) {
             return [
@@ -366,6 +371,11 @@ class StudentApiController extends Controller
             // العمود الفعلي 'answer' (مفرد، نصّي) — نُرمّزه JSON بنفس اصطلاح الويب
             'answer' => json_encode($request->answers, JSON_UNESCAPED_UNICODE),
             'status' => 'pending',
+            // ميزة #23 (كالويب): نشاط يتطلّب موافقة وليّ الأمر لا يدخل طابور المعلّم إلا بموافقته —
+            // كان الجوّال يتجاوز البوّابة. عند إعادة الإرسال نُصفّر الاعتماد السابق أيضاً.
+            'parent_approval_status' => $activity->requires_parent_approval ? 'pending' : null,
+            'parent_approved_by' => null,
+            'parent_approved_at' => null,
             'submitted_at' => now(),
         ];
 
@@ -428,6 +438,7 @@ class StudentApiController extends Controller
 
         $students = \App\Models\User::where('role', 'student')
             ->where('school_id', $user->school_id)
+            ->where('status', 'active') // كالويب: لا يُدرَج الطلاب غير النشطين
             ->withSum('points', 'points')
             ->orderBy('points_sum_points', 'desc')
             ->take(50)
@@ -437,7 +448,7 @@ class StudentApiController extends Controller
                     'rank' => $index + 1,
                     'id' => $student->id,
                     'name' => $student->name,
-                    'avatar' => $student->avatar,
+                    'avatar' => $student->avatar_url, // رابط كامل لا مسار خام
                     'points' => (int) ($student->points_sum_points ?? 0),
                 ];
             });
@@ -445,6 +456,7 @@ class StudentApiController extends Controller
         // Find user's rank
         $allStudents = \App\Models\User::where('role', 'student')
             ->where('school_id', $user->school_id)
+            ->where('status', 'active')
             ->withSum('points', 'points')
             ->orderBy('points_sum_points', 'desc')
             ->pluck('id');

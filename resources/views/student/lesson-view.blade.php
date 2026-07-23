@@ -639,7 +639,7 @@
             </span>
             <div class="media-container">
                 <video controls style="width: 100%; height: 100%;">
-                    <source src="{{ asset('storage/' . ltrim($lesson->video_file, '/')) }}">
+                    <source src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($lesson->video_file) }}">
                     متصفحك لا يدعم تشغيل الفيديو.
                 </video>
             </div>
@@ -671,7 +671,7 @@
             </span>
             <div class="media-audio">
                 <audio controls>
-                    <source src="{{ asset('storage/' . ltrim($lesson->audio_file, '/')) }}">
+                    <source src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($lesson->audio_file) }}">
                     متصفحك لا يدعم تشغيل الملفات الصوتية.
                 </audio>
             </div>

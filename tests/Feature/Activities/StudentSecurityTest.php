@@ -106,6 +106,46 @@ class StudentSecurityTest extends TestCase
         $this->assertSame(10, (int) $total, 'لا ازدواج: الإجمالي = مكافأة النشاط الكاملة');
     }
 
+    public function test_api_values_tree_respects_school_value_gate(): void
+    {
+        $school = \App\Models\School::factory()->create();
+        $student = User::factory()->student($school)->create();
+        $visible = \App\Models\Value::factory()->create(['status' => 'active']);
+        $hidden = \App\Models\Value::factory()->create(['status' => 'active']);
+        // المدرسة تُفعّل «visible» فقط → «hidden» مُخفاة
+        \Illuminate\Support\Facades\DB::table('school_active_values')->insert([
+            'school_id' => $school->id, 'value_id' => $visible->id,
+        ]);
+
+        Sanctum::actingAs($student);
+        $res = $this->getJson('/api/v1/student/values-tree')->assertOk();
+        $ids = collect($res->json('data'))->pluck('id')->all();
+
+        $this->assertContains($visible->id, $ids);
+        $this->assertNotContains($hidden->id, $ids, 'القيمة المُخفاة لا تُكشَف في الجوّال');
+    }
+
+    public function test_use_item_rejects_cosmetic_item_type(): void
+    {
+        $school = \App\Models\School::factory()->create();
+        $student = User::factory()->student($school)->create();
+        // عنصر تجميليّ (أڤاتار) يحمل أثر نقاط — يجب ألّا يُسكّ نقاطاً عبر «الاستخدام»
+        $item = \App\Models\ShopItem::create([
+            'name' => 'أڤاتار', 'type' => 'avatar', 'price' => 10, 'is_active' => true,
+            'metadata' => ['effect' => 'points', 'amount' => 100],
+        ]);
+        $student->purchases()->attach($item->id, ['price_paid' => 10]);
+
+        $before = (int) \App\Models\Point::where('user_id', $student->id)->sum('points');
+        $this->actingAs($student)
+            ->postJson(route('student.my-items.use'), ['item_id' => $item->id])
+            ->assertOk()
+            ->assertJson(['success' => false]);
+
+        $after = (int) \App\Models\Point::where('user_id', $student->id)->sum('points');
+        $this->assertSame($before, $after, 'لا نقاط تُمنَح من عنصر تجميليّ');
+    }
+
     public function test_conversation_sanitizes_stored_xss_before_broadcast(): void
     {
         $school = School::factory()->create();

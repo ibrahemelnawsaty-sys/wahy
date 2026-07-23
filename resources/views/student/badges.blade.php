@@ -140,7 +140,7 @@
                     <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.12), transparent); transform: rotate(45deg); pointer-events: none;"></div>
                     <div style="position: relative; z-index: 1;">
                         @if($badge->image)
-                        <img src="{{ asset('storage/' . $badge->image) }}" alt="{{ $badge->name }}" style="width: 64px; height: 64px; object-fit: contain; margin-bottom: 15px;">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($badge->image) }}" alt="{{ $badge->name }}" style="width: 64px; height: 64px; object-fit: contain; margin-bottom: 15px;">
                         @else
                         <div style="font-size: 56px; margin-bottom: 15px;">{{ $badge->icon ?: '🏅' }}</div>
                         @endif
@@ -158,7 +158,7 @@
                     <!-- Lock badge -->
                     <div style="position: absolute; top: 12px; left: 12px; width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 14px;">🔒</div>
                     @if($badge->image)
-                    <img src="{{ asset('storage/' . $badge->image) }}" alt="{{ $badge->name }}" style="width: 64px; height: 64px; object-fit: contain; margin-bottom: 15px; filter: grayscale(100%); opacity: 0.5;">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($badge->image) }}" alt="{{ $badge->name }}" style="width: 64px; height: 64px; object-fit: contain; margin-bottom: 15px; filter: grayscale(100%); opacity: 0.5;">
                     @else
                     <div style="font-size: 56px; margin-bottom: 15px; filter: grayscale(100%); opacity: 0.5;">{{ $badge->icon ?: '🏅' }}</div>
                     @endif
