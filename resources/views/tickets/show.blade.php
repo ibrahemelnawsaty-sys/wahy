@@ -1,6 +1,7 @@
 @php
-    // اختيار لايوت الدور الحالي — الصفحة عابرة لكل الأدوار.
-    $__role = auth()->user()->role;
+    // اختيار لايوت الدور الحالي — الصفحة عابرة لكل الأدوار. نعتمد الدور **النشط** (active_role)
+    // لا العمود الأساسيّ role، وإلا ظهرت لوحة المعلّم لمعلّمةٍ بدّلت لدور وليّ الأمر (تسريب طبقة).
+    $__role = auth()->user()->active_role;
     $__layout = $__role === 'student' ? 'layouts.student-app'
         : ($__role === 'school_admin' ? 'layouts.school-admin'
         : ($__role === 'teacher' ? 'layouts.teacher'
