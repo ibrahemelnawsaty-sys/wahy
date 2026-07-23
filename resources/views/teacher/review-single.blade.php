@@ -331,46 +331,43 @@
                 <div id="submitMessage" class="submit-message" style="display: none;"></div>
             </form>
 
-            {{-- #22: تمييز هذا النشاط ليظهر ضمن الأنشطة المميّزة لدى الأدمن --}}
-            @if($submission->activity)
-                @php
-                    $isFeatured = (bool) $submission->activity->is_featured;
-                    $iAmFeaturer = (int) $submission->activity->featured_by === (int) auth()->id();
-                    $iAmCreator  = (int) $submission->activity->created_by === (int) auth()->id();
-                @endphp
-                <div class="feature-box {{ $isFeatured ? 'is-featured' : '' }}">
-                    @if($isFeatured)
-                        <div class="feature-status">
-                            <span class="feature-icon">⭐</span>
+            {{-- #22 (مُعاد على مستوى التسليم): تمييز عمل الطالب المتميّز ليستعرضه الأدمن للتقارير/التكريم --}}
+            @php
+                $isFeatured = (bool) ($submission->is_featured ?? false);
+                $iAmFeaturer = (int) ($submission->featured_by ?? 0) === (int) auth()->id();
+            @endphp
+            <div class="feature-box {{ $isFeatured ? 'is-featured' : '' }}">
+                @if($isFeatured)
+                    <div class="feature-status">
+                        <span class="feature-icon">⭐</span>
+                        <div>
+                            <div class="feature-title">تسليم مميّز</div>
+                            <div class="feature-sub">يظهر ضمن التسليمات المميّزة لدى الإدارة (للتقارير والتكريم)</div>
+                        </div>
+                    </div>
+                    @if($iAmFeaturer)
+                        <form method="POST" action="{{ route('teacher.review.unfeature', $submission->id) }}">
+                            @csrf
+                            <button type="submit" class="feature-btn unfeature">إلغاء التمييز</button>
+                        </form>
+                    @else
+                        <span class="feature-by-other">مميّز من معلّم آخر</span>
+                    @endif
+                @else
+                    <form method="POST" action="{{ route('teacher.review.feature', $submission->id) }}" class="feature-form">
+                        @csrf
+                        <div class="feature-header">
+                            <span class="feature-icon">🌟</span>
                             <div>
-                                <div class="feature-title">هذا النشاط مميّز</div>
-                                <div class="feature-sub">يظهر ضمن الأنشطة المميّزة لدى الأدمن</div>
+                                <div class="feature-title">تمييز تسليم الطالب</div>
+                                <div class="feature-sub">إن كان عملُ الطالب متميّزًا — ليستعرضه الأدمن ضمن التسليمات المميّزة</div>
                             </div>
                         </div>
-                        @if($iAmFeaturer || $iAmCreator)
-                            <form method="POST" action="{{ route('teacher.activities.unfeature', $submission->activity->id) }}">
-                                @csrf
-                                <button type="submit" class="feature-btn unfeature">إلغاء التمييز</button>
-                            </form>
-                        @else
-                            <span class="feature-by-other">مميّز من معلّم آخر</span>
-                        @endif
-                    @else
-                        <form method="POST" action="{{ route('teacher.activities.feature', $submission->activity->id) }}" class="feature-form">
-                            @csrf
-                            <div class="feature-header">
-                                <span class="feature-icon">🌟</span>
-                                <div>
-                                    <div class="feature-title">تمييز هذا النشاط</div>
-                                    <div class="feature-sub">ليظهر ضمن الأنشطة المميّزة لدى الأدمن فيستعرضه كما تستعرضه</div>
-                                </div>
-                            </div>
-                            <input type="text" name="reason" class="form-input" maxlength="500" placeholder="سبب التمييز (اختياري)">
-                            <button type="submit" class="feature-btn">⭐ تمييز النشاط</button>
-                        </form>
-                    @endif
-                </div>
-            @endif
+                        <input type="text" name="reason" class="form-input" maxlength="500" placeholder="سبب التمييز (اختياري)">
+                        <button type="submit" class="feature-btn">⭐ تمييز التسليم</button>
+                    </form>
+                @endif
+            </div>
         </div>
 
     </div>

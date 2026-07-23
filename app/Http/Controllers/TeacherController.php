@@ -2205,76 +2205,66 @@ class TeacherController extends Controller
     // ==================== الأنشطة المميزة ====================
 
     /**
-     * تمييز نشاط (#22): يجوز للمعلّم تمييز نشاطٍ أنشأه، أو نشاطٍ يراجع تسليم أحد
-     * طلّابه له (مشاريع/أنشطة تتطلّب موافقة المعلّم) — ليظهر ضمن الأنشطة المميّزة
-     * لدى الأدمن فيستعرضه كما يستعرضه المعلّم.
+     * تمييز **تسليم طالبٍ متميّز** (#22 — على مستوى التسليم لا تعريف النشاط): يميّز المعلّم
+     * عملَ أحد طلّابه المتميّز فتستعرضه الإدارة ضمن «الأنشطة المميّزة» للتقارير وتكريم الطلاب.
      */
-    public function featureActivity(Request $request, $activityId)
+    public function featureSubmission(Request $request, $submissionId)
     {
         $validated = $request->validate([
             'reason' => 'nullable|string|max:500',
         ]);
 
-        $activity = Activity::findOrFail($activityId);
         $user = Auth::user();
+        $submission = ActivitySubmission::findOrFail($submissionId);
 
-        if (! $this->teacherMayFeatureActivity($activity, $user)) {
-            return back()->with('error', 'لا يمكنك تمييز هذا النشاط');
+        // للمعلّم الذي يراجع التسليم فقط (طالبه في أحد فصوله)
+        if (! $this->teacherReviewsSubmission($submission, $user)) {
+            return back()->with('error', 'لا يمكنك تمييز هذا التسليم');
         }
 
-        // is_featured/featured_* ضمن حقول Activity المحروسة (booted) التي تمنع المعلّم
-        // من التمييز الذاتيّ. هذا المسار مُصرَّح به ومُتحقَّق منه، فنكتب الحقول بأمان عبر
-        // forceFill()->saveQuietly() لتجاوز الحارس عمداً (النمط الموثَّق للحقول المحروسة).
-        $activity->forceFill([
+        // is_featured/featured_* ليست ضمن حقول التسليم المحروسة (booted يحرس score/status/…) —
+        // فالتحديث العاديّ يمرّ (لا يمسّ حقلاً حسّاسًا).
+        $submission->update([
             'is_featured' => true,
             'featured_by' => $user->id,
             'featured_at' => now(),
-            'featured_reason' => $validated['reason'] ?? ('تمييز من المعلّم: ' . $user->name),
-        ])->saveQuietly();
+            'featured_reason' => $validated['reason'] ?? null,
+        ]);
 
-        return back()->with('success', 'تم تمييز النشاط بنجاح وسيظهر ضمن الأنشطة المميّزة لدى الأدمن');
+        return back()->with('success', 'تم تمييز تسليم الطالب وسيظهر ضمن التسليمات المميّزة لدى الإدارة');
     }
 
     /**
-     * إلغاء تمييز نشاط — للمنشئ أو لمن ميّزه فقط (كي لا يُلغي معلّمٌ تمييزَ زميله).
+     * إلغاء تمييز تسليم — لمن ميّزه أو لمن يراجعه (طالبه في فصله).
      */
-    public function unfeatureActivity($activityId)
+    public function unfeatureSubmission($submissionId)
     {
-        $activity = Activity::findOrFail($activityId);
         $user = Auth::user();
+        $submission = ActivitySubmission::findOrFail($submissionId);
 
-        if ((int) $activity->created_by !== (int) $user->id && (int) $activity->featured_by !== (int) $user->id) {
-            return back()->with('error', 'لا يمكنك إلغاء تمييز هذا النشاط');
+        if ((int) $submission->featured_by !== (int) $user->id && ! $this->teacherReviewsSubmission($submission, $user)) {
+            return back()->with('error', 'لا يمكنك إلغاء تمييز هذا التسليم');
         }
 
-        $activity->forceFill([
+        $submission->update([
             'is_featured' => false,
             'featured_by' => null,
             'featured_at' => null,
             'featured_reason' => null,
-        ])->saveQuietly();
+        ]);
 
-        return back()->with('success', 'تم إلغاء تمييز النشاط');
+        return back()->with('success', 'تم إلغاء تمييز التسليم');
     }
 
     /**
-     * هل يجوز لهذا المعلّم تمييز هذا النشاط؟ منشئه، أو نشاطٌ قدّم له أحد طلّابه
-     * (طالبٌ في أحد فصول المعلّم) تسليماً — فيكون للمعلّم صلاحية مراجعته أصلاً.
+     * هل يراجع هذا المعلّم هذا التسليم؟ (طالب التسليم عضوٌ في أحد فصول المعلّم).
      */
-    private function teacherMayFeatureActivity(Activity $activity, User $user): bool
+    private function teacherReviewsSubmission(ActivitySubmission $submission, User $user): bool
     {
-        if ((int) $activity->created_by === (int) $user->id) {
-            return true;
-        }
-
-        return ActivitySubmission::where('activity_id', $activity->id)
-            ->whereExists(function ($q) use ($user) {
-                $q->select(DB::raw(1))
-                    ->from('classroom_student')
-                    ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
-                    ->whereColumn('classroom_student.student_id', 'activity_submissions.student_id')
-                    ->where('classrooms.teacher_id', $user->id);
-            })
+        return DB::table('classroom_student')
+            ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
+            ->where('classrooms.teacher_id', $user->id)
+            ->where('classroom_student.student_id', $submission->student_id)
             ->exists();
     }
 

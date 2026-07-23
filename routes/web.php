@@ -200,9 +200,8 @@ Route::middleware('auth')->group(function () {
         // Reports
         Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 
-        // الأنشطة المميزة
+        // التسليمات المميّزة (أعمال طلاب متميّزة — {id} = معرّف التسليم)
         Route::get('/featured-activities', [SuperAdminController::class, 'featuredActivities'])->name('featured-activities');
-        Route::get('/featured-activities/{id}', [SuperAdminController::class, 'showFeaturedActivity'])->name('featured-activities.show');
         Route::post('/featured-activities/{id}/unfeature', [SuperAdminController::class, 'unfeatureActivity'])->name('featured-activities.unfeature');
 
         // Page Builder
@@ -509,6 +508,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/review/{id}', [TeacherController::class, 'reviewSubmission'])->name('review.single');
         Route::post('/review/{id}', [TeacherController::class, 'submitReview'])->name('review.submit');
         Route::post('/review/{id}/allow-retry', [TeacherController::class, 'allowRetry'])->name('review.allow-retry');
+        // تمييز تسليم الطالب المتميّز ({id} = معرّف التسليم)
+        Route::post('/review/{id}/feature', [TeacherController::class, 'featureSubmission'])->name('review.feature');
+        Route::post('/review/{id}/unfeature', [TeacherController::class, 'unfeatureSubmission'])->name('review.unfeature');
         Route::get('/students', [TeacherController::class, 'studentReports'])->name('students');
         Route::get('/students/{id}', [TeacherController::class, 'studentDetail'])->name('students.detail');
         Route::get('/classrooms', [TeacherController::class, 'classrooms'])->name('classrooms');
@@ -547,8 +549,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/teams/{id}', [TeacherController::class, 'destroyTeam'])->name('teams.destroy');
 
         // الأنشطة المميزة
-        Route::post('/activities/{id}/feature', [TeacherController::class, 'featureActivity'])->name('activities.feature');
-        Route::post('/activities/{id}/unfeature', [TeacherController::class, 'unfeatureActivity'])->name('activities.unfeature');
 
         // لوحة الصدارة
         Route::get('/leaderboard/teachers', [TeacherController::class, 'teacherLeaderboard'])->name('leaderboard.teachers');

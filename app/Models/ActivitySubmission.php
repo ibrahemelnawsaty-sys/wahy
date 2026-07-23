@@ -25,13 +25,25 @@ class ActivitySubmission extends Model
         'score', 'awarded_points', 'status', 'attempts', 'reviewed_by', 'feedback',
         'submitted_at', 'reviewed_at',
         'parent_approval_status', 'parent_approved_by', 'parent_approved_at',
+        // تمييز التسليم المتميّز (لعرضه للإدارة — تقارير/تكريم)
+        'is_featured', 'featured_by', 'featured_at', 'featured_reason',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
         'parent_approved_at' => 'datetime',
+        'is_featured' => 'boolean',
+        'featured_at' => 'datetime',
     ];
+
+    /**
+     * المعلّم الذي ميّز هذا التسليم.
+     */
+    public function featuredBy()
+    {
+        return $this->belongsTo(User::class, 'featured_by');
+    }
 
     /**
      * تسليمات اجتازت موافقة وليّ الأمر (أو لا تتطلّبها) — أي المؤهّلة لطابور المعلّم.

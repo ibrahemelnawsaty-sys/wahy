@@ -1387,58 +1387,41 @@ class SuperAdminController extends Controller
     // ==================== الأنشطة المميزة ====================
 
     /**
-     * عرض الأنشطة المميزة
+     * قائمة **التسليمات المميّزة** — أعمالُ طلابٍ متميّزة ميّزها المعلّمون (لا تعريفات أنشطة)،
+     * لتستعرضها الإدارة للتقارير وتكريم الطلاب. تعرض المحتوى (الإجابة/المرفق) مباشرةً في القائمة.
      */
     public function featuredActivities()
     {
-        $activities = \App\Models\Activity::where('is_featured', true)
-            ->with(['featuredBy', 'lesson.concept.value', 'creator'])
+        $submissions = \App\Models\ActivitySubmission::where('is_featured', true)
+            ->with(['student', 'featuredBy', 'activity.lesson.concept.value'])
             ->latest('featured_at')
-            ->paginate(20);
+            ->paginate(15);
 
+        $base = fn () => \App\Models\ActivitySubmission::where('is_featured', true);
         $stats = [
-            'total_featured' => \App\Models\Activity::where('is_featured', true)->count(),
-            'this_month' => \App\Models\Activity::where('is_featured', true)
-                ->whereMonth('featured_at', now()->month)
-                ->whereYear('featured_at', now()->year)
-                ->count(),
-            'by_teachers' => \App\Models\Activity::where('is_featured', true)
-                ->distinct('featured_by')
-                ->count('featured_by'),
+            'total_featured' => $base()->count(),
+            'this_month' => $base()->whereMonth('featured_at', now()->month)->whereYear('featured_at', now()->year)->count(),
+            'students' => $base()->distinct('student_id')->count('student_id'),
         ];
 
-        return view('super-admin.featured-activities', compact('activities', 'stats'));
+        return view('super-admin.featured-activities', compact('submissions', 'stats'));
     }
 
     /**
-     * عرض تفاصيل نشاط مميز
-     */
-    public function showFeaturedActivity($id)
-    {
-        $activity = \App\Models\Activity::where('is_featured', true)
-            ->with(['featuredBy', 'lesson.concept.value', 'creator', 'submissions' => function ($q) {
-                $q->with('student')->latest('submitted_at');
-            }])
-            ->findOrFail($id);
-
-        return view('super-admin.featured-activity-details', compact('activity'));
-    }
-
-    /**
-     * إلغاء تمييز نشاط
+     * إلغاء تمييز تسليم ({id} = معرّف التسليم).
      */
     public function unfeatureActivity($id)
     {
-        $activity = \App\Models\Activity::findOrFail($id);
+        $submission = \App\Models\ActivitySubmission::findOrFail($id);
 
-        $activity->update([
+        $submission->update([
             'is_featured' => false,
             'featured_by' => null,
             'featured_at' => null,
             'featured_reason' => null,
         ]);
 
-        return back()->with('success', 'تم إلغاء تمييز النشاط بنجاح');
+        return back()->with('success', 'تم إلغاء تمييز التسليم بنجاح');
     }
 
     // ==================== المستخدمين النشطين أون لاين ====================

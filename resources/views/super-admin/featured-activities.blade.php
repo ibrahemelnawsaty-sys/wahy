@@ -1,489 +1,186 @@
 @extends('layouts.admin')
 
-@section('title', 'الأنشطة المميزة')
+@section('title', 'التسليمات المميّزة')
 
 @section('content')
 <style>
-.fa-page { padding: 0; }
+    .fs-page { max-width: 1100px; margin-inline: auto; }
+    .fs-hero { background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%); border-radius: 18px; padding: 28px 30px; margin-bottom: 22px; color: #fff; box-shadow: 0 10px 30px rgba(245,158,11,0.32); }
+    .fs-hero-icon { width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px; }
+    .fs-hero h1 { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
+    .fs-hero p { opacity: 0.92; font-size: 15px; margin: 0; }
 
-.fa-hero {
-    background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
-    border-radius: 18px;
-    padding: 32px;
-    margin-bottom: 28px;
-    color: white;
-    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.35);
-    position: relative;
-    overflow: hidden;
-}
-.fa-hero::before {
-    content: '';
-    position: absolute;
-    top: -40%;
-    left: -20%;
-    width: 350px;
-    height: 350px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    border-radius: 50%;
-}
-.fa-hero::after {
-    content: '';
-    position: absolute;
-    bottom: -50%;
-    right: -10%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
-    border-radius: 50%;
-}
-.fa-hero-icon {
-    width: 60px; height: 60px;
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px;
-    margin-bottom: 14px;
-}
-.fa-hero h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; position: relative; z-index: 1; }
-.fa-hero p { opacity: 0.9; font-size: 15px; margin: 0; position: relative; z-index: 1; }
+    .fs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .fs-stat { background: #fff; border-radius: 16px; padding: 20px 22px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); border: 1px solid #f1f5f9; }
+    .fs-stat .n { font-size: 30px; font-weight: 800; color: #1e293b; }
+    .fs-stat .l { font-size: 13.5px; color: #64748b; font-weight: 700; margin-top: 4px; }
 
-/* Stats Grid */
-.fa-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
-    margin-bottom: 28px;
-}
-.fa-stat {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    border: 2px solid #f1f5f9;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 18px;
-}
-.fa-stat:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
-    border-color: #e2e8f0;
-}
-.fa-stat-icon {
-    width: 56px; height: 56px;
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-}
-.fa-stat-icon i { font-size: 24px; color: white; }
-.fa-stat-value {
-    font-size: 30px;
-    font-weight: 800;
-    color: #1e293b;
-    line-height: 1;
-}
-.fa-stat-label {
-    font-size: 13px;
-    color: #64748b;
-    font-weight: 500;
-    margin-top: 4px;
-}
+    .fs-card { background: #fff; border-radius: 16px; padding: 20px 22px; box-shadow: 0 4px 18px rgba(15,23,42,0.06); border: 1px solid #f1f5f9; margin-bottom: 16px; }
+    .fs-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .fs-student { display: flex; align-items: center; gap: 12px; }
+    .fs-avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+    .fs-student-name { font-weight: 800; color: #1e293b; font-size: 16px; }
+    .fs-student-meta { font-size: 12.5px; color: #94a3b8; }
+    .fs-score { font-size: 14px; font-weight: 800; color: #7c3aed; background: #f5f3ff; padding: 5px 12px; border-radius: 999px; }
 
-/* Card */
-.fa-card {
-    background: white;
-    border-radius: 18px;
-    border: 2px solid #f1f5f9;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-    overflow: hidden;
-}
-.fa-card-header {
-    padding: 20px 24px;
-    border-bottom: 2px solid #f1f5f9;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: linear-gradient(135deg, rgba(245,158,11,0.03) 0%, rgba(239,68,68,0.03) 100%);
-}
-.fa-card-header h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-}
+    .fs-activity { display: inline-flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 13.5px; margin-bottom: 12px; }
+    .fs-value-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 
-/* Table */
-.fa-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.fa-table thead th {
-    padding: 14px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #475569;
-    text-align: right;
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-    white-space: nowrap;
-}
-.fa-table tbody tr {
-    transition: all 0.2s;
-}
-.fa-table tbody tr:hover {
-    background: linear-gradient(135deg, rgba(245,158,11,0.03) 0%, rgba(239,68,68,0.03) 100%);
-}
-.fa-table tbody td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 14px;
-    vertical-align: middle;
-}
-.fa-activity-title {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 14px;
-}
-.fa-activity-desc {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-top: 3px;
-}
+    .fs-answer { background: #f8fafc; border-radius: 10px; padding: 12px 14px; color: #334155; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; font-size: 14px; }
+    .fs-io { display: flex; flex-wrap: wrap; gap: 12px; }
+    .fs-io-item { position: relative; width: 120px; }
+    .fs-io-item img { width: 120px; height: 120px; object-fit: contain; background: #f1f5f9; border-radius: 12px; border: 2px solid rgba(102,126,234,0.30); display: block; }
+    .fs-io-order { position: absolute; top: -8px; inset-inline-start: -8px; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .fs-file-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: #fff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 10px; font-weight: 700; text-decoration: none; word-break: break-all; }
 
-/* User Avatar */
-.fa-user-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.fa-user-avatar {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    display: flex; align-items: center; justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-}
+    .fs-reason { margin-top: 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 14px; }
+    .fs-reason .fs-reason-l { font-size: 12px; color: #b45309; font-weight: 700; margin-bottom: 3px; }
+    .fs-reason .fs-reason-v { color: #92400e; font-weight: 700; font-size: 14px; }
+    .fs-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+    .fs-foot-meta { font-size: 12.5px; color: #94a3b8; }
+    .fs-unfeature { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+    .fs-unfeature:hover { background: #fecaca; }
 
-/* Value Badge */
-.fa-value-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 14px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #dbeafe, #ede9fe);
-    color: #4338ca;
-}
-.fa-value-badge.empty {
-    background: #f1f5f9;
-    color: #94a3b8;
-}
-
-/* Reason */
-.fa-reason {
-    font-size: 13px;
-    color: #64748b;
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Date */
-.fa-date {
-    font-size: 13px;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* Action Buttons */
-.fa-actions { display: flex; gap: 6px; }
-.fa-action-btn {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    border: 2px solid #e2e8f0;
-    background: white;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    color: #475569;
-}
-.fa-action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.fa-action-btn.view:hover { border-color: #667eea; color: #667eea; background: #f0f0ff; }
-.fa-action-btn.remove:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
-.fa-action-btn i { font-size: 13px; }
-
-/* Empty State */
-.fa-empty {
-    text-align: center;
-    padding: 70px 20px;
-}
-.fa-empty-icon {
-    width: 90px; height: 90px;
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    border-radius: 22px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 40px;
-    margin: 0 auto 18px;
-    box-shadow: 0 6px 20px rgba(245,158,11,0.15);
-}
-
-/* Alert */
-.fa-alert {
-    padding: 14px 20px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #dcfce7, #d1fae5);
-    color: #166534;
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 2px solid #bbf7d0;
-}
-
-/* Modal Overrides */
-.fa-modal-header {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    padding: 20px 24px;
-    border-radius: 16px 16px 0 0;
-}
-.fa-modal-header h5 { font-weight: 700; margin: 0; }
-.fa-modal-body { padding: 24px; }
-.fa-modal-footer {
-    padding: 16px 24px;
-    border-top: 2px solid #f1f5f9;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-.fa-modal-btn {
-    padding: 10px 22px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.fa-modal-btn-cancel { background: #f1f5f9; color: #475569; }
-.fa-modal-btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 14px rgba(239,68,68,0.3); }
-.fa-modal-btn-danger:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(239,68,68,0.4); }
-
-/* ===================================================================
-   Wahy dark-mode coverage — تغطية الوضع الليلي لتصميم .fa-* المُصلَّب
-   جراحي: يقلب الأسطح البيضاء إلى داكنة والنصوص الداكنة إلى فاتحة (تباين AA).
-   =================================================================== */
-html[data-theme="dark"] .fa-stat,
-html[data-theme="dark"] .fa-card {
-    background: rgba(30, 41, 59, 0.85);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-}
-html[data-theme="dark"] .fa-stat:hover { border-color: rgba(255, 255, 255, 0.16); }
-html[data-theme="dark"] .fa-stat-value,
-html[data-theme="dark"] .fa-card-header h3,
-html[data-theme="dark"] .fa-activity-title { color: #F1F5F9; }
-html[data-theme="dark"] .fa-stat-label,
-html[data-theme="dark"] .fa-activity-desc,
-html[data-theme="dark"] .fa-reason,
-html[data-theme="dark"] .fa-date { color: #94A3B8; }
-html[data-theme="dark"] .fa-table thead th {
-    color: #CBD5E1;
-    background: rgba(15, 23, 42, 0.6);
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-html[data-theme="dark"] .fa-table tbody td { border-bottom-color: rgba(255, 255, 255, 0.06); }
-html[data-theme="dark"] .fa-action-btn {
-    background: rgba(15, 23, 42, 0.6);
-    border-color: rgba(255, 255, 255, 0.12);
-    color: #CBD5E1;
-}
-html[data-theme="dark"] .fa-value-badge.empty {
-    background: rgba(255, 255, 255, 0.06);
-    color: #94A3B8;
-}
-html[data-theme="dark"] .fa-modal-btn-cancel {
-    background: rgba(255, 255, 255, 0.08);
-    color: #CBD5E1;
-}
-/* Wahy dark-mode round2 — اسم المعلم inline color:#1e293b داخل .fa-card المُعتَّمة = داكن-على-داكن */
-html[data-theme="dark"] .fa-card [style*="color:#1e293b"],
-html[data-theme="dark"] .fa-card [style*="color: #1e293b"] { color: #F1F5F9 !important; }
+    .fs-empty { text-align: center; padding: 50px 20px; background: #fff; border-radius: 16px; border: 1px solid #f1f5f9; }
+    .fs-empty-icon { font-size: 48px; margin-bottom: 10px; }
 </style>
 
-<div class="fa-page">
-    <!-- Hero Header -->
-    <div class="fa-hero">
-        <div class="fa-hero-icon">⭐</div>
-        <h1>الأنشطة المميزة</h1>
-        <p>الأنشطة التي تم تمييزها من قبل المعلمين</p>
+<div class="fs-page">
+
+    <div class="fs-hero">
+        <div class="fs-hero-icon">⭐</div>
+        <h1>التسليمات المميّزة</h1>
+        <p>أعمالُ الطلاب المتميّزة التي ميّزها المعلّمون — للاطّلاع والاستفادة في التقارير وتكريم الطلاب.</p>
     </div>
 
-    @if(session('success'))
-        <div class="fa-alert">
-            ✅ {{ session('success') }}
-        </div>
-    @endif
-
-    <!-- Statistics Cards -->
-    <div class="fa-stats">
-        <div class="fa-stat">
-            <div class="fa-stat-icon" style="background: linear-gradient(135deg, #f59e0b, #f97316); box-shadow: 0 6px 16px rgba(245,158,11,0.3);">
-                <i class="fas fa-star"></i>
-            </div>
-            <div>
-                <div class="fa-stat-value">{{ $stats['total_featured'] }}</div>
-                <div class="fa-stat-label">إجمالي الأنشطة المميزة</div>
-            </div>
-        </div>
-        <div class="fa-stat">
-            <div class="fa-stat-icon" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 16px rgba(16,185,129,0.3);">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div>
-                <div class="fa-stat-value">{{ $stats['this_month'] }}</div>
-                <div class="fa-stat-label">هذا الشهر</div>
-            </div>
-        </div>
-        <div class="fa-stat">
-            <div class="fa-stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 6px 16px rgba(102,126,234,0.3);">
-                <i class="fas fa-chalkboard-teacher"></i>
-            </div>
-            <div>
-                <div class="fa-stat-value">{{ $stats['by_teachers'] }}</div>
-                <div class="fa-stat-label">عدد المعلمين المشاركين</div>
-            </div>
-        </div>
+    <div class="fs-stats">
+        <div class="fs-stat"><div class="n">{{ $stats['total_featured'] }}</div><div class="l">إجمالي التسليمات المميّزة</div></div>
+        <div class="fs-stat"><div class="n">{{ $stats['this_month'] }}</div><div class="l">مميّزة هذا الشهر</div></div>
+        <div class="fs-stat"><div class="n">{{ $stats['students'] }}</div><div class="l">عدد الطلاب المتميّزين</div></div>
     </div>
 
-    <!-- Activities List -->
-    <div class="fa-card">
-        <div class="fa-card-header">
-            <span style="font-size: 20px;">📋</span>
-            <h3>قائمة الأنشطة المميزة</h3>
-        </div>
-        <div>
-            @if($activities->count() > 0)
-                <div style="overflow-x: auto;">
-                    <table class="fa-table">
-                        <thead>
-                            <tr>
-                                <th>النشاط</th>
-                                <th>المعلم</th>
-                                <th>القيمة</th>
-                                <th>سبب التمييز</th>
-                                <th>تاريخ التمييز</th>
-                                <th style="width: 100px;">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($activities as $activity)
-                                <tr>
-                                    <td>
-                                        <div class="fa-activity-title">{{ $activity->title }}</div>
-                                        <div class="fa-activity-desc">{{ html_excerpt($activity->description, 50) }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="fa-user-cell">
-                                            <div class="fa-user-avatar">
-                                                {{ mb_substr($activity->featuredBy->name ?? 'N', 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <span style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $activity->featuredBy->name ?? 'غير محدد' }}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        @if($activity->lesson?->concept?->value)
-                                            <span class="fa-value-badge">
-                                                {{ $activity->lesson->concept->value->name }}
-                                            </span>
-                                        @else
-                                            <span class="fa-value-badge empty">غير محدد</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="fa-reason" title="{{ $activity->featured_reason }}">
-                                            {{ Str::limit($activity->featured_reason, 40) }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="fa-date">
-                                            🕐 {{ $activity->featured_at->diffForHumans() }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="fa-actions">
-                                            <a href="{{ route('admin.featured-activities.show', $activity->id) }}" class="fa-action-btn view" title="عرض التفاصيل">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <button class="fa-action-btn remove" data-bs-toggle="modal" data-bs-target="#unfeatureModal{{ $activity->id }}" title="إلغاء التمييز">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+    @forelse($submissions as $submission)
+        @php
+            // تحليل إجابة الطالب (نصّ/ترتيب صور/رفع ملف) — بناء رابط الملف من التخزين بأمان.
+            $raw = $submission->answer;
+            $decoded = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : null);
+            $note = null; $file = null; $imgs = [];
+            if (is_array($decoded)) {
+                $isList = array_is_list($decoded);
+                if ($isList) {
+                    foreach ($decoded as $it) {
+                        if (is_array($it) && ! empty($it['image_url']) && preg_match('~^https?://~i', (string) $it['image_url'])) {
+                            $imgs[] = ['url' => (string) $it['image_url'], 'order' => $it['selected_order'] ?? ($it['order'] ?? null)];
+                        }
+                    }
+                }
+                if (! empty($imgs)) {
+                    usort($imgs, fn ($a, $b) => ((int) ($a['order'] ?? 0)) <=> ((int) ($b['order'] ?? 0)));
+                } elseif (array_key_exists('note', $decoded) || array_key_exists('file', $decoded)) {
+                    $note = is_scalar($decoded['note'] ?? null) ? (string) $decoded['note'] : null;
+                    $file = is_string($decoded['file'] ?? null) ? $decoded['file'] : null;
+                } elseif ($isList) {
+                    $note = implode('، ', array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE), $decoded));
+                } else {
+                    $lines = [];
+                    foreach ($decoded as $k => $v) { $lines[] = (is_numeric($k) ? ('السؤال ' . ((int) $k + 1) . ': ') : ($k . ': ')) . (is_scalar($v) ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE)); }
+                    $note = implode("\n", $lines);
+                }
+            } elseif (is_string($raw)) { $note = $raw; }
+            if (! $file && $submission->file_path) { $file = $submission->file_path; }
+            $fileUrl = null; $ext = '';
+            if (is_string($file) && $file !== '' && ! preg_match('~://|\.\.~', $file)) {
+                $fileUrl = asset('storage/app/public/data/' . ltrim($file, '/'));
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            }
+            $kind = in_array($ext, ['jpg','jpeg','png','gif','webp','bmp','svg'], true) ? 'image'
+                : (in_array($ext, ['mp3','wav','ogg','m4a','aac'], true) ? 'audio'
+                : (in_array($ext, ['mp4','mov','webm','avi','mkv'], true) ? 'video' : 'file'));
+        @endphp
 
-                                <!-- Unfeature Modal -->
-                                <div class="modal fade" id="unfeatureModal{{ $activity->id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content" style="border-radius: 18px; overflow: hidden; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.15);">
-                                            <div class="fa-modal-header">
-                                                <h5>⚠️ إلغاء تمييز النشاط</h5>
-                                            </div>
-                                            <div class="fa-modal-body">
-                                                <p style="color: #475569; font-size: 15px;">هل أنت متأكد من إلغاء تمييز هذا النشاط؟</p>
-                                                <div style="padding: 14px 18px; background: #fef3c7; border-radius: 12px; border: 2px solid #fde68a; margin-top: 12px;">
-                                                    <strong style="color: #92400e;">{{ $activity->title }}</strong>
-                                                </div>
-                                            </div>
-                                            <div class="fa-modal-footer">
-                                                <button type="button" class="fa-modal-btn fa-modal-btn-cancel" data-bs-dismiss="modal">إلغاء</button>
-                                                <form action="{{ route('admin.featured-activities.unfeature', $activity->id) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="fa-modal-btn fa-modal-btn-danger">
-                                                        ✕ إلغاء التمييز
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </tbody>
-                    </table>
+        <div class="fs-card">
+            <div class="fs-card-head">
+                <div class="fs-student">
+                    <div class="fs-avatar">{{ mb_substr($submission->student->name ?? '؟', 0, 1, 'UTF-8') }}</div>
+                    <div>
+                        <div class="fs-student-name">{{ $submission->student->name ?? 'طالب محذوف' }}</div>
+                        <div class="fs-student-meta">{{ $submission->submitted_at?->format('Y-m-d H:i') ?? '—' }}</div>
+                    </div>
                 </div>
+                @if($submission->score !== null)
+                    <span class="fs-score">⭐ الدرجة: {{ $submission->score }}%</span>
+                @endif
+            </div>
 
-                <!-- Pagination -->
-                <div style="padding: 20px; border-top: 2px solid #f1f5f9;">
-                    {{ $activities->links() }}
-                </div>
-            @else
-                <div class="fa-empty">
-                    <div class="fa-empty-icon">⭐</div>
-                    <h3 style="font-size: 20px; font-weight: 700; color: #475569; margin: 0 0 6px;">لا توجد أنشطة مميزة حالياً</h3>
-                    <p style="color: #94a3b8; margin: 0; font-size: 14px;">لم يقم أي معلم بتمييز أنشطة بعد</p>
+            <div>
+                <span class="fs-activity">📘 {{ $submission->activity?->title ?? 'نشاط محذوف' }}</span>
+                @if($submission->activity?->lesson?->concept?->value?->name)
+                    <span class="fs-value-badge">{{ $submission->activity->lesson->concept->value->name }}</span>
+                @endif
+            </div>
+
+            {{-- محتوى التسليم --}}
+            <div style="margin-top:12px;">
+                @if(! empty($imgs))
+                    <div class="fs-io">
+                        @foreach($imgs as $it)
+                            <div class="fs-io-item">
+                                <span class="fs-io-order">{{ $it['order'] ?? ($loop->index + 1) }}</span>
+                                <a href="{{ $it['url'] }}" target="_blank" rel="noopener noreferrer"><img src="{{ $it['url'] }}" alt="صورة {{ $loop->index + 1 }}" loading="lazy"></a>
+                            </div>
+                        @endforeach
+                    </div>
+                @elseif($note !== null && trim($note) !== '')
+                    <div class="fs-answer">{!! nl2br(e(\Illuminate\Support\Str::limit($note, 2000))) !!}</div>
+                @elseif(! $file)
+                    <div class="fs-answer" style="color:#94a3b8;">لا توجد إجابة نصّية</div>
+                @endif
+
+                @if($file && $fileUrl)
+                    <div style="margin-top:12px;">
+                        @if($kind === 'image')
+                            <a href="{{ $fileUrl }}" target="_blank" rel="noopener noreferrer"><img src="{{ $fileUrl }}" alt="مرفق" loading="lazy" style="max-width:100%;max-height:360px;border-radius:12px;border:1px solid #e5e7eb;display:block;"></a>
+                        @elseif($kind === 'audio')
+                            <audio controls preload="metadata" src="{{ $fileUrl }}" style="width:100%;max-width:420px;"></audio>
+                        @elseif($kind === 'video')
+                            <video controls preload="metadata" src="{{ $fileUrl }}" style="width:100%;max-width:520px;border-radius:12px;"></video>
+                        @else
+                            <a href="{{ $fileUrl }}" target="_blank" rel="noopener noreferrer" download class="fs-file-link"><span>📎</span> فتح / تحميل مرفق الطالب</a>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
+            @if(trim((string) $submission->featured_reason) !== '')
+                <div class="fs-reason">
+                    <div class="fs-reason-l">سبب التمييز</div>
+                    <div class="fs-reason-v">{{ $submission->featured_reason }}</div>
                 </div>
             @endif
+
+            <div class="fs-card-foot">
+                <div class="fs-foot-meta">
+                    ميّزه: {{ $submission->featuredBy->name ?? 'غير محدد' }}
+                    @if($submission->featured_at) · {{ $submission->featured_at->diffForHumans() }} @endif
+                </div>
+                <form action="{{ route('admin.featured-activities.unfeature', $submission->id) }}" method="POST"
+                      onsubmit="return confirm('إلغاء تمييز هذا التسليم؟');">
+                    @csrf
+                    <button type="submit" class="fs-unfeature">✕ إلغاء التمييز</button>
+                </form>
+            </div>
         </div>
-    </div>
+    @empty
+        <div class="fs-empty">
+            <div class="fs-empty-icon">⭐</div>
+            <h3 style="font-size:20px;font-weight:700;color:#475569;margin:0 0 6px;">لا توجد تسليمات مميّزة بعد</h3>
+            <p style="color:#94a3b8;margin:0;font-size:14px;">حين يميّز المعلّمون أعمالَ طلابٍ متميّزة، تظهر هنا للاطّلاع والتكريم.</p>
+        </div>
+    @endforelse
+
+    @if($submissions->hasPages())
+        <div style="margin-top:20px;">{{ $submissions->links() }}</div>
+    @endif
+
 </div>
 @endsection
