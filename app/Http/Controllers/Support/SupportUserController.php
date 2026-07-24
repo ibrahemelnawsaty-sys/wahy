@@ -47,9 +47,14 @@ class SupportUserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with('school');
+        // استبعاد الحسابات المميّزة من العرض/التعداد — لتتّسق حدود العرض مع حدود الأفعال
+        // (assertManageable). بدونه يستطيع الدعم سرد أسماء وبُرد كلّ السوبر أدمن/مديري المدارس
+        // (تسريب PII لحسابات مميّزة يخدم التصيّد الموجّه) رغم أنّ أزرار الإدارة مقفلة عليها.
+        $query = User::with('school')
+            ->whereNotIn('role', ['super_admin', 'school_admin', 'technical_support']);
 
-        if ($request->filled('role')) {
+        // فلتر الدور مقصورٌ على الأدوار التي يخدمها الدعم فعلاً.
+        if ($request->filled('role') && in_array($request->role, ['student', 'teacher', 'parent'], true)) {
             $query->where('role', $request->role);
         }
 

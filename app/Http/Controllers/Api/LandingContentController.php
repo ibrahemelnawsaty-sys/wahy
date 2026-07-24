@@ -36,10 +36,16 @@ class LandingContentController extends Controller
         // تحويل المحتوى إلى key => value pairs
         $contentArray = $content->pluck('value', 'key')->toArray();
 
+        // نقطة عامّة (زوّار غير مصادَقين): نُعيد حقول العرض فقط. تسلسل النماذج كاملةً كان يسرّب
+        // updated_by (معرّف حساب السوبر أدمن المحرِّر) وid والطوابع الزمنيّة — لا حاجة لها في واجهة عرض.
+        $grouped = $content
+            ->map(fn ($r) => ['key' => $r->key, 'value' => $r->value, 'type' => $r->type, 'order' => $r->order, 'section' => $r->section])
+            ->groupBy('section');
+
         return response()->json([
             'success' => true,
             'content' => $contentArray,
-            'grouped' => $content->groupBy('section'), // للاستخدامات المستقبلية
+            'grouped' => $grouped,
         ]);
     }
 

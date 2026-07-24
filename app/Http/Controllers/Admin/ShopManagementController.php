@@ -96,6 +96,23 @@ class ShopManagementController extends Controller
     {
         $item = ShopItem::findOrFail($id);
 
+        // حارس هدّام: user_purchases.shop_item_id بمفتاح cascade، فحذف منتجٍ اشتراه طلّاب يمحو
+        // سِجلّ مشترياتهم بلا استرداد عملات ولا تحذير (فقدان بيانات صامت). نعطّله بدل حذفه —
+        // مطابقةً لحرّاس BadgeController/Value/Lesson التي تمنع الحذف عند وجود مرجع.
+        $purchaseCount = \Illuminate\Support\Facades\DB::table('user_purchases')
+            ->where('shop_item_id', $item->id)->count();
+
+        if ($purchaseCount > 0) {
+            if ($item->status !== 'inactive') {
+                $item->update(['status' => 'inactive']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => "لا يمكن حذف المنتج لأنّ {$purchaseCount} طالب اشتراه. تمّ تعطيله بدلاً من ذلك فلن يظهر في المتجر.",
+            ], 422);
+        }
+
         if ($item->image && \Storage::disk('public')->exists($item->image)) {
             \Storage::disk('public')->delete($item->image);
         }

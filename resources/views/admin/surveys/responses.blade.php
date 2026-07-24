@@ -511,6 +511,14 @@
     `;
     document.head.appendChild(style);
     
+    // تهريب HTML — قيم الإجابة/الاسم/البريد يؤلّفها دورٌ أدنى (بل زائر مجهول على استبيان عامّ)
+    // وتُحقَن عبر innerHTML؛ بلا تهريب تُنفَّذ حمولة <img onerror=…> في جلسة السوبر أدمن.
+    function esc(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
     function viewResponseDetail(userId) {
         const userResponses = responsesData[userId];
         if (!userResponses || userResponses.length === 0) return;
@@ -523,12 +531,12 @@
         html += '<div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 24px;">';
         html += '<div style="display: flex; align-items: center; gap: 12px;">';
         html += '<div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">';
-        html += isGuest ? '👤' : user.name.charAt(0);
+        html += isGuest ? '👤' : esc(user.name.charAt(0));
         html += '</div>';
         html += '<div>';
-        html += '<div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">' + (isGuest ? 'زائر (غير مسجل)' : user.name) + '</div>';
+        html += '<div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">' + (isGuest ? 'زائر (غير مسجل)' : esc(user.name)) + '</div>';
         if (!isGuest) {
-            html += '<div style="color: #64748b; font-size: 14px;">📧 ' + user.email + '</div>';
+            html += '<div style="color: #64748b; font-size: 14px;">📧 ' + esc(user.email) + '</div>';
         }
         html += '<div style="color: #64748b; font-size: 13px;">🕒 ' + new Date(userResponses[0].created_at).toLocaleString('ar-EG') + '</div>';
         html += '</div></div></div>';
@@ -540,18 +548,18 @@
         orderedQuestions.forEach(question => {
             const value = answersMap[question.id] ?? answersMap[String(question.id)];
             html += '<div style="margin-bottom: 20px; padding: 16px; background: #f8fafc; border-radius: 8px;">';
-            html += '<div style="font-weight: 600; color: #1e293b; margin-bottom: 8px;">' + (question.order ?? '') + '. ' + question.question_text + '</div>';
+            html += '<div style="font-weight: 600; color: #1e293b; margin-bottom: 8px;">' + (question.order ?? '') + '. ' + esc(question.question_text) + '</div>';
 
             if (value === undefined || value === null || value === '') {
                 html += '<div style="color: #94a3b8;">—</div>';
             } else if (Array.isArray(value)) {
                 html += '<ul style="list-style: none; padding: 0; margin: 0;">';
                 value.forEach(answer => {
-                    html += '<li style="padding: 6px 0;">✓ ' + answer + '</li>';
+                    html += '<li style="padding: 6px 0;">✓ ' + esc(answer) + '</li>';
                 });
                 html += '</ul>';
             } else {
-                html += '<div style="color: #475569;">' + value + '</div>';
+                html += '<div style="color: #475569;">' + esc(value) + '</div>';
             }
             html += '</div>';
         });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 class MessagesLogController extends Controller
 {
+    use SanitizesCsvOutput;
+
     /**
      * عرض سجل جميع الرسائل للأدمن
      */
@@ -201,7 +204,9 @@ class MessagesLogController extends Controller
             fputcsv($file, ['ID', 'المرسل', 'المستقبل', 'الرسالة', 'مقروءة', 'تاريخ القراءة', 'تاريخ الإرسال']);
 
             foreach ($messages as $message) {
-                fputcsv($file, [
+                // تحييد حقن الصيغ: الاسم/نصّ الرسالة يتحكّم بهما دورٌ أدنى، وفتحُ الملفّ في Excel
+                // يُقيّم صيغة مثل =HYPERLINK(...)/=cmd|... في جهاز السوبر أدمن. sanitizeRow يسبقها بـ'.
+                fputcsv($file, $this->sanitizeRow([
                     $message->id,
                     $message->sender->name ?? 'غير معروف',
                     $message->receiver->name ?? 'غير معروف',
@@ -209,7 +214,7 @@ class MessagesLogController extends Controller
                     $message->is_read ? 'نعم' : 'لا',
                     $message->read_at ? $message->read_at->format('Y-m-d H:i:s') : '-',
                     $message->created_at->format('Y-m-d H:i:s'),
-                ]);
+                ]));
             }
 
             fclose($file);

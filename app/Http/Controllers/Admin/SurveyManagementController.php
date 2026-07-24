@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Http\Controllers\Controller;
 use App\Models\School;
 use App\Models\Survey;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class SurveyManagementController extends Controller
 {
+    use SanitizesCsvOutput;
+
     /**
      * عرض قائمة الاستبيانات
      */
@@ -296,7 +299,8 @@ class SurveyManagementController extends Controller
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM for UTF-8
             fputcsv($file, $headers);
             foreach ($rows as $row) {
-                fputcsv($file, $row);
+                // تحييد حقن الصيغ (الاسم/الإجابة من دورٍ أدنى) قبل فتح الملفّ في Excel.
+                fputcsv($file, $this->sanitizeRow($row));
             }
             fclose($file);
         };

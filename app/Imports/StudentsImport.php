@@ -22,6 +22,9 @@ class StudentsImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, To
 
     protected $errors = [];
 
+    /** كلمات المرور المؤقّتة (نصّاً) لكلّ طالب مُنشأ — تُعرَض للمدير مرّةً ليوزّعها. */
+    protected $credentials = [];
+
     public function __construct($schoolId)
     {
         $this->schoolId = $schoolId;
@@ -48,7 +51,11 @@ class StudentsImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, To
         // الحصول على القيم بحسب ترتيب الأعمدة
         $name = trim($row[0] ?? '');
         $email = trim($row[1] ?? '');
-        $password = trim($row[2] ?? '') ?: '123456';
+        // كلمة المرور: إن تُركت فارغة نولّد **عشوائيّة لكلّ طالب** بدل الثابتة «123456» التي كانت
+        // نافذة استيلاء (يعرفها الجميع فيُسجَّل الدخول لأيّ حساب مُستورَد قبل تغييرها) — مطابقةً لإصلاح
+        // BulkUsersImport. وأيّاً كانت الكلمة، نفرض تغييرها أوّل دخول (تُعامَل كمؤقّتة).
+        $providedPassword = trim($row[2] ?? '');
+        $password = $providedPassword !== '' ? $providedPassword : \Illuminate\Support\Str::random(10);
         $phone = trim($row[3] ?? '') ?: null;
         $birthDate = trim($row[4] ?? '') ?: null;
 
@@ -75,6 +82,7 @@ class StudentsImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, To
         }
 
         $this->importedCount++;
+        $this->credentials[] = ['name' => $name, 'email' => $email, 'password' => $password];
 
         return new User([
             'name' => $name,
@@ -85,6 +93,7 @@ class StudentsImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, To
             'phone' => $phone,
             'birth_date' => $birthDate,
             'status' => 'active',
+            'password_change_required' => true,
         ]);
     }
 
@@ -114,5 +123,11 @@ class StudentsImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, To
     public function getErrors(): array
     {
         return $this->errors;
+    }
+
+    /** كلمات المرور المؤقّتة للطلاب المُنشأين (نصّاً) — للمدير ليوزّعها؛ يُغيّرها الطالب أوّل دخول. */
+    public function getCredentials(): array
+    {
+        return $this->credentials;
     }
 }

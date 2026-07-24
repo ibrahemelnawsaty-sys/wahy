@@ -668,8 +668,10 @@ class SuperAdminController extends Controller
                 $message .= " (تم تخطي {$skipped} صف مكرر أو فارغ)";
             }
 
+            // كلمات المرور المؤقّتة تُعرَض للمدير مرّةً واحدة ليوزّعها (لا كلمة افتراضيّة معروفة).
             return redirect()->route('admin.excel-management')
-                ->with('success', $message);
+                ->with('success', $message)
+                ->with('import_credentials', $import->getCredentials());
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Student import failed', ['error' => $e->getMessage()]);
 
@@ -683,8 +685,9 @@ class SuperAdminController extends Controller
      */
     public function downloadStudentsTemplate()
     {
-        $headers = ['الاسم', 'البريد الإلكتروني', 'كلمة المرور', 'الهاتف', 'تاريخ الميلاد'];
-        $sample = ['أحمد محمد', 'student@example.com', '123456', '0501234567', '2010-05-15'];
+        $headers = ['الاسم', 'البريد الإلكتروني', 'كلمة المرور (اختياري)', 'الهاتف', 'تاريخ الميلاد'];
+        // اتركها فارغة لتوليد كلمة مرور عشوائيّة آمنة لكل طالب (لا نقترح كلمة ثابتة معروفة).
+        $sample = ['أحمد محمد', 'student@example.com', '', '0501234567', '2010-05-15'];
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();

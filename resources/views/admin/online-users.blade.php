@@ -128,6 +128,13 @@
     let autoRefreshInterval;
     let currentFilter = 'all';
 
+    // تهريب HTML قبل أيّ حقن عبر innerHTML — يمنع XSS المخزَّن من قيَم يتحكّم بها دورٌ أدنى.
+    function escapeHtml(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
     // التحديث التلقائي كل 30 ثانية
     function startAutoRefresh() {
         autoRefreshInterval = setInterval(refreshOnlineUsers, 30000);
@@ -169,31 +176,46 @@
                         </td>
                     </tr>`;
             } else {
-                tbody.innerHTML = data.onlineUsers.map((user, index) => `
-                    <tr class="user-row" data-role="${user.role}" style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s; ${currentFilter !== 'all' && user.role !== currentFilter ? 'display:none;' : ''}" onmouseover="this.style.background='rgba(102,126,234,0.03)'" onmouseout="this.style.background='transparent'">
+                // ★ تهريب إلزاميّ: هذه القيم (الاسم/البريد/اسم المدرسة/الأڤاتار) يتحكّم بها دورٌ أدنى
+                //   (اسم عند التسجيل، اسم المدرسة عبر مدير المدرسة)، وتُحقَن هنا عبر innerHTML كل 30 ثانية.
+                //   بلا تهريب، اسمٌ مثل <img src=x onerror=…> يُنفَّذ في **جلسة السوبر أدمن** = استيلاء كامل.
+                tbody.innerHTML = data.onlineUsers.map((user, index) => {
+                    const name = escapeHtml(user.name);
+                    const email = escapeHtml(user.email);
+                    const schoolName = user.school_name ? escapeHtml(user.school_name) : '—';
+                    const roleAr = escapeHtml(user.role_ar);
+                    const roleIcon = escapeHtml(user.role_icon || '');
+                    const roleAttr = escapeHtml(user.role || '');
+                    const onlineSince = escapeHtml(user.online_since);
+                    const avatarSrc = escapeHtml(user.avatar
+                        ? '/storage/app/public/data/' + user.avatar
+                        : '/storage/app/public/data/avatars/default-avatar.webp');
+                    const hidden = (currentFilter !== 'all' && user.role !== currentFilter) ? 'display:none;' : '';
+                    return `
+                    <tr class="user-row" data-role="${roleAttr}" style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s; ${hidden}" onmouseover="this.style.background='rgba(102,126,234,0.03)'" onmouseout="this.style.background='transparent'">
                         <td style="padding: 14px 20px; font-size: 14px; color: var(--text-secondary, #64748b);">${index + 1}</td>
                         <td style="padding: 14px 20px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 40px; height: 40px; border-radius: 12px; overflow: hidden; border: 2px solid #10b981; flex-shrink: 0;">
-                                    <img src="${user.avatar ? '/storage/app/public/data/' + user.avatar : '/storage/app/public/data/avatars/default-avatar.webp'}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="${avatarSrc}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                                 <div>
-                                    <div style="font-weight: 600; font-size: 14px; color: var(--text-primary, #1e293b);">${user.name}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary, #94a3b8);">${user.email}</div>
+                                    <div style="font-weight: 600; font-size: 14px; color: var(--text-primary, #1e293b);">${name}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary, #94a3b8);">${email}</div>
                                 </div>
                             </div>
                         </td>
                         <td style="padding: 14px 20px;">
                             <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 8px; background: rgba(102,126,234,0.1); color: #667eea; font-size: 13px; font-weight: 600;">
-                                <i class="${user.role_icon}"></i>
-                                ${user.role_ar}
+                                <i class="${roleIcon}"></i>
+                                ${roleAr}
                             </span>
                         </td>
-                        <td style="padding: 14px 20px; font-size: 14px; color: var(--text-primary, #475569);">${user.school_name || '—'}</td>
+                        <td style="padding: 14px 20px; font-size: 14px; color: var(--text-primary, #475569);">${schoolName}</td>
                         <td style="padding: 14px 20px;">
                             <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #10b981; font-weight: 600;">
                                 <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
-                                ${user.online_since}
+                                ${onlineSince}
                             </span>
                         </td>
                         <td style="padding: 14px 20px;">
@@ -202,7 +224,8 @@
                             </span>
                         </td>
                     </tr>
-                `).join('');
+                `;
+                }).join('');
             }
         } catch (err) {
             console.error('فشل تحديث المستخدمين:', err);

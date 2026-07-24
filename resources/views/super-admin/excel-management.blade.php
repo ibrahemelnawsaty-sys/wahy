@@ -46,6 +46,37 @@
                 </div>
             @endif
 
+            {{-- كلمات المرور المؤقّتة للطلاب المُستورَدين — تُعرَض مرّةً واحدة فقط، انسخها وسلّمها ثمّ ستختفي --}}
+            @if(session('import_credentials') && count(session('import_credentials')))
+                <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-900 px-4 py-4 rounded-lg">
+                    <div class="flex items-center gap-2 mb-2 font-bold">
+                        <i class="fas fa-key"></i>
+                        <span>كلمات المرور المؤقّتة (تظهر مرّةً واحدة — انسخها الآن)</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm bg-white rounded-lg overflow-hidden">
+                            <thead>
+                                <tr class="bg-blue-100">
+                                    <th class="p-2 text-right">الاسم</th>
+                                    <th class="p-2 text-right">البريد</th>
+                                    <th class="p-2 text-right">كلمة المرور المؤقّتة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(session('import_credentials') as $cred)
+                                    <tr class="border-b border-gray-100">
+                                        <td class="p-2">{{ $cred['name'] }}</td>
+                                        <td class="p-2">{{ $cred['email'] }}</td>
+                                        <td class="p-2 font-mono">{{ $cred['password'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs mt-2 text-blue-700">يُلزَم كل طالب بتغيير كلمة المرور عند أوّل تسجيل دخول.</p>
+                </div>
+            @endif
+
             @if($errors->any())
                 <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
                     <div class="flex items-center gap-2 mb-2">
@@ -205,7 +236,8 @@
                                         <ul class="list-disc list-inside mt-1">
                                             <li>استخدم القالب الصحيح لتجنب الأخطاء</li>
                                             <li>سيتم تخطي الطلاب المكررين (البريد الإلكتروني موجود مسبقاً)</li>
-                                            <li>كلمة المرور الافتراضية: 123456</li>
+                                            <li>اترك عمود كلمة المرور فارغاً لتوليد كلمة مؤقّتة عشوائيّة آمنة لكل طالب — وستظهر لك القائمة بعد الاستيراد لتوزيعها</li>
+                                            <li>يُلزَم كل طالب بتغيير كلمة المرور عند أوّل تسجيل دخول</li>
                                             <li>جميع الطلاب سيتم تعيينهم كـ "طالب" نشط</li>
                                         </ul>
                                     </div>
@@ -241,7 +273,7 @@
                             <div class="space-y-1 text-gray-700">
                                 <p><strong>1. الاسم</strong> - اسم الطالب الكامل</p>
                                 <p><strong>2. البريد الإلكتروني</strong> - بريد فريد لكل طالب</p>
-                                <p><strong>3. كلمة المرور</strong> - اختياري (افتراضي: 123456)</p>
+                                <p><strong>3. كلمة المرور</strong> - اختياري (يُولَّد عشوائيّاً إن تُرك فارغاً)</p>
                                 <p><strong>4. الهاتف</strong> - رقم الهاتف (اختياري)</p>
                                 <p><strong>5. تاريخ الميلاد</strong> - YYYY-MM-DD (اختياري)</p>
                             </div>

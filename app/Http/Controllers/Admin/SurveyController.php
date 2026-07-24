@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Concerns\SanitizesCsvOutput;
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\Survey;
@@ -14,6 +15,8 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class SurveyController extends Controller
 {
+    use SanitizesCsvOutput;
+
     /**
      * عرض قائمة الاستبيانات
      */
@@ -499,7 +502,8 @@ class SurveyController extends Controller
                     $row[] = $value !== null && $value !== '' ? $value : '-';
                 }
 
-                fputcsv($file, $row);
+                // تحييد حقن الصيغ: الاسم/الإجابة يتحكّم بهما دورٌ أدنى (بل زائر) → '-prefix.
+                fputcsv($file, $this->sanitizeRow($row));
             }
 
             fclose($file);

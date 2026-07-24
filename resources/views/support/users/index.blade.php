@@ -22,12 +22,9 @@
                     <label style="font-size: 13px; font-weight: 700; color: #475569;">👤 الدور</label>
                     <select name="role" style="padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;">
                         <option value="">الكل</option>
-                        <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>سوبر أدمن</option>
-                        <option value="school_admin" {{ request('role') == 'school_admin' ? 'selected' : '' }}>مدير مدرسة</option>
                         <option value="teacher" {{ request('role') == 'teacher' ? 'selected' : '' }}>معلم</option>
                         <option value="student" {{ request('role') == 'student' ? 'selected' : '' }}>طالب</option>
                         <option value="parent" {{ request('role') == 'parent' ? 'selected' : '' }}>ولي أمر</option>
-                        <option value="technical_support" {{ request('role') == 'technical_support' ? 'selected' : '' }}>الدعم الفنيّ</option>
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
