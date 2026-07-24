@@ -1119,6 +1119,20 @@ class SchoolAdminController extends Controller
     /**
      * صفحة الإحصائيات والتصنيف
      */
+    /**
+     * إخفاء أسماء قوائم الترتيب العابرة للمدارس (مدينة/دولة/منصّة) إلى «الاسم الأول + حرف» —
+     * خصوصيّة القُصّر: لا يرى مدير مدرسةٍ أسماءَ طلاب/معلّمي مدارس أخرى كاملةً. مدرسته تبقى كاملة.
+     */
+    private function maskNames($collection)
+    {
+        return collect($collection)->map(function ($u) {
+            $parts = preg_split('/\s+/', trim((string) ($u->name ?? '')));
+            $u->name = ($parts[0] ?? '') . (isset($parts[1]) && $parts[1] !== '' ? ' ' . mb_substr($parts[1], 0, 1) . '.' : '');
+
+            return $u;
+        })->values();
+    }
+
     public function statistics()
     {
         $school = Auth::user()->activeSchool;
@@ -1291,9 +1305,10 @@ class SchoolAdminController extends Controller
 
         $teacherStats = [
             'school_teachers' => $schoolTeachers->values()->take(10),
-            'city_teachers' => $cityTeachers->take(10),
-            'country_teachers' => $countryTeachers->take(10),
-            'platform_teachers' => $allTeachersRanked->take(10),
+            // إخفاء الأسماء عبر المدارس (خصوصيّة) — مدرسة المدير تبقى كاملة
+            'city_teachers' => $this->maskNames($cityTeachers->take(10)),
+            'country_teachers' => $this->maskNames($countryTeachers->take(10)),
+            'platform_teachers' => $this->maskNames($allTeachersRanked->take(10)),
             'badges' => $teacherBadges,
             'top_teacher_month' => $topTeacherThisMonth,
         ];
@@ -1370,9 +1385,9 @@ class SchoolAdminController extends Controller
 
         $studentStats = [
             'school_students' => $schoolStudentsRanked->take(10),
-            'city_students' => $cityStudents,
-            'country_students' => $countryStudents,
-            'platform_students' => $platformStudents,
+            'city_students' => $this->maskNames($cityStudents),
+            'country_students' => $this->maskNames($countryStudents),
+            'platform_students' => $this->maskNames($platformStudents),
             'grade_rankings' => $gradeRankings,
             'total_school' => $schoolStudentsRanked->count(),
             'total_platform' => $allStudentsCount,
