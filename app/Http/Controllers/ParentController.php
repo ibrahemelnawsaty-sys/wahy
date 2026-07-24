@@ -224,10 +224,15 @@ class ParentController extends Controller
 
             $user = Auth::user();
 
-            // التحقق من أن المعلم في نفس المدرسة
+            // التحقق أنّ المعلّم يُدرّس فعلاً أحد أبناء هذا الوليّ (لا مجرّد نفس المدرسة) — كان الفحص
+            // same-school فقط فيمكن للوليّ مراسلة أيّ معلّم في المدرسة (سبام/مضايقة). يطابق قائمة العرض.
+            $childIds = $user->children()->pluck('users.id');
             $teacherValid = User::where('id', $request->teacher_id)
                 ->where('role', 'teacher')
                 ->where('school_id', $user->school_id)
+                ->whereHas('teachingClassrooms.students', function ($q) use ($childIds) {
+                    $q->whereIn('users.id', $childIds);
+                })
                 ->exists();
 
             if (! $teacherValid) {

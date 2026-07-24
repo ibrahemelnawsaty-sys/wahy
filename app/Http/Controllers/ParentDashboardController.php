@@ -273,8 +273,8 @@ class ParentDashboardController extends Controller
 
         $submissionStats = ActivitySubmission::where('student_id', $child->id)
             ->selectRaw("
-                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
-                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+                COUNT(CASE WHEN status IN ('completed','approved') THEN 1 END) as completed_count,
+                COUNT(CASE WHEN status IN ('pending','needs_review') THEN 1 END) as pending_count,
                 AVG(CASE WHEN score IS NOT NULL THEN score END) as avg_score
             ")
             ->first();
@@ -457,6 +457,14 @@ class ParentDashboardController extends Controller
         if (empty($childIds)) {
             return back()->with('error', 'لا يوجد أبناء مرتبطين بحسابك');
         }
+
+        // بوّابة ملكيّة: يجب أن يكون أحد أبناء الوليّ قد شارك في هذا الاستبيان (أو مرتبطه) — كان
+        // findOrFail بلا نطاق يكشف عنوان/أسئلة أيّ استبيان تقييميّ بمعرّفٍ مُخمَّن عبر حدود المدرسة.
+        $surveyIds = array_filter([$surveyId, optional($survey->linkedSurvey)->id]);
+        $participated = \App\Models\SurveyResponse::whereIn('user_id', $childIds)
+            ->whereIn('survey_id', $surveyIds)
+            ->exists();
+        abort_unless($participated, 403, 'هذا الاستبيان غير مرتبط بأبنائك.');
 
         $comparisonData = $survey->getComparisonData(null, $childIds);
 

@@ -654,8 +654,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/messages/send', [ParentController::class, 'sendMessage'])->middleware('throttle:30,1')->name('messages.send');
 
         // نظام المدح والهدايا
-        Route::post('/children/{id}/praise', [ParentController::class, 'praiseChild'])->name('child.praise');
-        Route::post('/children/{id}/gift', [ParentController::class, 'sendGift'])->name('child.gift');
+        Route::post('/children/{id}/praise', [ParentController::class, 'praiseChild'])->middleware('throttle:20,1')->name('child.praise');
+        Route::post('/children/{id}/gift', [ParentController::class, 'sendGift'])->middleware('throttle:20,1')->name('child.gift');
 
         // الأنشطة العائلية
         Route::get('/family-activities/pending', [ParentController::class, 'pendingFamilyActivities'])->name('family-activities.pending');

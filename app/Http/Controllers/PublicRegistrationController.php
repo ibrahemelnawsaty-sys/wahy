@@ -36,7 +36,9 @@ class PublicRegistrationController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email|unique:registration_requests,email',
+            // التفرّد على الطلبات **المعلّقة** فقط — كان يفحص كل الجدول فيحجب البريد للأبد بعد رفض/قبول
+            // (يمنع إعادة التقديم + يفتح حجز بريد الغير). حسابات users تبقى unique كاملاً.
+            'email' => ['required', 'email', 'unique:users,email', \Illuminate\Validation\Rule::unique('registration_requests', 'email')->where('status', 'pending')],
             'phone' => 'nullable|string|max:20',
             'password' => 'required|min:8|confirmed',
             'qualifications' => 'nullable|string',
@@ -116,7 +118,9 @@ class PublicRegistrationController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email|unique:registration_requests,email',
+            // التفرّد على الطلبات **المعلّقة** فقط — كان يفحص كل الجدول فيحجب البريد للأبد بعد رفض/قبول
+            // (يمنع إعادة التقديم + يفتح حجز بريد الغير). حسابات users تبقى unique كاملاً.
+            'email' => ['required', 'email', 'unique:users,email', \Illuminate\Validation\Rule::unique('registration_requests', 'email')->where('status', 'pending')],
             'phone' => 'nullable|string|max:20',
             'password' => 'required|min:8|confirmed',
             'birth_date' => 'nullable|date|before:today',
@@ -214,7 +218,9 @@ class PublicRegistrationController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email|unique:registration_requests,email',
+            // التفرّد على الطلبات **المعلّقة** فقط — كان يفحص كل الجدول فيحجب البريد للأبد بعد رفض/قبول
+            // (يمنع إعادة التقديم + يفتح حجز بريد الغير). حسابات users تبقى unique كاملاً.
+            'email' => ['required', 'email', 'unique:users,email', \Illuminate\Validation\Rule::unique('registration_requests', 'email')->where('status', 'pending')],
             'phone' => 'required|string|max:20',
             'password' => 'required|min:8|confirmed',
             'relationship' => 'nullable|string|max:50',

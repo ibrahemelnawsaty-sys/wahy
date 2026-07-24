@@ -640,6 +640,12 @@ class StudentController extends Controller
                 if ($dateFrom) {
                     $q->where('created_at', '>=', $dateFrom);
                 }
+                // نقاط تشجيع/هدية الوليّ لا تُحتسَب في الترتيب — تُخلَق من العدم (لا جهد تعلّميّ)
+                // فكانت تُفسِد ترتيب المدرسة المشترك (وليٌّ يرفع ابنه دون إنجاز). نُبقي null (نقاط
+                // الأنشطة القديمة بلا source) وإلّا استبعدها NOT IN (دلالة NULL) فكسر الترتيب.
+                $q->where(function ($sub) {
+                    $sub->whereNull('source')->orWhereNotIn('source', ['parent_praise', 'parent_gift']);
+                });
             }], 'points')
             ->orderByDesc('total_xp')
             ->orderBy('id') // tie-break ثابت لمنع تذبذب الترتيب
