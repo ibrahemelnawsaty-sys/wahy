@@ -115,6 +115,9 @@ class StoreTeamIdorTest extends TestCase
 
         $leader = User::factory()->student($school)->create();
         $member = User::factory()->student($school)->create();
+        // أعضاء الفريق يجب أن يكونوا مسجَّلين في فصل الفريق (لا مجرّد نفس المدرسة) — تحصينُ IDOR داخل المدرسة
+        $leader->classrooms()->attach($classroom->id);
+        $member->classrooms()->attach($classroom->id);
 
         $response = $this->actingAs($teacher)->post(route('teacher.teams.store'), [
             'name' => 'فريق شرعي',
