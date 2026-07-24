@@ -604,6 +604,12 @@ class TeacherController extends Controller
         }
         unset($validated['current_password']); // ليست عموداً — لا تُحفَظ
 
+        // مفتاح التبديل: خانة غير مؤشَّرة لا تُرسَل إطلاقاً، فـ«sometimes» وحدها تعجز عن إطفائه.
+        // نعيّنه صراحةً من boolean() ليعمل الاتّجاهان (تفعيل/تعطيل) عند وجود الحقل في النموذج.
+        if ($request->has('bio') || $request->has('notifications_enabled') || $request->hasFile('avatar')) {
+            $validated['notifications_enabled'] = $request->boolean('notifications_enabled');
+        }
+
         // تحديث الصورة الشخصية
         if ($request->hasFile('avatar')) {
             // حذف الصورة القديمة إن وجدت

@@ -91,6 +91,8 @@ class User extends Authenticatable
         'avatar',
         'school_id',
         'phone',
+        'bio',
+        'notifications_enabled',
         'birth_date',
         'status',
         'two_factor_enabled',
@@ -124,6 +126,7 @@ class User extends Authenticatable
             'two_factor_enabled' => 'boolean',
             'two_factor_expires_at' => 'datetime',
             'secondary_roles' => 'array',
+            'notifications_enabled' => 'boolean',
         ];
     }
 

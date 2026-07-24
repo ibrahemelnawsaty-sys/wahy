@@ -150,4 +150,28 @@ class TeacherSecurityTest extends TestCase
         $this->assertDatabaseHas('settings', ['key' => 'streak_bonus_points', 'user_id' => $teacher->id, 'value' => '50']);
         $this->assertDatabaseMissing('settings', ['key' => 'streak_bonus_points', 'user_id' => null]);
     }
+
+    public function test_teacher_bio_and_notifications_persist(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create(['notifications_enabled' => true]);
+
+        // حفظ نبذة + إطفاء الإشعارات (الخانة غير المؤشَّرة لا تُرسَل)
+        $this->actingAs($teacher)->post(route('teacher.settings.update'), [
+            'name' => $teacher->name, 'bio' => 'معلّم قيم ومبادئ',
+        ])->assertRedirect();
+
+        $teacher->refresh();
+        $this->assertSame('معلّم قيم ومبادئ', $teacher->bio, 'النبذة تُحفَظ (كانت تُفقَد بصمت)');
+        $this->assertFalse($teacher->notifications_enabled, 'إطفاء الإشعارات يعمل');
+
+        // إعادة التفعيل
+        $this->actingAs($teacher)->post(route('teacher.settings.update'), [
+            'name' => $teacher->name, 'bio' => 'محدَّثة', 'notifications_enabled' => '1',
+        ])->assertRedirect();
+
+        $teacher->refresh();
+        $this->assertSame('محدَّثة', $teacher->bio);
+        $this->assertTrue($teacher->notifications_enabled);
+    }
 }
