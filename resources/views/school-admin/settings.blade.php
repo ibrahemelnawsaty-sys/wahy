@@ -51,7 +51,7 @@
                     <div class="col-md-6">
                         <label class="form-label">البريد الإلكتروني للمدرسة</label>
                         <input type="email" name="school_email" class="form-control @error('school_email') is-invalid @enderror" 
-                               value="{{ old('school_email', $school->email ?? '') }}">
+                               value="{{ old('school_email', $school->contact_email ?? '') }}">
                         @error('school_email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -62,7 +62,7 @@
                     <div class="col-md-6">
                         <label class="form-label">هاتف المدرسة</label>
                         <input type="text" name="school_phone" class="form-control @error('school_phone') is-invalid @enderror" 
-                               value="{{ old('school_phone', $school->phone ?? '') }}">
+                               value="{{ old('school_phone', $school->contact_phone ?? '') }}">
                         @error('school_phone')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

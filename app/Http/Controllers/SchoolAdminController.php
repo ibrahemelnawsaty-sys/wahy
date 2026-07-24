@@ -479,15 +479,17 @@ class SchoolAdminController extends Controller
                 $q->where('role', 'parent')
                     ->orWhereJsonContains('secondary_roles', 'parent');
             })
-            ->with(['children' => function ($query) {
-                $query->select('users.id', 'name', 'email')
+            ->with(['children' => function ($query) use ($school) {
+                // أبناء مدرسة المدير فقط — كان يعرض أبناء وليٍّ من مدارس أخرى (تسريب عبر المستأجرين)
+                $query->where('users.school_id', $school->id)
+                    ->select('users.id', 'name', 'email', 'users.school_id')
                     ->withPivot('relationship')
                     ->with(['classrooms' => function ($q) {
                         $q->select('classrooms.id', 'name', 'grade_level')
                             ->with('teacher:id,name');
                     }]);
             }])
-            ->withCount('children')
+            ->withCount(['children' => fn ($q) => $q->where('users.school_id', $school->id)])
             ->latest()
             ->paginate(20);
 
@@ -787,6 +789,9 @@ class SchoolAdminController extends Controller
         $school = Auth::user()->activeSchool;
         $request = RegistrationRequest::where('school_id', $school->id)->findOrFail($id);
 
+        // حارس idempotency: طلبٌ عُولِج مسبقاً (approved/rejected) لا يُعاد معالجته (يُنشئ مستخدماً مكرَّراً/خطأ).
+        abort_unless($request->status === 'pending', 409, 'هذا الطلب عُولِج مسبقاً.');
+
         // المستخدم اختار كلمة مروره عند التسجيل (مُخزَّنة مُجزّأة في الطلب) — نُبقيها كما هي
         // ولا نُجبِره على تغييرها. نولّد كلمة مؤقتة + إجبار تغيير فقط إن كان الطلب بلا كلمة
         // مرور (حالة نادرة/طلب أنشأه أدمن). (cast «hashed» على User لا يُعيد تجزئة قيمة مجزّأة.)
@@ -856,6 +861,9 @@ class SchoolAdminController extends Controller
     {
         $school = Auth::user()->activeSchool;
         $registrationRequest = RegistrationRequest::where('school_id', $school->id)->findOrFail($id);
+
+        // حارس idempotency: طلبٌ عُولِج مسبقاً لا يُعاد رفضه
+        abort_unless($registrationRequest->status === 'pending', 409, 'هذا الطلب عُولِج مسبقاً.');
 
         $validated = $request->validate([
             'rejected_reason' => 'nullable|string|max:500',
@@ -1410,11 +1418,13 @@ class SchoolAdminController extends Controller
                 'school_address' => 'nullable|string|max:500',
             ]);
 
+            // الأعمدة الفعليّة contact_email/contact_phone (لا email/phone) — كانت غير قابلة للتعبئة
+            // فلا تُحفَظ (فقدان بيانات صامت مع رسالة نجاح مضلِّلة).
             $school->update([
                 'name' => $validated['school_name'],
                 'description' => $validated['school_description'] ?? $school->description,
-                'phone' => $validated['school_phone'] ?? $school->phone,
-                'email' => $validated['school_email'] ?? $school->email,
+                'contact_phone' => $validated['school_phone'] ?? $school->contact_phone,
+                'contact_email' => $validated['school_email'] ?? $school->contact_email,
                 'address' => $validated['school_address'] ?? $school->address,
             ]);
 
