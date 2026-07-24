@@ -86,8 +86,15 @@ class StudentController extends Controller
             }
         }
 
+        // قيم المدرسة المرئيّة — بطاقة «الدرس الحاليّ» يجب أن تقع ضمنها، وإلّا فتحُها يُرجِع 404
+        // (نفس بوّابة lesson()). كان currentLesson غير مقيّد بها فتُنتَج بطاقة بطلٍ لبابٍ مغلق.
+        $visibleValueIds = $user->school_id
+            ? \App\Models\Value::visibleForSchool($user->school_id)->pluck('id')->all()
+            : \App\Models\Value::pluck('id')->all();
+
         // الدرس الحالي (آخر درس بدأ فيه)
         $currentLesson = Lesson::where('status', 'active')
+            ->whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))
             ->whereHas('activities', function ($query) use ($user) {
                 $query->whereHas('submissions', function ($q) use ($user) {
                     $q->where('student_id', $user->id)
@@ -97,9 +104,10 @@ class StudentController extends Controller
             ->with(['concept.value'])
             ->first();
 
-        // إذا لم يكن هناك درس جاري، نجيب أول درس متاح
+        // إذا لم يكن هناك درس جاري، نجيب أول درس متاح ضمن قيم المدرسة المرئيّة
         if (! $currentLesson) {
             $currentLesson = Lesson::where('status', 'active')
+                ->whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))
                 ->with(['concept.value'])
                 ->first();
         }
@@ -1953,8 +1961,14 @@ class StudentController extends Controller
         $stats = $this->getStudentStats($user);
         $streak = $user->streak;
 
+        // قيم المدرسة المرئيّة — «الدرس الحاليّ» يجب أن يقع ضمنها وإلّا فتحُه 404 (بوّابة lesson())
+        $visibleValueIds = $user->school_id
+            ? \App\Models\Value::visibleForSchool($user->school_id)->pluck('id')->all()
+            : \App\Models\Value::pluck('id')->all();
+
         // جلب الدرس الحالي
         $currentLesson = Lesson::where('status', 'active')
+            ->whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))
             ->whereHas('activities', function ($query) use ($user) {
                 $query->whereHas('submissions', function ($q) use ($user) {
                     $q->where('student_id', $user->id)
@@ -1964,9 +1978,10 @@ class StudentController extends Controller
             ->with(['concept.value'])
             ->first();
 
-        // إذا لم يكن هناك درس جاري، نجيب أول درس متاح
+        // إذا لم يكن هناك درس جاري، نجيب أول درس متاح ضمن قيم المدرسة المرئيّة
         if (! $currentLesson) {
             $currentLesson = Lesson::where('status', 'active')
+                ->whereHas('concept', fn ($q) => $q->whereIn('value_id', $visibleValueIds))
                 ->with(['concept.value'])
                 ->first();
         }

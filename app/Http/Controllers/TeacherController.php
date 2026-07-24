@@ -1604,8 +1604,12 @@ class TeacherController extends Controller
         $teamActivity = TeamActivity::with(['team.members', 'activity'])
             ->findOrFail($id);
 
-        // التحقق من الصلاحية
-        if ($teamActivity->activity->created_by != $user->id) {
+        // التحقق من الصلاحية: ملكيّة النشاط **وملكيّة فصل الفريق** — كان يفحص النشاط فقط فيمكن
+        // لمعلّمٍ يملك النشاط تقييمُ فريقٍ في فصل معلّمٍ آخر ومنحُ طلابه نقاطاً (IDOR).
+        $teamClassroomOwned = $teamActivity->team && $teamActivity->team->classroom_id
+            && \App\Models\Classroom::where('id', $teamActivity->team->classroom_id)
+                ->where('teacher_id', $user->id)->exists();
+        if ($teamActivity->activity->created_by != $user->id || ! $teamClassroomOwned) {
             return response()->json(['error' => 'ليس لديك صلاحية'], 403);
         }
 
@@ -2392,7 +2396,7 @@ class TeacherController extends Controller
             'time_limit' => 'nullable|integer|min:1|max:120',
             'max_attempts' => 'required|integer|min:1|max:10',
             'question_ids' => 'required|array|min:1',
-            'question_ids.*' => 'exists:question_bank,id',
+            'question_ids.*' => ['integer', \Illuminate\Validation\Rule::exists('question_bank', 'id')->where('status', 'approved')], // أسئلة معتمَدة فقط (كان يقبل pending/rejected)
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after:starts_at',
         ]);
@@ -2453,7 +2457,7 @@ class TeacherController extends Controller
             'time_limit' => 'nullable|integer|min:1|max:120',
             'max_attempts' => 'required|integer|min:1|max:10',
             'question_ids' => 'required|array|min:1',
-            'question_ids.*' => 'exists:question_bank,id',
+            'question_ids.*' => ['integer', \Illuminate\Validation\Rule::exists('question_bank', 'id')->where('status', 'approved')], // أسئلة معتمَدة فقط (كان يقبل pending/rejected)
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
