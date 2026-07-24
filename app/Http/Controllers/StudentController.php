@@ -2801,6 +2801,12 @@ class StudentController extends Controller
         $decayWindow = 20.0;
         $minFactor = 0.25;
 
+        // توقيت **خادميّ** لمكافأة السرعة بدل $times[] العميل — كان اللاعب يرسل times=0 فيحصد
+        // الدرجة الكاملة على كل إجابة صحيحة (غشّ). نحسب المتوسّط من started_at إلى الآن (مقسوماً
+        // على عدد الأسئلة، مقصوصاً على نافذة التناقص) فلا يتحكّم العميل بالتوقيت.
+        $serverElapsed = $match->started_at ? max(0.0, (float) now()->diffInSeconds($match->started_at)) : $decayWindow;
+        $serverPerQ = min($decayWindow, $serverElapsed / max(1, $questions->count()));
+
         $score = 0;
         foreach ($questions as $key => $q) {
             $answer = $answers[$key] ?? null;
@@ -2818,8 +2824,7 @@ class StudentController extends Controller
             }
 
             if ($isCorrect) {
-                $rt = isset($times[$key]) ? (float) $times[$key] : $decayWindow;
-                $factor = max($minFactor, 1.0 - ($rt / $decayWindow));
+                $factor = max($minFactor, 1.0 - ($serverPerQ / $decayWindow)); // توقيت خادميّ لا عميل
                 $score += (int) round(((int) ($q['points'] ?? 100)) * $factor);
             }
         }
@@ -2853,7 +2858,22 @@ class StudentController extends Controller
             // الحدود: إتمام المباراة (determineWinner) يُلتزم بشكل منفصل قبل المنح؛ التدفق
             // idempotent من طرف لطرف — إعادة الاستدعاء بعد completed لا تعيد المنح
             // (insertOrIgnore على match.id يقصر الدائرة) ولا تعيد إتمام المباراة (بوابة الحالة).
-            if ($match->winner_id) {
+            // سقف تواطؤ: نفس الزوج (اللاعبان) لا يُكافأ عن أكثر من مباراة PvP في الساعة — يمنع
+            // طالبين متواطئين من حصد الاقتصاد بإعادة المواجهة مراراً. المباراة تُسجَّل بلا مكافأة اقتصاديّة.
+            $pairRewardedRecently = \App\Models\PvpMatch::where('id', '!=', $match->id)
+                ->where('status', 'completed')
+                ->whereNotNull('winner_id')
+                ->where('completed_at', '>=', now()->subHour())
+                ->where(function ($q) use ($match) {
+                    $q->where(function ($x) use ($match) {
+                        $x->where('player1_id', $match->player1_id)->where('player2_id', $match->player2_id);
+                    })->orWhere(function ($x) use ($match) {
+                        $x->where('player1_id', $match->player2_id)->where('player2_id', $match->player1_id);
+                    });
+                })
+                ->exists();
+
+            if ($match->winner_id && ! $pairRewardedRecently) {
                 try {
                     $newlyAwarded = AwardService::award(
                         $match->winner_id,
