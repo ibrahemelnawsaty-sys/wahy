@@ -91,6 +91,16 @@
                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
                 </div>
                 
+                <!-- كلمة المرور الحالية (مطلوبة لتغيير البريد) -->
+                <div>
+                    <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 14px;">كلمة المرور الحالية <span style="color:#94a3b8;font-weight:400;font-size:12px;">(مطلوبة فقط عند تغيير البريد)</span></label>
+                    <input type="password" name="current_password" autocomplete="current-password" placeholder="••••••••"
+                           style="width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; transition: all 0.3s;"
+                           onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                           onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                    @error('current_password')<div style="color:#dc2626;font-size:13px;margin-top:6px;">{{ $message }}</div>@enderror
+                </div>
+
                 <!-- Phone -->
                 <div>
                     <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 14px;">رقم الجوال</label>

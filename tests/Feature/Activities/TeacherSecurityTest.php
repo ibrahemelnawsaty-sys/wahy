@@ -116,6 +116,27 @@ class TeacherSecurityTest extends TestCase
         $this->assertDatabaseMissing('team_members', ['student_id' => $studentB->id]);
     }
 
+    public function test_email_change_requires_current_password(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->teacher($school)->create([
+            'email' => 'old@example.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('secret123'),
+        ]);
+
+        // بلا كلمة المرور الحالية → يُرفَض تغيير البريد
+        $this->actingAs($teacher)->post(route('teacher.settings.update'), [
+            'name' => $teacher->name, 'email' => 'new@example.com',
+        ])->assertSessionHasErrors('current_password');
+        $this->assertSame('old@example.com', $teacher->fresh()->email);
+
+        // بكلمة المرور الصحيحة → يُقبَل
+        $this->actingAs($teacher)->post(route('teacher.settings.update'), [
+            'name' => $teacher->name, 'email' => 'new@example.com', 'current_password' => 'secret123',
+        ])->assertRedirect();
+        $this->assertSame('new@example.com', $teacher->fresh()->email);
+    }
+
     public function test_streak_settings_are_scoped_per_teacher(): void
     {
         $school = School::factory()->create();

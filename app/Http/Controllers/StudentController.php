@@ -2170,7 +2170,7 @@ class StudentController extends Controller
             $memberIds = $team->members->pluck('id')->toArray();
             $team->total_points = Point::whereIn('user_id', $memberIds)->sum('points');
             $team->total_activities = ActivitySubmission::whereIn('student_id', $memberIds)
-                ->where('status', 'completed')
+                ->whereIn('status', ActivitySubmission::DONE_STATUSES) // completed + approved (كان يُنقِص المُقيَّم يدوياً)
                 ->count();
         }
 

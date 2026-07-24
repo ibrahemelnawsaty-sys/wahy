@@ -586,10 +586,23 @@ class TeacherController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
             'phone' => 'sometimes|string|max:20',
-            'avatar' => 'sometimes|image|max:2048',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048',
             'bio' => 'sometimes|string|max:500',
             'notifications_enabled' => 'sometimes|boolean',
+            'current_password' => 'nullable|string',
         ]);
+
+        // تغيير البريد يتطلّب إعادة مصادقة (كلمة المرور الحالية) — كان يتغيّر بلا تحقّق، فسرقةُ
+        // جلسةٍ تكفي للاستيلاء على الحساب. ونُصفّر التحقّق ليُعاد على البريد الجديد.
+        if ($request->filled('email') && $request->input('email') !== $user->email) {
+            if (! \Illuminate\Support\Facades\Hash::check((string) $request->input('current_password'), $user->password)) {
+                return back()
+                    ->withErrors(['current_password' => 'كلمة المرور الحالية مطلوبة وصحيحة لتغيير البريد'])
+                    ->withInput();
+            }
+            $validated['email_verified_at'] = null;
+        }
+        unset($validated['current_password']); // ليست عموداً — لا تُحفَظ
 
         // تحديث الصورة الشخصية
         if ($request->hasFile('avatar')) {
