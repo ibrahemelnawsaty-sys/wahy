@@ -57,6 +57,25 @@ class MessagesController extends Controller
     /**
      * الحصول على المستخدمين المتاحين للمراسلة حسب الدور
      */
+    /**
+     * معرّفات مديري المدرسة الذين **يديرون** المدرسة المعطاة — عبر school_id الأساسيّ أو صفّ
+     * admin_schools (تعدّد المدارس). كان البحث بـschool_id الأساسيّ فقط فتعذّرت مراسلة مديرٍ
+     * يدير المدرسة كثانويّة على معلّمي/طلاب/أولياء تلك المدرسة (وبالعكس).
+     */
+    private function adminsManagingSchool($schoolId)
+    {
+        return User::where('role', UserRole::SchoolAdmin->value)
+            ->where(function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId);
+                if (\Illuminate\Support\Facades\Schema::hasTable('admin_schools')) {
+                    $q->orWhereIn('id', function ($sub) use ($schoolId) {
+                        $sub->select('user_id')->from('admin_schools')->where('school_id', $schoolId);
+                    });
+                }
+            })
+            ->pluck('id');
+    }
+
     private function getAvailableUsers($user)
     {
         $query = User::where('id', '!=', $user->id);
@@ -95,9 +114,7 @@ class MessagesController extends Controller
                     ->whereIn('student_id', $studentIds);
             })->pluck('id');
 
-            $adminIds = User::where('school_id', $user->school_id)
-                ->where('role', UserRole::SchoolAdmin->value)
-                ->pluck('id');
+            $adminIds = $this->adminsManagingSchool($user->school_id);
 
             $allIds = $studentIds->merge($parentIds)->merge($adminIds)->unique();
 
@@ -121,9 +138,7 @@ class MessagesController extends Controller
                 }
             }
 
-            $adminIds = User::where('school_id', $user->school_id)
-                ->where('role', UserRole::SchoolAdmin->value)
-                ->pluck('id');
+            $adminIds = $this->adminsManagingSchool($user->school_id);
 
             $allIds = $teacherIds->merge($adminIds)->unique();
 
@@ -146,9 +161,7 @@ class MessagesController extends Controller
                 }
             }
 
-            $adminIds = User::where('school_id', $user->school_id)
-                ->where('role', UserRole::SchoolAdmin->value)
-                ->pluck('id');
+            $adminIds = $this->adminsManagingSchool($user->school_id);
 
             $allIds = $teacherIds->merge($adminIds)->unique();
 
@@ -322,10 +335,18 @@ class MessagesController extends Controller
             return true;
         }
 
-        // المستخدمان يجب أن يكونا في نفس المدرسة (مدير المدرسة يحترم مدرسته النشطة عند التعدّد)
-        $u1School = $user1->getCurrentRole() === 'school_admin' ? $user1->activeSchoolId() : $user1->school_id;
-        $u2School = $user2->role === 'school_admin' ? $user2->activeSchoolId() : $user2->school_id;
-        if ((int) $u1School !== (int) $u2School) {
+        // نفس المدرسة — ومع تعدّد المدارس: إن كان أحدهما مدير مدرسة، تكفي أن تكون مدرسةُ الطرف
+        // الآخر ضمن **مدارسه المُدارة** (managedSchoolIds)، لا مدرسته النشطة فقط — وإلّا تعذّرت
+        // مراسلة/الردّ بين مديرٍ يدير مدرسةً كثانويّة ومستخدميها.
+        if ($user1->getCurrentRole() === 'school_admin') {
+            if (! in_array((int) $user2->school_id, array_map('intval', $user1->managedSchoolIds()), true)) {
+                return false;
+            }
+        } elseif ($user2->role === 'school_admin') {
+            if (! in_array((int) $user1->school_id, array_map('intval', $user2->managedSchoolIds()), true)) {
+                return false;
+            }
+        } elseif ((int) $user1->school_id !== (int) $user2->school_id) {
             return false;
         }
 
