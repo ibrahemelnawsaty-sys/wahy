@@ -1044,10 +1044,13 @@ class SchoolAdminController extends Controller
 
                 return redirect()->back()
                     ->with('success', $message)
-                    ->with('import_errors', $errorDetails);
+                    ->with('import_errors', $errorDetails)
+                    ->with('import_credentials', $import->getCredentials());
             }
 
-            return redirect()->back()->with('success', $message);
+            return redirect()->back()
+                ->with('success', $message)
+                ->with('import_credentials', $import->getCredentials());
 
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('School admin import failed', ['error' => $e->getMessage()]);

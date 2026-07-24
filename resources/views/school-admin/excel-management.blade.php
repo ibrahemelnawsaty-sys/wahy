@@ -281,6 +281,28 @@
                     </ul>
                 </div>
                 @endif
+
+                {{-- كلمات المرور المؤقّتة العشوائيّة (بدل «123456» المشترك) — تُعرَض مرّةً ليوزّعها المدير --}}
+                @if(session('import_credentials') && count(session('import_credentials')))
+                <div style="margin-top: 25px; padding: 20px; background: #ecfdf5; border-radius: 12px; border-right: 4px solid #10b981; color: #065f46;">
+                    <h6 style="font-weight: 700; margin-bottom: 6px;"><i class="fas fa-key"></i> كلمات المرور المؤقّتة (احفظها الآن — لن تظهر ثانيةً):</h6>
+                    <p style="font-size: 13px; margin-bottom: 12px;">لكلّ مستخدم كلمة مرور عشوائيّة خاصّة؛ يُطلَب منه تغييرها أوّل دخول.</p>
+                    <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                        <thead><tr style="background:#d1fae5;"><th style="padding:8px; text-align:right;">الاسم</th><th style="padding:8px; text-align:right;">البريد</th><th style="padding:8px; text-align:right;">كلمة المرور المؤقّتة</th></tr></thead>
+                        <tbody>
+                        @foreach(session('import_credentials') as $cred)
+                            <tr style="border-bottom:1px solid #a7f3d0;">
+                                <td style="padding:8px;">{{ $cred['name'] }}</td>
+                                <td style="padding:8px;" dir="ltr">{{ $cred['email'] }}</td>
+                                <td style="padding:8px;" dir="ltr"><code>{{ $cred['password'] }}</code></td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>

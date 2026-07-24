@@ -20,6 +20,9 @@ class BulkUsersImport implements ToCollection, WithHeadingRow
 
     protected $successCount = 0;
 
+    /** كلمات المرور المؤقّتة العشوائيّة (نصّاً) لكلّ مستخدم مُنشأ — تُعرَض للمدير مرّةً ليوزّعها. */
+    protected $credentials = [];
+
     public function __construct($schoolId, $role)
     {
         $this->schoolId = $schoolId;
@@ -184,10 +187,15 @@ class BulkUsersImport implements ToCollection, WithHeadingRow
      */
     private function buildUserAttributes(UserRole $role, string $name, string $email, string $phone, string $qrPrefix, array $extra = []): array
     {
+        // كلمة مرور مؤقّتة **عشوائيّة لكل مستخدم** بدل الثابتة «123456» — الثابتة كانت نافذة استيلاء
+        // (يعرفها الجميع فيُسجَّل الدخول لأيّ حساب مُستورَد قبل تغييره). تُجمَع لتُعرَض للمدير مرّة.
+        $plainPassword = \Illuminate\Support\Str::random(10);
+        $this->credentials[] = ['name' => $name, 'email' => $email, 'password' => $plainPassword];
+
         return array_merge([
             'name' => $name,
             'email' => $email,
-            'password' => Hash::make('123456'), // كلمة مرور افتراضية — على الطالب تغييرها
+            'password' => Hash::make($plainPassword),
             'role' => $role->value,
             'school_id' => $this->schoolId,
             'phone' => $phone ?: null,
@@ -213,5 +221,11 @@ class BulkUsersImport implements ToCollection, WithHeadingRow
     public function getSuccessCount()
     {
         return $this->successCount;
+    }
+
+    /** كلمات المرور المؤقّتة للمستخدمين المُنشأين (نصّاً) — للمدير ليوزّعها؛ يُغيّرها المستخدم أوّل دخول. */
+    public function getCredentials()
+    {
+        return $this->credentials;
     }
 }
