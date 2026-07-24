@@ -365,14 +365,24 @@ class StudentApiController extends Controller
             }
         }
 
+        // التصحيح الآليّ + الحالة (توحيد مع الويب) — كان الجوّال يضبط pending دائماً بلا تصحيح ولا
+        // نقاط، فتُترك تسليمات الجوّال معلّقةً أبداً. grade يقبل مصفوفة answers عبر normalizeAnswer.
+        $score = \App\Services\ActivityGradingService::grade($activity, $request->answers);
+        $passing = \App\Services\ActivityGradingService::passingScoreFor($activity);
+        $passed = ($score !== null && $score >= $passing);
+        $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
+
+        // #13 عدم تدهور: إن كانت للمحاولة السابقة درجةٌ أفضل، لا نُنزل الدرجة/الحالة/الإجابة (نُزيد المحاولة فقط).
+        $keepsBest = $existing && $score !== null && $existing->score !== null && $score < (int) $existing->score;
+
         $data = [
             'activity_id' => $id,
             'student_id' => $user->id,
             // العمود الفعلي 'answer' (مفرد، نصّي) — نُرمّزه JSON بنفس اصطلاح الويب
             'answer' => json_encode($request->answers, JSON_UNESCAPED_UNICODE),
-            'status' => 'pending',
-            // ميزة #23 (كالويب): نشاط يتطلّب موافقة وليّ الأمر لا يدخل طابور المعلّم إلا بموافقته —
-            // كان الجوّال يتجاوز البوّابة. عند إعادة الإرسال نُصفّر الاعتماد السابق أيضاً.
+            'status' => $status,
+            'score' => $score,
+            // ميزة #23 (كالويب): نشاط يتطلّب موافقة وليّ الأمر لا يدخل طابور المعلّم إلا بموافقته.
             'parent_approval_status' => $activity->requires_parent_approval ? 'pending' : null,
             'parent_approved_by' => null,
             'parent_approved_at' => null,
@@ -385,12 +395,51 @@ class StudentApiController extends Controller
         }
 
         if ($existing) {
-            $data['attempts'] = (int) ($existing->attempts ?? 1) + 1;
-            $existing->update($data);
+            $attempts = (int) ($existing->attempts ?? 1) + 1;
+            if ($keepsBest) {
+                // أبقِ الأفضل (الدرجة/الحالة/الإجابة)، زِد المحاولة فقط
+                $existing->update(['attempts' => $attempts, 'submitted_at' => now()]);
+            } else {
+                $data['attempts'] = $attempts;
+                $existing->update($data);
+            }
             $submission = $existing;
         } else {
             $data['attempts'] = 1;
             $submission = ActivitySubmission::create($data);
+        }
+
+        // منح «أفضل محاولة» (كالويب): الفرق التصاعديّ فوق awarded_points فقط — لا تراكم ولا مضاعفة،
+        // ومحاولةٌ أسوأ تُعطي فرقاً = 0. تسليمُ المراجعة اليدويّة (score=null) يمنحه المعلّم لاحقاً.
+        if ($score !== null) {
+            $xp = (int) round(($score / 100) * (int) ($activity->points ?? 10));
+            [$xpDelta, $coinDelta] = \Illuminate\Support\Facades\DB::transaction(function () use ($submission, $xp) {
+                $sub = ActivitySubmission::lockForUpdate()->find($submission->id);
+                if (! $sub) {
+                    return [0, 0];
+                }
+                $priorXp = (int) ($sub->awarded_points ?? 0);
+                $priorCoins = $priorXp > 0 ? max(1, (int) floor($priorXp / 2)) : 0;
+                $curCoins = $xp > 0 ? max(1, (int) floor($xp / 2)) : 0;
+                if ($xp > $priorXp) {
+                    $sub->update(['awarded_points' => $xp]);
+                }
+
+                return [max(0, $xp - $priorXp), max(0, $curCoins - $priorCoins)];
+            }, 3);
+
+            if ($xpDelta > 0) {
+                \App\Models\Point::create([
+                    'user_id' => $user->id, 'points' => $xpDelta,
+                    'reason' => 'إكمال نشاط: ' . $activity->title, 'activity_id' => $activity->id,
+                ]);
+            }
+            if ($coinDelta > 0) {
+                \App\Models\Coin::create([
+                    'user_id' => $user->id, 'coins' => $coinDelta,
+                    'reason' => 'إكمال نشاط: ' . $activity->title, 'transaction_type' => 'earn',
+                ]);
+            }
         }
 
         return response()->json([
@@ -399,6 +448,7 @@ class StudentApiController extends Controller
             'data' => [
                 'id' => $submission->id,
                 'status' => $submission->status,
+                'score' => $submission->score,
             ],
         ], 200);
     }

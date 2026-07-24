@@ -94,6 +94,28 @@ class TeacherSecurityTest extends TestCase
         $this->actingAs($teacher)->get(route('teacher.review.single', $submission->id))->assertForbidden();
     }
 
+    public function test_team_cannot_include_students_outside_teachers_classroom(): void
+    {
+        $school = School::factory()->create();
+        $teacherA = User::factory()->teacher($school)->create();
+        $teacherB = User::factory()->teacher($school)->create();
+        $classroomA = Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacherA->id]);
+        $classroomB = Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacherB->id]);
+        $studentA = User::factory()->student($school)->create();
+        $studentB = User::factory()->student($school)->create(); // طالب معلّم آخر (نفس المدرسة)
+        $studentA->classrooms()->attach($classroomA->id);
+        $studentB->classrooms()->attach($classroomB->id);
+
+        $this->actingAs($teacherA)->post(route('teacher.teams.store'), [
+            'name' => 'فريق', 'classroom_id' => $classroomA->id,
+            'leader_id' => $studentA->id, 'member_ids' => [$studentA->id, $studentB->id],
+        ]);
+
+        // studentB (خارج فصل المعلّم) لا يُضاف رغم إرساله
+        $this->assertDatabaseHas('team_members', ['student_id' => $studentA->id]);
+        $this->assertDatabaseMissing('team_members', ['student_id' => $studentB->id]);
+    }
+
     public function test_streak_settings_are_scoped_per_teacher(): void
     {
         $school = School::factory()->create();

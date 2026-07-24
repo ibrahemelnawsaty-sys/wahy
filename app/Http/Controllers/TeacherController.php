@@ -1334,9 +1334,11 @@ class TeacherController extends Controller
             ->where('teacher_id', $user->id)
             ->firstOrFail();
 
-        // التحقق على مستوى الكائن: القائد والأعضاء طلاب في مدرسة المعلم فقط (منع IDOR عبر المدارس)
-        $allowed = User::where('school_id', $user->school_id)
-            ->where('role', 'student')
+        // القائد والأعضاء يجب أن يكونوا طلاب **هذا الفصل** لا مجرّد نفس المدرسة — كان يسمح بضمّ
+        // طلاب معلّمٍ آخر في المدرسة للفريق ومنحهم نقاطاً عبر gradeTeamActivity (IDOR داخل المدرسة).
+        $classroomStudentIds = DB::table('classroom_student')->where('classroom_id', $classroom->id)->pluck('student_id');
+        $allowed = User::where('role', 'student')
+            ->whereIn('id', $classroomStudentIds)
             ->whereIn('id', array_merge([$validated['leader_id']], $validated['member_ids']))
             ->pluck('id');
 
@@ -1349,7 +1351,8 @@ class TeacherController extends Controller
                 'name' => $validated['name'],
                 'classroom_id' => $validated['classroom_id'],
                 'created_by' => $user->id,
-                'description' => $validated['description'],
+                // ?? null: description حقلٌ nullable فقد يغيب عن $validated → كان «Undefined array key» (500)
+                'description' => $validated['description'] ?? null,
                 'status' => 'active',
             ]);
 
@@ -1444,9 +1447,10 @@ class TeacherController extends Controller
             'status' => 'nullable|in:active,archived',
         ]);
 
-        // التحقق على مستوى الكائن: القائد والأعضاء طلاب في مدرسة المعلم فقط (منع IDOR عبر المدارس)
-        $allowed = User::where('school_id', $user->school_id)
-            ->where('role', 'student')
+        // القائد والأعضاء طلاب **فصل الفريق** لا مجرّد نفس المدرسة (IDOR داخل المدرسة عبر gradeTeamActivity)
+        $classroomStudentIds = DB::table('classroom_student')->where('classroom_id', $team->classroom_id)->pluck('student_id');
+        $allowed = User::where('role', 'student')
+            ->whereIn('id', $classroomStudentIds)
             ->whereIn('id', array_merge([$validated['leader_id']], $validated['member_ids']))
             ->pluck('id');
 

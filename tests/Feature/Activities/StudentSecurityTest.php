@@ -106,6 +106,29 @@ class StudentSecurityTest extends TestCase
         $this->assertSame(10, (int) $total, 'لا ازدواج: الإجمالي = مكافأة النشاط الكاملة');
     }
 
+    public function test_mobile_submission_is_graded_and_awards_points(): void
+    {
+        $school = \App\Models\School::factory()->create();
+        $student = User::factory()->student($school)->create();
+        // درجة جزئيّة (50%) < النجاح (60) → needs_review (نتجنّب enum 'completed' MySQL-only في SQLite)
+        $mcq = fn () => ['type' => 'multiple_choice', 'text' => 'س', 'correct_index' => 0,
+            'options' => [['text' => 'أ', 'is_correct' => true], ['text' => 'ب', 'is_correct' => false]]];
+        $activity = Activity::factory()->create([
+            'lesson_id' => null, 'status' => 'active', 'all_schools_mode' => 'direct',
+            'type' => 'quiz', 'points' => 10, 'passing_score' => 60, 'manual_review' => false,
+            'questions' => [$mcq(), $mcq()],
+        ]);
+
+        Sanctum::actingAs($student);
+        // كان الجوّال يضبط pending دائماً بلا نقاط — الآن يُصحَّح ويمنح «أفضل محاولة»
+        // إجابة صحيحة + خاطئة → 50%
+        $res = $this->postJson("/api/v1/student/activities/{$activity->id}/submit", ['answers' => [0, 1]])->assertOk();
+
+        $this->assertSame('needs_review', $res->json('data.status'));
+        $this->assertSame(50, (int) $res->json('data.score'));
+        $this->assertSame(5, (int) \App\Models\Point::where('user_id', $student->id)->sum('points'), '50% من 10 = 5 XP');
+    }
+
     public function test_api_values_tree_respects_school_value_gate(): void
     {
         $school = \App\Models\School::factory()->create();
