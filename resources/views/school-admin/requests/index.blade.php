@@ -57,13 +57,13 @@
                                     @if($request->status === 'pending')
                                         <form id="approve-form-{{ $request->id }}" action="{{ route('school-admin.requests.approve', $request->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="button" class="btn btn-sm btn-success" onclick="confirmApprove({{ $request->id }}, '{{ $request->name }}')">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="confirmApprove({{ $request->id }}, @js($request->name))">
                                                 <i class="fas fa-check me-1"></i>قبول
                                             </button>
                                         </form>
                                         <form id="reject-form-{{ $request->id }}" action="{{ route('school-admin.requests.reject', $request->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmReject({{ $request->id }}, '{{ $request->name }}')">
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmReject({{ $request->id }}, @js($request->name))">
                                                 <i class="fas fa-times me-1"></i>رفض
                                             </button>
                                         </form>

@@ -347,7 +347,7 @@
                         <form action="{{ route('admin.activities.destroy', $activity) }}" method="POST" style="display: inline;" id="delete-form-{{ $activity->id }}">
                             @csrf
                             @method('DELETE')
-                            <button type="button" class="action-btn btn-delete" title="حذف" onclick="deleteActivity({{ $activity->id }}, '{{ $activity->title }}')">🗑️</button>
+                            <button type="button" class="action-btn btn-delete" title="حذف" onclick="deleteActivity({{ $activity->id }}, @js($activity->title))">🗑️</button>
                         </form>
                     </div>
                 </td>

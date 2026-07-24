@@ -745,6 +745,16 @@ class SchoolAdminController extends Controller
         $school = Auth::user()->activeSchool;
         $classroom = Classroom::where('school_id', $school->id)->findOrFail($id);
 
+        // حارس حذف هدّام: activities.classroom_id بمفتاح أجنبيّ onDelete('cascade'، فحذف الفصل
+        // يمحو أنشطة المعلّم المرتبطة به → activity_submissions cascade → كلّ تسليمات الطلاب ودرجاتهم.
+        // هذا باب خلفيّ يتجاوز حارس Activity::deleting. نمنع الحذف الصلب متى وُجد ما يُتلَف.
+        $hasActivities = \App\Models\Activity::where('classroom_id', $classroom->id)->exists();
+        $hasStudents = \Illuminate\Support\Facades\DB::table('classroom_student')->where('classroom_id', $classroom->id)->exists();
+        if ($hasActivities || $hasStudents) {
+            return redirect()->route('school-admin.classrooms')
+                ->with('error', 'لا يمكن حذف فصلٍ له أنشطة أو طلاب مسجَّلون (الحذف يمحو تسليمات الطلاب ودرجاتهم). أزِل الطلاب/الأنشطة أوّلاً.');
+        }
+
         $classroom->delete();
 
         return redirect()->route('school-admin.classrooms')->with('success', 'تم حذف الفصل');

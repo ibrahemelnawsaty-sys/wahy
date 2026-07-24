@@ -164,7 +164,7 @@
                                   method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="confirmDeleteTeacher({{ $teacher->id }}, '{{ $teacher->name }}')">
+                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="confirmDeleteTeacher({{ $teacher->id }}, @js($teacher->name))">
                                     <i class="fas fa-trash me-1"></i>حذف
                                 </button>
                             </form>

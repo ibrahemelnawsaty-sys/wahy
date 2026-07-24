@@ -49,7 +49,7 @@
                                     <form id="delete-classroom-{{ $classroom->id }}" action="{{ route('school-admin.classrooms.delete', $classroom->id) }}" method="POST" class="d-inline">
                                         @csrf 
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteClassroom({{ $classroom->id }}, '{{ $classroom->name }}')">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteClassroom({{ $classroom->id }}, @js($classroom->name))">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>

@@ -149,7 +149,7 @@
                                   method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="confirmDeleteParent({{ $parent->id }}, '{{ $parent->name }}')">
+                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="confirmDeleteParent({{ $parent->id }}, @js($parent->name))">
                                     <i class="fas fa-trash me-1"></i>حذف
                                 </button>
                             </form>
