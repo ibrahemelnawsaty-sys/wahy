@@ -137,11 +137,11 @@
 
                             <!-- البريد الإلكتروني -->
                             <div class="col-12">
-                                <label for="email" class="form-label">البريد الإلكتروني (اختياري)</label>
+                                <label for="email" class="form-label required">البريد الإلكتروني</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                           id="email" name="email" value="{{ old('email') }}">
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                           id="email" name="email" value="{{ old('email') }}" required>
                                 </div>
                                 @error('email')
                                 <div class="text-danger small mt-1">{{ $message }}</div>

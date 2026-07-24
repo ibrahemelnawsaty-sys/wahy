@@ -12,6 +12,9 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class BulkUsersImport implements ToCollection, WithHeadingRow
 {
+    /** سقفٌ صلب لعدد الصفوف — حاجزٌ ضدّ ملفٍّ ضخم يُرهق الذاكرة/الوقت رغم حدّ 5MB على الرفع. */
+    public const MAX_ROWS = 1000;
+
     protected $schoolId;
 
     protected $role;
@@ -31,6 +34,16 @@ class BulkUsersImport implements ToCollection, WithHeadingRow
 
     public function collection(Collection $rows)
     {
+        // رفض الملفّ كاملاً إن تجاوز السقف — رسالة واضحة للمدير بدل انهيار ذاكرة/مهلة صامت.
+        if ($rows->count() > self::MAX_ROWS) {
+            $this->errors[] = [
+                'row' => 0,
+                'message' => 'الملف يتجاوز الحدّ الأقصى (' . self::MAX_ROWS . ' صفّاً). قسّمه إلى ملفّات أصغر ثمّ أعِد الرفع.',
+            ];
+
+            return;
+        }
+
         foreach ($rows as $index => $row) {
             try {
                 $rowNumber = $index + 3; // +3 لأن العنوان العربي في الصف 1 و Heading في الصف 2

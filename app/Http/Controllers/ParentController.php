@@ -200,9 +200,13 @@ class ParentController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        // تحديد الرسائل كمقروءة
+        // تحديد الرسائل كمقروءة — مُقيَّد بنفس (المعلّم، الطالب) المعروض. بدونه، عند وليٍّ له ابنان
+        // يُدرّسهما المعلّم نفسه، فتح محادثة ابنٍ يمسح شارة «غير مقروء» لمحادثة الابن الآخر (يطابق فلتر العرض أعلاه).
         \App\Models\ParentTeacherMessage::where('parent_id', $user->id)
             ->where('teacher_id', $request->teacher_id)
+            ->when($request->student_id, function ($q) use ($request) {
+                $q->where('student_id', $request->student_id);
+            })
             ->where('sender_type', 'teacher')
             ->where('is_read', false)
             ->update(['is_read' => true, 'read_at' => now()]);

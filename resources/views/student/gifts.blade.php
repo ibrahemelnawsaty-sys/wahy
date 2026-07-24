@@ -162,7 +162,7 @@
                 @if(!empty($gift->points_cost))
                 <div style="margin-top: 15px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); padding: 10px 20px; border-radius: 25px; display: inline-block;">
                     <span style="font-size: 14px; color: #2d3436; font-weight: 700;">
-                        +{{ $gift->points_cost }} 💰 عملة
+                        +{{ $gift->points_cost }} ⭐ نقطة
                     </span>
                 </div>
                 @endif

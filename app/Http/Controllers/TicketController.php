@@ -43,7 +43,8 @@ class TicketController extends Controller
     {
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
-            'message' => 'required|string',
+            // max: عمود message من نوع TEXT (~64KB)؛ بلا حدّ يرمي إدخالٌ ضخم QueryException = 500.
+            'message' => 'required|string|max:20000',
             'category' => 'required|in:technical,account,content,other',
             'priority' => 'required|in:low,normal,high',
         ]);
@@ -105,8 +106,14 @@ class TicketController extends Controller
     {
         abort_unless($ticket->user_id === Auth::id(), 403);
 
+        // حارس حالة من طرف الخادم: القالب يُخفي نموذج الردّ عند الإغلاق، لكن POST مُصاغ يدوياً
+        // كان يُخزّن ردّاً على تذكرة مغلقة ويقفزها لأعلى الفهرس ويُشعِر الدعم دون إعادة فتحها.
+        if ($ticket->status === SupportTicket::STATUS_CLOSED) {
+            return back()->with('error', 'هذه التذكرة مغلقة — يُرجى رفع تذكرة جديدة.');
+        }
+
         $validated = $request->validate([
-            'message' => 'required|string',
+            'message' => 'required|string|max:20000',
         ]);
 
         $normalized = normalize_message_html($validated['message']);

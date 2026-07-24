@@ -111,7 +111,13 @@
                             </span>
                         </td>
                         <td>
-                            @if(! $u->hasSuperAdminRole())
+                            @php
+                                // يطابق assertManageable في المتحكّم: الدعم يدير المستخدمين النهائيّين فقط.
+                                // إخفاء الأزرار عن الحسابات المميّزة/النفس يمنع نقرةً تنتهي بـ403.
+                                $rowLocked = count(array_intersect(['super_admin', 'school_admin', 'technical_support'], $u->getAllRoles())) > 0
+                                    || (int) auth()->id() === (int) $u->id;
+                            @endphp
+                            @if(! $rowLocked)
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <a href="{{ route('support.users.edit', $u) }}" class="support-btn support-btn-ghost">✏️ تعديل</a>
 
@@ -166,10 +172,10 @@
                         <input type="password" name="password_confirmation" required minlength="8" placeholder="أعد كتابة كلمة المرور"
                                style="padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;">
                     </div>
-                    <label style="display: inline-flex; align-items: center; gap: 10px; font-size: 14px; color: #475569; cursor: pointer;">
-                        <input type="checkbox" name="force" value="1">
-                        إجبار المستخدم على تغيير كلمة المرور عند الدخول التالي
-                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #475569; background: #f8fafc; border: 1px solid #eef2f7; border-radius: 10px; padding: 10px 14px;">
+                        <span>🔒</span>
+                        <span>سيُطلَب من المستخدم تغيير كلمة المرور عند الدخول التالي (إلزاميّ لحماية الحساب).</span>
+                    </div>
                 </div>
                 <div style="padding: 16px 24px; display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #eef2f7;">
                     <button type="button" class="support-btn support-btn-ghost" onclick="closeResetModal()">إلغاء</button>

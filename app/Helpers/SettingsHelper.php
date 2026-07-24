@@ -185,11 +185,14 @@ if (! function_exists('safe_html')) {
         $html = preg_replace('#<\s*(' . $dangerousTags . ')\b[^>]*/?\s*>#i', '', (string) $html);
 
         // 2) إزالة event handlers (onclick, onerror, onload, …)
-        //    الفاصل [\s/] وليس \s فقط: HTML يسمح بـ«/» فاصلاً بين السمات، فـ<img src=x/onerror=…>
-        //    كان ينجو (img/a/video ليست ضمن الوسوم الخطرة) = XSS مخزَّن. [\s/] يلتقط الحالتين.
-        $html = preg_replace('#[\s/]on[a-z]+\s*=\s*"[^"]*"#i', '', (string) $html);
-        $html = preg_replace("#[\s/]on[a-z]+\s*=\s*'[^']*'#i", '', (string) $html);
-        $html = preg_replace('#[\s/]on[a-z]+\s*=\s*[^\s>]+#i', '', (string) $html);
+        //    الفاصل ليس \s فقط بل [\s/"']: علاوةً على «/» (HTML يسمح بها فاصلاً بين السمات)،
+        //    فإنّ **علامة الاقتباس المُغلِقة للسمة السابقة** فاصلٌ صالح أيضاً في تحليل HTML، فـ
+        //    <img src="x"onerror=…> (بلا مسافة) كان ينجو (img/a/video/span خارج الوسوم الخطرة) =
+        //    XSS مخزَّن يُنفَّذ في جلسة الدعم/السوبر أدمن عبر تذكرة/رسالة طالب. نلتقط الفاصل في
+        //    مجموعة ونُعيده ($1) كي تبقى السمة السابقة سليمة الإغلاق بعد إزالة المُعالِج.
+        $html = preg_replace('#([\s/"\'])on[a-z]+\s*=\s*"[^"]*"#i', '$1', (string) $html);
+        $html = preg_replace('#([\s/"\'])on[a-z]+\s*=\s*\'[^\']*\'#i', '$1', (string) $html);
+        $html = preg_replace('#([\s/"\'])on[a-z]+\s*=\s*[^\s>]+#i', '$1', (string) $html);
 
         // 3) تحييد المخطّطات الخطرة (javascript:/vbscript:/data:/about:) في السمات الحاملة
         //    لروابط — مهما كان الاقتباس (مزدوج/مفرد/بلا اقتباس)، وبعد فكّ التشويش داخل القيمة:

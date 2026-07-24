@@ -13,12 +13,35 @@ use Illuminate\Validation\Rule;
  * صلاحيات الدعم الفنيّ على حسابات المستخدمين — عرض/بحث/تعديل محدود/إعادة كلمة مرور/تفعيل-تعطيل.
  *
  * قيود المالك المُلزِمة:
- *  - لا مساس بحسابات super_admin إطلاقاً (كل فعل يبدأ بـ abort_if super_admin).
+ *  - لا مساس بأيّ حساب مميّز (super_admin/school_admin/technical_support) ولا بالنفس — عبر
+ *    assertManageable(). الدعم يخدم المستخدمين النهائيّين (طالب/معلّم/وليّ أمر) فقط.
  *  - ممنوع تغيير role أو school_id.
+ *  - resetPassword يفرض password_change_required=true دائماً (لا انتحال صامت).
  *  - الحقول المحروسة (status / password_change_required) عبر forceFill()->saveQuietly() لتجاوز حارس User::booted بشكل مقصود ومحصور.
  */
 class SupportUserController extends Controller
 {
+    /**
+     * حارس موحّد: الدعم الفنيّ يساعد **المستخدمين النهائيّين فقط** (طالب/معلّم/وليّ أمر). يُمنَع
+     * المساس بأيّ حساب مميّز — سوبر أدمن أو مدير مدرسة أو دعمٍ فنيٍّ آخر — أو بحساب الدعم نفسه.
+     *
+     * الحارس السابق كان `abort_if($user->hasSuperAdminRole())` فقط، فيحمي السوبر أدمن حصراً؛
+     * فيتمكّن الدعم من resetPassword لمدير مدرسة ثمّ الدخول بهويّته (استيلاء كامل على المدرسة).
+     * نفحص getAllRoles (الأساسيّ ∪ الثانويّ) كي لا يتسرّب امتياز عبر دورٍ ثانويّ.
+     */
+    private function assertManageable(User $user): void
+    {
+        $privileged = ['super_admin', 'school_admin', 'technical_support'];
+
+        abort_if(
+            $user->hasSuperAdminRole()
+                || count(array_intersect($privileged, $user->getAllRoles())) > 0
+                || (int) auth()->id() === (int) $user->id,
+            403,
+            'ليس لديك صلاحية لإدارة هذا الحساب.'
+        );
+    }
+
     /**
      * قائمة كل المستخدمين مع بحث/فلترة.
      */
@@ -54,7 +77,7 @@ class SupportUserController extends Controller
      */
     public function edit(User $user)
     {
-        abort_if($user->hasSuperAdminRole(), 403);
+        $this->assertManageable($user);
 
         return view('support.users.edit', compact('user'));
     }
@@ -65,7 +88,7 @@ class SupportUserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        abort_if($user->hasSuperAdminRole(), 403);
+        $this->assertManageable($user);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -86,18 +109,18 @@ class SupportUserController extends Controller
      */
     public function resetPassword(Request $request, User $user)
     {
-        abort_if($user->hasSuperAdminRole(), 403);
+        $this->assertManageable($user);
 
         $validated = $request->validate([
             'password' => 'required|string|min:8|confirmed',
-            'force' => 'nullable|boolean',
         ]);
 
-        $force = $request->boolean('force');
-
+        // password_change_required = true **إلزاميّاً دائماً** (لا خيار force اختياريّ). وإلّا
+        // يعيّن الدعم كلمةً يعرفها ويسجّل الدخول بهويّة المستخدم دون أثرٍ للضحيّة (انتحال صامت).
+        // بإجبار التغيير أوّل دخول تبطل الكلمة التي يعرفها الدعم فور استخدام المالك الشرعيّ لها.
         $user->forceFill([
             'password' => Hash::make($validated['password']),
-            'password_change_required' => $force,
+            'password_change_required' => true,
         ])->saveQuietly();
 
         // saveQuietly يتخطّى مستمعي الموديل (ومنهم سجلّ النشاط) — نسجّل يدوياً كضابط تعويضيّ
@@ -105,7 +128,7 @@ class SupportUserController extends Controller
         activity()
             ->performedOn($user)
             ->causedBy(auth()->user())
-            ->withProperties(['forced' => $force])
+            ->withProperties(['forced' => true])
             ->log('support_reset_password');
 
         NotificationService::send(
@@ -126,7 +149,7 @@ class SupportUserController extends Controller
      */
     public function toggleStatus(User $user)
     {
-        abort_if($user->hasSuperAdminRole(), 403);
+        $this->assertManageable($user);
 
         $newStatus = $user->status === 'active' ? 'inactive' : 'active';
 

@@ -1428,9 +1428,15 @@ class StudentController extends Controller
 
             // Handle avatar upload
             if ($request->hasFile('avatar')) {
-                // Delete old avatar if exists
-                if ($user->avatar && \Storage::exists('public/' . $user->avatar)) {
-                    \Storage::delete('public/' . $user->avatar);
+                // حذف القديم عبر **قرص public** نفسه — كان يفحص/يحذف على القرص الافتراضي ببادئة
+                // "public/" (مسار Laravel القياسيّ) بينما جذر قرص public هنا غير قياسيّ
+                // (storage/app/public/data)، فلا يُعثَر على الملف القديم أبداً (تسريب تخزين متراكم).
+                // نتجاهل أفاتار الإيموجي/الرابط الخارجي (ليست ملفّات على القرص).
+                if ($user->avatar
+                    && ! str_starts_with($user->avatar, 'emoji:')
+                    && ! str_starts_with($user->avatar, 'http')
+                    && \Storage::disk('public')->exists($user->avatar)) {
+                    \Storage::disk('public')->delete($user->avatar);
                 }
 
                 // Store new avatar

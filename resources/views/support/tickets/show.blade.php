@@ -1,6 +1,7 @@
 @php
     // السوبر أدمن يفتح التذكرة داخل لوحته (منفصلة عن لوحة موظّف الدعم)؛ موظّف الدعم داخل لوحته.
-    $__ticketLayout = auth()->user()->role === 'technical_support' ? 'layouts.support' : 'layouts.admin';
+    // قشرة الأدمن للسوبر أدمن الحقيقيّ فقط — لا لـ«كلّ من ليس دعماً» (يمنع تسريب الشريط لدور ثانويّ).
+    $__ticketLayout = auth()->user()->hasSuperAdminRole() ? 'layouts.admin' : 'layouts.support';
 @endphp
 @extends($__ticketLayout)
 

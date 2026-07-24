@@ -1,7 +1,9 @@
 @php
     // السوبر أدمن يدير التذاكر من داخل لوحته (منفصلة تماماً عن لوحة موظّف الدعم الفنيّ)،
     // فيما يراها موظّف الدعم داخل لوحة الدعم. البيانات والمنطق مشتركان، والقشرة تختلف بالدور.
-    $__ticketLayout = auth()->user()->role === 'technical_support' ? 'layouts.support' : 'layouts.admin';
+    // نختار قشرة الأدمن **للسوبر أدمن الحقيقيّ فقط** (hasSuperAdminRole)، لا لـ«كلّ من ليس دعماً»:
+    // فالدعم قد يكون دوراً ثانويّاً لمعلّم/طالب، فمطابقة العمود الأساسيّ كانت تسرّب شريط الأدمن كاملاً.
+    $__ticketLayout = auth()->user()->hasSuperAdminRole() ? 'layouts.admin' : 'layouts.support';
 @endphp
 @extends($__ticketLayout)
 

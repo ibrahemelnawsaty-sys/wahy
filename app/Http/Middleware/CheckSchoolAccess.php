@@ -20,8 +20,10 @@ class CheckSchoolAccess
             return $next($request);
         }
 
-        // التحقق من وجود مدرسة للمستخدم
-        if ($user && ! $user->school_id) {
+        // التحقق من وجود مدرسة نشطة **قابلة للحلّ** — لا مجرّد school_id غير فارغ. لو كان school_id
+        // مضبوطاً لكنّ سجلّ المدرسة محذوفاً (أو الجلسة تشير لمدرسة غير مُدارة)، فإن activeSchool = null
+        // فينهار كلّ مُتحكّم يقرأ $user->activeSchool->id بخطأ 500. حارسٌ موحّد هنا يمنع ذلك.
+        if ($user && ! $user->activeSchool) {
             abort(403, 'لا يوجد مدرسة مرتبطة بحسابك. يرجى التواصل مع الإدارة.');
         }
 
