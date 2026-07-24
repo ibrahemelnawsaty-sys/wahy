@@ -155,7 +155,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('messages')->name('messages.')->group(function () {
         Route::get('/', [\App\Http\Controllers\MessagesController::class, 'index'])->name('index');
         Route::get('/conversation/{userId}', [\App\Http\Controllers\MessagesController::class, 'getConversation'])->name('conversation');
-        Route::post('/send', [\App\Http\Controllers\MessagesController::class, 'send'])->name('send');
+        Route::post('/send', [\App\Http\Controllers\MessagesController::class, 'send'])->middleware('throttle:30,1')->name('send');
         Route::get('/unread/count', [\App\Http\Controllers\MessagesController::class, 'unreadCount'])->name('unread.count');
         Route::get('/check-new/{userId}', [\App\Http\Controllers\MessagesController::class, 'checkNewMessages'])->name('check.new');
         Route::get('/check-all/new', [\App\Http\Controllers\MessagesController::class, 'checkAllNewMessages'])->name('check.all');
@@ -490,7 +490,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/messages', [\App\Http\Controllers\MessagesController::class, 'index'])->name('messages.index');
         Route::get('/messages/conversation/{userId}', [\App\Http\Controllers\MessagesController::class, 'getConversation'])->name('messages.conversation');
         Route::get('/messages/{userId}', [\App\Http\Controllers\MessagesController::class, 'show'])->name('messages.show');
-        Route::post('/messages/send', [\App\Http\Controllers\MessagesController::class, 'send'])->name('messages.send');
+        Route::post('/messages/send', [\App\Http\Controllers\MessagesController::class, 'send'])->middleware('throttle:30,1')->name('messages.send');
         Route::get('/messages/unread/count', [\App\Http\Controllers\MessagesController::class, 'unreadCount'])->name('messages.unread.count');
         Route::get('/messages/check-new/{userId}', [\App\Http\Controllers\MessagesController::class, 'checkNewMessages'])->name('messages.check.new');
         Route::get('/messages/check-all/new', [\App\Http\Controllers\MessagesController::class, 'checkAllNewMessages'])->name('messages.check.all');
@@ -561,7 +561,7 @@ Route::middleware('auth')->group(function () {
         // المراسلات
         Route::get('/messages', [TeacherController::class, 'messages'])->name('messages');
         Route::get('/messages/conversation', [TeacherController::class, 'getConversation'])->name('messages.conversation');
-        Route::post('/messages/send', [TeacherController::class, 'sendMessage'])->name('messages.send');
+        Route::post('/messages/send', [TeacherController::class, 'sendMessage'])->middleware('throttle:30,1')->name('messages.send');
 
         // التقييمات
         Route::get('/ratings', [TeacherController::class, 'ratings'])->name('ratings');
@@ -651,7 +651,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/surveys/{surveyId}/comparison', [App\Http\Controllers\ParentDashboardController::class, 'surveyComparison'])->name('surveys.comparison');
         Route::get('/messages', [ParentController::class, 'messages'])->name('messages');
         Route::get('/messages/conversation', [ParentController::class, 'getConversation'])->name('messages.conversation');
-        Route::post('/messages/send', [ParentController::class, 'sendMessage'])->name('messages.send');
+        Route::post('/messages/send', [ParentController::class, 'sendMessage'])->middleware('throttle:30,1')->name('messages.send');
 
         // نظام المدح والهدايا
         Route::post('/children/{id}/praise', [ParentController::class, 'praiseChild'])->name('child.praise');

@@ -705,7 +705,11 @@
                 @if(in_array($activity->status ?? '', ['completed', 'approved'], true))
                     <span>✓</span>
                     <span>مكتمل</span>
-                @elseif(in_array($activity->status ?? '', ['pending', 'needs_review'], true))
+                @elseif(($activity->status ?? '') === 'needs_review')
+                    {{-- needs_review = لم يجتَز التصحيح الآليّ (قابل للإعادة) لا «قيد مراجعة المعلّم» — الوسم المضلِّل كان يمنع الطالب من إعادة المحاولة --}}
+                    <span>🔁</span>
+                    <span>أعِد المحاولة</span>
+                @elseif(($activity->status ?? '') === 'pending')
                     <span>⏳</span>
                     <span>قيد المراجعة</span>
                 @elseif(($activity->status ?? '') == 'locked')
