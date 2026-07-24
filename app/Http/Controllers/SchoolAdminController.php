@@ -306,6 +306,15 @@ class SchoolAdminController extends Controller
             ->where('role', 'teacher')
             ->findOrFail($id);
 
+        // حارس حذف هدّام: حذف المعلّم يُتلِف (cascade) فصوله وأنشطته → تسليمات الطلاب ودرجاتهم.
+        // نمنع الحذف الصلب متى وُجد ما يُتلَف؛ يُعاد الإسناد أو يُعطَّل الحساب أوّلاً.
+        $hasClassrooms = Classroom::where('teacher_id', $teacher->id)->exists();
+        $hasActivities = \App\Models\Activity::where('created_by', $teacher->id)->exists();
+        if ($hasClassrooms || $hasActivities) {
+            return redirect()->route('school-admin.teachers')
+                ->with('error', 'لا يمكن حذف معلّمٍ له فصول أو أنشطة (الحذف يُتلِف تسليمات الطلاب). أعِد إسناد فصوله/أنشطته أوّلاً.');
+        }
+
         $teacher->delete();
 
         return redirect()->route('school-admin.teachers')->with('success', 'تم حذف المعلم');
@@ -698,7 +707,8 @@ class SchoolAdminController extends Controller
             'academic_year' => 'nullable|string|max:50',
             'capacity' => 'nullable|integer|min:1',
             'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
+            // enum جدول classrooms هو [active, archived] — كان 'inactive' يمرّ التحقّق ثمّ يُسقط 500
+            'status' => 'required|in:active,archived',
             'students' => 'nullable|array',
             'students.*' => 'exists:users,id',
         ]);
@@ -936,6 +946,10 @@ class SchoolAdminController extends Controller
 
         $activity = $this->schoolActivitiesQuery()->findOrFail($id);
         $schoolId = Auth::user()->activeSchoolId();
+
+        // تناظرٌ مع rejectActivity: لا يُعيد مدير المدرسة نشرَ/اعتماد نشاطٍ اعتمده الأدمن نهائيّاً
+        // (كان يستطيع عكس قرار النشر النهائيّ للأدمن وإعادة نشره لطلاب مدرسته).
+        abort_if($activity->approval_status === 'approved', 403, 'لا يمكن تعديل نشرٍ اعتمده الأدمن نهائيّاً.');
 
         // النشر مثبَّت على المدرسة النشطة (صفّ واحد) — تفاديًا لالتباس تعدّد المدارس (§8 عزل)
         app(\App\Services\ActivityPublishingService::class)

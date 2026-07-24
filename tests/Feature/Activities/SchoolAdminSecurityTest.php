@@ -51,6 +51,20 @@ class SchoolAdminSecurityTest extends TestCase
         $this->assertDatabaseMissing('classrooms', ['id' => $classroom->id]);
     }
 
+    public function test_delete_teacher_blocked_when_has_classrooms(): void
+    {
+        $school = School::factory()->create();
+        $admin = $this->schoolAdmin($school);
+        $teacher = User::factory()->create(['role' => 'teacher', 'school_id' => $school->id]);
+        Classroom::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
+
+        $this->actingAs($admin)
+            ->delete(route('school-admin.teachers.delete', $teacher->id))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $teacher->id]);
+    }
+
     public function test_delete_classroom_isolated_to_active_school(): void
     {
         $schoolA = School::factory()->create();
