@@ -2228,6 +2228,17 @@ class TeacherController extends Controller
             ->paginate(50)
             ->withQueryString();
 
+        // خصوصيّة: نطاقا المدينة/الدولة يعرضان طلاب مدارس أخرى (قُصّر) للمعلّم — نُخفي الاسم الكامل
+        // إلى «الاسم الأول + حرف» فيبقى التنافس دون كشف هويّة طلاب مدرسة أخرى. نطاق فصله/مدرسته يبقى كاملاً.
+        if (in_array($scope, ['city', 'country'], true)) {
+            $leaders->getCollection()->transform(function ($u) {
+                $parts = preg_split('/\s+/', trim((string) $u->name));
+                $u->name = ($parts[0] ?? '') . (isset($parts[1]) && $parts[1] !== '' ? ' ' . mb_substr($parts[1], 0, 1) . '.' : '');
+
+                return $u;
+            });
+        }
+
         return view('teacher.student-leaderboard', compact('leaders', 'scope'));
     }
 
