@@ -924,6 +924,14 @@ class StudentController extends Controller
             // ميزة #23: نشاط يتطلّب موافقة وليّ الأمر — لا يدخل طابور المعلّم إلا بعد موافقته.
             $parentApprovalStatus = $activity->requires_parent_approval ? 'pending' : null;
 
+            // تأجيلٌ حتى موافقة الوليّ: لا يُحتسَب التسليم «مكتمِلاً» ولا يُمنَح الابنُ اقتصاداً قبل
+            // موافقة الوليّ — كان يُكافَأ ويُعدّ مكتمِلاً فوراً فتصير موافقة الوليّ تجميليّة. يُنهي
+            // approveParentActivity الحالةَ ويمنح عند الموافقة. (الدرجة score تُحفَظ لاستئنافها.)
+            $deferForParent = $parentApprovalStatus === 'pending';
+            if ($deferForParent) {
+                $status = 'pending';
+            }
+
             // تخزين مسار الملف ضمن الإجابة كـ JSON إن وجد
             $answerToStore = is_array($rawAnswer) ? json_encode($rawAnswer, JSON_UNESCAPED_UNICODE) : $rawAnswer;
             if ($uploadedPath) {
@@ -1058,7 +1066,8 @@ class StudentController extends Controller
         $coinDelta = 0;
 
         try {
-            if ($score !== null && ! empty($submissionResult['submission'])) {
+            // لا منح قبل موافقة الوليّ (#23) — يُمنَح عند approveParentActivity
+            if ($score !== null && ! $deferForParent && ! empty($submissionResult['submission'])) {
                 // قفل صفّيّ ذرّيّ: نحسب الفرق مقابل أفضل XP سابق ونُحدّثه (ضدّ سباق تسليمين)
                 [$xpDelta, $coinDelta] = \Illuminate\Support\Facades\DB::transaction(function () use ($submissionResult, $xp) {
                     $sub = ActivitySubmission::lockForUpdate()->find($submissionResult['submission']->id);
@@ -1114,7 +1123,7 @@ class StudentController extends Controller
             try {
                 $streakEnabled = $this->getStreakSetting('streak_enabled', $student) === '1';
 
-                if ($streakEnabled) {
+                if ($streakEnabled && ! $deferForParent) {
                     $minDays = (int) $this->getStreakSetting('streak_min_days', $student, 3);
                     $maxDays = (int) $this->getStreakSetting('streak_max_days', $student, 7);
                     $bonusPoints = (int) $this->getStreakSetting('streak_bonus_points', $student, 50);

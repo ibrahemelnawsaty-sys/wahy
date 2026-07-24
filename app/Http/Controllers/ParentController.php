@@ -530,6 +530,27 @@ class ParentController extends Controller
                     'parent_approved_at' => now(),
                 ]);
 
+                // إنهاء تسليم الابن ومنحه (كان مؤجَّلاً حتى موافقة الوليّ #23): الحالة النهائيّة من
+                // الدرجة + منح «أفضل محاولة» (الفرق فوق awarded_points). التسليم اليدويّ (score=null)
+                // يبقى pending فيدخل طابور المعلّم (parentCleared صار true) ويمنحه المعلّم.
+                $activity = $submission->activity;
+                $score = $submission->score;
+                if ($activity && $score !== null) {
+                    $passing = \App\Services\ActivityGradingService::passingScoreFor($activity);
+                    $finalStatus = $score >= $passing ? 'completed' : 'needs_review';
+                    $xp = (int) round(($score / 100) * (int) ($activity->points ?? 10));
+                    $priorXp = (int) ($submission->awarded_points ?? 0);
+                    $xpDelta = max(0, $xp - $priorXp);
+                    $coinDelta = max(0, ($xp > 0 ? max(1, intdiv($xp, 2)) : 0) - ($priorXp > 0 ? max(1, intdiv($priorXp, 2)) : 0));
+                    $submission->update(['status' => $finalStatus, 'awarded_points' => max($priorXp, $xp)]);
+                    if ($xpDelta > 0) {
+                        \App\Models\Point::create(['user_id' => $submission->student_id, 'points' => $xpDelta, 'reason' => 'إكمال نشاط (بعد موافقة الوليّ)', 'activity_id' => $activity->id]);
+                    }
+                    if ($coinDelta > 0) {
+                        \App\Models\Coin::create(['user_id' => $submission->student_id, 'coins' => $coinDelta, 'reason' => 'إكمال نشاط', 'transaction_type' => 'earn']);
+                    }
+                }
+
                 // نقاط وليّ الأمر (مقدار قابل للضبط) — مثبّتة على معرّف التسليم فلا تتضاعف
                 $points = max(0, (int) setting('parent_approval_points', 5));
                 if ($points > 0) {

@@ -372,6 +372,12 @@ class StudentApiController extends Controller
         $passed = ($score !== null && $score >= $passing);
         $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
 
+        // تأجيل حتى موافقة الوليّ (#23) كالويب: لا إكمال ولا منح قبل موافقة الوليّ.
+        $deferForParent = (bool) $activity->requires_parent_approval;
+        if ($deferForParent) {
+            $status = 'pending';
+        }
+
         // #13 عدم تدهور: إن كانت للمحاولة السابقة درجةٌ أفضل، لا نُنزل الدرجة/الحالة/الإجابة (نُزيد المحاولة فقط).
         $keepsBest = $existing && $score !== null && $existing->score !== null && $score < (int) $existing->score;
 
@@ -411,7 +417,8 @@ class StudentApiController extends Controller
 
         // منح «أفضل محاولة» (كالويب): الفرق التصاعديّ فوق awarded_points فقط — لا تراكم ولا مضاعفة،
         // ومحاولةٌ أسوأ تُعطي فرقاً = 0. تسليمُ المراجعة اليدويّة (score=null) يمنحه المعلّم لاحقاً.
-        if ($score !== null) {
+        // ولا منح قبل موافقة الوليّ (#23) — يُمنَح عند approveParentActivity.
+        if ($score !== null && ! $deferForParent) {
             $xp = (int) round(($score / 100) * (int) ($activity->points ?? 10));
             [$xpDelta, $coinDelta] = \Illuminate\Support\Facades\DB::transaction(function () use ($submission, $xp) {
                 $sub = ActivitySubmission::lockForUpdate()->find($submission->id);
