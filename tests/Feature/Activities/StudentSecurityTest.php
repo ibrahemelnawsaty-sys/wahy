@@ -129,6 +129,24 @@ class StudentSecurityTest extends TestCase
         $this->assertSame(5, (int) \App\Models\Point::where('user_id', $student->id)->sum('points'), '50% من 10 = 5 XP');
     }
 
+    public function test_timed_quiz_rejects_direct_submit_without_started_timer(): void
+    {
+        $school = \App\Models\School::factory()->create();
+        $student = User::factory()->student($school)->create();
+        $activity = Activity::factory()->create([
+            'lesson_id' => null, 'status' => 'active', 'all_schools_mode' => 'direct',
+            'type' => 'quiz', 'quiz_duration' => 10, 'points' => 10, 'manual_review' => false,
+            'questions' => [['type' => 'multiple_choice', 'text' => 'س', 'correct_index' => 0,
+                'options' => [['text' => 'أ', 'is_correct' => true], ['text' => 'ب', 'is_correct' => false]]]],
+        ]);
+
+        // إرسال مباشر بلا فتح الاختبار (لا وقت بدء في الجلسة) → يُرفَض (كان فشلاً مفتوحاً بوقتٍ لا نهائيّ)
+        $this->actingAs($student)
+            ->postJson(route('student.activity.submit', $activity->id), ['answer' => 'x'])
+            ->assertStatus(422)
+            ->assertJson(['success' => false]);
+    }
+
     public function test_api_values_tree_respects_school_value_gate(): void
     {
         $school = \App\Models\School::factory()->create();

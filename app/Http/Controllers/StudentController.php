@@ -799,8 +799,9 @@ class StudentController extends Controller
             ->where('activity_id', $id)
             ->first();
 
-        // بدء مؤقّت الاختبار الموقوت خادمياً (مرة واحدة لكل جلسة/نشاط) — أساس فرض الحد الزمني
-        if (($activity->quiz_duration ?? null) && $activity->type === 'quiz' && ! $submission) {
+        // بدء مؤقّت الاختبار الموقوت خادمياً — لكل فتحٍ لاختبارٍ موقوت (يشمل إعادة المحاولة، لا
+        // أوّل مرّة فقط) كي لا تبقى الإعادةُ بلا مؤقّت. يُصفَّر عند الإرسال فتبدأ الإعادة توقيتاً جديداً.
+        if (($activity->quiz_duration ?? null) && $activity->type === 'quiz') {
             $key = "quiz_started_{$activity->id}";
             if (! session()->has($key)) {
                 session()->put($key, now()->timestamp);
@@ -851,7 +852,15 @@ class StudentController extends Controller
             // حدّ زمني للاختبار الموقوت — يُفرَض بوقت الجلسة الخادمي (لا يتحكّم به العميل)
             if (($activity->quiz_duration ?? null) && $activity->type === 'quiz') {
                 $startedAt = session("quiz_started_{$activity->id}");
-                if ($startedAt && (now()->timestamp - (int) $startedAt) > (((int) $activity->quiz_duration) * 60 + 10)) {
+                // لا فشل مفتوح: اختبارٌ موقوت يُرسَل بلا وقت بدءٍ مُسجَّل (POST مباشر أو جلسة مُصفّاة
+                // للتحايل على انتهاء الوقت) يُرفَض — يجب فتحه لبدء المؤقّت. كان الفحص يُتجاوَز فيُمنح وقتٌ لا نهائيّ.
+                if (! $startedAt) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'يجب فتح الاختبار لبدء المؤقّت قبل الإرسال.',
+                    ], 422);
+                }
+                if ((now()->timestamp - (int) $startedAt) > (((int) $activity->quiz_duration) * 60 + 10)) {
                     session()->forget("quiz_started_{$activity->id}");
 
                     return response()->json([
