@@ -106,7 +106,6 @@ html[data-theme="dark"] .user-info p { color: #94a3b8; }
 
 .message-bubble {
     width: fit-content;
-    min-width: 104px;            /* يمنع انكماش الرسائل القصيرة/متعدّدة الأسطر إلى شريط رأسيّ نحيل */
     max-width: 72%;
     padding: 7px 12px 6px;
     border-radius: 14px;
@@ -880,9 +879,14 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
   }
 }
 
-/* الفقاعات: عرض متجاوب (الأسطح/الذيول/الظلال موجودة وتبقى) */
-.student-app .message-bubble{ max-width:min(68%,720px); }
-@media (min-width:768px) and (max-width:1023px){ .student-app .message-bubble{ max-width:72%; } }
+/* الفقاعات: عرض متجاوب + حشو مُحكَم يلاصق النصّ (نمط واتساب) وتباعد رأسيّ ضيّق ليظهر عددٌ
+   أكبر من الرسائل. width:fit-content يجعل الفقاعة بعرض نصّها فقط لا مربّعاً عريضاً. */
+.student-app .message-bubble{ max-width:min(72%,560px); padding:5px 10px 3px; line-height:1.35; border-radius:12px; }
+.student-app .message{ margin-bottom:2px; }
+.student-app .message.sent + .message.received,
+.student-app .message.received + .message.sent{ margin-top:7px; }   /* كان 14px */
+.student-app .message-time{ font-size:9.5px; margin-top:1px; }
+@media (min-width:768px) and (max-width:1023px){ .student-app .message-bubble{ max-width:78%; } }
 
 /* المُنشئ (ديسكتوب/تابلت): طفل مرن — سطح صلب */
 .student-app .chat-input{ background:var(--wm-surface); border-top-color:var(--wm-line); }
