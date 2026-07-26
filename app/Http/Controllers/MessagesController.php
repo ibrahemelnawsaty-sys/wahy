@@ -462,12 +462,13 @@ class MessagesController extends Controller
             ")
             ->first();
 
-        $totals = DB::table('users')
-            ->where('users.id', $user->id)
-            ->leftJoin('points', 'users.id', '=', 'points.user_id')
-            ->leftJoin('coins', 'users.id', '=', 'coins.user_id')
-            ->selectRaw('COALESCE(SUM(points.points), 0) as total_points, COALESCE(SUM(coins.coins), 0) as total_coins')
-            ->first();
+        // ❗ subqueries منفصلة لا leftJoin مزدوج على points+coins — الربط المزدوج يُنتج حاصل ضرب
+        // ديكارتيّ فيتضخّم كلّ مجموع بعدد صفوف الآخر (SUM(points)=النقاط×عددصفوف_العملات، والعكس)،
+        // فظهر المستوى 30 وعملات 90486 في الرسائل بينما الصحيح 1592/1371 (نفس إصلاح StudentController).
+        $totals = (object) [
+            'total_points' => (int) DB::table('points')->where('user_id', $user->id)->sum('points'),
+            'total_coins' => (int) DB::table('coins')->where('user_id', $user->id)->sum('coins'),
+        ];
 
         // Get streak with null check
         try {
