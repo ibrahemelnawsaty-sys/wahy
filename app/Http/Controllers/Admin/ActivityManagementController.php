@@ -104,6 +104,13 @@ class ActivityManagementController extends Controller
             $validated['media'] = $media;
         }
 
+        // تشخيص: نُسجّل ما وصل فعلاً من ملفّات (يكشف: هل تصل الملفّات أصلاً؟ وهل الكود الجديد يعمل؟)
+        \Illuminate\Support\Facades\Log::info('activity-media-diag@store', [
+            'file_keys' => array_keys($request->allFiles()),
+            'collected' => count($media),
+            'content_length' => $request->server('CONTENT_LENGTH'),
+        ]);
+
         // نشرٌ مباشر: محتوى الأدمن (منهجيّ موثوق، مُعتمَد تلقائياً) يجب أن يظهر للطلاب فوراً.
         // بدون هذا يبقى all_schools_mode='none' الافتراضيّ فيُولَد النشاط مخفيّاً عن كل الطلاب
         // (انحدار أدخلته إعادة هيكلة النشر التي استبدلت فلتر approval_status='approved'). القيمة
@@ -112,9 +119,17 @@ class ActivityManagementController extends Controller
 
         Activity::create($validated);
 
+        // رسالة تشخيصيّة مؤقّتة: تُظهر عدد الملفّات المُلتقَطة. إن ظهرت «(وسائط: N)» فالكود الجديد
+        // يعمل والملفّات تصل؛ وإن لم تظهر هذه الإضافة إطلاقاً فالكود المنشور قديم (opcache) — أعِد
+        // ضبط opcache/أعِد تشغيل PHP على الاستضافة. وإن ظهرت «(بلا وسائط)» فالملفّات لا تصل للخادم.
+        $mediaCount = count($media);
+        $note = $mediaCount > 0
+            ? " (وسائط مرفقة: {$mediaCount} ✅)"
+            : ' (بلا وسائط مرفقة — لم يصل أيّ ملفّ ⚠️)';
+
         return redirect()
             ->route('admin.activities.index', ['lesson_id' => $validated['lesson_id']])
-            ->with('success', 'تم إضافة النشاط بنجاح!');
+            ->with('success', 'تم إضافة النشاط بنجاح!' . $note);
     }
 
     public function show(Activity $activity)
