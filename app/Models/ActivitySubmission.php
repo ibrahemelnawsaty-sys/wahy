@@ -92,7 +92,12 @@ class ActivitySubmission extends Model
                 return;
             }
 
-            if ($actor && in_array($actor->role, ['teacher', 'school_admin', 'super_admin'], true)) {
+            // نطابق CheckRole: نعتبر الأدوار الفعليّة (الأساسيّ ∪ الثانويّ) لا العمود الأساسيّ وحده —
+            // فمديرُ مدرسة/معلّم بدورٍ ثانويّ يمرّ الـmiddleware ويجب ألّا يُصدّ هنا بـ403 (تراجع صامت).
+            $actorRoles = $actor
+                ? (method_exists($actor, 'getAllRoles') ? $actor->getAllRoles() : [$actor->role])
+                : [];
+            if (count(array_intersect(['teacher', 'school_admin', 'super_admin'], $actorRoles)) > 0) {
                 return;
             }
 
@@ -150,5 +155,30 @@ class ActivitySubmission extends Model
     public function scopeSubmitted($query)
     {
         return $query->whereIn('status', self::SUBMITTED_STATUSES);
+    }
+
+    /**
+     * Scope: التسليمات «العالقة» في مدرسةٍ بعينها والتي يجوز لمدير المدرسة حسمها كخيارٍ احتياطيّ
+     * عند عدم تجاوب المعلّم أو وليّ الأمر — اتحادٌ حصريّ لدلوَين منفصلين:
+     *  (أ) بانتظار تصحيح المعلّم: status ∈ PENDING_REVIEW ومُخلاةٌ من بوّابة الوليّ (parentCleared)،
+     *  (ب) بانتظار موافقة الوليّ: parent_approval_status = 'pending'.
+     * النطاق عبر الطالب (لا school_id مباشر على activity_submissions).
+     */
+    public function scopeAwaitingSchoolResolution($query, int $schoolId)
+    {
+        return $query
+            ->whereHas('student', fn ($q) => $q->where('school_id', $schoolId))
+            // غير منتهٍ فقط: يمنع عودة تسليمٍ حُسِم (مُعتمَد/مرفوض) — فتسليمٌ رُفض تبقى بوّابة وليّه
+            // 'pending' لولا هذا الحارس فيُعاد إدراجه عبر دلو الوليّ أدناه.
+            ->whereNotIn('status', array_merge(self::DONE_STATUSES, ['rejected']))
+            ->where(function ($q) {
+                $q->where(function ($teacher) {
+                    $teacher->whereIn('status', self::PENDING_REVIEW_STATUSES)
+                        ->where(function ($pc) {
+                            $pc->whereNull('parent_approval_status')
+                                ->orWhere('parent_approval_status', 'approved');
+                        });
+                })->orWhere('parent_approval_status', 'pending');
+            });
     }
 }

@@ -1052,6 +1052,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ route('school-admin.pending-submissions') }}" class="nav-link {{ request()->routeIs('school-admin.pending-submissions*') ? 'active' : '' }}">
+                            <span class="nav-icon"><i class="fas fa-hourglass-half"></i></span>
+                            <span class="nav-text">التقديمات المعلّقة</span>
+                            @php
+                                $pendingSubmissionsCount = \App\Models\ActivitySubmission::awaitingSchoolResolution((int) auth()->user()->activeSchoolId())->count();
+                            @endphp
+                            <span class="nav-badge" style="display: {{ $pendingSubmissionsCount > 0 ? 'inline-flex' : 'none' }};" data-live="school_pending_submissions" data-live-badge>{{ $pendingSubmissionsCount > 0 ? $pendingSubmissionsCount : 0 }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ route('school-admin.registration-links') }}" class="nav-link {{ request()->routeIs('school-admin.registration-links') ? 'active' : '' }}">
                             <span class="nav-icon"><i class="fas fa-link"></i></span>
                             <span class="nav-text">روابط التسجيل</span>

@@ -1019,6 +1019,228 @@ class SchoolAdminController extends Controller
         return back()->with('success', 'تم رفض النشاط وإخطار المعلّم');
     }
 
+    // ==================== التقديمات المعلّقة (حسم احتياطيّ لمدير المدرسة) ====================
+
+    /**
+     * قائمة تسليمات طلاب مدرستي العالقة (بانتظار المعلّم أو وليّ الأمر) ليحسمها المدير احتياطيّاً.
+     * مُقيَّدة بمدرسة المدير النشطة عبر الطالب (عزل صارم — لا تسريب تسليمات مدارس أخرى).
+     */
+    public function pendingSubmissions(Request $request)
+    {
+        $schoolId = Auth::user()->activeSchoolId();
+        $school = Auth::user()->activeSchool;
+
+        $submissions = ActivitySubmission::awaitingSchoolResolution($schoolId)
+            ->with(['student', 'activity.lesson.concept.value'])
+            ->latest('submitted_at')
+            ->paginate(20);
+
+        $base = fn () => ActivitySubmission::awaitingSchoolResolution($schoolId);
+        $stats = [
+            'total' => $base()->count(),
+            'awaiting_teacher' => $base()->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)
+                ->where(fn ($q) => $q->whereNull('parent_approval_status')->orWhere('parent_approval_status', 'approved'))
+                ->count(),
+            'awaiting_parent' => $base()->where('parent_approval_status', 'pending')->count(),
+        ];
+
+        return view('school-admin.pending-submissions.index', compact('submissions', 'stats', 'school'));
+    }
+
+    /**
+     * اعتماد تسليم عالق ومنح الطالب نقاطه — يعكس منطق تصحيح المعلّم:
+     * منحٌ ذرّيّ عبر AwardService (مفتاح activity_submission/{id}) بفرقٍ تصاعديّ فوق awarded_points،
+     * ومسحُ بوّابة الوليّ إن كانت معلّقة. لا يُثبّت اعتماداً صفريّاً على تسليمٍ يدويّ بلا درجة:
+     * إن كان بانتظار الوليّ يُمسَح الگيت فقط (يبقى للمعلّم)، وإلّا يُطلَب إدخال درجة.
+     */
+    public function approveSubmission(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'score' => 'nullable|integer|min:0|max:100',
+            'feedback' => 'nullable|string|max:1000',
+        ]);
+
+        $schoolId = Auth::user()->activeSchoolId();
+
+        try {
+            $result = DB::transaction(function () use ($id, $validated, $schoolId) {
+                // قفل + تقييد صارم بمدرسة المدير (حماية IDOR — لا يحسم تسليم مدرسة أخرى)
+                $submission = ActivitySubmission::whereHas('student', fn ($q) => $q->where('school_id', $schoolId))
+                    ->lockForUpdate()
+                    ->findOrFail($id);
+
+                // idempotency: تسليمٌ حُسِم سابقاً (منتهٍ/مرفوض) لا يُعاد اعتماده
+                if (in_array($submission->status, ActivitySubmission::DONE_STATUSES, true) || $submission->status === 'rejected') {
+                    return ['code' => 'already'];
+                }
+
+                $activity = $submission->activity;
+                $parentWasPending = ($submission->parent_approval_status ?? null) === 'pending';
+                // الدرجة الفعّالة: ما أدخله المدير، وإلّا درجة التسليم المحفوظة (تقييم آليّ). قد تبقى null.
+                $effectiveScore = $validated['score'] ?? $submission->score;
+
+                // تسليمٌ يدويّ بلا درجة والمدير لم يُدخل واحدة — لا نُثبّته «معتمَداً بصفر» صامتاً:
+                if ($effectiveScore === null) {
+                    if ($parentWasPending) {
+                        // موافقةٌ نيابةً عن الوليّ فقط (كدلالة #23): تبقى pending لطابور المعلّم ليصحّحها.
+                        $submission->update([
+                            'parent_approval_status' => 'approved',
+                            'parent_approved_by' => Auth::id(),
+                            'parent_approved_at' => now(),
+                        ]);
+
+                        return ['code' => 'parent_cleared'];
+                    }
+
+                    return ['code' => 'need_score'];
+                }
+
+                $update = [
+                    'status' => 'approved',
+                    'score' => $effectiveScore,
+                    'feedback' => $validated['feedback'] ?? $submission->feedback,
+                    'reviewed_by' => Auth::id(),
+                    'reviewed_at' => now(),
+                ];
+                if ($parentWasPending) {
+                    $update['parent_approval_status'] = 'approved';
+                    $update['parent_approved_by'] = Auth::id();
+                    $update['parent_approved_at'] = now();
+                }
+                $submission->update($update);
+
+                // منح الطالب بنفس صيغة/مفتاح المعلّم: XP=round(score/100×points)، coins=max(1,⌊XP/2⌋)،
+                // والفرق التصاعديّ فوق awarded_points فقط — فمفتاح AwardService المشترك يمنع الازدواج.
+                $activityPoints = (int) (optional($activity)->points ?? 10);
+                $finalXp = (int) round(($effectiveScore / 100) * $activityPoints);
+                $finalCoins = $finalXp > 0 ? max(1, (int) floor($finalXp / 2)) : 0;
+                $autoXp = (int) ($submission->awarded_points ?? 0);
+                $autoCoins = $autoXp > 0 ? max(1, (int) floor($autoXp / 2)) : 0;
+                $xpAward = max(0, $finalXp - $autoXp);
+                $coinsAward = max(0, $finalCoins - $autoCoins);
+
+                // بلا try/catch داخليّ: فشلُ المنح (نادرٌ، بنية تحتيّة) يُدحرج المعاملة كاملةً فيبقى
+                // التسليم معلّقاً قابلاً للإعادة، بدل «معتمَد بلا نقاط» مع awarded_points كاذب.
+                if ($xpAward > 0 || $coinsAward > 0) {
+                    \App\Services\AwardService::award(
+                        $submission->student_id,
+                        'activity_submission',
+                        (string) $submission->id,
+                        $xpAward,
+                        $coinsAward,
+                        'اعتماد نشاط (مدير المدرسة): ' . (optional($activity)->title ?? 'نشاط'),
+                        distribute: true,
+                    );
+                }
+
+                // تثبيت الحدّ الأعلى **بعد** حساب الفرق (لا قبله، وإلّا صار الفرق 0).
+                if ($finalXp > $autoXp) {
+                    $submission->update(['awarded_points' => $finalXp]);
+                }
+
+                return [
+                    'code' => 'done',
+                    'studentId' => $submission->student_id,
+                    'activityId' => $submission->activity_id,
+                    'title' => optional($activity)->title ?? 'نشاط',
+                    'score' => $effectiveScore,
+                ];
+            }, 3);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            throw $e; // تسليمٌ غير موجود أو خارج مدرسة المدير → 404 (لا نُحوّله لرسالة ودّية تكشف الفرق)
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('approveSubmission failed: ' . $e->getMessage());
+
+            return back()->with('error', 'تعذّر اعتماد التسليم، حاول مرّة أخرى.');
+        }
+
+        // إشعار الطالب بعد الاعتماد النهائيّ (خارج المعاملة، أفضل جهد)
+        if (($result['code'] ?? null) === 'done') {
+            try {
+                NotificationService::send(
+                    $result['studentId'],
+                    'تم اعتماد تسليمك ✅',
+                    "اعتمدت إدارة المدرسة تسليمك في «{$result['title']}» وحصلت على نقاطك ({$result['score']}%).",
+                    'activity_graded',
+                    route('student.activity', $result['activityId']),
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('approveSubmission notify failed: ' . $e->getMessage());
+            }
+        }
+
+        return match ($result['code'] ?? 'already') {
+            'done' => back()->with('success', 'تم اعتماد التسليم ومنح الطالب نقاطه. ✅'),
+            'parent_cleared' => back()->with('success', 'تمت الموافقة نيابةً عن وليّ الأمر؛ التسليم الآن بانتظار تصحيح المعلّم.'),
+            'need_score' => back()->with('error', 'أدخِل درجةً (0-100) لاعتماد هذا التسليم اليدويّ.'),
+            default => back()->with('info', 'التسليم محسومٌ سابقاً.'),
+        };
+    }
+
+    /**
+     * رفض تسليم عالق — يُنهيه بلا منح. لا يُصادر نقاطاً مُنِحت آلياً سابقاً (تفادي منح سالب هشّ).
+     */
+    public function rejectSubmission(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'feedback' => 'nullable|string|max:1000',
+        ]);
+
+        $schoolId = Auth::user()->activeSchoolId();
+
+        $result = DB::transaction(function () use ($id, $validated, $schoolId) {
+            $submission = ActivitySubmission::whereHas('student', fn ($q) => $q->where('school_id', $schoolId))
+                ->lockForUpdate()
+                ->findOrFail($id);
+
+            if (in_array($submission->status, ActivitySubmission::DONE_STATUSES, true) || $submission->status === 'rejected') {
+                return ['code' => 'already'];
+            }
+
+            $update = [
+                'status' => 'rejected',
+                'feedback' => $validated['feedback'] ?? $submission->feedback,
+                'reviewed_by' => Auth::id(),
+                'reviewed_at' => now(),
+            ];
+            // حسمُ بوّابة الوليّ المعلّقة أيضاً — وإلّا بقيت parent_approval_status='pending' فيرى الوليّ
+            // التسليم في طابور موافقته ويستطيع اعتماده (approveParentActivity) فيُلغي الرفض ويمنح الطالب.
+            // parent_approval_status نصّ (لا enum) فتُقبَل 'rejected' بلا هجرة.
+            if (($submission->parent_approval_status ?? null) === 'pending') {
+                $update['parent_approval_status'] = 'rejected';
+                $update['parent_approved_by'] = Auth::id();
+                $update['parent_approved_at'] = now();
+            }
+            $submission->update($update);
+
+            return [
+                'code' => 'done',
+                'studentId' => $submission->student_id,
+                'activityId' => $submission->activity_id,
+                'title' => optional($submission->activity)->title ?? 'نشاط',
+            ];
+        }, 3);
+
+        if (($result['code'] ?? null) === 'done') {
+            try {
+                NotificationService::send(
+                    $result['studentId'],
+                    'تم رفض تسليمك',
+                    "رفضت إدارة المدرسة تسليمك في «{$result['title']}». يمكنك مراجعة معلّمك.",
+                    'activity_rejected',
+                    route('student.activity', $result['activityId']),
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('rejectSubmission notify failed: ' . $e->getMessage());
+            }
+        }
+
+        return back()->with(
+            ($result['code'] ?? null) === 'done' ? 'success' : 'info',
+            ($result['code'] ?? null) === 'done' ? 'تم رفض التسليم.' : 'التسليم محسومٌ سابقاً.'
+        );
+    }
+
     // ==================== Excel Import/Export ====================
 
     /**

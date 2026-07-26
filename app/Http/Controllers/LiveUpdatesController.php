@@ -86,6 +86,8 @@ class LiveUpdatesController extends Controller
                 ->where('school_approval_status', 'pending')
                 ->whereHas('creator', fn ($q) => $q->where('school_id', $user->school_id)->where('role', 'teacher'))
                 ->count());
+            // التقديمات المعلّقة (بانتظار المعلّم أو الوليّ) — بالمدرسة النشطة لمطابقة شارة القائمة.
+            $counts['school_pending_submissions'] = $safe(fn () => \App\Models\ActivitySubmission::awaitingSchoolResolution((int) $user->activeSchoolId())->count());
         }
 
         // ── student ──

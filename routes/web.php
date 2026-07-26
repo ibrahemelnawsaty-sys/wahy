@@ -473,6 +473,11 @@ Route::middleware('auth')->group(function () {
         // صفحة تفاصيل النشاط الموحّدة (المرحلة 4)
         Route::get('/activities/{id}', [SchoolAdminController::class, 'showActivity'])->whereNumber('id')->name('activities.show');
 
+        // التقديمات المعلّقة — حسمٌ احتياطيّ (بانتظار المعلّم أو وليّ الأمر) مُقيَّد بمدرسة المدير
+        Route::get('/pending-submissions', [SchoolAdminController::class, 'pendingSubmissions'])->name('pending-submissions');
+        Route::post('/pending-submissions/{id}/approve', [SchoolAdminController::class, 'approveSubmission'])->whereNumber('id')->name('pending-submissions.approve');
+        Route::post('/pending-submissions/{id}/reject', [SchoolAdminController::class, 'rejectSubmission'])->whereNumber('id')->name('pending-submissions.reject');
+
         // Excel Import/Export
         Route::get('/excel-management', [SchoolAdminController::class, 'excelManagement'])->name('excel-management');
         Route::get('/download-template', [SchoolAdminController::class, 'downloadTemplate'])->name('download-template');
