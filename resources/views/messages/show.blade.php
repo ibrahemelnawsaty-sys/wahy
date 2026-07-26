@@ -850,15 +850,9 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
 .student-app .user-info p{ color:var(--wm-ink-muted); }
 .student-app .user-avatar{ border-color:var(--wm-surface); }
 
-/* منطقة الرسائل تملأ + قياس قراءة مريح داخل لوحة عريضة (لابتوب) */
-.student-app .chat-messages{ flex:1; min-height:0; }
-/* الشاشات الكبيرة: تثبيت الرسائل القليلة قرب الأسفل (نمط تطبيقات المحادثة) كي لا تبدو المنطقة
-   فراغاً كبيراً فوق رسالتين. فاصل ::before بهامش علويّ تلقائيّ يتلاشى عند امتلاء المحتوى فيبقى
-   التمرير سليماً للمحادثات الطويلة. */
-@media (min-width:641px){
-  .student-app .chat-messages{ display:flex; flex-direction:column; }
-  .student-app .chat-messages::before{ content:""; margin-top:auto; }
-}
+/* منطقة الرسائل تملأ وتُمرَّر من الأعلى للأسفل طبيعيًّا (تراجع عن تثبيت-للأسفل الذي كان يحبس
+   التمرير عند آخر رسالتين في المحادثات الطويلة فلا تُرى الرسائل الأقدم). */
+.student-app .chat-messages{ flex:1; min-height:0; overflow-y:auto; }
 /* الكمبيوتر: لوحة محادثة محتواة ومتمركّزة (بدل الامتداد حافّة-لحافّة الذي يجعل البطاقة عملاقة
    شبه فارغة). البطاقة نفسها ~1160px في وسط الشاشة فوق خلفية التدرّج — تبدو الرسائل مجمّعة وواضحة. */
 @media (min-width:1024px){
