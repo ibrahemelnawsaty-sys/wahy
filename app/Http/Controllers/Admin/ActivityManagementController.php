@@ -98,16 +98,28 @@ class ActivityManagementController extends Controller
         // allowed_file_types مصبوب array في الموديل فيُشفَّر تلقائياً؛ json_encode اليدويّ
         // كان يُنتج تشفيراً مزدوجاً (يُقرأ نصًّا لا مصفوفة → accept=".pdf") فحُذف.
 
-        // الوسائط المتعددة المرفوعة (صور/صوت/فيديو/مستندات) — تظهر للطالب داخل النشاط
-        $media = $this->collectUploadedActivityMedia($request);
+        // الوسائط المتعددة (اختياريّة) — نجمعها بمرونة: فشلُها (تحقّق/تخزين) يجب ألّا يُسقِط النشاط
+        // كلّه (كان استثناء التحقّق يعيدنا للنموذج بصمت فيختفي كلّ شيء). نحفظ النشاط دائماً ونُظهر
+        // سبب فشل الوسائط إن وُجد.
+        $media = [];
+        $mediaError = null;
+        try {
+            $media = $this->collectUploadedActivityMedia($request);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $mediaError = collect($e->errors())->flatten()->implode(' ');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('activity-media-collect-failed@store', ['error' => $e->getMessage()]);
+            $mediaError = 'خطأ أثناء حفظ الملفّ: ' . $e->getMessage();
+        }
         if (! empty($media)) {
             $validated['media'] = $media;
         }
 
-        // تشخيص: نُسجّل ما وصل فعلاً من ملفّات (يكشف: هل تصل الملفّات أصلاً؟ وهل الكود الجديد يعمل؟)
+        // تشخيص: نُسجّل ما وصل فعلاً من ملفّات + أيّ خطأ (يكشف السبب الحقيقيّ في سجلّ الإنتاج)
         \Illuminate\Support\Facades\Log::info('activity-media-diag@store', [
             'file_keys' => array_keys($request->allFiles()),
             'collected' => count($media),
+            'error' => $mediaError,
             'content_length' => $request->server('CONTENT_LENGTH'),
         ]);
 
@@ -119,13 +131,16 @@ class ActivityManagementController extends Controller
 
         Activity::create($validated);
 
-        // رسالة تشخيصيّة مؤقّتة: تُظهر عدد الملفّات المُلتقَطة. إن ظهرت «(وسائط: N)» فالكود الجديد
-        // يعمل والملفّات تصل؛ وإن لم تظهر هذه الإضافة إطلاقاً فالكود المنشور قديم (opcache) — أعِد
-        // ضبط opcache/أعِد تشغيل PHP على الاستضافة. وإن ظهرت «(بلا وسائط)» فالملفّات لا تصل للخادم.
-        $mediaCount = count($media);
-        $note = $mediaCount > 0
-            ? " (وسائط مرفقة: {$mediaCount} ✅)"
-            : ' (بلا وسائط مرفقة — لم يصل أيّ ملفّ ⚠️)';
+        // رسالة تشخيصيّة مؤقّتة تكشف السبب: (أ) «تعذّر إرفاق الوسائط: {السبب}» = خطأ التحقّق/التخزين
+        // الحقيقيّ (وهو ما كان يُسقِط الحفظ صامتاً). (ب) «وسائط: N ✅» = نجح. (ج) «بلا وسائط» = لم يصل
+        // ملفّ. (د) لا إضافة إطلاقاً = الكود المنشور قديم (opcache) فأعِد تشغيل PHP.
+        if ($mediaError) {
+            $note = ' ⚠️ لكن تعذّر إرفاق الوسائط: ' . $mediaError;
+        } elseif (count($media) > 0) {
+            $note = ' (وسائط مرفقة: ' . count($media) . ' ✅)';
+        } else {
+            $note = ' (بلا وسائط مرفقة — لم يصل أيّ ملفّ)';
+        }
 
         return redirect()
             ->route('admin.activities.index', ['lesson_id' => $validated['lesson_id']])
