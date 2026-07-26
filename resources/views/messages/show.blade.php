@@ -856,15 +856,20 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
 /* الكمبيوتر: لوحة محادثة محتواة ومتمركّزة (بدل الامتداد حافّة-لحافّة الذي يجعل البطاقة عملاقة
    شبه فارغة). البطاقة نفسها ~1160px في وسط الشاشة فوق خلفية التدرّج — تبدو الرسائل مجمّعة وواضحة. */
 @media (min-width:1024px){
-  /* نمط واتساب-ويب: تملأ اللوحة ارتفاع الشاشة فتظهر رسائل كثيرة دون تمرير. نعطي البطاقة
-     ارتفاعاً صريحاً مبنيّاً على ارتفاع النافذة (flex:none يتجاوز سلسلة flex الهشّة التي كانت
-     تُنتج لوحة قصيرة تُظهر رسالتين). الطرح ≈ الشريط العلويّ + زرّ العودة + شريط التنقّل السفليّ. */
+  /* نمط واتساب-ويب: تملأ اللوحة ارتفاع الشاشة، ونُقلّص ارتفاع الرأس والمُنشئ + هدر زرّ العودة
+     لإفساح أكبر قدرٍ لمنطقة الرسائل فتظهر رسائل أكثر دون تمرير. البطاقة بارتفاع صريح (flex:none
+     يتجاوز سلسلة flex الهشّة)؛ الطرح 240px يُبقي المُنشئ فوق شريط التنقّل السفليّ. */
   .student-app .chat-container{
     max-width:1160px; margin-inline:auto; width:100%;
     flex:none; height:calc(100vh - 240px); min-height:480px;
   }
-  .student-app .chat-page{ padding-block:12px 0 !important; }
-  .student-app .chat-page > div:first-child{ margin-bottom:12px; }   /* تقليل هدر زرّ «العودة للرسائل» */
+  .student-app .chat-page{ padding-block:10px 0 !important; }
+  .student-app .chat-page > div:first-child{ margin-bottom:10px; }   /* هدر زرّ «العودة» أنحف */
+  .student-app .chat-header{ padding-block:12px; }                   /* كان 24px */
+  .student-app .chat-header .user-avatar{ width:46px; height:46px; font-size:18px; }  /* كان 56px */
+  .student-app .chat-input{ padding-block:12px; }
+  .student-app .rich-editor{ min-height:42px; }                      /* كان 52px */
+  .student-app .editor-toolbar{ padding:5px 10px; }                  /* كان 8px 12px */
   .student-app .chat-header,
   .student-app .chat-messages,
   .student-app .chat-input{ padding-inline:clamp(24px,3vw,40px); }
