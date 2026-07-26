@@ -25,6 +25,26 @@
 <div class="amu-card">
     <h3>📎 الوسائط المتعددة (اختياري)</h3>
     <p class="amu-hint">أرفق ملفّات وسائط (صور/صوت/فيديو/مستندات) لتعزيز النشاط — تظهر للطالب داخل النشاط.</p>
+    @php
+        // تشخيص حيّ: حدّ الرفع الفعليّ على الخادم. لو ظهر منخفضاً (مثل 2M) فإنّ .user.ini/.htaccess
+        // لم يسريا على الاستضافة، والملفّات الأكبر تُسقَط قبل وصولها لـLaravel — يجب رفعه من لوحة الاستضافة.
+        $__toBytes = function ($v) {
+            $v = trim((string) $v);
+            $n = (float) $v;
+            $u = strtolower(substr($v, -1));
+            return (int) ($u === 'g' ? $n * 1073741824 : ($u === 'm' ? $n * 1048576 : ($u === 'k' ? $n * 1024 : $n)));
+        };
+        $__umf = ini_get('upload_max_filesize');
+        $__pms = ini_get('post_max_size');
+        $__effLow = min($__toBytes($__umf), $__toBytes($__pms)) < (50 * 1048576); // أقل من 50MB
+    @endphp
+    <p class="amu-hint" style="{{ $__effLow ? 'color:#b91c1c;font-weight:700;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;' : 'color:#16a34a;' }}">
+        حدّ الرفع الفعليّ على خادمك الآن: <strong>{{ $__umf }}</strong> (وحدّ الطلب post_max_size: <strong>{{ $__pms }}</strong>).
+        @if($__effLow)
+            <br>⚠️ هذا الحدّ منخفض جدّاً — أيّ ملفّ أكبر (خصوصاً الفيديو) يُرفَض بصمت قبل الحفظ.
+            ارفعه من لوحة الاستضافة (Hostinger hPanel → PHP Configuration → upload_max_filesize و post_max_size).
+        @endif
+    </p>
 
     @isset($activity)
         @php
