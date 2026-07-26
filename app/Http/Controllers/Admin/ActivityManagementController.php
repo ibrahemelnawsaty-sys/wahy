@@ -139,10 +139,22 @@ class ActivityManagementController extends Controller
         } elseif (count($media) > 0) {
             $note = ' (وسائط مرفقة: ' . count($media) . ' ✅)';
         } else {
-            // تشخيص: حجم الطلب يكشف إن كان المتصفّح أرسل الملفّ (كبير) أم لا (صغير ≈ الحقول فقط).
+            // تشخيص نهائيّ: رمز خطأ الرفع لكلّ ملفّ واصل + حالة المجلّد المؤقّت.
+            // رموز PHP: 0=سليم، 1=INI_SIZE، 2=FORM_SIZE، 3=رفع جزئيّ، 6=لا مجلّد مؤقّت،
+            // 7=تعذّر الكتابة، 8=أوقفه امتداد. (6/7 ⇒ مشكلة upload_tmp_dir على الخادم.)
             $clKb = round(((int) $request->server('CONTENT_LENGTH', 0)) / 1024, 1);
-            $fileKeys = implode(',', array_keys($request->allFiles())) ?: 'لا شيء';
-            $note = " (بلا وسائط — حجم الطلب: {$clKb}KB، حقول الملفّات الواصلة: {$fileKeys})";
+            $errs = [];
+            foreach ($request->allFiles() as $k => $f) {
+                foreach ((is_array($f) ? $f : [$f]) as $one) {
+                    if ($one) {
+                        $errs[] = $k . '#' . $one->getError();
+                    }
+                }
+            }
+            $errStr = implode(',', $errs) ?: 'لا ملفّ';
+            $tmp = ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
+            $tmpOk = ($tmp && is_dir($tmp) && is_writable($tmp)) ? 'قابل للكتابة' : 'غير قابل للكتابة ❌';
+            $note = " (بلا وسائط — حجم الطلب: {$clKb}KB، أخطاء الملفّات: {$errStr}، المجلّد المؤقّت: {$tmp} [{$tmpOk}])";
         }
 
         return redirect()
