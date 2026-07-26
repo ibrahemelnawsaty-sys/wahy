@@ -119,14 +119,6 @@ class ActivityManagementController extends Controller
             $validated['media'] = $media;
         }
 
-        // تشخيص: نُسجّل ما وصل فعلاً من ملفّات + أيّ خطأ (يكشف السبب الحقيقيّ في سجلّ الإنتاج)
-        \Illuminate\Support\Facades\Log::info('activity-media-diag@store', [
-            'file_keys' => array_keys($request->allFiles()),
-            'collected' => count($media),
-            'error' => $mediaError,
-            'content_length' => $request->server('CONTENT_LENGTH'),
-        ]);
-
         // نشرٌ مباشر: محتوى الأدمن (منهجيّ موثوق، مُعتمَد تلقائياً) يجب أن يظهر للطلاب فوراً.
         // بدون هذا يبقى all_schools_mode='none' الافتراضيّ فيُولَد النشاط مخفيّاً عن كل الطلاب
         // (انحدار أدخلته إعادة هيكلة النشر التي استبدلت فلتر approval_status='approved'). القيمة
@@ -135,31 +127,8 @@ class ActivityManagementController extends Controller
 
         Activity::create($validated);
 
-        // رسالة تشخيصيّة مؤقّتة تكشف السبب: (أ) «تعذّر إرفاق الوسائط: {السبب}» = خطأ التحقّق/التخزين
-        // الحقيقيّ (وهو ما كان يُسقِط الحفظ صامتاً). (ب) «وسائط: N ✅» = نجح. (ج) «بلا وسائط» = لم يصل
-        // ملفّ. (د) لا إضافة إطلاقاً = الكود المنشور قديم (opcache) فأعِد تشغيل PHP.
-        if ($mediaError) {
-            $note = ' ⚠️ لكن تعذّر إرفاق الوسائط: ' . $mediaError;
-        } elseif (count($media) > 0) {
-            $note = ' (وسائط مرفقة: ' . count($media) . ' ✅)';
-        } else {
-            // تشخيص نهائيّ: رمز خطأ الرفع لكلّ ملفّ واصل + حالة المجلّد المؤقّت.
-            // رموز PHP: 0=سليم، 1=INI_SIZE، 2=FORM_SIZE، 3=رفع جزئيّ، 6=لا مجلّد مؤقّت،
-            // 7=تعذّر الكتابة، 8=أوقفه امتداد. (6/7 ⇒ مشكلة upload_tmp_dir على الخادم.)
-            $clKb = round(((int) $request->server('CONTENT_LENGTH', 0)) / 1024, 1);
-            $errs = [];
-            foreach ($request->allFiles() as $k => $f) {
-                foreach ((is_array($f) ? $f : [$f]) as $one) {
-                    if ($one) {
-                        $errs[] = $k . '#' . $one->getError();
-                    }
-                }
-            }
-            $errStr = implode(',', $errs) ?: 'لا ملفّ';
-            $tmp = ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
-            $tmpOk = ($tmp && is_dir($tmp) && is_writable($tmp)) ? 'قابل للكتابة' : 'غير قابل للكتابة ❌';
-            $note = " (بلا وسائط — حجم الطلب: {$clKb}KB، أخطاء الملفّات: {$errStr}، المجلّد المؤقّت: {$tmp} [{$tmpOk}])";
-        }
+        // الوسائط اختياريّة: لو تعذّر إرفاقها (نادر) نُنبّه دون إسقاط النشاط.
+        $note = $mediaError ? ' — لكن تعذّر إرفاق بعض الوسائط.' : '';
 
         return redirect()
             ->route('admin.activities.index', ['lesson_id' => $validated['lesson_id']])
