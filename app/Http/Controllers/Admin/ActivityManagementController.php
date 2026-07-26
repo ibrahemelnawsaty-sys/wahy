@@ -139,7 +139,10 @@ class ActivityManagementController extends Controller
         } elseif (count($media) > 0) {
             $note = ' (وسائط مرفقة: ' . count($media) . ' ✅)';
         } else {
-            $note = ' (بلا وسائط مرفقة — لم يصل أيّ ملفّ)';
+            // تشخيص: حجم الطلب يكشف إن كان المتصفّح أرسل الملفّ (كبير) أم لا (صغير ≈ الحقول فقط).
+            $clKb = round(((int) $request->server('CONTENT_LENGTH', 0)) / 1024, 1);
+            $fileKeys = implode(',', array_keys($request->allFiles())) ?: 'لا شيء';
+            $note = " (بلا وسائط — حجم الطلب: {$clKb}KB، حقول الملفّات الواصلة: {$fileKeys})";
         }
 
         return redirect()
