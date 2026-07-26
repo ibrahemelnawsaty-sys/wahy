@@ -98,18 +98,22 @@ class AppServiceProvider extends ServiceProvider
 
         // مشاركة بيانات المستخدم مع جميع Views - محسّن للأداء
         View::composer(['layouts.student-app', 'student.*'], function ($view) {
+            // memo لكل طلب فقط (لا كاش 60ث عبر الطلبات). الكاش السابق كان يُبقي الرأس (نقاط/عملات)
+            // متأخّراً حتى 60 ثانية بينما التحديث الحيّ (LiveUpdatesController) طازج، فتتذبذب القيمة
+            // على الشاشة (تظهر قيمة ثمّ «ترجع» للقيمة الحيّة). خصوصاً العملات: لا مُبطِل كاش عند
+            // تغيّرها (بخلاف النقاط). الحساب الطازج هنا يطابق التحديث الحيّ تماماً فيزول التذبذب.
+            static $memo = [];
             if (auth()->check() && auth()->user()->role === 'student') {
                 $user = auth()->user();
 
-                // Cache للبيانات لمدة دقيقة واحدة
-                $cacheKey = 'student_stats_' . $user->id;
-                $stats = Cache::remember($cacheKey, 60, function () use ($user) {
-                    return [
-                        'total_points' => $user->points()->sum('points'),
-                        'total_coins' => $user->coins()->sum('coins'),
+                if (! array_key_exists($user->id, $memo)) {
+                    $memo[$user->id] = [
+                        'total_points' => (int) $user->points()->sum('points'),
+                        'total_coins' => (int) $user->coins()->sum('coins'),
                         'total_badges' => $user->badges()->count(),
                     ];
-                });
+                }
+                $stats = $memo[$user->id];
 
                 // ندمج إحصائيات التلعيب الأساسية (للهيدر) مع أي stats مرّرها المتحكّم
                 // بدل طمسها — كي لا تُفقَد مفاتيح خاصة بالصفحة مثل current_streak/average_score/

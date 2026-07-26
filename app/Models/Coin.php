@@ -25,6 +25,18 @@ class Coin extends Model
                 abort(403, 'سجل العملات للقراءة فقط — لا يمكن حذفه');
             }
         });
+
+        // إبطال كاش إحصائيات الطالب عند تغيّر العملات (تناظرٌ مع Point) — كان مفقوداً فتبقى
+        // كويك-ستاتس/أيّ مستهلك مخزَّن متأخّراً عن رصيد العملات الحيّ.
+        static::created(function (self $coin) {
+            try {
+                $userId = $coin->user_id;
+                \Illuminate\Support\Facades\Cache::forget("student_stats_{$userId}");
+                \Illuminate\Support\Facades\Cache::forget("student.quickstats.{$userId}");
+            } catch (\Throwable $e) {
+                // عدم كسر التدفّق لو فشل cache
+            }
+        });
     }
 
     public function user()
