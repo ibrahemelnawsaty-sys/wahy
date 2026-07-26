@@ -106,11 +106,12 @@ html[data-theme="dark"] .user-info p { color: #94a3b8; }
 
 .message-bubble {
     width: fit-content;
+    min-width: 104px;            /* يمنع انكماش الرسائل القصيرة/متعدّدة الأسطر إلى شريط رأسيّ نحيل */
     max-width: 72%;
     padding: 7px 12px 6px;
     border-radius: 14px;
     word-wrap: break-word;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;   /* يكسر الكلمات الطويلة عند الحاجة فقط (لا يكسر كل حرف كـanywhere) */
     white-space: pre-line;
     position: relative;
     transition: box-shadow 0.2s ease;
@@ -851,6 +852,13 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
 
 /* منطقة الرسائل تملأ + قياس قراءة مريح داخل لوحة عريضة (لابتوب) */
 .student-app .chat-messages{ flex:1; min-height:0; }
+/* الشاشات الكبيرة: تثبيت الرسائل القليلة قرب الأسفل (نمط تطبيقات المحادثة) كي لا تبدو المنطقة
+   فراغاً كبيراً فوق رسالتين. فاصل ::before بهامش علويّ تلقائيّ يتلاشى عند امتلاء المحتوى فيبقى
+   التمرير سليماً للمحادثات الطويلة. */
+@media (min-width:641px){
+  .student-app .chat-messages{ display:flex; flex-direction:column; }
+  .student-app .chat-messages::before{ content:""; margin-top:auto; }
+}
 /* الكمبيوتر: لوحة محادثة محتواة ومتمركّزة (بدل الامتداد حافّة-لحافّة الذي يجعل البطاقة عملاقة
    شبه فارغة). البطاقة نفسها ~1160px في وسط الشاشة فوق خلفية التدرّج — تبدو الرسائل مجمّعة وواضحة. */
 @media (min-width:1024px){
