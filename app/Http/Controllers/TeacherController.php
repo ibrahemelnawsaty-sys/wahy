@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ActivityCompleted;
+use App\Http\Controllers\Concerns\HandlesActivityMedia;
 use App\Models\Activity;
 use App\Models\ActivitySubmission;
 use App\Models\Classroom;
@@ -20,6 +21,10 @@ use Illuminate\Support\Facades\Storage;
 
 class TeacherController extends Controller
 {
+    // جمع/تخزين «الوسائط المتعددة» عبر السمة المشتركة (نفس منطق متحكّم الأدمن) — تشمل الآن
+    // كشف فشل الرفع بسبب الحجم (assertNoFailedMediaUploads) بدل تجاهله بصمت.
+    use HandlesActivityMedia;
+
     /**
      * لوحة التحكم الرئيسية للمعلم - محسّنة
      */
@@ -2000,69 +2005,6 @@ class TeacherController extends Controller
         TeacherPoint::updateTeacherPoints($user->id);
 
         return redirect()->route('teacher.activity-bank.index')->with('success', 'تم إرسال النشاط للاعتماد. سيراجعه مدير المدرسة ثم الإدارة قبل ظهوره للطلاب.');
-    }
-
-    /**
-     * يجمع كل ملفّات «الوسائط المتعددة» المرفوعة (فيديو/صوت/صورة/مستند) عبر مدخلات النموذج —
-     * يقبل المدخل المفرد أو المتعدّد (name="video" أو name="video[]") — ويخزّنها في القرص العامّ.
-     * يُرجِع مصفوفة [{type, path, name}]. مدخل attachment العامّ (نموذج التعديل) يُستنتَج نوعه.
-     */
-    private function collectUploadedActivityMedia(Request $request): array
-    {
-        $specs = [
-            // mimes: (بالامتداد ↔ خريطة MIME) لا mimetypes: (MIME خام صارم) — كثير من ملفّات
-            // الفيديو/الصوت السليمة يُكتشَف MIMEها مختلفاً فتُرفَض بصمت. mimes أوسع وأمتن للرفع.
-            'video' => ['rule' => 'mimes:mp4,m4v,mov,avi,webm,mkv,ogv,3gp,3g2,mpeg,mpg', 'max' => 102400, 'type' => 'video'],
-            'image' => ['rule' => 'image', 'max' => 10240, 'type' => 'image'],
-            'audio' => ['rule' => 'mimes:mp3,wav,ogg,oga,m4a,aac,weba,opus,mpga', 'max' => 20480, 'type' => 'audio'],
-            'document' => ['rule' => 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx', 'max' => 20480, 'type' => 'document'],
-            // مدخل عامّ (نموذج التعديل name="attachment[]") — يُستنتَج النوع من الامتداد
-            'attachment' => ['rule' => 'mimes:mp4,mov,avi,webm,m4v,mp3,wav,ogg,m4a,aac,jpg,jpeg,png,gif,webp,pdf,doc,docx,ppt,pptx,xls,xlsx', 'max' => 102400, 'type' => null],
-        ];
-
-        $media = [];
-        foreach ($specs as $field => $spec) {
-            if (! $request->hasFile($field)) {
-                continue;
-            }
-
-            $files = $request->file($field);
-            $isMulti = is_array($files);
-
-            // تحقّق يدعم المفرد والمتعدّد
-            $request->validate([
-                ($isMulti ? "{$field}.*" : $field) => "file|{$spec['rule']}|max:{$spec['max']}",
-            ]);
-
-            foreach (($isMulti ? $files : [$files]) as $file) {
-                $media[] = [
-                    'type' => $spec['type'] ?? $this->guessMediaType($file->getClientOriginalExtension()),
-                    'path' => $file->store('activity-media', 'public'),
-                    'name' => $file->getClientOriginalName(),
-                ];
-            }
-        }
-
-        return $media;
-    }
-
-    /**
-     * يستنتج نوع الوسيط من امتداد الملفّ (للمدخل العامّ attachment).
-     */
-    private function guessMediaType(string $ext): string
-    {
-        $ext = strtolower($ext);
-        if (in_array($ext, ['mp4', 'mov', 'avi', 'webm', 'm4v', 'ogv'], true)) {
-            return 'video';
-        }
-        if (in_array($ext, ['mp3', 'wav', 'ogg', 'm4a', 'aac'], true)) {
-            return 'audio';
-        }
-        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'], true)) {
-            return 'image';
-        }
-
-        return 'document';
     }
 
     /**

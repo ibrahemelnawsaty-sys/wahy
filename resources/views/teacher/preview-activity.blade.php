@@ -181,15 +181,9 @@
                 @endif
             </div>
 
-            @if($activity->attachment)
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-paperclip me-2"></i>
-                    مرفق:
-                    <a href="{{ asset('storage/app/public/data/' . $activity->attachment) }}" target="_blank">
-                        {{ basename($activity->attachment) }}
-                    </a>
-                </div>
-            @endif
+            {{-- الوسائط المتعددة (فيديو/صوت/صورة/مستند) — نفس عارض الطالب كي يرى المعلّم ما سيراه الطالب.
+                 كان يعرض المرفق المفرد القديم فقط كرابط، فلا يظهر فيديو عمود media. --}}
+            @include('activities.partials.media')
         </div>
 
         {{-- محتوى النشاط حسب النوع --}}

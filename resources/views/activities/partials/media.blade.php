@@ -5,10 +5,16 @@
     يتطلّب المتغيّر: $activity.
 --}}
 @php
+    // تحصين: عمود media مصبوب array، لكن لو خُزِّن نصّاً (ازدواج تشفير قديم) نفكّه هنا كي لا يختفي.
+    $__mediaRaw = $activity->media ?? null;
+    if (is_string($__mediaRaw)) {
+        $__decoded = json_decode($__mediaRaw, true);
+        $__mediaRaw = is_array($__decoded) ? $__decoded : null;
+    }
     $__mediaItems = [];
-    if (is_array($activity->media ?? null)) {
-        foreach ($activity->media as $__m) {
-            if (! empty($__m['path'])) {
+    if (is_array($__mediaRaw)) {
+        foreach ($__mediaRaw as $__m) {
+            if (is_array($__m) && ! empty($__m['path'])) {
                 $__mediaItems[] = ['type' => $__m['type'] ?? null, 'path' => $__m['path'], 'name' => $__m['name'] ?? basename($__m['path'])];
             }
         }

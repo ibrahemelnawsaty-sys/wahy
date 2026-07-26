@@ -261,7 +261,8 @@
                                             <input type="checkbox" name="remove_media[]" value="{{ $__i }}">
                                             <span>📎 {{ $__m['name'] ?? basename($__p) }}</span>
                                             @if($__p)
-                                                <a href="{{ \Illuminate\Support\Str::startsWith($__p, ['http://','https://','/']) ? $__p : asset('storage/'.ltrim($__p,'/')) }}" target="_blank" style="margin-inline-start:auto; font-size:13px;">عرض</a>
+                                                {{-- رابط القرص العامّ الصحيح (جذره storage/app/public/data). asset('storage/…') كان يُنتج مساراً ناقصاً 404. --}}
+                                                <a href="{{ \Illuminate\Support\Str::startsWith($__p, ['http://','https://','/']) ? $__p : \Illuminate\Support\Facades\Storage::disk('public')->url($__p) }}" target="_blank" style="margin-inline-start:auto; font-size:13px;">عرض</a>
                                             @endif
                                         </label>
                                     @endforeach
