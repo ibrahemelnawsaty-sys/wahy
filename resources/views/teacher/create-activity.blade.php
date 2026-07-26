@@ -440,7 +440,7 @@
                 <label class="media-upload" onclick="this.querySelector('input').click()">
                     <div class="icon">🎬</div>
                     <div class="text">إرفاق فيديو</div>
-                    <div class="hint">MP4, WebM — عدّة مقاطع ممكن (حتى 100MB)</div>
+                    <div class="hint">MP4, WebM — عدّة مقاطع ممكن (حتى 500MB)</div>
                     <input type="file" name="video[]" accept="video/*" multiple onchange="previewMedia(this, 'videoPreview')">
                 </label>
                 <div class="media-preview" id="videoPreview"></div>

@@ -63,7 +63,7 @@
             <div class="amu-preview" id="amuAud"></div>
         </div>
         <div>
-            <label class="amu-upload"><div class="i">🎬</div><div class="t">إرفاق فيديو</div><div class="h">MP4, WebM — حتى 100MB</div>
+            <label class="amu-upload"><div class="i">🎬</div><div class="t">إرفاق فيديو</div><div class="h">MP4, WebM — حتى 500MB</div>
                 <input type="file" name="video[]" accept="video/*" multiple onchange="amuPreview(this,'amuVid')"></label>
             <div class="amu-preview" id="amuVid"></div>
         </div>

@@ -274,7 +274,7 @@
                             <label class="form-label">إضافة وسائط (اختياري) — فيديو/صوت/صورة/مستند</label>
                             <input type="file" name="attachment[]" class="form-control" multiple
                                    accept=".mp4,.mov,.webm,.m4v,.avi,.mp3,.wav,.ogg,.m4a,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp">
-                            <small class="text-muted">يمكن اختيار عدّة ملفّات (تُضاف للوسائط الحالية). الفيديو حتى 100MB.</small>
+                            <small class="text-muted">يمكن اختيار عدّة ملفّات (تُضاف للوسائط الحالية). الفيديو حتى 500MB.</small>
                         </div>
                     </div>
                 </div>
