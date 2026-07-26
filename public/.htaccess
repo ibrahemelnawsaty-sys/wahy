@@ -23,24 +23,3 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
-
-# رفع حدود الرفع لبيئات Apache/mod_php (احتياطيّ لـ.user.ini) — لتُقبَل فيديوهات الأنشطة الكبيرة (500MB).
-<IfModule mod_php.c>
-    php_value upload_max_filesize 500M
-    php_value post_max_size 512M
-    php_value memory_limit 512M
-    php_value max_execution_time 600
-</IfModule>
-<IfModule mod_php7.c>
-    php_value upload_max_filesize 500M
-    php_value post_max_size 512M
-</IfModule>
-<IfModule mod_php8.c>
-    php_value upload_max_filesize 500M
-    php_value post_max_size 512M
-</IfModule>
-# سقف جسم الطلب على مستوى الخادم (بعض إعدادات Apache/LiteSpeed) — بالبايت (~512MB).
-<IfModule mod_security.c>
-    SecRequestBodyLimit 536870912
-    SecRequestBodyNoFilesLimit 1048576
-</IfModule>

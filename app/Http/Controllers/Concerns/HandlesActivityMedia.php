@@ -29,10 +29,23 @@ trait HandlesActivityMedia
             'attachment' => ['rule' => 'mimes:mp4,mov,avi,webm,m4v,mp3,wav,ogg,m4a,aac,jpg,jpeg,png,gif,webp,pdf,doc,docx,ppt,pptx,xls,xlsx', 'max' => 512000, 'type' => null],
         ];
 
-        // إن حاول المستخدم رفع ملفٍّ لكنّه سقط بسبب تجاوز حدّ الخادم (upload_max_filesize) أو
-        // اقتطاع، فإنّ hasFile يُرجِع false فيُتجاهَل بصمت (فيُحفَظ النشاط بلا الفيديو — أصل شكوى
-        // «الفيديو لا يظهر»). نكشف ذلك ونُبلّغ برسالة واضحة بدل الفشل الصامت.
-        $this->assertNoFailedMediaUploads($request, array_keys($specs));
+        // تشخيص فقط (بلا رمي/حجب): لو وصل ملفٌّ بخطأ رفعٍ من PHP (INI_SIZE/PARTIAL/…) نُسجّله ليظهر
+        // سببه الدقيق في سجلّ الإنتاج — دون إسقاط الحفظ. الملفّات الصالحة تُجمَع أدناه عبر hasFile.
+        // (كان حارسٌ سابق يرمي استثناءً هنا فيحجب الرفع الصالح برسالة مضلِّلة — أُزيل.)
+        foreach (array_keys($specs) as $__field) {
+            $__f = $request->file($__field);
+            foreach ((is_array($__f) ? $__f : ($__f ? [$__f] : [])) as $__file) {
+                if ($__file && ! in_array($__file->getError(), [UPLOAD_ERR_OK, UPLOAD_ERR_NO_FILE], true)) {
+                    \Illuminate\Support\Facades\Log::warning('media-upload-file-error', [
+                        'field' => $__field,
+                        'name' => $__file->getClientOriginalName(),
+                        'error_code' => $__file->getError(),
+                        'umf' => ini_get('upload_max_filesize'),
+                        'pms' => ini_get('post_max_size'),
+                    ]);
+                }
+            }
+        }
 
         $media = [];
         foreach ($specs as $field => $spec) {
@@ -85,32 +98,6 @@ trait HandlesActivityMedia
         }
 
         return array_values(array_merge($kept, $newMedia));
-    }
-
-    /**
-     * يفحص مدخلات الملفّات المُرسَلة، فإن وُجد ملفٌّ سقط بخطأ رفعٍ متعلّقٍ بالحجم/الاقتطاع
-     * (INI_SIZE/FORM_SIZE/PARTIAL) رمى خطأ تحقّق واضحاً — بدل تجاهله بصمت وحفظ نشاطٍ بلا وسائطه.
-     */
-    protected function assertNoFailedMediaUploads(Request $request, array $fields): void
-    {
-        $sizeErrors = [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE, UPLOAD_ERR_PARTIAL];
-
-        foreach ($fields as $field) {
-            $files = $request->file($field);
-            if ($files === null) {
-                continue;
-            }
-
-            foreach ((is_array($files) ? $files : [$files]) as $file) {
-                if ($file && ! $file->isValid() && in_array($file->getError(), $sizeErrors, true)) {
-                    $limit = ini_get('upload_max_filesize');
-
-                    throw \Illuminate\Validation\ValidationException::withMessages([
-                        $field => "تعذّر رفع الملفّ «{$file->getClientOriginalName()}» — حجمه يتجاوز الحدّ المسموح على الخادم (upload_max_filesize = {$limit}). قلّل الحجم أو اطلب رفع الحدّ.",
-                    ]);
-                }
-            }
-        }
     }
 
     /**
