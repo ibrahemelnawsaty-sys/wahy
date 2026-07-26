@@ -200,8 +200,8 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">الحد الأقصى لحجم الملف (MB)</label>
-                                    <input type="number" name="max_file_size" class="form-control"
-                                           value="{{ old('max_file_size', $activity->max_file_size ?? 10) }}" min="1" max="100">
+                                    <input type="number" name="max_file_size_mb" class="form-control"
+                                           value="{{ old('max_file_size_mb', $activity->max_file_size ?? 10) }}" min="1" max="100">
                                 </div>
                             </div>
                         </div>

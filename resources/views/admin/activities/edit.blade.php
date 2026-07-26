@@ -368,7 +368,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">الحد الأقصى لحجم الملف (MB)</label>
-                        <input type="number" name="max_file_size" class="form-input" value="{{ old('max_file_size', $activity->max_file_size ?? 10) }}" min="1" max="100" placeholder="10">
+                        <input type="number" name="max_file_size_mb" class="form-input" value="{{ old('max_file_size_mb', $activity->max_file_size ?? 10) }}" min="1" max="100" placeholder="10">
                     </div>
                 </div>
             </div>

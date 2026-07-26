@@ -52,6 +52,29 @@ class AdminActivityMediaTest extends TestCase
         }
     }
 
+    public function test_max_file_size_mb_field_maps_to_column_and_media_saves(): void
+    {
+        // حقل النموذج سُمّي max_file_size_mb (بدل max_file_size) لتفادي اصطدامه بحقل PHP السحريّ
+        // MAX_FILE_SIZE الذي كان يرفض كلّ رفع؛ نتأكّد أنّه يُعاد ربطه بعمود max_file_size وأنّ الوسائط تُحفَظ.
+        Storage::fake('public');
+        $lesson = Lesson::factory()->create();
+
+        $this->actingAs($this->admin())->post(route('admin.activities.store'), [
+            'lesson_id' => $lesson->id,
+            'title' => 'نشاط بحدّ حجم',
+            'type' => 'project',
+            'points' => 10,
+            'status' => 'active',
+            'max_file_size_mb' => 25,
+            'image' => [UploadedFile::fake()->image('p.jpg')],
+        ])->assertRedirect();
+
+        $activity = Activity::where('title', 'نشاط بحدّ حجم')->first();
+        $this->assertNotNull($activity);
+        $this->assertSame(25, (int) $activity->max_file_size, 'max_file_size_mb يُخزَّن في العمود max_file_size');
+        $this->assertCount(1, $activity->media, 'الوسائط تُحفَظ مع الحقل الجديد');
+    }
+
     public function test_admin_edit_can_add_and_remove_media(): void
     {
         Storage::fake('public');

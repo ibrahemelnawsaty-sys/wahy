@@ -56,6 +56,10 @@ class ActivityManagementController extends Controller
 
     public function store(Request $request)
     {
+        // «max_file_size_mb» في النموذج بدل max_file_size لتفادي اصطدامه بحقل PHP السحريّ MAX_FILE_SIZE
+        // (يُقارَن بلا حساسيّة أحرف فيرفض كلّ رفع >10 بايت = سبب عدم حفظ الوسائط). نُعيد ربطه بالعمود.
+        $request->merge(['max_file_size' => $request->input('max_file_size_mb', $request->input('max_file_size'))]);
+
         $validated = $request->validate([
             'lesson_id' => 'required|exists:lessons,id',
             'title' => 'required|string|max:255',
@@ -179,6 +183,9 @@ class ActivityManagementController extends Controller
 
     public function update(Request $request, Activity $activity)
     {
+        // إعادة ربط حقل النموذج max_file_size_mb بعمود max_file_size (تفاديّاً لاصطدام MAX_FILE_SIZE).
+        $request->merge(['max_file_size' => $request->input('max_file_size_mb', $request->input('max_file_size'))]);
+
         $validated = $request->validate([
             'lesson_id' => 'required|exists:lessons,id',
             'title' => 'required|string|max:255',

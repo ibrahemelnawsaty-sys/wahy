@@ -764,6 +764,10 @@ class TeacherController extends Controller
     {
         $user = Auth::user();
 
+        // إعادة ربط حقل النموذج max_file_size_mb بعمود max_file_size — اسمه القديم max_file_size كان
+        // يصطدم بحقل PHP السحريّ MAX_FILE_SIZE (مقارنة بلا حساسيّة أحرف) فيرفض كلّ رفع >10 بايت.
+        $request->merge(['max_file_size' => $request->input('max_file_size_mb', $request->input('max_file_size'))]);
+
         $validated = $request->validate([
             'lesson_id' => 'required|exists:lessons,id',
             'classroom_id' => 'nullable|exists:classrooms,id',
@@ -987,6 +991,9 @@ class TeacherController extends Controller
         $activity = Activity::where('id', $id)
             ->where('created_by', $user->id)
             ->firstOrFail();
+
+        // إعادة ربط max_file_size_mb (اسم النموذج) بعمود max_file_size (تفاديّاً لاصطدام MAX_FILE_SIZE).
+        $request->merge(['max_file_size' => $request->input('max_file_size_mb', $request->input('max_file_size'))]);
 
         $validated = $request->validate([
             'lesson_id' => 'required|exists:lessons,id',
@@ -1927,6 +1934,9 @@ class TeacherController extends Controller
     public function addActivityToBank(Request $request)
     {
         $user = Auth::user();
+
+        // إعادة ربط max_file_size_mb (اسم النموذج) بعمود max_file_size (تفاديّاً لاصطدام MAX_FILE_SIZE).
+        $request->merge(['max_file_size' => $request->input('max_file_size_mb', $request->input('max_file_size'))]);
 
         $validated = $request->validate([
             'lesson_id' => 'nullable|exists:lessons,id',
