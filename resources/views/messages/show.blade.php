@@ -851,10 +851,13 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
 
 /* منطقة الرسائل تملأ + قياس قراءة مريح داخل لوحة عريضة (لابتوب) */
 .student-app .chat-messages{ flex:1; min-height:0; }
+/* الكمبيوتر: لوحة محادثة محتواة ومتمركّزة (بدل الامتداد حافّة-لحافّة الذي يجعل البطاقة عملاقة
+   شبه فارغة). البطاقة نفسها ~1160px في وسط الشاشة فوق خلفية التدرّج — تبدو الرسائل مجمّعة وواضحة. */
 @media (min-width:1024px){
+  .student-app .chat-container{ max-width:1160px; margin-inline:auto; width:100%; }
   .student-app .chat-header,
   .student-app .chat-messages,
-  .student-app .chat-input{ padding-inline:max(28px,(100% - 1060px)/2); }
+  .student-app .chat-input{ padding-inline:clamp(24px,3vw,40px); }
 }
 
 /* الفقاعات: عرض متجاوب (الأسطح/الذيول/الظلال موجودة وتبقى) */

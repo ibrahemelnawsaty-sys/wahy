@@ -549,6 +549,16 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
     width:100% !important; max-width:1280px !important; margin-inline:auto !important;
     padding-inline:24px !important;
   }
+  /* بطلب المستخدم: قائمة المحادثات أوسع + لوحة الترحيب أصغر (توازن العمودين لصالح المحتوى) */
+  .student-app .messages-container{ grid-template-columns: minmax(460px, 1fr) 1fr; }
+  /* تصغير لوحة الترحيب (الحالة الفارغة) على الكمبيوتر */
+  .student-app .chat-welcome{ padding: 28px 22px; }
+  .student-app .cw-badge{ width:72px; height:72px; font-size:34px; margin-bottom:16px; box-shadow:0 12px 30px rgba(102,126,234,.35); }
+  .student-app .cw-title{ font-size:21px; margin-bottom:8px; }
+  .student-app .cw-sub{ font-size:14px; line-height:1.75; margin-bottom:16px; }
+  .student-app .cw-stats{ margin-bottom:16px; }
+  .student-app .cw-hints{ margin-bottom:18px; }
+  .student-app .cw-cta{ padding:12px 24px; font-size:14px; }
 }
 
 /* القائمة: سطح صلب + تمرير داخلي + رأس لاصق */
