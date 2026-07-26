@@ -285,7 +285,7 @@ class User extends Authenticatable
     }
 
     /**
-     * مستوى المستخدم الموحّد: floor(إجمالي النقاط / 100) + 1.
+     * مستوى المستخدم الموحّد عبر منحنى GamificationService التصاعديّ (1 + ⌊√(النقاط÷100)⌋).
      * مصدر حقيقة واحد بدل حساب المستوى بصيغ متعددة متباعدة عبر الكود.
      *
      * مصدر الحقيقة هو SUM(points) من سجل النقاط — لا يُقرأ عمود users.total_points
@@ -303,7 +303,7 @@ class User extends Authenticatable
             $total = (int) $this->points()->sum('points');
         }
 
-        return intdiv($total, 100) + 1;
+        return \App\Services\GamificationService::levelForXp($total);
     }
 
     /**

@@ -9,6 +9,52 @@ use Illuminate\Support\Facades\Log;
 class GamificationService
 {
     /**
+     * ★ منحنى المستويات الموحّد (مصدر واحد لكل المنصّة). تصاعديّ: عتبة المستوى L = 100×(L−1)².
+     * فالمستوى = 1 + ⌊√(النقاط ÷ 100)⌋. يُبقي المستويين 1 و2 عند 0 و100 نقطة (كالصيغة الخطّيّة
+     * القديمة) ثمّ يضغط الطرف العالي تدريجيّاً كي لا تظهر أرقام ضخمة (89,200 نقطة ⇒ مستوى 30 لا 892).
+     */
+    public static function levelForXp(int $xp): int
+    {
+        return 1 + (int) floor(sqrt(max(0, $xp) / 100));
+    }
+
+    /**
+     * أدنى إجمالي XP لبلوغ مستوىً ما (معكوس المنحنى) — لأشرطة التقدّم والعتبات.
+     */
+    public static function xpForLevel(int $level): int
+    {
+        $level = max(1, $level);
+
+        return 100 * ($level - 1) * ($level - 1);
+    }
+
+    /**
+     * تقدّم الطالب داخل مستواه الحاليّ نحو التالي — للأشرطة والنِّسَب.
+     * يُرجِع: level، into (XP داخل المستوى)، span (سعة المستوى)، percent (0-100)، to_next (المتبقّي).
+     *
+     * @return array{level:int,into:int,span:int,percent:int,to_next:int,floor:int,ceil:int}
+     */
+    public static function levelProgress(int $xp): array
+    {
+        $xp = max(0, $xp);
+        $level = self::levelForXp($xp);
+        $floor = self::xpForLevel($level);
+        $ceil = self::xpForLevel($level + 1);
+        $span = max(1, $ceil - $floor);
+        $into = max(0, $xp - $floor);
+
+        return [
+            'level' => $level,
+            'into' => $into,
+            'span' => $span,
+            'percent' => (int) min(100, round($into / $span * 100)),
+            'to_next' => max(0, $ceil - $xp),
+            'floor' => $floor,
+            'ceil' => $ceil,
+        ];
+    }
+
+    /**
      * إضافة XP للطالب — Transactional + lockForUpdate لمنع race condition عند Level Up.
      */
     public function addXP($studentId, $points, $source, $description)
@@ -20,7 +66,7 @@ class GamificationService
                 ->lockForUpdate()
                 ->sum('points');
 
-            $oldLevel = (int) floor($currentXP / 100) + 1;
+            $oldLevel = self::levelForXp($currentXP);
 
             DB::table('points')->insert([
                 'user_id' => $studentId,
@@ -32,7 +78,7 @@ class GamificationService
             ]);
 
             $newXP = $currentXP + (int) $points;
-            $newLevel = (int) floor($newXP / 100) + 1;
+            $newLevel = self::levelForXp($newXP);
             $leveledUp = $newLevel > $oldLevel;
 
             if ($leveledUp) {
@@ -119,9 +165,10 @@ class GamificationService
     {
         $totalXP = (int) DB::table('points')->where('user_id', $studentId)->sum('points');
         $totalCoins = (int) DB::table('coins')->where('user_id', $studentId)->sum('coins');
-        $currentLevel = (int) floor($totalXP / 100) + 1;
-        $xpForNextLevel = ($currentLevel * 100) - $totalXP;
-        $progressPercentage = (($totalXP % 100) / 100) * 100;
+        $progress = self::levelProgress($totalXP);
+        $currentLevel = $progress['level'];
+        $xpForNextLevel = $progress['to_next'];
+        $progressPercentage = $progress['percent'];
 
         $streak = DB::table('streaks')->where('user_id', $studentId)->first();
         // الجدول الصحيح في schema هذا المشروع هو user_badges (وليس badge_user الافتراضي)

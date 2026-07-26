@@ -50,8 +50,8 @@ class BadgeMetrics
                     break;
 
                 case 'level':
-                    // المستوى مشتقّ من إجمالي XP: floor(totalXP / 100) + 1 (مطابق GamificationService).
-                    $out[$type] = (int) floor($points() / 100) + 1;
+                    // المستوى مشتقّ من إجمالي XP عبر منحنى GamificationService التصاعديّ (مصدر واحد).
+                    $out[$type] = \App\Services\GamificationService::levelForXp((int) $points());
                     break;
 
                 case 'streak':

@@ -85,7 +85,7 @@
                         </td>
                         <td><span class="classroom-badge">{{ $student->classroom_name }}</span></td>
                         <td><span class="xp-badge">{{ number_format($student->total_xp) }} XP</span></td>
-                        <td><span class="level-badge">المستوى {{ floor($student->total_xp / 100) + 1 }}</span></td>
+                        <td><span class="level-badge">المستوى {{ \App\Services\GamificationService::levelForXp((int) $student->total_xp) }}</span></td>
                         <td><span class="coins-badge">🪙 {{ number_format($student->total_coins) }}</span></td>
                         <td><span class="activities-count">{{ $student->completed_activities }}</span></td>
                         <td>

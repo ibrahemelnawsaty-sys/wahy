@@ -34,6 +34,32 @@ class GamificationServiceTest extends TestCase
         $this->assertEquals(1, $result['new_level']);
     }
 
+    public function test_progressive_level_curve_maps_xp_sensibly(): void
+    {
+        // المنحنى التصاعديّ: المستوى = 1 + ⌊√(XP÷100)⌋ — يُبقي المبتدئين ويضغط الطرف العالي.
+        $this->assertSame(1, GamificationService::levelForXp(0));
+        $this->assertSame(1, GamificationService::levelForXp(99));
+        $this->assertSame(2, GamificationService::levelForXp(100));   // كالصيغة القديمة عند العتبة الأولى
+        $this->assertSame(2, GamificationService::levelForXp(399));
+        $this->assertSame(3, GamificationService::levelForXp(400));
+        $this->assertSame(4, GamificationService::levelForXp(900));
+        // الحساب المُتضخِّم (89,200 نقطة) يصبح مستوىً معقولاً بدل 892.
+        $this->assertSame(30, GamificationService::levelForXp(89200));
+        $this->assertNotSame(892, GamificationService::levelForXp(89200));
+
+        // معكوس المنحنى (عتبة المستوى) + التقدّم داخل المستوى.
+        $this->assertSame(0, GamificationService::xpForLevel(1));
+        $this->assertSame(100, GamificationService::xpForLevel(2));
+        $this->assertSame(400, GamificationService::xpForLevel(3));
+
+        $p = GamificationService::levelProgress(250); // مستوى 2 (عتبته 100)، التالي 400
+        $this->assertSame(2, $p['level']);
+        $this->assertSame(150, $p['into']);   // 250 - 100
+        $this->assertSame(300, $p['span']);   // 400 - 100
+        $this->assertSame(50, $p['percent']); // 150/300
+        $this->assertSame(150, $p['to_next']); // 400 - 250
+    }
+
     public function test_level_up_triggers_when_crossing_100_xp(): void
     {
         Event::fake();

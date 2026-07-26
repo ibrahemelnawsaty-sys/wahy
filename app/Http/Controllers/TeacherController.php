@@ -454,7 +454,7 @@ class TeacherController extends Controller
         $stats = [
             'total_xp' => DB::table('points')->where('user_id', $id)->sum('points'),
             'total_coins' => DB::table('coins')->where('user_id', $id)->sum('coins'),
-            'current_level' => floor(DB::table('points')->where('user_id', $id)->sum('points') / 100) + 1,
+            'current_level' => \App\Services\GamificationService::levelForXp((int) DB::table('points')->where('user_id', $id)->sum('points')),
             'streak_days' => $student->streak->current_streak ?? 0,
             'badges_count' => DB::table('user_badges')->where('user_id', $id)->count(),
             'completed_activities' => ActivitySubmission::where('student_id', $id)

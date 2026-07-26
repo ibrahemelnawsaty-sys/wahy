@@ -344,24 +344,20 @@
                     <div class="status-name">
                         {{ $__su->name }}@if($__badgeP)<span title="{{ $__badgeP->name }}" style="margin-inline-start:4px;">{{ $__badgeP->icon }}</span>@endif
                     </div>
+                    @php $__lp = \App\Services\GamificationService::levelProgress((int) ($stats['total_points'] ?? 0)); @endphp
                     <div class="status-level">
                         <span>⭐</span>
-                        <span>المستوى {{ (int) floor(($stats['total_points'] ?? 0) / 100) + 1 }}</span>
+                        <span>المستوى {{ $__lp['level'] }}</span>
                     </div>
                 </div>
             </div>
-            
-            <!-- Center: XP Progress Bar -->
+
+            <!-- Center: XP Progress Bar (تقدّم داخل المستوى عبر المنحنى التصاعديّ الموحّد) -->
             <div class="status-bar-center">
-                @php
-                    $currentXP = ($stats['total_points'] ?? 0) % 100;
-                    $nextLevelXP = 100;
-                    $xpPercent = ($currentXP / $nextLevelXP) * 100;
-                @endphp
                 <div class="xp-bar-container">
-                    <div class="xp-bar-fill" style="width: {{ $xpPercent }}%"></div>
+                    <div class="xp-bar-fill" style="width: {{ $__lp['percent'] }}%"></div>
                 </div>
-                <div class="xp-bar-text">{{ $currentXP }} / {{ $nextLevelXP }} XP</div>
+                <div class="xp-bar-text">{{ $__lp['into'] }} / {{ $__lp['span'] }} XP</div>
             </div>
             
             <!-- Right: Streak & Coins & Notifications -->
@@ -532,7 +528,7 @@
                 <div class="coins-stat-card">
                     <div class="coins-stat-icon">📊</div>
                     <div class="coins-stat-info">
-                        <div class="coins-stat-value">المستوى {{ floor(($stats['total_points'] ?? 0) / 100) + 1 }}</div>
+                        <div class="coins-stat-value">المستوى {{ \App\Services\GamificationService::levelForXp((int) ($stats['total_points'] ?? 0)) }}</div>
                         <div class="coins-stat-label">مستواك الحالي</div>
                     </div>
                 </div>

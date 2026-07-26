@@ -34,14 +34,14 @@ class getLevelAttributeAwardTest extends TestCase
     {
         $student = User::factory()->student()->create();
 
-        // 250 real points across two award events => level floor(250/100)+1 = 3.
-        AwardService::award($student->id, 'activity_submission', '1', 150, 0, 'a');
-        AwardService::award($student->id, 'activity_submission', '2', 100, 0, 'b');
+        // 400 real points across two award events => curve level 1+⌊√(400/100)⌋ = 3.
+        AwardService::award($student->id, 'activity_submission', '1', 250, 0, 'a');
+        AwardService::award($student->id, 'activity_submission', '2', 150, 0, 'b');
 
         // Re-fetch fresh so neither the alias nor the relation is loaded.
         $fresh = User::find($student->id);
 
-        $this->assertSame(250, (int) $fresh->points()->sum('points'));
+        $this->assertSame(400, (int) $fresh->points()->sum('points'));
         $this->assertSame(3, $fresh->level, 'cold model must compute level from summed points, not the dead total_points column');
         $this->assertNotSame(1, $fresh->level);
     }
@@ -60,7 +60,7 @@ class getLevelAttributeAwardTest extends TestCase
         $loaded = User::with('points')->find($student->id);
         $this->assertTrue($loaded->relationLoaded('points'));
 
-        // 150 points => floor(150/100)+1 = 2.
+        // 150 points => curve level 1+⌊√(150/100)⌋ = 2.
         $this->assertSame(2, $loaded->level);
     }
 
@@ -72,11 +72,11 @@ class getLevelAttributeAwardTest extends TestCase
     public function test_level_from_preloaded_withsum_alias(): void
     {
         $student = User::factory()->student()->create();
-        AwardService::award($student->id, 'activity_submission', '1', 320, 0, 'a');
+        AwardService::award($student->id, 'activity_submission', '1', 900, 0, 'a');
 
         $withAlias = User::whereKey($student->id)->withSum('points', 'points')->first();
-        $this->assertSame(320, (int) $withAlias->getAttribute('points_sum_points'));
-        // floor(320/100)+1 = 4.
+        $this->assertSame(900, (int) $withAlias->getAttribute('points_sum_points'));
+        // curve level 1+⌊√(900/100)⌋ = 4.
         $this->assertSame(4, $withAlias->level);
 
         $zero = User::factory()->student()->create();
@@ -112,8 +112,8 @@ class getLevelAttributeAwardTest extends TestCase
         $this->assertSame(50, $board[2]['points']);
 
         // And the level accessor agrees on each leaderboard row.
-        $this->assertSame(10, $high->fresh()->level); // floor(900/100)+1
-        $this->assertSame(3, $mid->fresh()->level);    // floor(250/100)+1
-        $this->assertSame(1, $low->fresh()->level);    // floor(50/100)+1
+        $this->assertSame(4, $high->fresh()->level); // 900 => 1+⌊√9⌋ = 4
+        $this->assertSame(2, $mid->fresh()->level);  // 250 => 1+⌊√2.5⌋ = 2
+        $this->assertSame(1, $low->fresh()->level);  // 50 => 1+⌊√0.5⌋ = 1
     }
 }

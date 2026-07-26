@@ -723,8 +723,8 @@ class StudentController extends Controller
             // Get stats
             $stats = $this->getStudentStats($student);
 
-            // Calculate level (every 100 XP = 1 level)
-            $level = floor($stats['total_points'] / 100) + 1;
+            // المستوى عبر المنحنى التصاعديّ الموحّد (مصدر واحد لكل المنصّة)
+            $level = \App\Services\GamificationService::levelForXp((int) ($stats['total_points'] ?? 0));
 
             // Get all badges earned
             $badges = Badge::whereHas('users', function ($query) use ($student) {

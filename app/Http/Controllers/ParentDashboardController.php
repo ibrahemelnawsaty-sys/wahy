@@ -287,9 +287,10 @@ class ParentDashboardController extends Controller
             'average_score' => round($submissionStats->avg_score ?? 0, 1),
         ];
 
-        // === المستوى ===
-        $level = floor($totalPoints / 100) + 1;
-        $levelProgress = $totalPoints % 100;
+        // === المستوى (منحنى تصاعديّ موحّد) ===
+        $__lp = \App\Services\GamificationService::levelProgress((int) $totalPoints);
+        $level = $__lp['level'];
+        $levelProgress = $__lp['percent']; // نسبة التقدّم داخل المستوى (0-100) لعرض الشريط
 
         // === السلسلة ===
         $streak = $child->streak;
