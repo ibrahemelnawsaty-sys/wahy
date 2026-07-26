@@ -856,10 +856,23 @@ html[data-theme="dark"] .student-app{ --wm-accent:#a5b4fc; }
 /* الكمبيوتر: لوحة محادثة محتواة ومتمركّزة (بدل الامتداد حافّة-لحافّة الذي يجعل البطاقة عملاقة
    شبه فارغة). البطاقة نفسها ~1160px في وسط الشاشة فوق خلفية التدرّج — تبدو الرسائل مجمّعة وواضحة. */
 @media (min-width:1024px){
-  .student-app .chat-container{ max-width:1160px; margin-inline:auto; width:100%; }
+  /* نمط واتساب-ويب: تملأ اللوحة ارتفاع الشاشة فتظهر رسائل كثيرة دون تمرير. نعطي البطاقة
+     ارتفاعاً صريحاً مبنيّاً على ارتفاع النافذة (flex:none يتجاوز سلسلة flex الهشّة التي كانت
+     تُنتج لوحة قصيرة تُظهر رسالتين). الطرح ≈ الشريط العلويّ + زرّ العودة + شريط التنقّل السفليّ. */
+  .student-app .chat-container{
+    max-width:1160px; margin-inline:auto; width:100%;
+    flex:none; height:calc(100vh - 240px); min-height:480px;
+  }
+  .student-app .chat-page{ padding-block:12px 0 !important; }
+  .student-app .chat-page > div:first-child{ margin-bottom:12px; }   /* تقليل هدر زرّ «العودة للرسائل» */
   .student-app .chat-header,
   .student-app .chat-messages,
   .student-app .chat-input{ padding-inline:clamp(24px,3vw,40px); }
+}
+@supports (height:100dvh){
+  @media (min-width:1024px){
+    .student-app .chat-container{ height:calc(100dvh - 240px); }
+  }
 }
 
 /* الفقاعات: عرض متجاوب (الأسطح/الذيول/الظلال موجودة وتبقى) */
