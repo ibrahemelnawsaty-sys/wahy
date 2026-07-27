@@ -75,6 +75,57 @@
         .gradient-purple {
             background: linear-gradient(135deg, {{ $primaryColor }}, {{ $secondaryColor }}) !important;
         }
+
+        /* ===== بحث القائمة الجانبية — تنسيق فاخر متوافق مع الثيم (فاتح/داكن) ===== */
+        .admin-nav-search {
+            position: relative;
+            padding: 6px 14px 14px;
+        }
+        .admin-nav-search-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--w-text, #0f172a);
+            background:
+                linear-gradient(var(--w-bg, #f8fafc), var(--w-bg, #f8fafc)) padding-box,
+                linear-gradient(135deg, var(--color-primary, #667eea), var(--color-secondary, #764ba2)) border-box;
+            border: 1.5px solid transparent;
+            border-radius: 14px;
+            outline: none;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+            transition: box-shadow .28s ease, background .28s ease, transform .18s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .admin-nav-search-input::placeholder {
+            color: var(--w-text-muted, #94a3b8);
+            font-weight: 500;
+        }
+        .admin-nav-search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+        .admin-nav-search-input:hover {
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 14px {{ hexToRgba($primaryColor, 0.14) }};
+        }
+        .admin-nav-search-input:focus {
+            background:
+                linear-gradient(var(--w-card, #fff), var(--w-card, #fff)) padding-box,
+                linear-gradient(135deg, var(--color-primary, #667eea), var(--color-secondary, #764ba2)) border-box;
+            box-shadow: 0 0 0 4px {{ hexToRgba($primaryColor, 0.16) }}, 0 10px 26px {{ hexToRgba($primaryColor, 0.20) }};
+            transform: translateY(-1px);
+        }
+        .admin-nav-search-empty {
+            margin: 10px 2px 0;
+            padding: 9px 14px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--w-text-muted, #94a3b8);
+            background: var(--w-bg, #f8fafc);
+            border: 1px dashed var(--w-border, rgba(15, 23, 42, 0.14));
+            border-radius: 11px;
+            text-align: center;
+        }
     </style>
     
     @stack('styles')
