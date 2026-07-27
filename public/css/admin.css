@@ -245,6 +245,48 @@ body::before {
     padding: var(--spacing-md);
 }
 
+/* بحث القائمة الجانبيّة — ملتصق بالأعلى أثناء التمرير */
+.admin-nav-search {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 4px 4px 10px;
+    margin-bottom: 6px;
+    background: var(--sidebar-bg, rgba(20, 24, 40, 0.9));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.admin-nav-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--color-text, #e5e7eb);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1.5px solid var(--sidebar-border, rgba(255, 255, 255, 0.12));
+    border-radius: 10px;
+    outline: none;
+    transition: border-color .15s, background .15s;
+}
+.admin-nav-search-input::placeholder { color: var(--color-text-light, #9ca3af); }
+.admin-nav-search-input:focus {
+    border-color: var(--color-primary, #667eea);
+    background: rgba(255, 255, 255, 0.1);
+}
+.admin-nav-search-empty {
+    padding: 10px 6px 2px;
+    font-size: 13px;
+    color: var(--color-text-light, #9ca3af);
+    text-align: center;
+}
+[data-theme="light"] .admin-nav-search-input {
+    color: #1e293b;
+    background: #fff;
+    border-color: #e2e8f0;
+}
+[data-theme="light"] .admin-nav-search-input:focus { border-color: #667eea; background: #f8fafc; }
+
 .admin-nav-section {
     margin-bottom: var(--spacing-xl);
 }

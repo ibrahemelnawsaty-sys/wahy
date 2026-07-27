@@ -93,6 +93,11 @@
             </div>
 
             <nav class="admin-nav">
+                <div class="admin-nav-search">
+                    <input type="search" id="adminNavSearch" class="admin-nav-search-input" placeholder="🔎 ابحث في القائمة…" autocomplete="off" aria-label="بحث في القائمة">
+                    <div class="admin-nav-search-empty" id="adminNavSearchEmpty" hidden>لا عناصر مطابقة</div>
+                </div>
+
                 <a href="{{ route('support.dashboard') }}" class="admin-nav-item {{ request()->routeIs('support.dashboard') ? 'active' : '' }}">
                     <span class="admin-nav-icon">🎧</span>
                     <span class="admin-nav-text">لوحة الدعم</span>
@@ -226,6 +231,66 @@
         html[data-theme="dark"] #avatarDropdownMenu { background: var(--w-card) !important; }
         html[data-theme="dark"] #avatarDropdownMenu button { color: #fca5a5 !important; }
     </style>
+
+    {{-- بحث القائمة الجانبيّة الحيّ + بقاء موضع التمرير على العنصر النشط بعد الانتقال --}}
+    <script>
+    (function () {
+        var sidebar = document.getElementById('adminSidebar');
+        var nav = sidebar ? sidebar.querySelector('.admin-nav') : null;
+        var search = document.getElementById('adminNavSearch');
+        var emptyMsg = document.getElementById('adminNavSearchEmpty');
+        var SCROLL_KEY = 'wahySupportNavScroll';
+
+        if (nav && search) {
+            var items = Array.prototype.slice.call(nav.querySelectorAll('.admin-nav-item'));
+            var sections = Array.prototype.slice.call(nav.querySelectorAll('.admin-nav-section'));
+            function runFilter() {
+                var q = search.value.trim().toLowerCase();
+                var anyShown = false;
+                items.forEach(function (item) {
+                    var el = item.querySelector('.admin-nav-text') || item;
+                    var match = !q || el.textContent.toLowerCase().indexOf(q) !== -1;
+                    item.style.display = match ? '' : 'none';
+                    if (match) { anyShown = true; }
+                });
+                sections.forEach(function (sec) {
+                    if (!q) { sec.style.display = ''; return; }
+                    var hasVisible = Array.prototype.some.call(sec.querySelectorAll('.admin-nav-item'), function (it) {
+                        return it.style.display !== 'none';
+                    });
+                    sec.style.display = hasVisible ? '' : 'none';
+                });
+                if (emptyMsg) { emptyMsg.hidden = !(q && !anyShown); }
+            }
+            search.addEventListener('input', runFilter);
+            search.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') { search.value = ''; runFilter(); search.blur(); }
+            });
+        }
+
+        if (sidebar) {
+            try {
+                var saved = sessionStorage.getItem(SCROLL_KEY);
+                if (saved !== null) { sidebar.scrollTop = parseInt(saved, 10) || 0; }
+            } catch (e) {}
+            var active = sidebar.querySelector('.admin-nav-item.active');
+            if (active) {
+                var top = active.offsetTop, bottom = top + active.offsetHeight;
+                var viewTop = sidebar.scrollTop, viewBottom = viewTop + sidebar.clientHeight;
+                if (top < viewTop + 8 || bottom > viewBottom - 8) {
+                    sidebar.scrollTop = Math.max(0, top - (sidebar.clientHeight / 2) + (active.offsetHeight / 2));
+                }
+            }
+            var st;
+            sidebar.addEventListener('scroll', function () {
+                clearTimeout(st);
+                st = setTimeout(function () {
+                    try { sessionStorage.setItem(SCROLL_KEY, String(sidebar.scrollTop)); } catch (e) {}
+                }, 100);
+            }, { passive: true });
+        }
+    })();
+    </script>
 
     @stack('after-content')
 </body>
