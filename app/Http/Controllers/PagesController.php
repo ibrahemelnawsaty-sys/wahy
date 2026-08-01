@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LandingContent;
 use App\Models\PageBuilder;
 use App\Models\Survey;
+use App\PageBuilder\PageResolver;
 
 /**
  * PagesController
@@ -19,6 +20,11 @@ class PagesController extends Controller
      */
     public function landing()
     {
+        // محرّر v2 له الأسبقيّة إن رُفِع علمه لـ home وُوجِدت صفحة منشورة (ت-١٢).
+        if ($v2 = PageResolver::resolve('home', app()->getLocale())) {
+            return view('pb.document', ['page' => $v2]);
+        }
+
         // مصدر حقيقة واحد للصفحة الرئيسية: إن وُجدت صفحة PageBuilder مفعّلة بـ slug=home نعرضها،
         // وإلا نرجع للصفحة الثابتة (fallback). يحلّ عدم انعكاس تخصيص الأدمن على / — Issue 12.
         $page = PageBuilder::where('slug', 'home')->where('is_active', true)->first();
@@ -62,6 +68,10 @@ class PagesController extends Controller
      */
     public function showPage($slug)
     {
+        if ($v2 = PageResolver::resolve($slug, app()->getLocale())) {
+            return view('pb.document', ['page' => $v2]);
+        }
+
         $page = PageBuilder::where('slug', $slug)->where('is_active', true)->first();
 
         if ($page) {
@@ -90,6 +100,10 @@ class PagesController extends Controller
      */
     public function home()
     {
+        if ($v2 = PageResolver::resolve('home', app()->getLocale())) {
+            return view('pb.document', ['page' => $v2]);
+        }
+
         $page = PageBuilder::where('slug', 'home')->where('is_active', true)->first();
 
         if ($page) {

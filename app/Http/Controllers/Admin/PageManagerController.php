@@ -7,6 +7,7 @@ use App\PageBuilder\BlockValidator;
 use App\PageBuilder\Models\Page;
 use App\PageBuilder\Models\PageRevision;
 use App\PageBuilder\Models\TemplatePart;
+use App\PageBuilder\PageResolver;
 use App\PageBuilder\PageService;
 use App\PageBuilder\SlugGuard;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,7 @@ class PageManagerController extends Controller
         return response()->json([
             'pages' => Page::query()->latest('updated_at')
                 ->get(['id', 'title', 'slug', 'locale', 'status', 'translation_group', 'updated_at']),
+            'live_slugs' => PageResolver::enabledSlugs(), // المسارات المخدومة عبر v2 (ت-١٢)
         ]);
     }
 
@@ -95,9 +97,33 @@ class PageManagerController extends Controller
 
     public function destroy(Page $page): JsonResponse
     {
+        PageResolver::disable($page->slug); // لا نُبقي علماً معلَّقاً لمسار محذوف
         $page->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    /** تفعيل خدمة v2 لهذا المسار العامّ (ت-١٢) — يشترط أن تكون الصفحة منشورة. */
+    public function goLive(Page $page): JsonResponse
+    {
+        if ($page->status !== 'published') {
+            return $this->reject('انشر الصفحة أوّلاً قبل تفعيلها على المسار العامّ.');
+        }
+        if (SlugGuard::isReserved($page->slug)) {
+            return $this->reject("المسار «{$page->slug}» محجوز للنظام — لا يمكن خدمته.");
+        }
+
+        PageResolver::enable($page->slug);
+
+        return response()->json(['success' => true, 'live_slugs' => PageResolver::enabledSlugs()]);
+    }
+
+    /** إيقاف خدمة v2 لهذا المسار (ارتداد للنظام القديم). */
+    public function takeDown(Page $page): JsonResponse
+    {
+        PageResolver::disable($page->slug);
+
+        return response()->json(['success' => true, 'live_slugs' => PageResolver::enabledSlugs()]);
     }
 
     public function updatePart(Request $request, TemplatePart $part): JsonResponse

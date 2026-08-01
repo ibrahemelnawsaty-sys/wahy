@@ -196,8 +196,16 @@ Route::middleware('auth')->group(function () {
             Route::put('/pages/{page}', [$pm, 'update'])->name('pages.update');
             Route::post('/pages/{page}/publish', [$pm, 'publish'])->name('pages.publish');
             Route::post('/pages/{page}/restore/{revision}', [$pm, 'restore'])->name('pages.restore');
+            Route::post('/pages/{page}/go-live', [$pm, 'goLive'])->name('pages.go-live');
+            Route::post('/pages/{page}/take-down', [$pm, 'takeDown'])->name('pages.take-down');
             Route::delete('/pages/{page}', [$pm, 'destroy'])->name('pages.destroy');
             Route::put('/parts/{part}', [$pm, 'updatePart'])->name('parts.update');
+
+            // مكتبة الوسائط (ت-٨)
+            $ml = \App\Http\Controllers\Admin\MediaLibraryController::class;
+            Route::get('/media', [$ml, 'index'])->name('media.index');
+            Route::post('/media', [$ml, 'store'])->name('media.store');
+            Route::delete('/media/{medium}', [$ml, 'destroy'])->name('media.destroy');
         });
 
         // التقديمات المعلقة
