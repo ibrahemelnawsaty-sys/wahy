@@ -505,10 +505,11 @@
                                         @if(isset($component['type']))
                                             @switch($component['type'])
                                                 @case('heading')
-                                                    <{{ $component['content']['level'] ?? 'h2' }} 
-                                                        class="component-heading {{ $component['content']['level'] ?? 'h2' }} text-{{ $component['content']['align'] ?? 'right' }}">
+                                                    @php $__lvl = in_array($component['content']['level'] ?? 'h2', ['h1','h2','h3','h4','h5','h6'], true) ? $component['content']['level'] : 'h2'; @endphp
+                                                    <{{ $__lvl }}
+                                                        class="component-heading {{ $__lvl }} text-{{ $component['content']['align'] ?? 'right' }}">
                                                         {{ $component['content']['text'] ?? '' }}
-                                                    </{{ $component['content']['level'] ?? 'h2' }}>
+                                                    </{{ $__lvl }}>
                                                     @break
 
                                                 @case('paragraph')
@@ -519,7 +520,7 @@
 
                                                 @case('button')
                                                     <div class="text-{{ $component['content']['align'] ?? 'right' }}">
-                                                        <a href="{{ $component['content']['link'] ?? '#' }}" 
+                                                        <a href="{{ safe_url($component['content']['link'] ?? '#') }}"
                                                            class="component-button {{ $component['content']['style'] ?? 'primary' }}">
                                                             {{ $component['content']['text'] ?? 'زر' }}
                                                         </a>
@@ -533,12 +534,18 @@
                                                     @break
 
                                                 @case('video')
+                                                    @php
+                                                        $__vurl = trim($component['content']['url'] ?? '');
+                                                        $__isYt = preg_match('#^https://#i', $__vurl) && (str_contains($__vurl, 'youtube.com') || str_contains($__vurl, 'youtu.be'));
+                                                        // مسار محلّيّ آمن فقط: بلا مخطّط (javascript:/…) وبلا تسلّق مجلّدات
+                                                        $__localOk = $__vurl !== '' && ! preg_match('#^[a-z][a-z0-9+.\-]*:#i', $__vurl) && ! str_contains($__vurl, '..');
+                                                    @endphp
                                                     <div class="component-video">
-                                                        @if(str_contains($component['content']['url'] ?? '', 'youtube.com') || str_contains($component['content']['url'] ?? '', 'youtu.be'))
-                                                            <iframe src="{{ $component['content']['url'] ?? '' }}" 
+                                                        @if($__isYt)
+                                                            <iframe src="{{ safe_url($__vurl) }}"
                                                                     allowfullscreen></iframe>
-                                                        @else
-                                                            <video src="{{ asset('storage/app/public/data/' . $component['content']['url'] ?? '') }}" 
+                                                        @elseif($__localOk)
+                                                            <video src="{{ asset('storage/app/public/data/' . $__vurl) }}"
                                                                    controls></video>
                                                         @endif
                                                     </div>
@@ -565,7 +572,7 @@
                                                     @break
 
                                                 @case('list')
-                                                    @php $listType = $component['content']['type'] ?? 'ul'; @endphp
+                                                    @php $listType = in_array($component['content']['type'] ?? 'ul', ['ul','ol'], true) ? $component['content']['type'] : 'ul'; @endphp
                                                     <{{ $listType }} class="component-list" style="color:{{ $component['content']['color'] ?? '#334155' }};font-size:{{ $component['content']['fontSize'] ?? '16px' }};">
                                                         @foreach($component['content']['items'] ?? [] as $item)
                                                             <li>{{ $item }}</li>
@@ -587,7 +594,7 @@
                                                     @break
 
                                                 @case('link')
-                                                    <a href="{{ $component['content']['url'] ?? '#' }}" 
+                                                    <a href="{{ safe_url($component['content']['url'] ?? '#') }}"
                                                        class="component-link"
                                                        style="color:{{ $component['content']['color'] ?? '#3b82f6' }};font-size:{{ $component['content']['fontSize'] ?? '16px' }};text-decoration:{{ ($component['content']['underline'] ?? true) ? 'underline' : 'none' }};"
                                                        target="_blank">
@@ -702,7 +709,7 @@
                             {{ $block['content']['subtitle'] ?? 'وصف قصير' }}
                         </p>
                         @if(isset($block['content']['buttonText']))
-                            <a href="{{ $block['content']['buttonLink'] ?? '#' }}" style="display: inline-block; background: white; color: {{ setting('primary_color', '#3CCB8A') }}; padding: 16px 48px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 18px; transition: all 0.3s ease;">
+                            <a href="{{ safe_url($block['content']['buttonLink'] ?? '#') }}" style="display: inline-block; background: white; color: {{ setting('primary_color', '#3CCB8A') }}; padding: 16px 48px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 18px; transition: all 0.3s ease;">
                                 {{ $block['content']['buttonText'] }}
                             </a>
                         @endif
@@ -711,7 +718,7 @@
 
                 @case('heading')
                     @php
-                        $level = $block['content']['level'] ?? 'h2';
+                        $level = in_array($block['content']['level'] ?? 'h2', ['h1','h2','h3','h4','h5','h6'], true) ? $block['content']['level'] : 'h2';
                         $text = $block['content']['text'] ?? 'عنوان';
                     @endphp
                     <{{ $level }} style="color: #1e293b; margin: 32px 0 16px; font-weight: 700; line-height: 1.3;">
@@ -727,7 +734,7 @@
 
                 @case('button')
                     <div style="margin: 32px 0;">
-                        <a href="{{ $block['content']['link'] ?? '#' }}" style="display: inline-block; background: {{ setting('primary_color', '#3CCB8A') }}; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
+                        <a href="{{ safe_url($block['content']['link'] ?? '#') }}" style="display: inline-block; background: {{ setting('primary_color', '#3CCB8A') }}; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
                             {{ $block['content']['text'] ?? 'انقر هنا' }}
                         </a>
                     </div>
@@ -754,14 +761,20 @@
                     @break
 
                 @case('video')
+                    @php
+                        $__burl = trim($block['content']['url'] ?? '');
+                        $__isYt = preg_match('#^https://#i', $__burl) && (str_contains($__burl, 'youtube.com') || str_contains($__burl, 'youtu.be'));
+                    @endphp
+                    @if($__isYt)
                     <div style="margin: 48px 0;">
                         <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-                            <iframe src="{{ $block['content']['url'] ?? '' }}" 
-                                    frameborder="0" 
-                                    allowfullscreen 
+                            <iframe src="{{ safe_url($__burl) }}"
+                                    frameborder="0"
+                                    allowfullscreen
                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
                         </div>
                     </div>
+                    @endif
                     @break
 
                 @case('spacer')

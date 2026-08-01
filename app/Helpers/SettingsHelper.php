@@ -285,3 +285,29 @@ if (! function_exists('normalize_message_html')) {
         return trim((string) $html);
     }
 }
+
+if (! function_exists('safe_url')) {
+    /**
+     * يُحيّد مخطّطات الروابط الخطرة (javascript:/data:/vbscript:…) قبل صبّها في href/src.
+     * يُعيد $fallback إن كان المخطّط خطراً. يُطبَّع للكشف (فكّ الكيانات + إزالة أحرف التحكّم/التاب
+     * التي يُسقطها محلّل الرابط فيُعيد تكوين javascript:) لكنّه يُعيد القيمة الأصليّة عند السلامة.
+     * ملاحظة: يُستعمَل داخل {{ }} فيهرَّب الاقتباس/الأقواس تلقائياً — هذا يسدّ الجزء المتبقّي (المخطّط).
+     */
+    function safe_url(?string $url, string $fallback = '#'): string
+    {
+        $url = trim((string) $url);
+        if ($url === '') {
+            return $fallback;
+        }
+
+        $probe = html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $probe = html_entity_decode($probe, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $probe = preg_replace('/[\x00-\x20]|\xC2\xA0/', '', (string) $probe);
+
+        if (preg_match('/^(javascript|data|vbscript|about|file):/i', (string) $probe)) {
+            return $fallback;
+        }
+
+        return $url;
+    }
+}
