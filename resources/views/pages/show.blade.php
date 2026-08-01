@@ -505,7 +505,7 @@
                                         @if(isset($component['type']))
                                             @switch($component['type'])
                                                 @case('heading')
-                                                    @php $__lvl = in_array($component['content']['level'] ?? 'h2', ['h1','h2','h3','h4','h5','h6'], true) ? $component['content']['level'] : 'h2'; @endphp
+                                                    @php $__lvl = in_array($component['content']['level'] ?? 'h2', ['h1','h2','h3','h4','h5','h6'], true) ? ($component['content']['level'] ?? 'h2') : 'h2'; @endphp
                                                     <{{ $__lvl }}
                                                         class="component-heading {{ $__lvl }} text-{{ $component['content']['align'] ?? 'right' }}">
                                                         {{ $component['content']['text'] ?? '' }}
@@ -572,7 +572,7 @@
                                                     @break
 
                                                 @case('list')
-                                                    @php $listType = in_array($component['content']['type'] ?? 'ul', ['ul','ol'], true) ? $component['content']['type'] : 'ul'; @endphp
+                                                    @php $listType = in_array($component['content']['type'] ?? 'ul', ['ul','ol'], true) ? ($component['content']['type'] ?? 'ul') : 'ul'; @endphp
                                                     <{{ $listType }} class="component-list" style="color:{{ $component['content']['color'] ?? '#334155' }};font-size:{{ $component['content']['fontSize'] ?? '16px' }};">
                                                         @foreach($component['content']['items'] ?? [] as $item)
                                                             <li>{{ $item }}</li>
@@ -718,7 +718,7 @@
 
                 @case('heading')
                     @php
-                        $level = in_array($block['content']['level'] ?? 'h2', ['h1','h2','h3','h4','h5','h6'], true) ? $block['content']['level'] : 'h2';
+                        $level = in_array($block['content']['level'] ?? 'h2', ['h1','h2','h3','h4','h5','h6'], true) ? ($block['content']['level'] ?? 'h2') : 'h2';
                         $text = $block['content']['text'] ?? 'عنوان';
                     @endphp
                     <{{ $level }} style="color: #1e293b; margin: 32px 0 16px; font-weight: 700; line-height: 1.3;">
