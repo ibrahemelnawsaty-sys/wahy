@@ -187,6 +187,19 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->name('admin.')->middleware(['can:access-admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        // ==================== محرّر الصفحات الاحترافيّ v2 (App\PageBuilder) — حفظ/نشر/تراجع ====================
+        // نقاط JSON يستدعيها محرّر المرحلة 2؛ الأمن عبر BlockValidator (مخطّط+XSS) + SlugGuard.
+        Route::prefix('pb')->name('pb.')->group(function () {
+            $pm = \App\Http\Controllers\Admin\PageManagerController::class;
+            Route::get('/pages', [$pm, 'index'])->name('pages.index');
+            Route::post('/pages', [$pm, 'store'])->name('pages.store');
+            Route::put('/pages/{page}', [$pm, 'update'])->name('pages.update');
+            Route::post('/pages/{page}/publish', [$pm, 'publish'])->name('pages.publish');
+            Route::post('/pages/{page}/restore/{revision}', [$pm, 'restore'])->name('pages.restore');
+            Route::delete('/pages/{page}', [$pm, 'destroy'])->name('pages.destroy');
+            Route::put('/parts/{part}', [$pm, 'updatePart'])->name('parts.update');
+        });
+
         // التقديمات المعلقة
         Route::get('/pending-submissions', [DashboardController::class, 'pendingSubmissions'])->name('pending-submissions');
         Route::get('/review-submission/{id}', [DashboardController::class, 'reviewSubmission'])->name('review-submission');
