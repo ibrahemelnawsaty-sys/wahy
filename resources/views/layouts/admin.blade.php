@@ -191,6 +191,11 @@
                             <span class="admin-nav-text">بناء الصفحات</span>
                         </a>
 
+                        <a href="{{ route('admin.pb.ui.index') }}" class="admin-nav-item {{ request()->routeIs('admin.pb.*') ? 'active' : '' }}">
+                            <span class="admin-nav-icon">🧱</span>
+                            <span class="admin-nav-text">محرّر الصفحات (جديد)</span>
+                        </a>
+
                         <a href="{{ route('admin.settings') }}" class="admin-nav-item {{ request()->routeIs('admin.settings*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">⚙️</span>
                             <span class="admin-nav-text">الإعدادات العامة</span>

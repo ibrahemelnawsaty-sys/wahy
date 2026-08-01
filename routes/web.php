@@ -191,6 +191,18 @@ Route::middleware('auth')->group(function () {
         // نقاط JSON يستدعيها محرّر المرحلة 2؛ الأمن عبر BlockValidator (مخطّط+XSS) + SlugGuard.
         Route::prefix('pb')->name('pb.')->group(function () {
             $pm = \App\Http\Controllers\Admin\PageManagerController::class;
+            $ui = \App\Http\Controllers\Admin\PageBuilderUiController::class;
+
+            // واجهة المحرّر (صفحات Blade)
+            Route::get('/', [$ui, 'index'])->name('ui.index');
+            Route::get('/new', [$ui, 'create'])->name('ui.create');
+            Route::get('/editor/{page}', [$ui, 'edit'])->name('ui.edit');
+
+            // معاينة آمنة + الجزء الفعّال (هيدر/فوتر)
+            Route::post('/preview', [$pm, 'preview'])->name('preview');
+            Route::get('/parts/active/{kind}', [$pm, 'activePart'])->name('parts.active');
+
+            // نقاط JSON للبيانات
             Route::get('/pages', [$pm, 'index'])->name('pages.index');
             Route::post('/pages', [$pm, 'store'])->name('pages.store');
             Route::put('/pages/{page}', [$pm, 'update'])->name('pages.update');

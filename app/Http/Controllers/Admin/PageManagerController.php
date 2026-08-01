@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\PageBuilder\BlockTree;
 use App\PageBuilder\BlockValidator;
 use App\PageBuilder\Models\Page;
 use App\PageBuilder\Models\PageRevision;
@@ -10,8 +11,10 @@ use App\PageBuilder\Models\TemplatePart;
 use App\PageBuilder\PageResolver;
 use App\PageBuilder\PageService;
 use App\PageBuilder\SlugGuard;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * واجهة إدارة صفحات المحرّر الاحترافيّ (المرحلة 1، الدفعة 2) — حفظ/نشر/تراجع.
@@ -125,6 +128,36 @@ class PageManagerController extends Controller
         PageResolver::disable($page->slug);
 
         return response()->json(['success' => true, 'live_slugs' => PageResolver::enabledSlugs()]);
+    }
+
+    /** الجزء الفعّال (هيدر/فوتر) لِلُغةٍ ما — يُنشئ فارغاً إن لم يوجد (تحرير المناطق المستقلّة). */
+    public function activePart(Request $request, string $kind): JsonResponse
+    {
+        abort_unless(in_array($kind, ['header', 'footer'], true), 404);
+        $locale = (string) $request->input('locale', 'ar');
+
+        $part = TemplatePart::activeFor($kind, $locale) ?: TemplatePart::create([
+            'translation_group' => (string) Str::uuid(),
+            'locale' => $locale,
+            'name' => $kind === 'header' ? 'الهيدر' : 'الفوتر',
+            'kind' => $kind,
+            'blocks' => [],
+            'is_active' => true,
+            'created_by' => $request->user()?->id,
+            'updated_by' => $request->user()?->id,
+        ]);
+
+        return response()->json(['part' => [
+            'id' => $part->id, 'name' => $part->name, 'kind' => $part->kind, 'blocks' => $part->blocks ?? [],
+        ]]);
+    }
+
+    /** معاينة آمنة: تُصيَّر الكتل عبر المُصيِّر الموثوق نفسه (قائمة سماح + تهريب) — لا HTML خامّ. */
+    public function preview(Request $request): View
+    {
+        $blocks = BlockTree::prepare($this->decodeBlocks($request->input('blocks', [])));
+
+        return view('pb.preview', ['blocks' => $blocks]);
     }
 
     public function updatePart(Request $request, TemplatePart $part): JsonResponse

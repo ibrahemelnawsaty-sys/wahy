@@ -21,7 +21,8 @@ class MediaLibraryController extends Controller
         $assets = MediaAsset::query()->latest('id')->paginate(50);
         $assets->getCollection()->transform(fn (MediaAsset $a) => [
             'id' => $a->id,
-            'url' => $a->url,
+            'url' => $a->url,      // للعرض (مصغّرة)
+            'path' => $a->path,    // يُخزَّن في src الكتلة (يُحلّ عبر القرص العامّ)
             'alt' => $a->alt,
             'mime' => $a->mime,
             'width' => $a->width,
@@ -49,7 +50,7 @@ class MediaLibraryController extends Controller
 
         return response()->json([
             'success' => true,
-            'asset' => ['id' => $asset->id, 'url' => $asset->url, 'alt' => $asset->alt],
+            'asset' => ['id' => $asset->id, 'url' => $asset->url, 'path' => $asset->path, 'alt' => $asset->alt],
         ], 201);
     }
 
