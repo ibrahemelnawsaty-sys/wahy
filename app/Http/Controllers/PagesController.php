@@ -86,6 +86,10 @@ class PagesController extends Controller
      */
     public function showPageAlt($slug)
     {
+        if ($v2 = PageResolver::resolve($slug, app()->getLocale())) {
+            return view('pb.document', ['page' => $v2]);
+        }
+
         $page = PageBuilder::getBySlug($slug);
 
         if (! $page) {

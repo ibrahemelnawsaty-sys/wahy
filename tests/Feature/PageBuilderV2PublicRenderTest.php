@@ -86,6 +86,40 @@ class PageBuilderV2PublicRenderTest extends TestCase
         $this->assertFalse(PageResolver::isEnabled('about-us'));
     }
 
+    public function test_full_home_migration_flow_scaffold_go_live_served(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+
+        // ترحيل home: أمر التهيئة يُنشئها منشورة (home محجوز لكنّه مقصود للترحيل)
+        $this->artisan('pb:scaffold-home')->assertExitCode(0);
+        $home = Page::where('slug', 'home')->firstOrFail();
+
+        // go-live يقبل home رغم كونه محجوزاً (لا يرفضه حارس الحجز)
+        $this->actingAs($admin)->postJson(route('admin.pb.pages.go-live', $home))->assertOk();
+        $this->assertTrue(PageResolver::isEnabled('home'));
+
+        $this->get('/')->assertOk()->assertSee('منصّة قِيَم التعليميّة');
+    }
+
+    public function test_metadata_only_update_preserves_blocks(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $page = Page::create([
+            'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
+            'title' => 'قديم', 'slug' => 'keep-blocks', 'status' => 'draft',
+            'blocks' => [['type' => 'hero', 'props' => ['title' => 'يجب أن يبقى']]],
+        ]);
+
+        // حفظ بلا إرسال blocks (تعديل عنوان فقط) — يجب ألّا يُمسح الجسم
+        $this->actingAs($admin)->putJson(route('admin.pb.pages.update', $page), [
+            'title' => 'عنوان محدَّث', 'slug' => 'keep-blocks',
+        ])->assertOk();
+
+        $fresh = $page->fresh();
+        $this->assertSame('عنوان محدَّث', $fresh->title);
+        $this->assertSame('يجب أن يبقى', $fresh->blocks[0]['props']['title']);
+    }
+
     public function test_scaffold_home_command_is_idempotent(): void
     {
         $this->artisan('pb:scaffold-home')->assertExitCode(0);

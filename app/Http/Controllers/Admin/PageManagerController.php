@@ -41,7 +41,7 @@ class PageManagerController extends Controller
         if (Page::where('slug', $data['slug'])->where('locale', $data['locale'])->exists()) {
             return $this->reject("توجد صفحة بالمسار «{$data['slug']}» في هذه اللغة.");
         }
-        if ($errors = BlockValidator::validate($data['blocks'])) {
+        if (array_key_exists('blocks', $data) && ($errors = BlockValidator::validate($data['blocks']))) {
             return $this->reject('محتوى غير صالح/غير آمن.', $errors);
         }
 
@@ -67,7 +67,7 @@ class PageManagerController extends Controller
             ->where('id', '!=', $page->id)->exists()) {
             return $this->reject("توجد صفحة أخرى بالمسار «{$data['slug']}» في هذه اللغة.");
         }
-        if ($errors = BlockValidator::validate($data['blocks'])) {
+        if (array_key_exists('blocks', $data) && ($errors = BlockValidator::validate($data['blocks']))) {
             return $this->reject('محتوى غير صالح/غير آمن.', $errors);
         }
 
@@ -103,14 +103,15 @@ class PageManagerController extends Controller
         return response()->json(['success' => true]);
     }
 
-    /** تفعيل خدمة v2 لهذا المسار العامّ (ت-١٢) — يشترط أن تكون الصفحة منشورة. */
+    /**
+     * تفعيل خدمة v2 لهذا المسار العامّ (ت-١٢) — يشترط أن تكون الصفحة منشورة.
+     * لا نفحص الحجز هنا: إنشاء الصفحات محجوبٌ أصلاً بـSlugGuard، والصفحات المحجوزة
+     * الوحيدة القابلة للوجود (home) مقصودةٌ للترحيل؛ والعلم يؤثّر في مسارات المُصيِّر الموصولة فقط.
+     */
     public function goLive(Page $page): JsonResponse
     {
         if ($page->status !== 'published') {
             return $this->reject('انشر الصفحة أوّلاً قبل تفعيلها على المسار العامّ.');
-        }
-        if (SlugGuard::isReserved($page->slug)) {
-            return $this->reject("المسار «{$page->slug}» محجوز للنظام — لا يمكن خدمته.");
         }
 
         PageResolver::enable($page->slug);
@@ -157,17 +158,23 @@ class PageManagerController extends Controller
             'meta_description' => 'nullable|string|max:500',
         ]);
 
-        return [
+        $data = [
             'title' => $request->input('title'),
             'slug' => SlugGuard::normalize($request->input('slug')),
             'locale' => $request->input('locale', 'ar'),
-            'blocks' => $this->decodeBlocks($request->input('blocks', [])),
             'header_part_id' => $request->input('header_part_id'),
             'footer_part_id' => $request->input('footer_part_id'),
             'meta_title' => $request->input('meta_title'),
             'meta_description' => $request->input('meta_description'),
             'translation_group' => $request->input('translation_group'),
         ];
+
+        // نُدرِج blocks فقط حين تُرسَل فعلاً — كي لا يمسح حفظُ بيانات وصفيّة (بلا كتل) جسمَ الصفحة.
+        if ($request->has('blocks')) {
+            $data['blocks'] = $this->decodeBlocks($request->input('blocks'));
+        }
+
+        return $data;
     }
 
     /** يقبل blocks كمصفوفة (JSON body) أو نصّ JSON (form). */
