@@ -166,11 +166,13 @@
         } else if (field.type === 'media') {
             var row = document.createElement('div'); row.className = 'pb-media-field';
             var thumb = document.createElement('img'); thumb.className = 'pb-thumb';
-            if (value) thumb.src = '/storage/' + value.replace(/^\/?storage\//, '');
+            // لا نخمّن رابط القرص العامّ (جذره غير قياسيّ) — نعرض مصغّرةً فقط حين نملك رابطاً حقيقيّاً.
+            var showThumb = function (url) { if (url) { thumb.src = url; thumb.style.display = ''; } else { thumb.style.display = 'none'; } };
+            showThumb(/^https?:\/\//.test(value || '') ? value : '');
             var inp = document.createElement('input'); inp.type = 'text'; inp.value = value || ''; inp.placeholder = 'مسار الصورة';
             inp.oninput = function () { onChange(inp.value); };
             var pick = document.createElement('button'); pick.type = 'button'; pick.className = 'btn btn-sm btn-outline-primary'; pick.textContent = 'اختر';
-            pick.onclick = function () { openMedia(function (asset) { inp.value = asset.path; thumb.src = asset.url; onChange(asset.path); }); };
+            pick.onclick = function () { openMedia(function (asset) { inp.value = asset.path; showThumb(asset.url); onChange(asset.path); }); };
             row.appendChild(thumb); row.appendChild(inp); row.appendChild(pick);
             wrap.appendChild(row); return wrap;
         } else {
