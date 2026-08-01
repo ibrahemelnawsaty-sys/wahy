@@ -51,6 +51,12 @@ class PageBuilderController extends Controller
                     ->withInput();
             }
 
+            // طبقة حفظ (ت-١): رفض المحتوى الخطر (حقن وسم/javascript:/on…=/<script>) قبل التخزين —
+            // دفاعٌ بالعمق فوق تحصين الرندرة (لا نثق بالمخزَّن ولا نسمح بزرعه أصلاً).
+            if ($r = $this->rejectUnsafeContent($jsonData)) {
+                return $r;
+            }
+
             $page = PageBuilder::create([
                 'page_name' => $request->page_name,
                 'slug' => $request->slug,
@@ -107,6 +113,11 @@ class PageBuilderController extends Controller
                 return redirect()->back()
                     ->with('error', 'بيانات JSON غير صالحة!')
                     ->withInput();
+            }
+
+            // طبقة حفظ (ت-١): رفض المحتوى الخطر قبل التخزين (دفاع بالعمق فوق تحصين الرندرة).
+            if ($r = $this->rejectUnsafeContent($jsonData)) {
+                return $r;
             }
 
             $page->update([
@@ -199,5 +210,24 @@ class PageBuilderController extends Controller
         $page = (object) $pageData;
 
         return view('pages.show', compact('page'));
+    }
+
+    /**
+     * طبقة الحفظ (ت-١): تُعيد redirect بالرفض إن حوى المحتوى حمولات XSS، وإلا null.
+     * مصدر الكشف مشترك مع سكربت التدقيق (PageContentScanner) لضمان تطابق القاعدة.
+     */
+    private function rejectUnsafeContent(mixed $jsonData): ?\Illuminate\Http\RedirectResponse
+    {
+        $violations = \App\Support\PageContentScanner::scan($jsonData);
+        if ($violations === []) {
+            return null;
+        }
+
+        $examples = collect($violations)->take(4)
+            ->map(fn ($v) => $v['path'] . ' [' . $v['kind'] . ']')->implode('، ');
+
+        return redirect()->back()
+            ->with('error', 'رُفض الحفظ: المحتوى يحوي عناصر غير آمنة (' . count($violations) . '). أمثلة: ' . $examples)
+            ->withInput();
     }
 }

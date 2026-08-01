@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\PageBuilder;
+use App\Models\User;
+use App\Support\PageContentScanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -59,5 +61,65 @@ class PageBuilderXssTest extends TestCase
         $res->assertSee('href="#"', false);
         // iframe يوتيوب المزيّف لم يُصيَّر (ليس https حقيقيّاً)
         $res->assertDontSee('<iframe', false);
+    }
+
+    public function test_scanner_flags_payloads_and_ignores_clean_prose(): void
+    {
+        $bad = ['grid' => [[
+            ['content' => ['level' => 'section']],
+            ['content' => ['link' => 'javascript:alert(1)']],
+            ['content' => ['code' => '<script>alert(1)</script>']],
+            ['content' => ['x' => 'a onmouseover=alert(1) b']],
+        ]]];
+        $kinds = array_column(PageContentScanner::scan($bad), 'kind');
+        $this->assertContains('tag-name-injection', $kinds);
+        $this->assertContains('dangerous-scheme', $kinds);
+        $this->assertContains('dangerous-tag', $kinds);
+        $this->assertContains('event-handler', $kinds);
+
+        // نثرٌ يذكر «javascript» دون أن يكون مخطّطاً + رابط شرعيّ + وسم آمن → لا مخالفة
+        $clean = ['content' => [
+            'level' => 'h3',
+            'text' => 'تعلّم javascript في هذا الدرس التفاعليّ',
+            'link' => 'https://example.com/page',
+        ]];
+        $this->assertSame([], PageContentScanner::scan($clean));
+    }
+
+    public function test_page_builder_store_rejects_unsafe_content(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+
+        $payload = [
+            'page_name' => 'صفحة خبيثة',
+            'slug' => 'evil-page',
+            'json_data' => json_encode(['sections' => [['grid' => [[
+                ['type' => 'button', 'content' => ['link' => 'javascript:alert(document.cookie)', 'text' => 'x']],
+            ]]]]]),
+        ];
+
+        $this->actingAs($admin)->post(route('admin.pages.store'), $payload)
+            ->assertRedirect(); // يعود بالخطأ لا ينشئ
+
+        $this->assertDatabaseMissing('page_builder', ['slug' => 'evil-page']);
+    }
+
+    public function test_audit_command_reports_contaminated_rows(): void
+    {
+        PageBuilder::create([
+            'page_name' => 'clean', 'slug' => 'clean',
+            'json_data' => ['sections' => [['grid' => [[['type' => 'heading', 'content' => ['level' => 'h2', 'text' => 'ok']]]]]]],
+            'is_active' => true,
+        ]);
+        // صفٌّ ملوَّث نتجاوز به طبقة الحفظ (كتابة مباشرة تحاكي بيانات مزروعة قبل التحصين)
+        PageBuilder::create([
+            'page_name' => 'dirty', 'slug' => 'dirty',
+            'json_data' => ['sections' => [['grid' => [[['type' => 'button', 'content' => ['link' => 'javascript:alert(1)']]]]]]],
+            'is_active' => true,
+        ]);
+
+        $this->artisan('pages:audit-xss')
+            ->assertExitCode(1) // FAILURE عند وجود تلوّث
+            ->expectsOutputToContain('الصفوف الملوَّثة');
     }
 }

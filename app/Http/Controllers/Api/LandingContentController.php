@@ -61,6 +61,14 @@ class LandingContentController extends Controller
             'section' => 'sometimes|string',
         ]);
 
+        // طبقة حفظ (ت-١): لا نسمح بزرع حمولة XSS في المحتوى العامّ (يُعرَض لزوّار غير مصادَقين).
+        if (\App\Support\PageContentScanner::hasViolations($request->value)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المحتوى يحوي عناصر غير آمنة (رابط javascript:/وسم <script>/معالج حدث) — رُفض الحفظ.',
+            ], 422);
+        }
+
         try {
             $content = LandingContent::setValue(
                 $request->key,
@@ -91,6 +99,16 @@ class LandingContentController extends Controller
             'contents.*.key' => 'required|string',
             'contents.*.value' => 'required',
         ]);
+
+        // طبقة حفظ (ت-١): افحص كلّ القيم قبل أيّ كتابة — رفض الدفعة كاملةً إن وُجدت حمولة.
+        foreach ($request->contents as $item) {
+            if (\App\Support\PageContentScanner::hasViolations($item['value'] ?? '')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'الحقل «' . ($item['key'] ?? '') . '» يحوي عناصر غير آمنة — رُفض الحفظ.',
+                ], 422);
+            }
+        }
 
         try {
             // حفظ نسخة احتياطية قبل التحديث (فقط إذا كان هناك محتوى موجود)
