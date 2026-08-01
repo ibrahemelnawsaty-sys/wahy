@@ -198,9 +198,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/new', [$ui, 'create'])->name('ui.create');
             Route::get('/editor/{page}', [$ui, 'edit'])->name('ui.edit');
 
-            // معاينة آمنة + الجزء الفعّال (هيدر/فوتر)
+            // معاينة آمنة + الجزء الفعّال (هيدر/فوتر) + رموز التصميم (ت-١٠)
             Route::post('/preview', [$pm, 'preview'])->name('preview');
             Route::get('/parts/active/{kind}', [$pm, 'activePart'])->name('parts.active');
+            Route::get('/design', [$pm, 'design'])->name('design.show');
+            Route::put('/design', [$pm, 'saveDesign'])->name('design.save');
 
             // نقاط JSON للبيانات
             Route::get('/pages', [$pm, 'index'])->name('pages.index');
@@ -210,6 +212,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/pages/{page}/restore/{revision}', [$pm, 'restore'])->name('pages.restore');
             Route::post('/pages/{page}/go-live', [$pm, 'goLive'])->name('pages.go-live');
             Route::post('/pages/{page}/take-down', [$pm, 'takeDown'])->name('pages.take-down');
+            Route::post('/pages/{page}/translate', [$pm, 'translate'])->name('pages.translate');
             Route::delete('/pages/{page}', [$pm, 'destroy'])->name('pages.destroy');
             Route::put('/parts/{part}', [$pm, 'updatePart'])->name('parts.update');
 

@@ -50,6 +50,7 @@ class PageBuilderUiController extends Controller
                 'blocks' => $page->blocks ?? [],
             ] : null,
             'isLive' => $isLive,
+            'translations' => $page ? $page->translations()->get(['id', 'locale', 'title'])->toArray() : [],
             'urls' => [
                 'store' => route('admin.pb.pages.store'),
                 'update' => url('admin/pb/pages'),
@@ -58,6 +59,7 @@ class PageBuilderUiController extends Controller
                 'preview' => route('admin.pb.preview'),
                 'activePart' => url('admin/pb/parts/active'),
                 'updatePart' => url('admin/pb/parts'),
+                'design' => url('admin/pb/design'),
                 'mediaIndex' => route('admin.pb.media.index'),
                 'mediaStore' => route('admin.pb.media.store'),
                 'indexUi' => route('admin.pb.ui.index'),

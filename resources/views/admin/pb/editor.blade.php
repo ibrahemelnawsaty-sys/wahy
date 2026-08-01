@@ -21,6 +21,8 @@
             <button class="btn btn-primary btn-sm" id="pbSave">💾 حفظ</button>
             <button class="btn btn-success btn-sm" id="pbPublish">🚀 نشر</button>
             <button class="btn btn-outline-primary btn-sm" id="pbGoLive"></button>
+            <button class="btn btn-outline-secondary btn-sm" id="pbDesign">🎨 التصميم</button>
+            <span class="pb-lang" id="pbLang"></span>
         </div>
     </div>
 
@@ -70,6 +72,22 @@
     </div>
 </div>
 
+{{-- رموز التصميم (ت-١٠) --}}
+<div class="pb-modal" id="pbDesignModal" hidden>
+    <div class="pb-modal-box">
+        <div class="pb-modal-head"><b>رموز التصميم (تُطبَّق على كلّ الصفحات)</b><button class="pb-modal-x" data-pb-close>✕</button></div>
+        <div class="pb-modal-body">
+            <div class="pb-field"><label>اللون الأساسيّ</label><input type="color" id="pbTkPrimary"></div>
+            <div class="pb-field"><label>اللون الثانويّ</label><input type="color" id="pbTkSecondary"></div>
+            <div class="pb-field"><label>لون النصّ</label><input type="color" id="pbTkText"></div>
+            <div class="pb-field"><label>لون الخلفيّة</label><input type="color" id="pbTkBg"></div>
+            <div class="pb-field"><label>الخطّ</label><select id="pbTkFont"></select></div>
+            <div class="pb-field"><label>الاستدارة (بكسل)</label><input type="number" id="pbTkRadius" min="0" max="40"></div>
+            <button class="btn btn-primary" id="pbTkSave">حفظ التصميم</button>
+        </div>
+    </div>
+</div>
+
 {{-- المعاينة --}}
 <div class="pb-modal" id="pbPreviewModal" hidden>
     <div class="pb-modal-box pb-modal-lg">
@@ -94,6 +112,11 @@
     .pb-tab.is-active{background:#fff;color:#4338ca;box-shadow:0 1px 3px rgba(0,0,0,.08)}
     .pb-tool-actions{margin-inline-start:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .pb-status{font-size:.82rem;color:#94a3b8}
+    .pb-lang{display:inline-flex;gap:4px;align-items:center}
+    .pb-lang a,.pb-lang button{font-size:.76rem;font-weight:700;border:1px solid #e5e7eb;border-radius:8px;
+        padding:3px 9px;background:#f8fafc;color:#475569;cursor:pointer;text-decoration:none}
+    .pb-lang a.is-current{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
+    .pb-lang a:hover,.pb-lang button:hover{border-color:#a5b4fc}
     .pb-grid{display:grid;grid-template-columns:210px 1fr 300px;gap:14px;align-items:start}
     .pb-palette,.pb-inspector,.pb-page-settings{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px}
     .pb-panel-label{font-weight:800;font-size:.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px}

@@ -21,6 +21,7 @@
 
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
+    var uid = 0;
 
     /* ============ الوصول لكتل المنطقة الحاليّة عبر مسار ============ */
     function rootArray() {
@@ -86,7 +87,8 @@
     /* ============ رندرة اللوح (قائمة الكتل) ============ */
     function summaryOf(block) {
         var p = block.props || {};
-        return p.title || p.heading || p.text || p.html || p.alt || p.caption || '';
+        var s = p.title || p.heading || p.text || p.html || p.alt || p.caption || '';
+        return String(s).replace(/<[^>]*>/g, '').slice(0, 80); // جرِّد الوسوم للملخّص
     }
     function renderList(arr, basePath, host) {
         arr.forEach(function (block, i) {
@@ -147,9 +149,27 @@
     function fieldControl(field, value, onChange) {
         var wrap = document.createElement('div'); wrap.className = 'pb-field';
         var lab = document.createElement('label'); lab.textContent = field.label; wrap.appendChild(lab);
+        // نصّ غنيّ: نعيد استخدام محرّر المنصّة الموحّد (WahyRichEditor) بتعزيز تدريجيّ —
+        // تبقى textarea ظاهرةً وعاملةً إن غاب المحرّر (init يُظهر المحرّر ويُخفيها عند النجاح).
+        if (field.type === 'richtext') {
+            var rid = 'pbrte' + (++uid);
+            var ta = document.createElement('textarea'); ta.id = rid; ta.rows = 6; ta.value = value || '';
+            ta.oninput = function () { onChange(ta.value); };
+            var ed = document.createElement('div');
+            ed.setAttribute('data-rich-editor', rid + '_e');
+            ed.setAttribute('data-target', rid);
+            ed.setAttribute('dir', 'rtl'); ed.setAttribute('hidden', 'hidden');
+            ed.innerHTML = value || '';
+            var syncRich = function () { onChange(ed.innerHTML); };
+            ed.addEventListener('input', syncRich);
+            ed.addEventListener('blur', syncRich); // بعض أزرار الشريط تُزامن عند فقد التركيز
+            wrap.appendChild(ed); wrap.appendChild(ta);
+            setTimeout(function () { if (window.WahyRichEditor) window.WahyRichEditor.init(ed); }, 0);
+            return wrap;
+        }
         var el;
-        if (field.type === 'textarea' || field.type === 'richtext') {
-            el = document.createElement('textarea'); el.rows = field.type === 'richtext' ? 6 : 3; el.value = value || '';
+        if (field.type === 'textarea') {
+            el = document.createElement('textarea'); el.rows = 3; el.value = value || '';
             el.oninput = function () { onChange(el.value); };
         } else if (field.type === 'select') {
             el = document.createElement('select');
@@ -270,7 +290,7 @@
             state.page.id = res.data.page.id;
             state.page.status = res.data.page.status;
             if (isNew) history.replaceState({}, '', B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + state.page.id);
-            renderStatus(); toast('حُفِظت المسودّة.'); return true;
+            renderStatus(); renderLang(); toast('حُفِظت المسودّة.'); return true;
         });
     }
     function savePart() {
@@ -341,6 +361,66 @@
         });
     }
 
+    /* ============ رموز التصميم (ت-١٠) ============ */
+    function openDesign() {
+        api(B.urls.design, 'GET').then(function (res) {
+            var t = (res.data && res.data.tokens) || {};
+            var fonts = (res.data && res.data.fonts) || ['Tajawal'];
+            if (/^#[0-9a-fA-F]{6}$/.test(t.primary)) $('pbTkPrimary').value = t.primary;
+            if (/^#[0-9a-fA-F]{6}$/.test(t.secondary)) $('pbTkSecondary').value = t.secondary;
+            if (/^#[0-9a-fA-F]{6}$/.test(t.text)) $('pbTkText').value = t.text;
+            if (/^#[0-9a-fA-F]{6}$/.test(t.bg)) $('pbTkBg').value = t.bg;
+            $('pbTkRadius').value = t.radius != null ? t.radius : 12;
+            var sel = $('pbTkFont'); sel.innerHTML = '';
+            fonts.forEach(function (f) {
+                var o = document.createElement('option'); o.value = f; o.textContent = f;
+                if (f === t.font) o.selected = true; sel.appendChild(o);
+            });
+            $('pbDesignModal').hidden = false;
+        });
+    }
+    function saveDesign() {
+        var payload = {
+            primary: $('pbTkPrimary').value, secondary: $('pbTkSecondary').value,
+            text: $('pbTkText').value, bg: $('pbTkBg').value,
+            font: $('pbTkFont').value, radius: parseInt($('pbTkRadius').value, 10) || 0,
+        };
+        api(B.urls.design, 'PUT', payload).then(function (res) {
+            if (!res.ok) { toast('تعذّر حفظ التصميم.', true); return; }
+            $('pbDesignModal').hidden = true; toast('حُفِظت رموز التصميم.');
+        });
+    }
+
+    /* ============ اللغات (ت-٣) ============ */
+    function renderLang() {
+        var host = $('pbLang'); host.innerHTML = '';
+        if (!state.page.id) return; // اللغات متاحة بعد أوّل حفظ
+        var cur = document.createElement('a'); cur.className = 'is-current';
+        cur.textContent = (state.page.locale || 'ar').toUpperCase();
+        cur.href = 'javascript:void(0)'; host.appendChild(cur);
+        (B.translations || []).forEach(function (tr) {
+            var a = document.createElement('a');
+            a.textContent = (tr.locale || '').toUpperCase();
+            a.href = B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + tr.id;
+            host.appendChild(a);
+        });
+        var have = [state.page.locale].concat((B.translations || []).map(function (t) { return t.locale; }));
+        ['ar', 'en'].forEach(function (loc) {
+            if (have.indexOf(loc) !== -1) return;
+            var b = document.createElement('button');
+            b.textContent = '＋ ' + loc.toUpperCase();
+            b.onclick = function () { addTranslation(loc); };
+            host.appendChild(b);
+        });
+    }
+    function addTranslation(locale) {
+        if (!state.page.id) { toast('احفظ الصفحة أوّلاً.', true); return; }
+        api(B.urls.update + '/' + state.page.id + '/translate', 'POST', { locale: locale }).then(function (res) {
+            if (!res.ok) { toast(res.data.message || 'تعذّر إنشاء اللغة.', true); return; }
+            window.location.href = B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + res.data.page.id;
+        });
+    }
+
     /* ============ المناطق (التبويبات) ============ */
     function switchRegion(region) {
         state.region = region; state.selected = null;
@@ -365,6 +445,8 @@
         $('pbPublish').onclick = function () { publish(); };
         $('pbPreview').onclick = function () { preview(); };
         $('pbGoLive').onclick = function () { toggleLive(); };
+        $('pbDesign').onclick = function () { openDesign(); };
+        $('pbTkSave').onclick = function () { saveDesign(); };
         ['pbTitle', 'pbSlug', 'pbLocale', 'pbMetaTitle', 'pbMetaDescription'].forEach(function (id) {
             $(id).addEventListener('change', syncPageFields);
         });
@@ -377,5 +459,5 @@
     }
 
     /* ============ الإقلاع ============ */
-    renderPalette(); bind(); renderPageSettings(); renderAll();
+    renderPalette(); bind(); renderPageSettings(); renderAll(); renderLang();
 })();

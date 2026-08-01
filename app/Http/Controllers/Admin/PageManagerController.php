@@ -8,6 +8,7 @@ use App\PageBuilder\BlockValidator;
 use App\PageBuilder\Models\Page;
 use App\PageBuilder\Models\PageRevision;
 use App\PageBuilder\Models\TemplatePart;
+use App\PageBuilder\PageDesign;
 use App\PageBuilder\PageResolver;
 use App\PageBuilder\PageService;
 use App\PageBuilder\SlugGuard;
@@ -107,6 +108,41 @@ class PageManagerController extends Controller
     }
 
     /**
+     * إنشاء نسخة لغة مرتبطة (ت-٣) — تتشارك translation_group وتحتفظ بالـslug (unique على slug+locale).
+     * تنسخ الكتل ليترجمها المحرّر. إن وُجِدت نسخة اللغة سابقاً تُعاد بدل التكرار.
+     */
+    public function translate(Request $request, Page $page): JsonResponse
+    {
+        $request->validate(['locale' => 'required|string|in:ar,en']);
+        $locale = $request->input('locale');
+
+        $existing = Page::where('translation_group', $page->translation_group)
+            ->where('locale', $locale)->first();
+        if ($existing) {
+            return response()->json(['success' => true, 'page' => $existing, 'existed' => true]);
+        }
+
+        if (Page::where('slug', $page->slug)->where('locale', $locale)->exists()) {
+            return $this->reject("توجد صفحة أخرى بالمسار «{$page->slug}» في اللغة «{$locale}».");
+        }
+
+        $copy = Page::create([
+            'translation_group' => $page->translation_group,
+            'locale' => $locale,
+            'title' => $page->title,
+            'slug' => $page->slug,
+            'status' => 'draft',
+            'blocks' => $page->blocks ?? [],
+            'meta_title' => $page->meta_title,
+            'meta_description' => $page->meta_description,
+            'created_by' => $request->user()?->id,
+            'updated_by' => $request->user()?->id,
+        ]);
+
+        return response()->json(['success' => true, 'page' => $copy, 'existed' => false], 201);
+    }
+
+    /**
      * تفعيل خدمة v2 لهذا المسار العامّ (ت-١٢) — يشترط أن تكون الصفحة منشورة.
      * لا نفحص الحجز هنا: إنشاء الصفحات محجوبٌ أصلاً بـSlugGuard، والصفحات المحجوزة
      * الوحيدة القابلة للوجود (home) مقصودةٌ للترحيل؛ والعلم يؤثّر في مسارات المُصيِّر الموصولة فقط.
@@ -150,6 +186,23 @@ class PageManagerController extends Controller
         return response()->json(['part' => [
             'id' => $part->id, 'name' => $part->name, 'kind' => $part->kind, 'blocks' => $part->blocks ?? [],
         ]]);
+    }
+
+    /** رموز التصميم الحاليّة + الخطوط المتاحة (ت-١٠). */
+    public function design(): JsonResponse
+    {
+        return response()->json([
+            'tokens' => PageDesign::tokens(),
+            'fonts' => array_keys(PageDesign::FONTS),
+        ]);
+    }
+
+    /** حفظ رموز التصميم — تُعقَّم بصرامة قبل التخزين (منع حقن CSS). */
+    public function saveDesign(Request $request): JsonResponse
+    {
+        $tokens = PageDesign::save($request->only(['primary', 'secondary', 'text', 'bg', 'font', 'radius']));
+
+        return response()->json(['success' => true, 'tokens' => $tokens]);
     }
 
     /** معاينة آمنة: تُصيَّر الكتل عبر المُصيِّر الموثوق نفسه (قائمة سماح + تهريب) — لا HTML خامّ. */
