@@ -329,18 +329,38 @@
                         </div>
                         @endif
                     </div>
+                    @php
+                        // فيديو الهيرو (مهمّة 4): يستبدل الصورة عند التفعيل. المصدر آمن —
+                        // خارجيّ https عبر safe_url، أو مسار محلّيّ بلا مخطّط/تسلّق عبر asset(). بلا تشغيل تلقائيّ.
+                        $__hvOn = setting('hero_video_enabled');
+                        $__hvRaw = trim((string) setting('hero_video_url'));
+                        $__hvPosterRaw = trim((string) setting('hero_video_poster'));
+                        $__localOk = fn ($p) => $p !== '' && ! str_contains($p, '..') && ! preg_match('#^[a-z][a-z0-9+.\-]*:#i', $p);
+                        if (\Illuminate\Support\Str::startsWith($__hvRaw, ['http://', 'https://'])) { $__hvSrc = safe_url($__hvRaw, ''); }
+                        elseif ($__localOk($__hvRaw)) { $__hvSrc = asset(ltrim($__hvRaw, '/')); }
+                        else { $__hvSrc = ''; }
+                        if (\Illuminate\Support\Str::startsWith($__hvPosterRaw, ['http://', 'https://'])) { $__hvPoster = safe_url($__hvPosterRaw, ''); }
+                        elseif ($__localOk($__hvPosterRaw)) { $__hvPoster = asset(ltrim($__hvPosterRaw, '/')); }
+                        else { $__hvPoster = ''; }
+                    @endphp
                     <div class="hero-visual">
+                        @if($__hvOn && $__hvSrc !== '')
+                            <video class="hero-image hero-video" controls preload="metadata" playsinline @if($__hvPoster !== '') poster="{{ $__hvPoster }}" @endif>
+                                <source src="{{ $__hvSrc }}" type="video/mp4">
+                            </video>
+                        @else
                         <div class="editable-element" data-element="hero-image">
                             <x-element-actions />
                             <picture>
                                 <source type="image/webp" data-srcset="{{ asset('images/hero-illustration.webp') }}">
-                                <img data-src="{{ asset('images/hero-illustration.svg') }}" 
-                                     data-editable-image="hero_image" 
-                                     alt="رسم توضيحي" 
-                                     class="hero-image" 
+                                <img data-src="{{ asset('images/hero-illustration.svg') }}"
+                                     data-editable-image="hero_image"
+                                     alt="رسم توضيحي"
+                                     class="hero-image"
                                      loading="lazy">
                             </picture>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
