@@ -729,7 +729,7 @@
                                 <span class="contact-detail-icon">📧</span>
                                 <div class="contact-detail-content">
                                     <strong>البريد الإلكتروني</strong>
-                                    <a href="mailto:support@qiyamm.sa">support@qiyamm.sa</a>
+                                    <a href="mailto:{{ setting('contact_email', 'info@atheel-makkah.com') }}">{{ setting('contact_email', 'info@atheel-makkah.com') }}</a>
                                 </div>
                             </div>
 
@@ -737,7 +737,8 @@
                                 <span class="contact-detail-icon">☎️</span>
                                 <div class="contact-detail-content">
                                     <strong>رقم الهاتف</strong>
-                                    <a href="tel:+966500000000">+966 5 000 0000</a>
+                                    @php $__cp = setting('contact_phone', '+966500000000'); @endphp
+                                    <a href="tel:{{ preg_replace('/[^0-9+]/', '', $__cp) }}">{{ $__cp }}</a>
                                 </div>
                             </div>
 

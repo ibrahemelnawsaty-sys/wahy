@@ -69,7 +69,7 @@ class ContactController extends Controller
         }
 
         // الإشعارات البريديّة «أفضل جهد»: تعطُّل SMTP يجب ألّا يُضيّع الرسالة أو يُظهر خطأً للزائر.
-        $adminEmail = setting('contact_email', 'info@qiyamm.sa'); // كان مرمَّزاً خطأً لنطاق مهجور
+        $adminEmail = setting('contact_email', 'info@atheel-makkah.com'); // كان مرمَّزاً خطأً لنطاق مهجور
         $siteName = setting('site_name', 'أثيل مكة');
 
         try {

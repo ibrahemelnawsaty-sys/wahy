@@ -222,7 +222,7 @@
                 <span>🔐</span>
                 <span>تسجيل دخول الإدارة</span>
             </a>
-            <a href="mailto:{{ setting('contact_email', 'info@qiyamm.sa') }}" class="maintenance-btn btn-outline">
+            <a href="mailto:{{ setting('contact_email', 'info@atheel-makkah.com') }}" class="maintenance-btn btn-outline">
                 <span>📧</span>
                 <span>تواصل معنا</span>
             </a>

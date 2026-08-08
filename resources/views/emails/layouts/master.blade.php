@@ -474,7 +474,7 @@
                 <p class="footer-text" style="margin-top: 15px; font-size: 12px; color: #9ca3af;">
                     هذه رسالة تلقائية، يرجى عدم الرد عليها مباشرة.
                     <br>
-                    في حال وجود أي استفسار، يرجى التواصل معنا عبر: {{ setting('contact_email', 'info@qiyamm.sa') }}
+                    في حال وجود أي استفسار، يرجى التواصل معنا عبر: {{ setting('contact_email', 'info@atheel-makkah.com') }}
                 </p>
             </div>
         </div>

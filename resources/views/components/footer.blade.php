@@ -144,7 +144,7 @@
                         @if(!$contactEmail && !$contactPhone)
                         <li>
                             <span class="contact-icon">📧</span>
-                            <a href="mailto:info@qiyamm.sa">info@qiyamm.sa</a>
+                            <a href="mailto:info@atheel-makkah.com">info@atheel-makkah.com</a>
                         </li>
                         @endif
                     </ul>

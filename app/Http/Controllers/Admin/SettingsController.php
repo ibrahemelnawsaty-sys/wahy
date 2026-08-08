@@ -15,7 +15,7 @@ class SettingsController extends Controller
         $settings = [
             'site_name' => setting('site_name', 'أثيل مكة'),
             'site_description' => setting('site_description', 'منصة تعليمية رائدة لبناء القيم الإنسانية'),
-            'contact_email' => setting('contact_email', 'info@qiyamm.sa'),
+            'contact_email' => setting('contact_email', 'info@atheel-makkah.com'),
             'contact_phone' => setting('contact_phone', '0112345678'),
             'facebook_url' => setting('facebook_url', ''),
             'twitter_url' => setting('twitter_url', ''),

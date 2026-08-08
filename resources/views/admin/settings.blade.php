@@ -58,7 +58,7 @@
                 <div class="settings-grid">
                     <div class="settings-form-group">
                         <label for="contact_email" class="settings-form-label">البريد الإلكتروني</label>
-                        <input type="email" id="contact_email" name="contact_email" class="settings-form-input" value="{{ $settings['contact_email'] }}" placeholder="مثال: info@qiyamm.sa" required>
+                        <input type="email" id="contact_email" name="contact_email" class="settings-form-input" value="{{ $settings['contact_email'] }}" placeholder="مثال: info@atheel-makkah.com" required>
                     </div>
 
                     <div class="settings-form-group">

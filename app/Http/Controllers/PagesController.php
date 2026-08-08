@@ -36,6 +36,22 @@ class PagesController extends Controller
     }
 
     /**
+     * الشروط والأحكام (مهمّة 20) — صفحة ثابتة آمنة.
+     */
+    public function terms()
+    {
+        return view('legal.terms');
+    }
+
+    /**
+     * سياسة الخصوصية (مهمّة 21) — صفحة ثابتة آمنة.
+     */
+    public function privacy()
+    {
+        return view('legal.privacy');
+    }
+
+    /**
      * صفحة التسجيل
      */
     public function register()

@@ -58,6 +58,10 @@ Route::middleware('auth')->group(function () {
 // الصفحة الرئيسية العامة
 Route::get('/', [PagesController::class, 'landing'])->name('landing');
 
+// الوثائق القانونية العامّة (مهامّ 20، 21)
+Route::get('/terms', [PagesController::class, 'terms'])->name('terms');
+Route::get('/privacy', [PagesController::class, 'privacy'])->name('privacy');
+
 // Landing Content Management API
 Route::get('/api/landing/content', [\App\Http\Controllers\Api\LandingContentController::class, 'index']);
 
