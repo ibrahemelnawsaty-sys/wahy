@@ -3,20 +3,21 @@
 namespace Database\Seeders;
 
 use App\Models\Activity;
+use App\Models\Concept;
 use App\Models\Lesson;
-use App\Models\Meaning;
 use Illuminate\Database\Seeder;
 
 class LessonsSeeder extends Seeder
 {
     public function run(): void
     {
-        $meaning = Meaning::where('name', 'رد الأمانات')->first();
+        // الدروس تُربط مباشرةً بالمفهوم بعد إزالة «المعاني» من المنظومة.
+        $concept = Concept::where('name', 'حفظ الحقوق')->first();
 
-        if ($meaning) {
+        if ($concept) {
             // درس تجريبي
             $lesson = Lesson::create([
-                'meaning_id' => $meaning->id,
+                'concept_id' => $concept->id,
                 'title' => 'ما هي الأمانة؟',
                 'content' => 'الأمانة خلق عظيم يعني حفظ الحقوق وعدم الخيانة. المسلم أمين في قوله وفعله.',
                 'type' => 'text',

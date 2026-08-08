@@ -34,24 +34,26 @@ return new class extends Migration
 
         // 3. حذف العمود meaning_id من lessons (مع FK + indexes أولاً)
         if (Schema::hasColumn('lessons', 'meaning_id')) {
-            // أولاً: حذف أي index يعتمد على meaning_id
-            // (مثل idx_meaning_order من add_smart_performance_indexes)
-            Schema::table('lessons', function (Blueprint $table) {
-                try {
+            // أولاً: حذف أي index يعتمد على meaning_id (مثل idx_meaning_order).
+            // ⚠️ الـtry/catch يلفّ استدعاء Schema::table كاملاً (خارج الـclosure): الـDDL يُنفَّذ
+            //    عند بناء الـBlueprint بعد إغلاق الـclosure، فوضع try/catch داخله عديم الأثر.
+            //    وعلى MySQL الفهرس قد لا يوجد أصلاً (هجرة الفهارس تفشل بصمت بسبب فحص sqlite_master).
+            try {
+                Schema::table('lessons', function (Blueprint $table) {
                     $table->dropIndex('idx_meaning_order');
-                } catch (\Throwable $e) {
-                    // غير موجود — تجاهل
-                }
-            });
+                });
+            } catch (\Throwable $e) {
+                // الفهرس غير موجود — تجاهل
+            }
 
-            // ثانياً: حذف الـ FK constraint
-            Schema::table('lessons', function (Blueprint $table) {
-                try {
+            // ثانياً: حذف الـ FK constraint (بنفس النمط الآمن)
+            try {
+                Schema::table('lessons', function (Blueprint $table) {
                     $table->dropForeign(['meaning_id']);
-                } catch (\Throwable $e) {
-                    // FK غير موجود — تجاهل
-                }
-            });
+                });
+            } catch (\Throwable $e) {
+                // FK غير موجود — تجاهل
+            }
 
             // ثالثاً: حذف العمود
             Schema::table('lessons', function (Blueprint $table) {
