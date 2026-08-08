@@ -23,6 +23,9 @@ return [
                     base_path('public/css'),
                     base_path('public/js'),
                     base_path('public/images'),
+                    // وسائط المستخدمين المرفوعة (القرص العامّ: أنشطة/صفحات/أڤاتار) — وإلّا تُفقَد
+                    // ملفّاتها عند الاستعادة رغم بقاء سجلّاتها في قاعدة البيانات.
+                    storage_path('app/public'),
                     // 🔴 SEC-DEV-002: .env مُستثنى — يحوي أسراراً (DB password, SMTP)
                     // إن أردت backup للـ env استخدم نسخة encrypted منفصلة.
                 ],
