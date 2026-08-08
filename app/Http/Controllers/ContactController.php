@@ -55,34 +55,44 @@ class ContactController extends Controller
             'user_agent' => $request->userAgent(),
         ];
 
+        // الحفظ في قاعدة البيانات هو مصدر الحقيقة: تُحفَظ الرسالة أوّلاً، وتبقى مستردَّةً من
+        // لوحة الإدارة حتى لو تعطّل البريد. فشل الحفظ وحده يُرجِع خطأً للزائر.
         try {
-            // Store in database
-            $contactMessage = ContactMessage::create($cleanData);
-
-            // Send email to admin
-            Mail::send('emails.contact', ['data' => $cleanData], function ($message) use ($cleanData) {
-                $message->to('info@sa-salem.com')
-                    ->subject('رسالة تواصل جديدة من ' . $cleanData['full_name']);
-            });
-
-            // Send confirmation email to user
-            Mail::send('emails.contact-confirmation', ['data' => $cleanData], function ($message) use ($cleanData) {
-                $message->to($cleanData['email'])
-                    ->subject('تم استلام رسالتك - منصة قيمّ');
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.',
-            ], 200);
-
+            ContactMessage::create($cleanData);
         } catch (\Exception $e) {
-            \Log::error('Contact form error: ' . $e->getMessage());
+            \Log::error('Contact form DB error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.',
             ], 500);
         }
+
+        // الإشعارات البريديّة «أفضل جهد»: تعطُّل SMTP يجب ألّا يُضيّع الرسالة أو يُظهر خطأً للزائر.
+        $adminEmail = setting('contact_email', 'info@qiyamm.sa'); // كان مرمَّزاً خطأً لنطاق مهجور
+        $siteName = setting('site_name', 'أثيل مكة');
+
+        try {
+            Mail::send('emails.contact', ['data' => $cleanData], function ($message) use ($cleanData, $adminEmail) {
+                $message->to($adminEmail)
+                    ->subject('رسالة تواصل جديدة من ' . $cleanData['full_name']);
+            });
+        } catch (\Exception $e) {
+            \Log::warning('Contact admin-notify failed (message saved): ' . $e->getMessage());
+        }
+
+        try {
+            Mail::send('emails.contact-confirmation', ['data' => $cleanData], function ($message) use ($cleanData, $siteName) {
+                $message->to($cleanData['email'])
+                    ->subject('تم استلام رسالتك - ' . $siteName);
+            });
+        } catch (\Exception $e) {
+            \Log::warning('Contact confirmation failed (message saved): ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.',
+        ], 200);
     }
 }

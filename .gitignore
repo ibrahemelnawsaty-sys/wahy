@@ -31,6 +31,13 @@ pnpm-lock.yaml
 *.map
 
 #--------------------------------------------------------------------
+# Large media binaries (uploaded to host directly, not tracked in git)
+#--------------------------------------------------------------------
+/public/videos/*.mp4
+/public/videos/*.webm
+/public/videos/*.mov
+
+#--------------------------------------------------------------------
 # Laravel Storage (Temporary & Generated Files)
 #--------------------------------------------------------------------
 /storage/*.key
