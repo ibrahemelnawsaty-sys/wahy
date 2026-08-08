@@ -363,6 +363,36 @@
                     </div>
                 </div>
                 <div class="features-grid">
+                    <article class="feature-card editable-element" data-element="feature-card-5">
+                        <x-element-actions />
+                        <div class="feature-icon" data-editable-icon="feature_5_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-medal"/></svg></div>
+                        <h3 data-editable="feature_5_title" data-section="features">تحديات ومنافسات</h3>
+                        <p data-editable="feature_5_desc" data-section="features">تحفز المشاركين وترفع مستوى التفكير والإدراك</p>
+                    </article>
+                    <article class="feature-card editable-element" data-element="feature-card-6">
+                        <x-element-actions />
+                        <div class="feature-icon" data-editable-icon="feature_6_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-chart-bar"/></svg></div>
+                        <h3 data-editable="feature_6_title" data-section="features">قياس الأثر</h3>
+                        <p data-editable="feature_6_desc" data-section="features">وجود استبانات توضح مدى نسبة الاستفادة من الأنشطة والتمارين لتحقيق الهدف</p>
+                    </article>
+                    <article class="feature-card editable-element" data-element="feature-card-7">
+                        <x-element-actions />
+                        <div class="feature-icon" data-editable-icon="feature_7_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-tasks"/></svg></div>
+                        <h3 data-editable="feature_7_title" data-section="features">أنشطة سلوكية</h3>
+                        <p data-editable="feature_7_desc" data-section="features">تساعد على تطبيق المفاهيم وتحويلها إلى ممارسات حياتية</p>
+                    </article>
+                    <article class="feature-card editable-element" data-element="feature-card-8">
+                        <x-element-actions />
+                        <div class="feature-icon" data-editable-icon="feature_8_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-rocket"/></svg></div>
+                        <h3 data-editable="feature_8_title" data-section="features">تحفيز وتنشيط</h3>
+                        <p data-editable="feature_8_desc" data-section="features">يساعدان في رفع المعنويات ودفع التقدم وتحريك الطاقات الكامنة</p>
+                    </article>
+                    <article class="feature-card editable-element" data-element="feature-card-9">
+                        <x-element-actions />
+                        <div class="feature-icon" data-editable-icon="feature_9_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-gem"/></svg></div>
+                        <h3 data-editable="feature_9_title" data-section="features">الانسيابية والسهولة</h3>
+                        <p data-editable="feature_9_desc" data-section="features">الوضوح واليسر والمتابعة بانتظام ودون تعقيد وتكلف</p>
+                    </article>
                     <article class="feature-card editable-element" data-element="feature-card-1">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-qrcode"/></svg></div>
@@ -409,9 +439,9 @@
                         <x-element-actions />
                         <div class="flow-number" data-editable="flow_1_number" data-section="values">1</div>
                         <div class="flow-icon" data-editable-icon="flow_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-heart"/></svg></div>
-                        <h3 data-editable="flow_1_title" data-section="values">القيمة</h3>
-                        <p data-editable="flow_1_example" data-section="values">مثال: <strong>الصدق</strong></p>
-                        <span class="flow-desc" data-editable="flow_1_desc" data-section="values">القيمة الأساسية التي نريد غرسها</span>
+                        <h3 data-editable="flow_1_title" data-section="values">القيمة الكلية</h3>
+                        <p data-editable="flow_1_example" data-section="values">مثال: <strong>الرحمة</strong></p>
+                        <span class="flow-desc" data-editable="flow_1_desc" data-section="values">اختيار قيمة كلية تندرج تحتها مجموعة من القيم الضمنية</span>
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-1">
@@ -422,10 +452,10 @@
                     <div class="flow-card editable-element" data-element="flow-card-2">
                         <x-element-actions />
                         <div class="flow-number" data-editable="flow_2_number" data-section="values">2</div>
-                        <div class="flow-icon" data-editable-icon="flow_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-lightbulb"/></svg></div>
-                        <h3 data-editable="flow_2_title" data-section="values">المفهوم</h3>
-                        <p data-editable="flow_2_example" data-section="values">مثال: <strong>الأمانة</strong></p>
-                        <span class="flow-desc" data-editable="flow_2_desc" data-section="values">الفكرة الرئيسية المرتبطة بالقيمة</span>
+                        <div class="flow-icon" data-editable-icon="flow_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-star"/></svg></div>
+                        <h3 data-editable="flow_2_title" data-section="values">القيمة الضمنية</h3>
+                        <p data-editable="flow_2_example" data-section="values">مثال: <strong>بر الوالدين</strong></p>
+                        <span class="flow-desc" data-editable="flow_2_desc" data-section="values">حصر القيم الضمنية المتعلقة بالقيمة الكلية وإدراجها في المنظومة</span>
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-2">
@@ -436,10 +466,10 @@
                     <div class="flow-card editable-element" data-element="flow-card-3">
                         <x-element-actions />
                         <div class="flow-number" data-editable="flow_3_number" data-section="values">3</div>
-                        <div class="flow-icon" data-editable-icon="flow_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-book-open"/></svg></div>
-                        <h3 data-editable="flow_3_title" data-section="values">المعنى</h3>
-                        <p data-editable="flow_3_example" data-section="values">مثال: <strong>قول الحقيقة دائماً</strong></p>
-                        <span class="flow-desc" data-editable="flow_3_desc" data-section="values">الشرح التفصيلي والمبسط</span>
+                        <div class="flow-icon" data-editable-icon="flow_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-lightbulb"/></svg></div>
+                        <h3 data-editable="flow_3_title" data-section="values">المفاهيم الرئيسية</h3>
+                        <p data-editable="flow_3_example" data-section="values">مثال: <strong>الإحسان إلى الوالدين</strong></p>
+                        <span class="flow-desc" data-editable="flow_3_desc" data-section="values">استخراج المفاهيم الرئيسية من القيمة الضمنية</span>
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-3">
@@ -450,37 +480,28 @@
                     <div class="flow-card editable-element" data-element="flow-card-4">
                         <x-element-actions />
                         <div class="flow-number" data-editable="flow_4_number" data-section="values">4</div>
-                        <div class="flow-icon" data-editable-icon="flow_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-tasks"/></svg></div>
-                        <h3 data-editable="flow_4_title" data-section="values">النشاط</h3>
-                        <p data-editable="flow_4_example" data-section="values">مثال: <strong>قصة تفاعلية + تطبيق عملي</strong></p>
-                        <span class="flow-desc" data-editable="flow_4_desc" data-section="values">التطبيق العملي للطالب</span>
+                        <div class="flow-icon" data-editable-icon="flow_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-book-open"/></svg></div>
+                        <h3 data-editable="flow_4_title" data-section="values">المعاني المرتبطة</h3>
+                        <p data-editable="flow_4_example" data-section="values">مثال: <strong>طاعة الوالدين – إكرام الوالدين – الدعاء لهما</strong></p>
+                        <span class="flow-desc" data-editable="flow_4_desc" data-section="values">تحديد أهم المعاني المتعلقة بالمفهوم</span>
+                    </div>
+
+                    <div class="flow-arrow editable-element" data-element="flow-arrow-4">
+                        <x-element-actions />
+                        <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-arrow-left"/></svg>
+                    </div>
+
+                    <div class="flow-card editable-element" data-element="flow-card-5">
+                        <x-element-actions />
+                        <div class="flow-number" data-editable="flow_5_number" data-section="values">5</div>
+                        <div class="flow-icon" data-editable-icon="flow_5_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-tasks"/></svg></div>
+                        <h3 data-editable="flow_5_title" data-section="values">الأنشطة</h3>
+                        <p data-editable="flow_5_example" data-section="values">مثال: <strong>حفل الإحسان</strong></p>
+                        <span class="flow-desc" data-editable="flow_5_desc" data-section="values">تنفيذ أنشطة ومشاريع لتعزيز المفاهيم والمعاني وتطبيقها</span>
                     </div>
                 </div>
                 
-                <div class="values-example">
-                    <h3>مثال عملي: تعليم قيمة الصدق</h3>
-                    <div class="example-steps">
-                        <div class="example-step">
-                            <span class="step-badge">القيمة</span>
-                            <p>الصدق</p>
-                        </div>
-                        <span class="step-separator">←</span>
-                        <div class="example-step">
-                            <span class="step-badge">المفهوم</span>
-                            <p>الأمانة في القول والفعل</p>
-                        </div>
-                        <span class="step-separator">←</span>
-                        <div class="example-step">
-                            <span class="step-badge">المعنى</span>
-                            <p>أن تقول الحقيقة دائماً حتى لو كان صعباً</p>
-                        </div>
-                        <span class="step-separator">←</span>
-                        <div class="example-step">
-                            <span class="step-badge">النشاط</span>
-                            <p>قصة أحمد الصادق + مسابقة + نقاط</p>
-                        </div>
-                    </div>
-                </div>
+                {{-- قسم «مثال عملي» أُزيل (مهمّة 9): صار المثال متضمَّناً في خطوات المنهجية أعلاه --}}
             </div>
         </section>
         
@@ -537,7 +558,7 @@
                             <x-element-actions />
                             <div class="team-rank" data-editable="team_1_rank" data-section="teams">1</div>
                             <div class="team-icon" data-editable-icon="team_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-trophy"/></svg></div>
-                            <h4 data-editable="team_1_name" data-section="teams">فريق النجوم</h4>
+                            <h4 data-editable="team_1_name" data-section="teams">فريق الريادة</h4>
                             <div class="team-points" data-editable="team_1_points" data-section="teams">2,450 نقطة</div>
                             <div class="team-members">
                                 <span class="member-avatar">أ</span>
@@ -552,7 +573,7 @@
                             <x-element-actions />
                             <div class="team-rank" data-editable="team_2_rank" data-section="teams">2</div>
                             <div class="team-icon" data-editable-icon="team_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-rocket"/></svg></div>
-                            <h4 data-editable="team_2_name" data-section="teams">فريق الصواريخ</h4>
+                            <h4 data-editable="team_2_name" data-section="teams">فريق السمو</h4>
                             <div class="team-points" data-editable="team_2_points" data-section="teams">2,180 نقطة</div>
                             <div class="team-members">
                                 <span class="member-avatar">ف</span>
@@ -566,7 +587,7 @@
                             <x-element-actions />
                             <div class="team-rank" data-editable="team_3_rank" data-section="teams">3</div>
                             <div class="team-icon" data-editable-icon="team_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-gem"/></svg></div>
-                            <h4 data-editable="team_3_name" data-section="teams">فريق الماس</h4>
+                            <h4 data-editable="team_3_name" data-section="teams">فريق المعالي</h4>
                             <div class="team-points" data-editable="team_3_points" data-section="teams">1,920 نقطة</div>
                             <div class="team-members">
                                 <span class="member-avatar">ن</span>
