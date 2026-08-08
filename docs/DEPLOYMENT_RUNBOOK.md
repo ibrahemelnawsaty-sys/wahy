@@ -47,7 +47,7 @@ systemctl restart php8.2-fpm
 ## 2. قاعدة البيانات
 ```bash
 mysql -e "CREATE DATABASE atheel_makkah CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -e "CREATE USER 'atheel'@'localhost' IDENTIFIED BY '‹كلمة_مرور_قويّة›';"
+mysql -e "CREATE USER 'atheel'@'localhost' IDENTIFIED BY '46A6833jSlqYBb95t';"
 mysql -e "GRANT ALL PRIVILEGES ON atheel_makkah.* TO 'atheel'@'localhost'; FLUSH PRIVILEGES;"
 ```
 
@@ -88,6 +88,9 @@ php artisan migrate --force        # يطبّق الهجرات الجديدة (p
 
 ## 7. التخزين والأصول
 ```bash
+# تأكّد من وجود مجلّدات إطار العمل القابلة للكتابة (قد تنقص بعد clone نظيف → «View path not found»)
+mkdir -p storage/framework/{views,cache/data,sessions} storage/logs bootstrap/cache
+
 php artisan storage:link
 # ارفع فيديو الهيرو يدويّاً (مُستثنى من git لحجمه):
 #   من جهازك:  scp "hero-main.mp4" root@84.247.135.69:/var/www/atheel/public/videos/hero-main.mp4
