@@ -242,7 +242,7 @@
                     </div>
                     <div class="editable-element" data-element="nav-link-5">
                         <x-element-actions />
-                        <a href="#partners" class="nav-link" data-editable="nav_link_5" data-section="header">الشركاء</a>
+                        @if(setting('show_partners'))<a href="#partners" class="nav-link" data-editable="nav_link_5" data-section="header">الشركاء</a>@endif
                     </div>
                     <div class="editable-element" data-element="nav-link-6">
                         <x-element-actions />
@@ -309,6 +309,7 @@
                                 </a>
                             </div>
                         </div>
+                        @if(setting('show_hero_stats'))
                         <div class="hero-stats">
                             <div class="stat-item editable-element" data-element="stat-schools">
                                 <x-element-actions />
@@ -326,6 +327,7 @@
                                 <span class="stat-label" data-editable="stat_teachers_label" data-section="hero">معلم</span>
                             </div>
                         </div>
+                        @endif
                     </div>
                     <div class="hero-visual">
                         <div class="editable-element" data-element="hero-image">
@@ -600,6 +602,7 @@
                     </div>
                 </div>
                 
+                @if(setting('show_coop_benefits', true))
                 <div class="teams-benefits">
                     <div class="editable-element" data-element="benefits-title">
                         <x-element-actions />
@@ -632,9 +635,11 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
         </section>
         
+        @if(setting('show_partners'))
         <section class="partners section section-alt" id="partners">
             <div class="container">
                 <div class="section-header">
@@ -680,7 +685,8 @@
                 </div>
             </div>
         </section>
-        
+        @endif
+
         <!-- Contact Us Section -->
         <section class="contact-section section section-alt" id="support">
             <div class="container">
