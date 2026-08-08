@@ -177,6 +177,13 @@
                     <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $unreadCount > 0 ? 'inline-flex' : 'none' }};" data-live="messages_unread" data-live-badge>{{ $unreadCount > 0 ? $unreadCount : 0 }}</span>
                 </a>
 
+                <a href="{{ route('admin.contact-messages.index') }}" class="admin-nav-item {{ request()->routeIs('admin.contact-messages.*') ? 'active' : '' }}">
+                    <span class="admin-nav-icon">📨</span>
+                    <span class="admin-nav-text">رسائل التواصل</span>
+                    @php $contactUnread = \App\Models\ContactMessage::where('status', 'unread')->count(); @endphp
+                    <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-right: auto; display: {{ $contactUnread > 0 ? 'inline-flex' : 'none' }};">{{ $contactUnread > 0 ? $contactUnread : 0 }}</span>
+                </a>
+
                 <div class="admin-nav-section">
                     <div class="admin-nav-section-title">إدارة النظام</div>
                     

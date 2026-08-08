@@ -228,6 +228,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/review-submission/{id}', [DashboardController::class, 'reviewSubmission'])->name('review-submission');
         Route::post('/review-submission/{id}', [DashboardController::class, 'saveReview'])->name('save-review');
 
+        // رسائل «تواصل معنا»
+        $cm = \App\Http\Controllers\Admin\ContactMessageController::class;
+        Route::get('/contact-messages', [$cm, 'index'])->name('contact-messages.index');
+        Route::get('/contact-messages/{contactMessage}', [$cm, 'show'])->name('contact-messages.show');
+        Route::post('/contact-messages/{contactMessage}/status', [$cm, 'updateStatus'])->name('contact-messages.status');
+        Route::delete('/contact-messages/{contactMessage}', [$cm, 'destroy'])->name('contact-messages.destroy');
+
         // Theme Customization
         Route::get('/theme', [ThemeController::class, 'index'])->name('theme');
         Route::post('/theme', [ThemeController::class, 'update'])->name('theme.update');
