@@ -1,6 +1,6 @@
 {{-- هوية الموقع الموحّدة (شعار + اسم) — تقرأ من الإعدادات بدل القيم الثابتة في كل لايوت --}}
 @php
-    $brandName = $branding['site_name'] ?? setting('site_name', 'قيمّ');
+    $brandName = $branding['site_name'] ?? setting('site_name', 'أثيل مكة');
     $brandLogo = $branding['site_logo'] ?? setting('site_logo');
 @endphp
 <span class="brand-identity" style="display:inline-flex;align-items:center;gap:10px;">

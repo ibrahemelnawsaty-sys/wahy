@@ -9,7 +9,7 @@
             'text_color' => '#1e293b',
             'background_color' => '#f8fafc',
             'site_logo' => null,
-            'site_name' => 'قيمّ'
+            'site_name' => 'أثيل مكة'
         ]
     );
     $fontFamily = $settings['font_family'] ?? 'IBM Plex Sans Arabic';
@@ -18,16 +18,16 @@
     $textColor = $settings['text_color'] ?? '#1e293b';
     $backgroundColor = $settings['background_color'] ?? '#f8fafc';
     $siteLogo = $settings['site_logo'] ?? null;
-    $siteName = $settings['site_name'] ?? 'قيمّ';
+    $siteName = $settings['site_name'] ?? 'أثيل مكة';
 @endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="@yield('meta_description', 'قيمّ - منصة تعليمية رائدة')">
+    <meta name="description" content="@yield('meta_description', setting('site_name', 'أثيل مكة') . ' - منصة تعليمية رائدة')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'قيمّ')</title>
+    <title>@yield('title', setting('site_name', 'أثيل مكة'))</title>
     
     <!-- Preload Critical Fonts -->
     <link rel="preload" href="{{ asset('FONT/IBMPlexSansArabic-Regular.ttf') }}" as="font" type="font/ttf" crossorigin>

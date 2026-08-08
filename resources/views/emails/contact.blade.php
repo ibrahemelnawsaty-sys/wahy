@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رسالة تواصل جديدة - منصة قيمّ</title>
+    <title>رسالة تواصل جديدة - منصة {{ setting('site_name', 'أثيل مكة') }}</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -104,7 +104,7 @@
         </div>
 
         <div class="footer">
-            <p>منصة قيمّ - نظام إدارة القيم المدرسية</p>
+            <p>منصة {{ setting('site_name', 'أثيل مكة') }} - نظام إدارة القيم المدرسية</p>
             <p>تم إرسال هذا البريد تلقائياً، يرجى عدم الرد عليه</p>
         </div>
     </div>

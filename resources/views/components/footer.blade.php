@@ -4,7 +4,7 @@
         $footerSettings = \App\Models\Setting::getMany(
             ['site_name', 'site_description', 'contact_email', 'contact_phone', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url'],
             [
-                'site_name' => 'قيمّ',
+                'site_name' => 'أثيل مكة',
                 'site_description' => 'منصة تعليمية رائدة لبناء القيم الإنسانية من خلال التعليم التفاعلي والممتع',
                 'contact_email' => null,
                 'contact_phone' => null,
@@ -15,7 +15,7 @@
             ]
         );
         
-        $siteName = $footerSettings['site_name'] ?? 'قيمّ';
+        $siteName = $footerSettings['site_name'] ?? 'أثيل مكة';
         $siteDescription = $footerSettings['site_description'] ?? 'منصة تعليمية رائدة لبناء القيم الإنسانية من خلال التعليم التفاعلي والممتع';
         $contactEmail = $footerSettings['contact_email'] ?? null;
         $contactPhone = $footerSettings['contact_phone'] ?? null;

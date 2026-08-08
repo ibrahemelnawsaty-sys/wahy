@@ -190,7 +190,7 @@
         </div>
 
         <div class="footer">
-            <p><strong>منصة قيمّ التعليمية</strong></p>
+            <p><strong>منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية</strong></p>
             <p>استمر في التعلم والتطور 🚀</p>
         </div>
     </div>

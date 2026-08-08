@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', setting('site_name', 'منصة قيمّ'))</title>
+    <title>@yield('title', setting('site_name', 'أثيل مكة'))</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
@@ -429,12 +429,12 @@
             <div class="email-header">
                 <div class="logo-container">
                     @if(setting('site_logo'))
-                        <img src="{{ asset('storage/app/public/data/' . setting('site_logo')) }}" alt="{{ setting('site_name', 'منصة قيمّ') }}" class="logo">
+                        <img src="{{ asset('storage/app/public/data/' . setting('site_logo')) }}" alt="{{ setting('site_name', 'أثيل مكة') }}" class="logo">
                     @else
                         <div class="logo-icon">🎓</div>
                     @endif
                 </div>
-                <h1 class="site-name">{{ setting('site_name', 'منصة قيمّ') }}</h1>
+                <h1 class="site-name">{{ setting('site_name', 'أثيل مكة') }}</h1>
                 @if(setting('site_description'))
                     <p class="site-tagline">{{ setting('site_description') }}</p>
                 @endif
@@ -468,7 +468,7 @@
                 @endif
 
                 <p class="copyright">
-                    &copy; {{ date('Y') }} {{ setting('site_name', 'منصة قيمّ') }}. جميع الحقوق محفوظة.
+                    &copy; {{ date('Y') }} {{ setting('site_name', 'أثيل مكة') }}. جميع الحقوق محفوظة.
                 </p>
 
                 <p class="footer-text" style="margin-top: 15px; font-size: 12px; color: #9ca3af;">

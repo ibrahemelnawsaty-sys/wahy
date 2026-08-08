@@ -189,6 +189,7 @@ body::before {
     font-size: 1.25rem !important;
     color: var(--text-secondary) !important;
     line-height: 1.8 !important;
+    font-weight: 500 !important; /* تعريض لإبراز هوية الموقع (مهمّة 2) */
     max-width: 600px;
 }
 

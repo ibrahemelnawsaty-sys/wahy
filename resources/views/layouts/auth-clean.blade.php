@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="@yield('meta_description', 'قيمّ - منصة تعليمية رائدة')">
+    <meta name="description" content="@yield('meta_description', setting('site_name', 'أثيل مكة') . ' - منصة تعليمية رائدة')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'قيمّ')</title>
+    <title>@yield('title', setting('site_name', 'أثيل مكة'))</title>
     
     <!-- Preload Critical Fonts -->
     <link rel="preload" href="{{ asset('FONT/IBMPlexSansArabic-Regular.ttf') }}" as="font" type="font/ttf" crossorigin>
@@ -38,7 +38,7 @@
         <div class="container">
             @php
                 $authSiteLogo = setting('site_logo');
-                $authSiteName = setting('site_name', 'قيمّ');
+                $authSiteName = setting('site_name', 'أثيل مكة');
             @endphp
             <nav class="navbar" role="navigation">
                 <a href="/" class="logo">

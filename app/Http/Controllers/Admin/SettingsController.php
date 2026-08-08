@@ -13,7 +13,7 @@ class SettingsController extends Controller
     public function index()
     {
         $settings = [
-            'site_name' => setting('site_name', 'منصة قيمّ'),
+            'site_name' => setting('site_name', 'أثيل مكة'),
             'site_description' => setting('site_description', 'منصة تعليمية رائدة لبناء القيم الإنسانية'),
             'contact_email' => setting('contact_email', 'info@qiyamm.sa'),
             'contact_phone' => setting('contact_phone', '0112345678'),
@@ -21,7 +21,7 @@ class SettingsController extends Controller
             'twitter_url' => setting('twitter_url', ''),
             'instagram_url' => setting('instagram_url', ''),
             'linkedin_url' => setting('linkedin_url', ''),
-            'footer_text' => setting('footer_text', '© ' . date('Y') . ' منصة قيمّ. جميع الحقوق محفوظة'),
+            'footer_text' => setting('footer_text', '© ' . date('Y') . ' منصة أثيل مكة. جميع الحقوق محفوظة'),
             'maintenance_mode' => setting('maintenance_mode', false),
             'maintenance_message' => setting('maintenance_message', 'نعتذر عن الإزعاج. نقوم حالياً بإجراء بعض التحسينات والصيانة لتقديم تجربة أفضل لك.'),
             // ظهور أقسام الصفحة الرئيسية (الدفعة 0.a) — إخفاء/إعادة بلا نشر كود

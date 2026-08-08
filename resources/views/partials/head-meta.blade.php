@@ -2,7 +2,7 @@
      يحلّ: غياب favicon/CSRF/og من اللايوتات، وتجاهُل site_favicon/meta_* (Issues تغطية الإعدادات) --}}
 @php
     $b = $branding ?? [];
-    $hmName    = $b['site_name'] ?? setting('site_name', 'قيمّ');
+    $hmName    = $b['site_name'] ?? setting('site_name', 'أثيل مكة');
     $hmTitle   = $b['meta_title'] ?? ($b['site_name'] ?? setting('meta_title', $hmName));
     $hmDesc    = $b['meta_description'] ?? ($b['site_description'] ?? setting('meta_description', $b['site_tagline'] ?? ''));
     $hmFavicon = $b['site_favicon'] ?? setting('site_favicon');

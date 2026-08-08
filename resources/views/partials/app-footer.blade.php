@@ -2,7 +2,7 @@
      يحلّ: footer_text/contact_*/social_* المُتجاهَلة، وتكرار/اختلاف الفوتر بين اللايوتات --}}
 @php
     $ftText  = $branding['footer_text'] ?? setting('footer_text');
-    $ftName  = $branding['site_name'] ?? setting('site_name', 'قيمّ');
+    $ftName  = $branding['site_name'] ?? setting('site_name', 'أثيل مكة');
     $ftEmail = setting('contact_email');
     $ftPhone = setting('contact_phone');
     $ftSocial = $branding['social_links'] ?? social_links();

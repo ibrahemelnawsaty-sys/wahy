@@ -8,7 +8,7 @@
             'secondary_color' => '#3B82F6',
             'text_color' => '#1e293b',
             'background_color' => '#f8fafc',
-            'site_name' => 'قيمّ',
+            'site_name' => 'أثيل مكة',
             'site_description' => 'منصة تعليمية رائدة لبناء القيم الإنسانية',
             'contact_email' => null,
             'contact_phone' => null,
@@ -287,11 +287,11 @@
                     <div class="hero-text">
                         <div class="editable-element" data-element="hero-title">
                             <x-element-actions />
-                            <h1 class="hero-title" data-editable="hero_title" data-section="hero">منصة القيم المدرسية – تعليم يعيش مع الطلاب</h1>
+                            <h1 class="hero-title" data-editable="hero_title" data-section="hero">منصة {{ $siteName }}.. قيم نبوية يحيى بها الطالب</h1>
                         </div>
                         <div class="editable-element" data-element="hero-description">
                             <x-element-actions />
-                            <p class="hero-description" data-editable="hero_description" data-section="hero">نبني القيم الإنسانية بطريقة تفاعلية وممتعة. منصة شاملة تربط المدرسة والمعلم والطالب وولي الأمر في بيئة تعليمية آمنة ومحفزة.</p>
+                            <p class="hero-description" data-editable="hero_description" data-section="hero">من مكة المكرمة .. نبع الهدايات، انطلقت منصتنا تلهم الواردين من الطلاب والمعلمين.. تجمع بين المتعة والفائدة لتبني جيلاً فعالاً متخلقاً بقيم وأخلاق النبوة</p>
                         </div>
                         <div class="hero-actions">
                             <div class="editable-element" data-element="hero-btn-primary">
@@ -355,7 +355,7 @@
                 <div class="section-header">
                     <div class="editable-element" data-element="features-title">
                         <x-element-actions />
-                        <h2 class="section-title" data-editable="features_title" data-section="features">لماذا قيمّ؟</h2>
+                        <h2 class="section-title" data-editable="features_title" data-section="features">لماذا {{ $siteName }}؟</h2>
                     </div>
                     <div class="editable-element" data-element="features-subtitle">
                         <x-element-actions />

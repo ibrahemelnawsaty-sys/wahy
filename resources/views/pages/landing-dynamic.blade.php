@@ -8,7 +8,7 @@
             'secondary_color' => '#3B82F6',
             'text_color' => '#1e293b',
             'background_color' => '#f8fafc',
-            'site_name' => 'قيمّ',
+            'site_name' => 'أثيل مكة',
             'site_description' => 'منصة تعليمية رائدة لبناء القيم الإنسانية'
         ]
     );

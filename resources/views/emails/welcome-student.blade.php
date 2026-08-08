@@ -97,7 +97,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎓 مرحباً بك في منصة قيمّ التعليمية</h1>
+            <h1>🎓 مرحباً بك في منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية</h1>
         </div>
         
         <div class="content">
@@ -106,7 +106,7 @@
             </p>
             
             <p class="welcome-text">
-                يسعدنا انضمامك إلى منصة قيمّ التعليمية! نحن متحمسون لبدء رحلتك التعليمية معنا.
+                يسعدنا انضمامك إلى منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية! نحن متحمسون لبدء رحلتك التعليمية معنا.
             </p>
 
             <div class="info-box">
@@ -162,7 +162,7 @@
         </div>
 
         <div class="footer">
-            <p><strong>منصة قيمّ التعليمية</strong></p>
+            <p><strong>منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية</strong></p>
             <p>بناء القيم من خلال التعليم التفاعلي</p>
             <p style="margin-top: 15px; font-size: 12px;">
                 © {{ date('Y') }} جميع الحقوق محفوظة

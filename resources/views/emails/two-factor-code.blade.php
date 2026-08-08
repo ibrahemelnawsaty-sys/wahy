@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كود التحقق - قيمّ</title>
+    <title>كود التحقق - {{ setting('site_name', 'أثيل مكة') }}</title>
     <style>
         * {
             margin: 0;
@@ -205,7 +205,7 @@
         <!-- Header -->
         <div class="header">
             <div class="logo">🌟</div>
-            <h1>منصة قيمّ</h1>
+            <h1>منصة {{ setting('site_name', 'أثيل مكة') }}</h1>
         </div>
         
         <!-- Content -->
@@ -238,14 +238,14 @@
             </div>
             
             <div class="message">
-                شكراً لاستخدامك منصة قيمّ! 🌟
+                شكراً لاستخدامك منصة {{ setting('site_name', 'أثيل مكة') }}! 🌟
             </div>
         </div>
         
         <!-- Footer -->
         <div class="footer">
             <div class="footer-text">
-                منصة قيمّ - منصة تعليمية رائدة لبناء القيم الإنسانية
+                منصة {{ setting('site_name', 'أثيل مكة') }} - منصة تعليمية رائدة لبناء القيم الإنسانية
             </div>
             
             <div class="footer-links">
@@ -255,7 +255,7 @@
             </div>
             
             <div class="copyright">
-                &copy; {{ date('Y') }} منصة قيمّ. جميع الحقوق محفوظة.
+                &copy; {{ date('Y') }} منصة {{ setting('site_name', 'أثيل مكة') }}. جميع الحقوق محفوظة.
             </div>
         </div>
     </div>

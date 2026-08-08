@@ -1,6 +1,6 @@
 @extends('layouts.auth-clean')
 
-@section('title', 'التحقق الثنائي - قيمّ')
+@section('title', 'التحقق الثنائي - ' . setting('site_name', 'أثيل مكة'))
 @section('extra_css')
 <link rel="stylesheet" href="{{ asset('css/auth-glass.css') }}">
 <style>
@@ -63,7 +63,7 @@ html[data-theme="light"] .code-input:focus {
             <div class="auth-header">
                 <div class="auth-logo">
                     <span class="auth-logo-icon">🔒</span>
-                    <span class="auth-logo-text">قيمّ</span>
+                    <span class="auth-logo-text">{{ setting('site_name', 'أثيل مكة') }}</span>
                 </div>
                 <h1 class="auth-title">التحقق الثنائي</h1>
                 <p class="auth-subtitle">تم إرسال رمز التحقق إلى بريدك الإلكتروني</p>

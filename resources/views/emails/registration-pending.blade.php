@@ -26,7 +26,7 @@
                             </p>
                             
                             <p style="margin: 0 0 25px; color: #4a5568; font-size: 16px; line-height: 1.8;">
-                                شكراً لتسجيلك في منصة <strong>قيمّ</strong> التعليمية! 🎉
+                                شكراً لتسجيلك في منصة <strong>{{ setting('site_name', 'أثيل مكة') }}</strong> التعليمية! 🎉
                             </p>
 
                             <!-- Info Box -->
@@ -77,7 +77,7 @@
                     <tr>
                         <td style="padding: 30px 40px; background-color: #f8fafc; border-radius: 0 0 16px 16px; text-align: center;">
                             <p style="margin: 0 0 10px; color: #64748b; font-size: 14px;">
-                                مع تحيات فريق <strong style="color: #667eea;">منصة قيمّ</strong>
+                                مع تحيات فريق <strong style="color: #667eea;">منصة {{ setting('site_name', 'أثيل مكة') }}</strong>
                             </p>
                             <p style="margin: 0; color: #94a3b8; font-size: 12px;">
                                 © {{ date('Y') }} جميع الحقوق محفوظة

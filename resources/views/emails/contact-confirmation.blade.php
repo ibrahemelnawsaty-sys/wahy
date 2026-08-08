@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تأكيد استلام رسالتك - منصة قيمّ</title>
+    <title>تأكيد استلام رسالتك - منصة {{ setting('site_name', 'أثيل مكة') }}</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -96,7 +96,7 @@
 
             <p>مرحباً <strong>{{ $data['full_name'] }}</strong>،</p>
 
-            <p>نشكرك على تواصلك مع منصة قيمّ. تم استلام رسالتك بنجاح وسيقوم فريقنا بالرد عليك في أقرب وقت ممكن.</p>
+            <p>نشكرك على تواصلك مع منصة {{ setting('site_name', 'أثيل مكة') }}. تم استلام رسالتك بنجاح وسيقوم فريقنا بالرد عليك في أقرب وقت ممكن.</p>
 
             <div class="info-box">
                 <p><strong>ملخص رسالتك:</strong></p>
@@ -114,7 +114,7 @@
         </div>
 
         <div class="footer">
-            <p><strong>منصة قيمّ</strong> - نظام إدارة القيم المدرسية</p>
+            <p><strong>منصة {{ setting('site_name', 'أثيل مكة') }}</strong> - نظام إدارة القيم المدرسية</p>
             <p>الرياض، المملكة العربية السعودية</p>
             <p>© 2025 جميع الحقوق محفوظة</p>
         </div>

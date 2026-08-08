@@ -1,7 +1,7 @@
 @extends('layouts.auth-clean')
 
-@section('title', 'تسجيل الدخول - قيمّ')
-@section('meta_description', 'سجل دخولك إلى منصة قيمّ التعليمية')
+@section('title', 'تسجيل الدخول - ' . setting('site_name', 'أثيل مكة'))
+@section('meta_description', 'سجل دخولك إلى منصة ' . setting('site_name', 'أثيل مكة') . ' التعليمية')
 
 @section('extra_css')
 <link rel="stylesheet" href="{{ asset('css/login-enhancements.css') }}">
@@ -15,7 +15,7 @@
             <div class="auth-header">
                 <div class="auth-logo">
                     <span class="auth-logo-icon">🎯</span>
-                    <span class="auth-logo-text">قيمّ</span>
+                    <span class="auth-logo-text">{{ setting('site_name', 'أثيل مكة') }}</span>
                 </div>
                 <h1 class="auth-title">مرحباً بعودتك</h1>
                 <p class="auth-subtitle">سجل دخولك للوصول إلى حسابك</p>

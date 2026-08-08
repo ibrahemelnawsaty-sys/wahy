@@ -1,7 +1,7 @@
 @extends('layouts.auth-clean')
 
-@section('title', 'نسيت كلمة المرور - قيمّ')
-@section('meta_description', 'استعادة كلمة المرور لحسابك في منصة قيمّ')
+@section('title', 'نسيت كلمة المرور - ' . setting('site_name', 'أثيل مكة'))
+@section('meta_description', 'استعادة كلمة المرور لحسابك في منصة ' . setting('site_name', 'أثيل مكة'))
 
 @section('extra_css')
 <link rel="stylesheet" href="{{ asset('css/login-enhancements.css') }}">
@@ -15,7 +15,7 @@
             <div class="auth-header">
                 <div class="auth-logo">
                     <span class="auth-logo-icon">🔐</span>
-                    <span class="auth-logo-text">قيمّ</span>
+                    <span class="auth-logo-text">{{ setting('site_name', 'أثيل مكة') }}</span>
                 </div>
                 <h1 class="auth-title">نسيت كلمة المرور؟</h1>
                 <p class="auth-subtitle">لا تقلق! سنرسل لك رابط إعادة تعيين كلمة المرور</p>

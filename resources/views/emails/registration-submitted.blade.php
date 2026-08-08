@@ -8,7 +8,7 @@
     <p class="greeting">مرحباً {{ $request->name }}،</p>
 
     <p class="message-text">
-        نشكرك على اهتمامك بالانضمام إلى <strong>{{ $request->school->name }}</strong> عبر منصة {{ setting('site_name', 'قيمّ') }}.
+        نشكرك على اهتمامك بالانضمام إلى <strong>{{ $request->school->name }}</strong> عبر منصة {{ setting('site_name', 'أثيل مكة') }}.
     </p>
 
     <div class="success-box">

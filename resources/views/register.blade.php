@@ -1,7 +1,7 @@
 @extends('layouts.auth')
 
-@section('title', 'إنشاء حساب جديد - قيمّ')
-@section('meta_description', 'سجل في منصة قيمّ التعليمية وابدأ رحلتك التعليمية')
+@section('title', 'إنشاء حساب جديد - ' . setting('site_name', 'أثيل مكة'))
+@section('meta_description', 'سجل في منصة ' . setting('site_name', 'أثيل مكة') . ' التعليمية وابدأ رحلتك التعليمية')
 
 @section('content')
 {{-- Issue #30/#31: تحسينات الجوال للنموذج والنافذة المنبثقة --}}
@@ -104,7 +104,7 @@
                 <span class="auth-logo-icon">🌟</span>
             </a>
             <h1 class="auth-title">إنشاء حساب جديد</h1>
-            <p class="auth-subtitle">انضم إلى منصة قيمّ وابدأ رحلتك التعليمية</p>
+            <p class="auth-subtitle">انضم إلى منصة {{ setting('site_name', 'أثيل مكة') }} وابدأ رحلتك التعليمية</p>
         </div>
 
         @if ($errors->any())
