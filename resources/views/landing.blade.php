@@ -1255,6 +1255,23 @@
     </script>
     @endguest
     
+    {{-- زرّ واتساب عائم (مهمّة 18) — يظهر فقط عند ضبط whatsapp_number؛ القيمة أرقام فقط (بلا حقن) --}}
+    @php $__wa = preg_replace('/[^0-9]/', '', (string) setting('whatsapp_number')); @endphp
+    @if($__wa !== '')
+    <a href="https://wa.me/{{ $__wa }}" target="_blank" rel="noopener" class="wa-float" aria-label="تواصل عبر واتساب" title="تواصل عبر واتساب">
+        <svg viewBox="0 0 32 32" width="30" height="30" fill="currentColor" aria-hidden="true">
+            <path d="M16.001 3C9.383 3 4 8.383 4 15c0 2.117.555 4.19 1.608 6.017L4 29l8.174-1.58A11.94 11.94 0 0016 27c6.617 0 12-5.383 12-12S22.618 3 16.001 3zm0 21.8c-1.86 0-3.68-.5-5.27-1.444l-.378-.224-4.85.938.97-4.73-.246-.388A9.76 9.76 0 016.2 15c0-5.406 4.396-9.8 9.8-9.8 5.404 0 9.8 4.394 9.8 9.8 0 5.404-4.396 9.8-9.8 9.8zm5.383-7.34c-.295-.148-1.745-.86-2.016-.96-.27-.098-.467-.148-.663.148-.197.295-.762.96-.934 1.157-.172.197-.344.222-.639.074-.295-.148-1.246-.459-2.373-1.463-.877-.782-1.469-1.748-1.641-2.043-.172-.295-.018-.454.13-.601.134-.133.296-.345.443-.518.148-.172.197-.295.296-.492.098-.197.049-.37-.025-.518-.074-.148-.663-1.6-.909-2.19-.239-.574-.482-.497-.663-.506l-.565-.01c-.197 0-.516.074-.787.37-.27.295-1.033 1.01-1.033 2.46 0 1.45 1.058 2.852 1.205 3.049.148.197 2.083 3.18 5.046 4.458.705.304 1.255.486 1.684.622.708.225 1.352.193 1.861.117.568-.085 1.745-.714 1.991-1.403.246-.688.246-1.279.172-1.403-.074-.123-.27-.197-.565-.345z"/>
+        </svg>
+    </a>
+    <style>
+        .wa-float{position:fixed;bottom:24px;right:24px;z-index:900;width:56px;height:56px;border-radius:50%;
+            background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;
+            box-shadow:0 6px 20px rgba(37,211,102,.45);transition:transform .15s,box-shadow .15s;text-decoration:none}
+        .wa-float:hover{transform:scale(1.08);box-shadow:0 8px 26px rgba(37,211,102,.6)}
+        @media (max-width:600px){.wa-float{width:50px;height:50px;bottom:18px;right:18px}}
+    </style>
+    @endif
+
     <!-- Lazy Loading + Performance Monitoring -->
     <script src="{{ asset('js/lazy-load.min.js') }}" defer></script>
     

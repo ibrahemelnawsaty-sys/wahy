@@ -98,10 +98,12 @@
                             <x-element-actions />
                             <a href="/#activities" data-editable="footer_link_activities" data-section="footer">الأنشطة</a>
                         </li>
+                        @if(setting('show_partners'))
                         <li class="editable-element" data-element="footer-link-partners">
                             <x-element-actions />
                             <a href="/#partners" data-editable="footer_link_partners" data-section="footer">الشركاء</a>
                         </li>
+                        @endif
                     </ul>
                 </div>
 
@@ -111,7 +113,6 @@
                     <ul class="footer-links">
                         <li><a href="/login">تسجيل الدخول</a></li>
                         <li><a href="/register">إنشاء حساب</a></li>
-                        <li><a href="/dashboard">لوحة التحكم</a></li>
                     </ul>
                 </div>
 
@@ -121,7 +122,6 @@
                     <ul class="footer-links">
                         <li><a href="/privacy">سياسة الخصوصية</a></li>
                         <li><a href="/terms">الشروط والأحكام</a></li>
-                        <li><a href="/usage">سياسة الاستخدام</a></li>
                     </ul>
                 </div>
 
