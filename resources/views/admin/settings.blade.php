@@ -164,6 +164,88 @@
             </div>
         </div>
 
+        <!-- ظهور أقسام الصفحة الرئيسية (الدفعة 0.a) -->
+        <div class="settings-glass-card fade-in-up" style="animation-delay: 0.45s;">
+            <div class="settings-card-header">
+                <div class="settings-header-icon" role="img" aria-label="أيقونة ظهور الأقسام">👁️</div>
+                <h3 class="settings-card-title">ظهور أقسام الصفحة الرئيسية</h3>
+            </div>
+            <div class="settings-card-body">
+                <div class="settings-form-group">
+                    <div class="toggle-switch-wrapper">
+                        <input type="checkbox" id="show_hero_stats" name="show_hero_stats" value="1" {{ $settings['show_hero_stats'] ? 'checked' : '' }} class="toggle-switch-input">
+                        <label for="show_hero_stats" class="toggle-switch-label">
+                            <span class="toggle-switch-slider"></span>
+                            <div class="toggle-switch-text">
+                                <div class="toggle-switch-title">إظهار الإحصائيات (المعلمون/الطلاب/المدارس)</div>
+                                <div class="settings-form-help">أرقام الإنجاز في أعلى الصفحة — يُنصح بإخفائها حتى تشغيل الموقع بفترة</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-form-group">
+                    <div class="toggle-switch-wrapper">
+                        <input type="checkbox" id="show_coop_benefits" name="show_coop_benefits" value="1" {{ $settings['show_coop_benefits'] ? 'checked' : '' }} class="toggle-switch-input">
+                        <label for="show_coop_benefits" class="toggle-switch-label">
+                            <span class="toggle-switch-slider"></span>
+                            <div class="toggle-switch-text">
+                                <div class="toggle-switch-title">إظهار قسم «فوائد التعلم التعاوني»</div>
+                                <div class="settings-form-help">قابل للإخفاء والإعادة لاحقاً دون حذف</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-form-group">
+                    <div class="toggle-switch-wrapper">
+                        <input type="checkbox" id="show_partners" name="show_partners" value="1" {{ $settings['show_partners'] ? 'checked' : '' }} class="toggle-switch-input">
+                        <label for="show_partners" class="toggle-switch-label">
+                            <span class="toggle-switch-slider"></span>
+                            <div class="toggle-switch-text">
+                                <div class="toggle-switch-title">إظهار قسم «شركاؤنا في النجاح» (والرابط في الترويسة/الفوتر)</div>
+                                <div class="settings-form-help">يُنصح بإخفائه مبدئيّاً حتى تجهيز الشركاء</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- الفيديو والتواصل السريع (الدفعة 0.c) -->
+        <div class="settings-glass-card fade-in-up" style="animation-delay: 0.48s;">
+            <div class="settings-card-header">
+                <div class="settings-header-icon" role="img" aria-label="أيقونة الفيديو والواتساب">🎬</div>
+                <h3 class="settings-card-title">فيديو الهيرو والتواصل السريع</h3>
+            </div>
+            <div class="settings-card-body">
+                <div class="settings-form-group">
+                    <div class="toggle-switch-wrapper">
+                        <input type="checkbox" id="hero_video_enabled" name="hero_video_enabled" value="1" {{ $settings['hero_video_enabled'] ? 'checked' : '' }} class="toggle-switch-input">
+                        <label for="hero_video_enabled" class="toggle-switch-label">
+                            <span class="toggle-switch-slider"></span>
+                            <div class="toggle-switch-text">
+                                <div class="toggle-switch-title">تفعيل فيديو الصفحة الرئيسية</div>
+                                <div class="settings-form-help">عند التفعيل يظهر الفيديو في الهيرو (بعد ربطه — الدفعة 6)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-form-group">
+                    <label for="hero_video_url" class="settings-form-label">رابط/مسار الفيديو</label>
+                    <input type="text" id="hero_video_url" name="hero_video_url" class="settings-form-input" dir="ltr" value="{{ $settings['hero_video_url'] }}" placeholder="videos/hero-main.mp4">
+                    <div class="settings-form-help">مسار محلّيّ (مثل videos/hero-main.mp4) أو رابط كامل</div>
+                </div>
+                <div class="settings-form-group">
+                    <label for="hero_video_poster" class="settings-form-label">صورة غلاف الفيديو (اختياريّ)</label>
+                    <input type="text" id="hero_video_poster" name="hero_video_poster" class="settings-form-input" dir="ltr" value="{{ $settings['hero_video_poster'] }}" placeholder="images/hero-poster.jpg">
+                </div>
+                <div class="settings-form-group">
+                    <label for="whatsapp_number" class="settings-form-label">رقم واتساب للتواصل السريع</label>
+                    <input type="tel" id="whatsapp_number" name="whatsapp_number" class="settings-form-input" dir="ltr" value="{{ $settings['whatsapp_number'] }}" placeholder="9665XXXXXXXX" pattern="[0-9+\-\s()]{0,30}">
+                    <div class="settings-form-help">رقم دوليّ بلا «+» (مثال: 9665XXXXXXXX) — يظهر كزرّ عائم في الركن السفلي</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="settings-actions fade-in-up" style="animation-delay: 0.5s;">
             <button type="button" class="settings-btn settings-btn-outline" onclick="resetSettings()">
