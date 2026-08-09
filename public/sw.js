@@ -1,15 +1,16 @@
 // Service Worker - Aggressive Caching Strategy
-const CACHE_VERSION = 'qiyamm-v1.2';
+// ⚠️ ارفع رقم الإصدار عند كل نشر يغيّر الأصول (يُبطِل الكاش القديم لدى كل الزوّار).
+const CACHE_VERSION = 'atheel-v2';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
 
-// Assets to cache immediately
+// Assets to cache immediately — يجب أن تطابق ما تستعمله الصفحة فعلاً (غير المصغّرة).
 const STATIC_ASSETS = [
     '/',
-    '/css/landing.min.css',
-    '/js/landing.min.js',
-    '/js/theme.min.js',
+    '/css/landing.css',
+    '/js/landing.js',
+    '/js/theme.js',
     '/icons.svg',
     '/FONT/IBMPlexSansArabic-Regular.ttf',
     '/FONT/IBMPlexSansArabic-Bold.ttf'

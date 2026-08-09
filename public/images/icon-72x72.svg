@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="أثيل مكة">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3CCB8A"/>
+      <stop offset="1" stop-color="#2E9E6B"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <path fill="#ffffff" d="M256 360 C 200 300 140 250 140 200 C 140 160 175 140 210 158 C 230 168 246 186 256 206 C 266 186 282 168 302 158 C 337 140 372 160 372 200 C 372 250 312 300 256 360 Z"/>
+</svg>

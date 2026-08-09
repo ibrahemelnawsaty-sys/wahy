@@ -49,6 +49,7 @@
     <meta name="description" content="{{ $siteDescription }}">
     <meta name="theme-color" content="{{ $primaryColor }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
