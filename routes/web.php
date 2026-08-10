@@ -239,6 +239,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/contact-messages/{contactMessage}/status', [$cm, 'updateStatus'])->name('contact-messages.status');
         Route::delete('/contact-messages/{contactMessage}', [$cm, 'destroy'])->name('contact-messages.destroy');
 
+        // محرّر محتوى الصفحة الرئيسية (نصوص الأقسام)
+        $hc = \App\Http\Controllers\Admin\HomeContentController::class;
+        Route::get('/home-content', [$hc, 'edit'])->name('home-content.edit');
+        Route::post('/home-content', [$hc, 'update'])->name('home-content.update');
+
         // Theme Customization
         Route::get('/theme', [ThemeController::class, 'index'])->name('theme');
         Route::post('/theme', [ThemeController::class, 'update'])->name('theme.update');

@@ -288,24 +288,24 @@
                     <div class="hero-text">
                         <div class="editable-element" data-element="hero-title">
                             <x-element-actions />
-                            <h1 class="hero-title" data-editable="hero_title" data-section="hero">منصة {{ $siteName }}.. قيم نبوية يحيى بها الطالب</h1>
+                            <h1 class="hero-title" data-editable="hero_title" data-section="hero">{{ lc('hero_title', 'منصة ' . $siteName . '.. قيم نبوية يحيى بها الطالب') }}</h1>
                         </div>
                         <div class="editable-element" data-element="hero-description">
                             <x-element-actions />
-                            <p class="hero-description" data-editable="hero_description" data-section="hero">من مكة المكرمة .. نبع الهدايات، انطلقت منصتنا تلهم الواردين من الطلاب والمعلمين.. تجمع بين المتعة والفائدة لتبني جيلاً فعالاً متخلقاً بقيم وأخلاق النبوة</p>
+                            <p class="hero-description" data-editable="hero_description" data-section="hero">{{ lc('hero_description', 'من مكة المكرمة .. نبع الهدايات، انطلقت منصتنا تلهم الواردين من الطلاب والمعلمين.. تجمع بين المتعة والفائدة لتبني جيلاً فعالاً متخلقاً بقيم وأخلاق النبوة') }}</p>
                         </div>
                         <div class="hero-actions">
                             <div class="editable-element" data-element="hero-btn-primary">
                                 <x-element-actions />
                                 <a href="/register" class="btn btn-primary btn-lg">
-                                    <span data-editable="hero_btn_primary" data-section="hero">ابدأ الآن</span>
+                                    <span data-editable="hero_btn_primary" data-section="hero">{{ lc('hero_btn_primary', 'ابدأ الآن') }}</span>
                                     <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-arrow-left"/></svg>
                                 </a>
                             </div>
                             <div class="editable-element" data-element="hero-btn-secondary">
                                 <x-element-actions />
                                 <a href="#features" class="btn btn-secondary btn-lg">
-                                    <span data-editable="hero_btn_secondary" data-section="hero">اعرف المزيد</span>
+                                    <span data-editable="hero_btn_secondary" data-section="hero">{{ lc('hero_btn_secondary', 'اعرف المزيد') }}</span>
                                     <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-chevron-down"/></svg>
                                 </a>
                             </div>
@@ -378,67 +378,67 @@
                 <div class="section-header">
                     <div class="editable-element" data-element="features-title">
                         <x-element-actions />
-                        <h2 class="section-title" data-editable="features_title" data-section="features">لماذا {{ $siteName }}؟</h2>
+                        <h2 class="section-title" data-editable="features_title" data-section="features">{{ lc('features_title', 'لماذا ' . $siteName . '؟') }}</h2>
                     </div>
                     <div class="editable-element" data-element="features-subtitle">
                         <x-element-actions />
-                        <p class="section-subtitle" data-editable="features_subtitle" data-section="features">نظام متكامل بمميزات فريدة</p>
+                        <p class="section-subtitle" data-editable="features_subtitle" data-section="features">{{ lc('features_subtitle', 'نظام متكامل بمميزات فريدة') }}</p>
                     </div>
                 </div>
                 <div class="features-grid">
                     <article class="feature-card editable-element" data-element="feature-card-5">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_5_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-medal"/></svg></div>
-                        <h3 data-editable="feature_5_title" data-section="features">تحديات ومنافسات</h3>
-                        <p data-editable="feature_5_desc" data-section="features">تحفز المشاركين وترفع مستوى التفكير والإدراك</p>
+                        <h3 data-editable="feature_5_title" data-section="features">{{ lc('feature_5_title', 'تحديات ومنافسات') }}</h3>
+                        <p data-editable="feature_5_desc" data-section="features">{{ lc('feature_5_desc', 'تحفز المشاركين وترفع مستوى التفكير والإدراك') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-6">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_6_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-chart-bar"/></svg></div>
-                        <h3 data-editable="feature_6_title" data-section="features">قياس الأثر</h3>
-                        <p data-editable="feature_6_desc" data-section="features">وجود استبانات توضح مدى نسبة الاستفادة من الأنشطة والتمارين لتحقيق الهدف</p>
+                        <h3 data-editable="feature_6_title" data-section="features">{{ lc('feature_6_title', 'قياس الأثر') }}</h3>
+                        <p data-editable="feature_6_desc" data-section="features">{{ lc('feature_6_desc', 'وجود استبانات توضح مدى نسبة الاستفادة من الأنشطة والتمارين لتحقيق الهدف') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-7">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_7_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-tasks"/></svg></div>
-                        <h3 data-editable="feature_7_title" data-section="features">أنشطة سلوكية</h3>
-                        <p data-editable="feature_7_desc" data-section="features">تساعد على تطبيق المفاهيم وتحويلها إلى ممارسات حياتية</p>
+                        <h3 data-editable="feature_7_title" data-section="features">{{ lc('feature_7_title', 'أنشطة سلوكية') }}</h3>
+                        <p data-editable="feature_7_desc" data-section="features">{{ lc('feature_7_desc', 'تساعد على تطبيق المفاهيم وتحويلها إلى ممارسات حياتية') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-8">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_8_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-rocket"/></svg></div>
-                        <h3 data-editable="feature_8_title" data-section="features">تحفيز وتنشيط</h3>
-                        <p data-editable="feature_8_desc" data-section="features">يساعدان في رفع المعنويات ودفع التقدم وتحريك الطاقات الكامنة</p>
+                        <h3 data-editable="feature_8_title" data-section="features">{{ lc('feature_8_title', 'تحفيز وتنشيط') }}</h3>
+                        <p data-editable="feature_8_desc" data-section="features">{{ lc('feature_8_desc', 'يساعدان في رفع المعنويات ودفع التقدم وتحريك الطاقات الكامنة') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-9">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_9_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-gem"/></svg></div>
-                        <h3 data-editable="feature_9_title" data-section="features">الانسيابية والسهولة</h3>
-                        <p data-editable="feature_9_desc" data-section="features">الوضوح واليسر والمتابعة بانتظام ودون تعقيد وتكلف</p>
+                        <h3 data-editable="feature_9_title" data-section="features">{{ lc('feature_9_title', 'الانسيابية والسهولة') }}</h3>
+                        <p data-editable="feature_9_desc" data-section="features">{{ lc('feature_9_desc', 'الوضوح واليسر والمتابعة بانتظام ودون تعقيد وتكلف') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-1">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-qrcode"/></svg></div>
-                        <h3 data-editable="feature_1_title" data-section="features">QR فريد لكل مستخدم</h3>
-                        <p data-editable="feature_1_desc" data-section="features">كل طالب ومعلم لديه رمز QR خاص للدخول السريع وتسجيل الحضور والأنشطة</p>
+                        <h3 data-editable="feature_1_title" data-section="features">{{ lc('feature_1_title', 'QR فريد لكل مستخدم') }}</h3>
+                        <p data-editable="feature_1_desc" data-section="features">{{ lc('feature_1_desc', 'كل طالب ومعلم لديه رمز QR خاص للدخول السريع وتسجيل الحضور والأنشطة') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-2">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-trophy"/></svg></div>
-                        <h3 data-editable="feature_2_title" data-section="features">لوحة صدارة ذكية</h3>
-                        <p data-editable="feature_2_desc" data-section="features">نظام تنافسي محفز يعرض أفضل الطلاب والفرق بناءً على الإنجازات والنقاط</p>
+                        <h3 data-editable="feature_2_title" data-section="features">{{ lc('feature_2_title', 'لوحة صدارة ذكية') }}</h3>
+                        <p data-editable="feature_2_desc" data-section="features">{{ lc('feature_2_desc', 'نظام تنافسي محفز يعرض أفضل الطلاب والفرق بناءً على الإنجازات والنقاط') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-3">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-brain"/></svg></div>
-                        <h3 data-editable="feature_3_title" data-section="features">اقتراح أنشطة بالذكاء الاصطناعي</h3>
-                        <p data-editable="feature_3_desc" data-section="features">نظام ذكي يقترح أنشطة مخصصة لكل طالب حسب مستواه واهتماماته</p>
+                        <h3 data-editable="feature_3_title" data-section="features">{{ lc('feature_3_title', 'اقتراح أنشطة بالذكاء الاصطناعي') }}</h3>
+                        <p data-editable="feature_3_desc" data-section="features">{{ lc('feature_3_desc', 'نظام ذكي يقترح أنشطة مخصصة لكل طالب حسب مستواه واهتماماته') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-4">
                         <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-user-check"/></svg></div>
-                        <h3 data-editable="feature_4_title" data-section="features">متابعة وتقييم المعلمين</h3>
-                        <p data-editable="feature_4_desc" data-section="features">أدوات شاملة لمتابعة أداء الطلاب وتقييمهم بطرق متنوعة ومرنة</p>
+                        <h3 data-editable="feature_4_title" data-section="features">{{ lc('feature_4_title', 'متابعة وتقييم المعلمين') }}</h3>
+                        <p data-editable="feature_4_desc" data-section="features">{{ lc('feature_4_desc', 'أدوات شاملة لمتابعة أداء الطلاب وتقييمهم بطرق متنوعة ومرنة') }}</p>
                     </article>
                 </div>
             </div>
@@ -449,11 +449,11 @@
                 <div class="section-header">
                     <div class="editable-element" data-element="values-title">
                         <x-element-actions />
-                        <h2 class="section-title" data-editable="values_title" data-section="values">كيف نبني القيم؟</h2>
+                        <h2 class="section-title" data-editable="values_title" data-section="values">{{ lc('values_title', 'كيف نبني القيم؟') }}</h2>
                     </div>
                     <div class="editable-element" data-element="values-subtitle">
                         <x-element-actions />
-                        <p class="section-subtitle" data-editable="values_subtitle" data-section="values">منهجية متكاملة من القيمة إلى التطبيق العملي</p>
+                        <p class="section-subtitle" data-editable="values_subtitle" data-section="values">{{ lc('values_subtitle', 'منهجية متكاملة من القيمة إلى التطبيق العملي') }}</p>
                     </div>
                 </div>
                 
@@ -716,13 +716,11 @@
                     <div class="contact-info-panel">
                         <div class="editable-element" data-element="contact-title">
                             <x-element-actions />
-                            <h2 class="contact-title" data-editable="contact_title" data-section="contact">يسعدنا تواصلك معنا</h2>
+                            <h2 class="contact-title" data-editable="contact_title" data-section="contact">{{ lc('contact_title', 'يسعدنا تواصلك معنا') }}</h2>
                         </div>
                         <div class="editable-element" data-element="contact-description">
                             <x-element-actions />
-                            <p class="contact-description" data-editable="contact_description" data-section="contact">
-                                فريقنا جاهز للإجابة على جميع استفساراتكم المتعلقة بالمنصة، القيم، الأنشطة، أو الدعم الفني.
-                            </p>
+                            <p class="contact-description" data-editable="contact_description" data-section="contact">{{ lc('contact_description', 'فريقنا جاهز للإجابة على جميع استفساراتكم المتعلقة بالمنصة، القيم، الأنشطة، أو الدعم الفني.') }}</p>
                         </div>
 
                         <div class="contact-details-list">
@@ -1231,38 +1229,24 @@
     @endif
     @endauth
     
-    <!-- تحميل المحتوى من قاعدة البيانات - محسّن -->
+    {{--
+        ملاحظة: النصوص المُدارة من «محتوى الصفحة الرئيسية» تُعرَض الآن خادميّاً عبر lc('key', الافتراضيّ)،
+        فلا وميض ولا محتوى قديم. يبقى هذا السكربت للزوّار فقط كطبقة احتياطيّة تطبّق أيّ مفاتيح
+        محفوظة في landing_content لم تُلَفّ خادميّاً بعد — بلا كاش localStorage (كان يؤخّر ظهور تعديلات
+        الأدمن حتى 5 دقائق)، فيُجلب الطازج دائماً ويُطبَّق نصّاً فقط (textContent) بلا أيّ حقن HTML.
+    --}}
     @guest
     <script>
-        // تحميل المحتوى المحفوظ للزوار فقط (السوبر أدمن يرى الصفحة الأصلية للتعديل)
         (function() {
-            const cacheKey = 'landing_v1';
-            const cached = localStorage.getItem(cacheKey);
-            const cacheTime = localStorage.getItem(cacheKey + '_time');
-            const now = Date.now();
-            const maxAge = 5 * 60 * 1000; // 5 دقائق
-            
-            // استخدام الكاش إذا كان موجوداً وحديثاً
-            if (cached && cacheTime && (now - parseInt(cacheTime)) < maxAge) {
-                try {
-                    const data = JSON.parse(cached);
-                    applyContent(data);
-                } catch(e) {}
-                return;
-            }
-            
-            // تحميل من API (مع فحص HTTP status)
             fetch('/api/landing/content')
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
                     if (data && data.success && data.content && Object.keys(data.content).length > 0) {
-                        localStorage.setItem(cacheKey, JSON.stringify(data.content));
-                        localStorage.setItem(cacheKey + '_time', now.toString());
                         applyContent(data.content);
                     }
                 })
                 .catch(err => console.warn('Landing content fetch failed:', err));
-            
+
             function applyContent(content) {
                 Object.entries(content).forEach(([key, value]) => {
                     const el = document.querySelector(`[data-editable="${key}"]`);

@@ -2,6 +2,27 @@
 
 use App\Models\Setting;
 
+if (! function_exists('lc')) {
+    /**
+     * محتوى الصفحة الرئيسية القابل للتحرير (landing_content). يُرجِع القيمة المحفوظة أو الافتراضيّ.
+     * العرض **خادميّ** (لا سكربت متصفّح) = بلا وميض ولا صفحة فارغة. استعلام واحد مُخبّأ لكل الطلب.
+     */
+    function lc(string $key, string $default = ''): string
+    {
+        $v = \App\Models\LandingContent::map()[$key] ?? null;
+
+        return ($v === null || $v === '') ? $default : $v;
+    }
+}
+
+if (! function_exists('lc_forget')) {
+    /** مسح كاش محتوى الصفحة الرئيسية بعد الحفظ. */
+    function lc_forget(): void
+    {
+        \App\Models\LandingContent::flushMap();
+    }
+}
+
 if (! function_exists('setting')) {
     /**
      * Get or set a setting value

@@ -47,13 +47,45 @@ class LandingContent extends Model
      */
     public static function setValue(string $key, $value, array $options = [])
     {
-        return self::updateOrCreate(
+        $row = self::updateOrCreate(
             ['key' => $key],
             array_merge([
                 'value' => $value,
                 'updated_by' => auth()->id(),
             ], $options),
         );
+
+        self::flushMap(); // إبقاء كاش العرض متّسقاً مع أيّ كتابة
+
+        return $row;
+    }
+
+    /**
+     * خريطة key⟶value مُخبّأة (تقود العرض الخادميّ عبر lc()).
+     * static داخل الطلب + كاش 10 دقائق عبر الطلبات؛ يُبطَل بأيّ كتابة أو flushMap().
+     */
+    protected static ?array $mapCache = null;
+
+    public static function map(): array
+    {
+        if (self::$mapCache !== null) {
+            return self::$mapCache;
+        }
+        try {
+            self::$mapCache = \Illuminate\Support\Facades\Cache::remember('landing_content_map', 600, function () {
+                return self::query()->pluck('value', 'key')->all();
+            });
+        } catch (\Throwable $e) {
+            self::$mapCache = [];
+        }
+
+        return self::$mapCache;
+    }
+
+    public static function flushMap(): void
+    {
+        self::$mapCache = null;
+        \Illuminate\Support\Facades\Cache::forget('landing_content_map');
     }
 
     /**
