@@ -1286,11 +1286,25 @@
         </svg>
     </a>
     <style>
-        .wa-float{position:fixed;bottom:24px;right:24px;z-index:900;width:56px;height:56px;border-radius:50%;
+        /* زرّ واتساب عائم أسفل اليسار + حلقة نابضة + قوس ضوء دائر حوله */
+        .wa-float{position:fixed;bottom:24px;left:24px;z-index:900;width:56px;height:56px;border-radius:50%;
             background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;
             box-shadow:0 6px 20px rgba(37,211,102,.45);transition:transform .15s,box-shadow .15s;text-decoration:none}
+        .wa-float svg{position:relative;z-index:2}
+        /* حلقة نابضة تتمدّد وتتلاشى (لفت النظر) */
+        .wa-float::before{content:"";position:absolute;inset:0;border-radius:50%;z-index:0;pointer-events:none;
+            border:2px solid rgba(37,211,102,.55);animation:wa-pulse 2s ease-out infinite}
+        /* قوس ضوء يدور حول الزرّ */
+        .wa-float::after{content:"";position:absolute;inset:-5px;border-radius:50%;z-index:1;pointer-events:none;
+            background:conic-gradient(from 0deg,transparent 0deg,rgba(255,255,255,.95) 55deg,transparent 130deg);
+            -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+            mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+            animation:wa-spin 3s linear infinite}
         .wa-float:hover{transform:scale(1.08);box-shadow:0 8px 26px rgba(37,211,102,.6)}
-        @media (max-width:600px){.wa-float{width:50px;height:50px;bottom:18px;right:18px}}
+        @keyframes wa-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.9);opacity:0}}
+        @keyframes wa-spin{to{transform:rotate(360deg)}}
+        @media (prefers-reduced-motion:reduce){.wa-float::before,.wa-float::after{animation:none}}
+        @media (max-width:600px){.wa-float{width:50px;height:50px;bottom:18px;left:18px}}
     </style>
     @endif
 
