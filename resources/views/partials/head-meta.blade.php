@@ -18,7 +18,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ $hmName }}">
 @if(!empty($hmFavicon))
-<link rel="icon" href="{{ asset('storage/app/public/data/' . $hmFavicon) }}">
+<link rel="icon" href="{{ asset('storage/data/' . $hmFavicon) }}">
 @else
 <link rel="icon" href="{{ asset('favicon.ico') }}">
 @endif

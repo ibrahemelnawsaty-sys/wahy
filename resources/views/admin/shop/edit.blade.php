@@ -124,7 +124,7 @@
                 @if($item->image)
                 <div class="mb-4">
                     <p class="text-sm font-semibold text-gray-700 mb-2">الصورة الحالية:</p>
-                    <img src="{{ asset('storage/app/public/data/' . $item->image) }}" alt="{{ $item->name }}" class="w-32 h-32 rounded-lg object-cover border-2 border-gray-300">
+                    <img src="{{ asset('storage/data/' . $item->image) }}" alt="{{ $item->name }}" class="w-32 h-32 rounded-lg object-cover border-2 border-gray-300">
                 </div>
                 @endif
                 

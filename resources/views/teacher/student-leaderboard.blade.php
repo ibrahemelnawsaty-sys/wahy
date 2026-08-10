@@ -96,7 +96,7 @@
                     <td style="padding: 20px;">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             @if($leader->avatar)
-                            <img src="{{ asset('storage/app/public/data/' . $leader->avatar) }}" alt="{{ $leader->name }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <img src="{{ asset('storage/data/' . $leader->avatar) }}" alt="{{ $leader->name }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                             @else
                             <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: 700; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">
                                 {{ mb_substr($leader->name, 0, 1) }}

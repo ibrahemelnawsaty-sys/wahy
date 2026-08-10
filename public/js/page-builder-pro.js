@@ -471,11 +471,11 @@
                     html = `<div style="text-align: ${component.alignment};"><a href="${component.link}" class="btn btn-${component.style}">${component.text}</a></div>`;
                     break;
                 case 'image':
-                    const imgSrc = component.mode === 'upload' ? `/storage/app/public/data/${component.src}` : component.url;
+                    const imgSrc = component.mode === 'upload' ? `/storage/data/${component.src}` : component.url;
                     html = `<img src="${imgSrc}" alt="${component.alt}" style="max-width: 100%; height: auto;">`;
                     break;
                 case 'video':
-                    const videoSrc = component.mode === 'upload' ? `/storage/app/public/data/${component.src}` : component.url;
+                    const videoSrc = component.mode === 'upload' ? `/storage/data/${component.src}` : component.url;
                     html = `<video src="${videoSrc}" controls style="max-width: 100%; height: auto;"></video>`;
                     break;
                 case 'spacer':
@@ -489,7 +489,7 @@
                     html = `<${listTag}>${component.items.map(item => `<li>${item}</li>`).join('')}</${listTag}>`;
                     break;
                 case 'icon':
-                    const iconSrc = component.mode === 'emoji' ? component.icon : `/storage/app/public/data/${component.src}`;
+                    const iconSrc = component.mode === 'emoji' ? component.icon : `/storage/data/${component.src}`;
                     const iconHtml = component.mode === 'emoji' ? iconSrc : `<img src="${iconSrc}" style="width: ${component.size}; height: ${component.size};">`;
                     html = `<div style="font-size: ${component.size}; color: ${component.color}; text-align: center;">${iconHtml}</div>`;
                     break;

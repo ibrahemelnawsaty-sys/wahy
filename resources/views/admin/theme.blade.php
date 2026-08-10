@@ -154,7 +154,7 @@
                         <label class="admin-form-label">شعار الموقع (Logo)</label>
                         <div style="border: 2px dashed #e2e8f0; border-radius: 8px; padding: 24px; text-align: center;">
                             @if($settings['site_logo'])
-                                <img src="{{ asset('storage/app/public/data/' . $settings['site_logo']) }}" 
+                                <img src="{{ asset('storage/data/' . $settings['site_logo']) }}" 
                                      alt="Logo" 
                                      style="max-width: 100%; max-height: 100px; margin-bottom: 16px;"
                                      id="logoPreview">
@@ -173,7 +173,7 @@
                         <label class="admin-form-label">أيقونة الموقع (Favicon)</label>
                         <div style="border: 2px dashed #e2e8f0; border-radius: 8px; padding: 24px; text-align: center;">
                             @if($settings['site_favicon'])
-                                <img src="{{ asset('storage/app/public/data/' . $settings['site_favicon']) }}" 
+                                <img src="{{ asset('storage/data/' . $settings['site_favicon']) }}" 
                                      alt="Favicon" 
                                      style="max-width: 100%; max-height: 100px; margin-bottom: 16px;"
                                      id="faviconPreview">
@@ -192,7 +192,7 @@
                         <label class="admin-form-label">خلفية الصفحة الرئيسية</label>
                         <div style="border: 2px dashed #e2e8f0; border-radius: 8px; padding: 24px; text-align: center;">
                             @if($settings['hero_background'])
-                                <img src="{{ asset('storage/app/public/data/' . $settings['hero_background']) }}" 
+                                <img src="{{ asset('storage/data/' . $settings['hero_background']) }}" 
                                      alt="Hero" 
                                      style="max-width: 100%; max-height: 100px; margin-bottom: 16px;"
                                      id="heroPreview">

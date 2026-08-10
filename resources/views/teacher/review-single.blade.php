@@ -201,7 +201,7 @@
                 // بناء رابط الملف من مسار تخزين التطبيق فقط (نرفض المطلق :// والتجاوز .. — قد يُحقَن عبر API)
                 $answerExt = '';
                 if (is_string($answerFile) && $answerFile !== '' && ! preg_match('~://|\.\.~', $answerFile)) {
-                    $answerFileUrl = asset('storage/app/public/data/' . ltrim($answerFile, '/'));
+                    $answerFileUrl = asset('storage/data/' . ltrim($answerFile, '/'));
                     $answerExt = strtolower(pathinfo($answerFile, PATHINFO_EXTENSION));
                 } else {
                     $answerFile = null;

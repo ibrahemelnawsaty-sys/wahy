@@ -92,7 +92,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 @if($item->image)
-                                    <img src="{{ asset('storage/app/public/data/' . $item->image) }}" alt="{{ $item->name }}" class="w-12 h-12 rounded-lg object-cover">
+                                    <img src="{{ asset('storage/data/' . $item->image) }}" alt="{{ $item->name }}" class="w-12 h-12 rounded-lg object-cover">
                                 @else
                                     <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-2xl">
                                         {{ $item->icon }}

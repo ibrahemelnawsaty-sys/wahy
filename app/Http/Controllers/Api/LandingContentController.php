@@ -160,7 +160,7 @@ class LandingContentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'path' => asset('storage/app/public/data/' . $path),
+                'path' => asset('storage/data/' . $path),
                 'message' => 'تم رفع الصورة بنجاح',
             ]);
         } catch (\Exception $e) {

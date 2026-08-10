@@ -429,7 +429,7 @@
             <div class="email-header">
                 <div class="logo-container">
                     @if(setting('site_logo'))
-                        <img src="{{ asset('storage/app/public/data/' . setting('site_logo')) }}" alt="{{ setting('site_name', 'أثيل مكة') }}" class="logo">
+                        <img src="{{ asset('storage/data/' . setting('site_logo')) }}" alt="{{ setting('site_name', 'أثيل مكة') }}" class="logo">
                     @else
                         <div class="logo-icon">🎓</div>
                     @endif

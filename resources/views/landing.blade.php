@@ -59,7 +59,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/') }}">
     @if($siteLogo)
-    <meta property="og:image" content="{{ asset('storage/app/public/data/' . $siteLogo) }}">
+    <meta property="og:image" content="{{ asset('storage/data/' . $siteLogo) }}">
     @endif
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $siteName }}">
@@ -217,7 +217,7 @@
                     <x-element-actions />
                     <a href="/" class="logo">
                         @if($siteLogo)
-                            <img src="{{ asset('storage/app/public/data/' . $siteLogo) }}" alt="{{ $siteName }}" class="logo-img" data-editable-image="site_logo">
+                            <img src="{{ asset('storage/data/' . $siteLogo) }}" alt="{{ $siteName }}" class="logo-img" data-editable-image="site_logo">
                         @else
                             <span class="logo-icon" data-editable="logo_icon" data-section="header">🌟</span>
                             <span class="logo-text" data-editable="logo_text" data-section="header">{{ $siteName }}</span>

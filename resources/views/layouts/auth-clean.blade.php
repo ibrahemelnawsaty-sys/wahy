@@ -43,7 +43,7 @@
             <nav class="navbar" role="navigation">
                 <a href="/" class="logo">
                     @if(!empty($authSiteLogo))
-                        <img src="{{ asset('storage/app/public/data/' . $authSiteLogo) }}" alt="{{ $authSiteName }}" class="logo-img" style="height:40px;width:auto;">
+                        <img src="{{ asset('storage/data/' . $authSiteLogo) }}" alt="{{ $authSiteName }}" class="logo-img" style="height:40px;width:auto;">
                     @else
                         <span class="logo-icon">🌟</span>
                         <span class="logo-text">{{ $authSiteName }}</span>

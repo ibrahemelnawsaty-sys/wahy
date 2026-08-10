@@ -283,7 +283,7 @@ class ActivityManagementController extends Controller
         ]);
 
         $path = $request->file('image')->store('activities/images', 'public');
-        $url = asset('storage/app/public/data/' . $path);
+        $url = asset('storage/data/' . $path);
 
         return response()->json(['url' => $url]);
     }

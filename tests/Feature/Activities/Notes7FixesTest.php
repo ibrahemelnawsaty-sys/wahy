@@ -38,8 +38,8 @@ class Notes7FixesTest extends TestCase
         $media = $res->json('data.media');
         $this->assertCount(2, $media, 'الوسائط تُسلسَل للجوّال');
         $this->assertSame('video', $media[0]['type']);
-        $this->assertStringContainsString('storage/app/public/data/activity-media/lesson.mp4', $media[0]['url']);
-        $this->assertStringContainsString('storage/app/public/data/activity-media/pic.jpg', $media[1]['url']);
+        $this->assertStringContainsString('storage/data/activity-media/lesson.mp4', $media[0]['url']);
+        $this->assertStringContainsString('storage/data/activity-media/pic.jpg', $media[1]['url']);
     }
 
     public function test_admin_approval_show_uses_rich_questions_partial(): void

@@ -60,7 +60,7 @@
                         <td style="padding: 14px 20px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 40px; height: 40px; border-radius: 12px; overflow: hidden; border: 2px solid #10b981; flex-shrink: 0;">
-                                    <img src="{{ $user->avatar ? asset('storage/app/public/data/' . $user->avatar) : asset('storage/app/public/data/avatars/default-avatar.webp') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="{{ $user->avatar ? asset('storage/data/' . $user->avatar) : asset('storage/data/avatars/default-avatar.webp') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                                 <div>
                                     <div style="font-weight: 600; font-size: 14px; color: var(--text-primary, #1e293b);">{{ $user->name }}</div>
@@ -188,8 +188,8 @@
                     const roleAttr = escapeHtml(user.role || '');
                     const onlineSince = escapeHtml(user.online_since);
                     const avatarSrc = escapeHtml(user.avatar
-                        ? '/storage/app/public/data/' + user.avatar
-                        : '/storage/app/public/data/avatars/default-avatar.webp');
+                        ? '/storage/data/' + user.avatar
+                        : '/storage/data/avatars/default-avatar.webp');
                     const hidden = (currentFilter !== 'all' && user.role !== currentFilter) ? 'display:none;' : '';
                     return `
                     <tr class="user-row" data-role="${roleAttr}" style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s; ${hidden}" onmouseover="this.style.background='rgba(102,126,234,0.03)'" onmouseout="this.style.background='transparent'">

@@ -516,7 +516,7 @@ class MessagesController extends Controller
 
         return response()->json([
             'success' => true,
-            'url' => asset('storage/app/public/data/' . $path),
+            'url' => asset('storage/data/' . $path),
         ]);
     }
 }

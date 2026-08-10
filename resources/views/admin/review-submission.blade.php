@@ -123,7 +123,7 @@
             $ansFileUrl = null;
             $ansExt = '';
             if (is_string($ansFile) && $ansFile !== '' && ! preg_match('~://|\.\.~', $ansFile)) {
-                $ansFileUrl = asset('storage/app/public/data/' . ltrim($ansFile, '/'));
+                $ansFileUrl = asset('storage/data/' . ltrim($ansFile, '/'));
                 $ansExt = strtolower(pathinfo($ansFile, PATHINFO_EXTENSION));
             } else {
                 $ansFile = null;

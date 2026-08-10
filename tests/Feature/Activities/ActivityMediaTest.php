@@ -74,7 +74,7 @@ class ActivityMediaTest extends TestCase
 
         $this->assertStringContainsString('<video', $html);
         // الرابط يتبع اصطلاح القرص العامّ غير القياسيّ (storage/app/public/data) لا asset('storage/…')
-        $this->assertStringContainsString('storage/app/public/data/activity-media/clip.mp4', $html);
+        $this->assertStringContainsString('storage/data/activity-media/clip.mp4', $html);
     }
 
     public function test_media_partial_handles_string_encoded_media(): void

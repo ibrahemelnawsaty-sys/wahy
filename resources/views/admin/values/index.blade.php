@@ -210,7 +210,7 @@ html[data-theme="dark"] .value-name { color: var(--w-text, #f1f5f9) !important; 
         
         @if($value->image)
         <div class="value-image-container">
-            <img src="{{ asset('storage/app/public/data/' . $value->image) }}" alt="{{ $value->name }}" class="value-image">
+            <img src="{{ asset('storage/data/' . $value->image) }}" alt="{{ $value->name }}" class="value-image">
         </div>
         @else
         <span class="value-icon">{{ $value->icon ?? '💎' }}</span>

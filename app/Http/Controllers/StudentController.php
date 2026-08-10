@@ -939,7 +939,7 @@ class StudentController extends Controller
                     'note' => $rawAnswer,
                     'file' => $uploadedPath,
                     // نفس اصطلاح رفع صور الأنشطة العامل (القرص العام جذره storage/app/public/data)
-                    'file_url' => asset('storage/app/public/data/' . ltrim($uploadedPath, '/')),
+                    'file_url' => asset('storage/data/' . ltrim($uploadedPath, '/')),
                 ], JSON_UNESCAPED_UNICODE);
             }
 

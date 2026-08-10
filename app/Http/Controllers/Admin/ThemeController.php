@@ -109,7 +109,7 @@ class ThemeController extends Controller
         return response()->json([
             'success' => true,
             'path' => $path,
-            'url' => asset('storage/app/public/data/' . $path),
+            'url' => asset('storage/data/' . $path),
             'message' => 'تم رفع الملف بنجاح!',
         ]);
     }

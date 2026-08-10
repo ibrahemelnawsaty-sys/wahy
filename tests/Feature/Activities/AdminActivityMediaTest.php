@@ -107,9 +107,9 @@ class AdminActivityMediaTest extends TestCase
 
     public function test_media_display_url_uses_public_disk_convention(): void
     {
-        // القرص العامّ جذره storage/app/public/data — يجب أن يتضمّن الرابط هذا المسار (لا storage/ فقط)
+        // القرص العامّ جذره storage/data — يجب أن يتضمّن الرابط هذا المسار (لا storage/ فقط)
         $url = Storage::disk('public')->url('activity-media/x.mp4');
-        $this->assertStringContainsString('storage/app/public/data/activity-media/x.mp4', $url);
+        $this->assertStringContainsString('storage/data/activity-media/x.mp4', $url);
     }
 
     /**
@@ -127,6 +127,6 @@ class AdminActivityMediaTest extends TestCase
         $html = view('activities.partials.media', ['activity' => $activity])->render();
 
         $this->assertStringContainsString('<video', $html, 'يجب أن يُعرَض عنصر الفيديو');
-        $this->assertStringContainsString('storage/app/public/data/activity-media/lesson.mp4', $html, 'رابط الفيديو بمسار القرص العامّ الصحيح');
+        $this->assertStringContainsString('storage/data/activity-media/lesson.mp4', $html, 'رابط الفيديو بمسار القرص العامّ الصحيح');
     }
 }

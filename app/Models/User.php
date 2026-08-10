@@ -529,7 +529,7 @@ class User extends Authenticatable
      * الـ public disk root = storage/app/public/data
      * الـ store() يحفظ مثلاً: avatars/file.jpg (نسبي للـ disk root)
      * الملف الفعلي: storage/app/public/data/avatars/file.jpg
-     * الـ URL: asset('storage/app/public/data/avatars/file.jpg')
+     * الـ URL: asset('storage/data/avatars/file.jpg')
      */
     public function getAvatarUrlAttribute(): string
     {
@@ -546,13 +546,13 @@ class User extends Authenticatable
 
             // المسار المحفوظ في DB نسبي للـ public disk root (storage/app/public/data/)
             if (Storage::disk('public')->exists($this->avatar)) {
-                return asset('storage/app/public/data/' . $this->avatar);
+                return asset('storage/data/' . $this->avatar);
             }
 
             // محاولة البحث في avatars/ لو المسار اسم الملف فقط
             $avatarPath = 'avatars/' . basename($this->avatar);
             if (Storage::disk('public')->exists($avatarPath)) {
-                return asset('storage/app/public/data/' . $avatarPath);
+                return asset('storage/data/' . $avatarPath);
             }
         }
 

@@ -131,11 +131,11 @@
                                     <div class="row g-2">
                                         @foreach($submission->photos as $photo)
                                             <div class="col-4">
-                                                <img src="{{ asset('storage/app/public/data/' . $photo) }}" 
+                                                <img src="{{ asset('storage/data/' . $photo) }}" 
                                                      class="img-fluid rounded" 
                                                      alt="صورة النشاط"
                                                      style="cursor: pointer;"
-                                                     onclick="showImageModal('{{ asset('storage/app/public/data/' . $photo) }}')">
+                                                     onclick="showImageModal('{{ asset('storage/data/' . $photo) }}')">
                                             </div>
                                         @endforeach
                                     </div>

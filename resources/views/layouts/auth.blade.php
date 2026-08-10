@@ -92,7 +92,7 @@
             <nav class="navbar" role="navigation">
                 <a href="/" class="logo">
                     @if($siteLogo)
-                        <img src="{{ asset('storage/app/public/data/' . $siteLogo) }}" alt="{{ $siteName }}" style="max-height: 40px;">
+                        <img src="{{ asset('storage/data/' . $siteLogo) }}" alt="{{ $siteName }}" style="max-height: 40px;">
                     @else
                         <span class="logo-icon">🌟</span>
                         <span class="logo-text">{{ $siteName }}</span>

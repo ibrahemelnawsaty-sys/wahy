@@ -69,7 +69,7 @@
                             @if($action === 'equip' && $equipped)<span class="mi-badge-tag">مُجهَّز</span>@endif
                             <div class="mi-icon {{ $__mfa ? 'wahy-frame wahy-frame-' . $__mfa : '' }}">
                                 @if($item->image)
-                                    <img src="{{ asset('storage/app/public/data/' . $item->image) }}" alt="{{ $item->name }}" onerror="this.parentNode.textContent='{{ $item->icon ?: '🎁' }}'">
+                                    <img src="{{ asset('storage/data/' . $item->image) }}" alt="{{ $item->name }}" onerror="this.parentNode.textContent='{{ $item->icon ?: '🎁' }}'">
                                 @else
                                     {{ $item->icon ?: '🎁' }}
                                 @endif

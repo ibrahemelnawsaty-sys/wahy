@@ -545,7 +545,7 @@
                                                             <iframe src="{{ safe_url($__vurl) }}"
                                                                     allowfullscreen></iframe>
                                                         @elseif($__localOk)
-                                                            <video src="{{ asset('storage/app/public/data/' . $__vurl) }}"
+                                                            <video src="{{ asset('storage/data/' . $__vurl) }}"
                                                                    controls></video>
                                                         @endif
                                                     </div>
@@ -556,7 +556,7 @@
                                                         @if(isset($component['content']['icon']))
                                                             <div class="card-icon">
                                                                 @if(str_starts_with($component['content']['icon'], 'http') || str_contains($component['content']['icon'], '/'))
-                                                                    <img src="{{ asset('storage/app/public/data/' . $component['content']['icon']) }}" alt="icon">
+                                                                    <img src="{{ asset('storage/data/' . $component['content']['icon']) }}" alt="icon">
                                                                 @else
                                                                     {{ $component['content']['icon'] }}
                                                                 @endif

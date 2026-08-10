@@ -211,7 +211,7 @@
                     @if($value->image)
                     <div class="current-image">
                         <span class="current-image-label">الصورة الحالية:</span>
-                        <img src="{{ asset('storage/app/public/data/' . $value->image) }}" alt="صورة القيمة" class="image-preview" style="max-width: 300px;">
+                        <img src="{{ asset('storage/data/' . $value->image) }}" alt="صورة القيمة" class="image-preview" style="max-width: 300px;">
                     </div>
                     @endif
                     <input type="file" name="image" id="imageInput" class="image-upload-input" accept="image/*">

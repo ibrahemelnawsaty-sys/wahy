@@ -298,7 +298,7 @@ class StudentApiController extends Controller
     {
         $url = \Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '/'])
             ? $path
-            : asset('storage/app/public/data/' . ltrim($path, '/'));
+            : asset('storage/data/' . ltrim($path, '/'));
         $ext = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION));
         if (! in_array($type, ['video', 'audio', 'image', 'document'], true)) {
             $type = in_array($ext, ['mp4', 'mov', 'avi', 'webm', 'mkv', 'm4v', '3gp', 'mpeg', 'mpg'], true) ? 'video'

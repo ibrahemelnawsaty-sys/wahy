@@ -90,7 +90,7 @@
             if (! $file && $submission->file_path) { $file = $submission->file_path; }
             $fileUrl = null; $ext = '';
             if (is_string($file) && $file !== '' && ! preg_match('~://|\.\.~', $file)) {
-                $fileUrl = asset('storage/app/public/data/' . ltrim($file, '/'));
+                $fileUrl = asset('storage/data/' . ltrim($file, '/'));
                 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             }
             $kind = in_array($ext, ['jpg','jpeg','png','gif','webp','bmp','svg'], true) ? 'image'
