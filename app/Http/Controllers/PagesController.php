@@ -25,10 +25,10 @@ class PagesController extends Controller
             return view('pb.document', ['page' => $v2]);
         }
 
-        // مصدر حقيقة واحد للصفحة الرئيسية: إن وُجدت صفحة PageBuilder مفعّلة بـ slug=home نعرضها،
-        // وإلا نرجع للصفحة الثابتة (fallback). يحلّ عدم انعكاس تخصيص الأدمن على / — Issue 12.
-        $page = PageBuilder::where('slug', 'home')->where('is_active', true)->first();
-        if ($page) {
+        // مصدر حقيقة واحد للصفحة الرئيسية: إن وُجدت صفحة PageBuilder مفعّلة **وذات محتوى** بـ slug=home
+        // نعرضها، وإلا نرجع للصفحة الثابتة (fallback). يحلّ عدم انعكاس تخصيص الأدمن على / — Issue 12.
+        // صفٌّ فارغ لا يُعتبر تخصيصاً: لولا ذلك لحجب landing.blade وأعاد صفحة بيضاء.
+        if ($page = PageBuilder::servableBySlug('home')) {
             return view('pages.show', compact('page'));
         }
 
@@ -88,9 +88,8 @@ class PagesController extends Controller
             return view('pb.document', ['page' => $v2]);
         }
 
-        $page = PageBuilder::where('slug', $slug)->where('is_active', true)->first();
-
-        if ($page) {
+        // صفحة بلا محتوى قابل للعرض = غير مضبوطة ⟶ 404 بدل غلافٍ أبيض.
+        if ($page = PageBuilder::servableBySlug($slug)) {
             return view('pages.show', compact('page'));
         }
 
@@ -106,13 +105,11 @@ class PagesController extends Controller
             return view('pb.document', ['page' => $v2]);
         }
 
-        $page = PageBuilder::getBySlug($slug);
-
-        if (! $page) {
-            abort(404);
+        if ($page = PageBuilder::servableBySlug($slug)) {
+            return view('pages.show', compact('page'));
         }
 
-        return view('pages.show', compact('page'));
+        abort(404);
     }
 
     /**
@@ -124,9 +121,7 @@ class PagesController extends Controller
             return view('pb.document', ['page' => $v2]);
         }
 
-        $page = PageBuilder::where('slug', 'home')->where('is_active', true)->first();
-
-        if ($page) {
+        if ($page = PageBuilder::servableBySlug('home')) {
             return view('pages.show', compact('page'));
         }
 

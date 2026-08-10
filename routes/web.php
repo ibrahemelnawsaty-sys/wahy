@@ -262,6 +262,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/pages/preview/show', [PageBuilderController::class, 'showPreview'])->name('pages.preview.show');
 
         // Landing Page Customization
+        // ⚠️ تحذير تصادُم (مؤكَّد عبر `artisan route:list --path=landing-page`): هذه الثلاثة
+        // **ميّتة** — تُعيد مجموعةُ محرّر الصفحة الرئيسية أدناه (SuperAdminController، ~س.٤١٩)
+        // تسجيلَ نفس (method + uri)، وLaravel يُبقي **الأخير** في خريطة المطابقة. فالمُخدَّم فعلياً
+        // هو SuperAdminController، وقالب resources/views/admin/landing-page.blade.php لا يُبلَغ أبداً.
+        // نتيجةً لذلك أيّ تعديل هنا لا أثر له، وأيّ إعادة ترتيب تقلب المحرّر المُخدَّم صامتةً.
+        // لا تُعدَّل هذه الأسطر بمعزل: إمّا حذف الميّت كاملاً مع قالبه، أو حذف نظيره أدناه.
         Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing.index');
         Route::post('/landing-page/theme', [LandingPageController::class, 'updateTheme'])->name('landing.theme');
         Route::post('/landing-page/content', [LandingPageController::class, 'updateContent'])->name('landing.content');

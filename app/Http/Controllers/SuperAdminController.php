@@ -1061,19 +1061,35 @@ class SuperAdminController extends Controller
             'site_favicon' => setting('site_favicon'),
         ];
 
-        // جلب صفحة الـ Landing أو إنشاء واحدة افتراضية
-        $landingPage = PageBuilder::where('slug', 'home')->first();
-
-        if (! $landingPage) {
-            $landingPage = PageBuilder::create([
-                'page_name' => 'الصفحة الرئيسية',
-                'slug' => 'home',
-                'json_data' => [],
-                'is_active' => true,
-            ]);
-        }
+        // جلب صفحة الـ Landing — أو نموذج غير محفوظ إن غابت.
+        // **يُمنع** الإنشاء هنا: كان طلب GET يكتب صفّاً منشوراً بـ json_data=[] فيحجب
+        // landing.blade الغنيّة ويُعيد صفحة بيضاء. الصفّ يُنشأ عند أوّل حفظ/استيراد فقط.
+        $landingPage = PageBuilder::where('slug', 'home')->first()
+            ?? $this->newLandingPageDraft();
 
         return view('super-admin.landing-page', compact('themeSettings', 'landingPage'));
+    }
+
+    /**
+     * نموذج صفحة رئيسية غير محفوظ — للعرض في المحرّر دون أيّ كتابة.
+     */
+    private function newLandingPageDraft(): PageBuilder
+    {
+        $page = new PageBuilder;
+        $page->page_name = 'الصفحة الرئيسية';
+        $page->slug = 'home';
+        $page->json_data = [];
+        $page->is_active = true;
+
+        return $page;
+    }
+
+    /**
+     * صفّ الصفحة الرئيسية لأغراض الكتابة — يُنشأ عند أوّل كتابة حقيقيّة (حفظ/استيراد).
+     */
+    private function landingPageForWrite(): PageBuilder
+    {
+        return PageBuilder::where('slug', 'home')->first() ?? $this->newLandingPageDraft();
     }
 
     /**
@@ -1112,15 +1128,7 @@ class SuperAdminController extends Controller
             'json_data' => 'required|array',
         ]);
 
-        $landingPage = PageBuilder::where('slug', 'home')->first();
-
-        if (! $landingPage) {
-            $landingPage = new PageBuilder;
-            $landingPage->page_name = 'الصفحة الرئيسية';
-            $landingPage->slug = 'home';
-            $landingPage->is_active = true;
-        }
-
+        $landingPage = $this->landingPageForWrite();
         $landingPage->json_data = $validated['json_data'];
         $landingPage->save();
 
@@ -1141,7 +1149,7 @@ class SuperAdminController extends Controller
             'position' => 'nullable|integer',
         ]);
 
-        $landingPage = PageBuilder::where('slug', 'home')->firstOrFail();
+        $landingPage = $this->landingPageForWrite();
         $blocks = $landingPage->json_data ?? [];
 
         $newBlock = [
@@ -1261,7 +1269,7 @@ class SuperAdminController extends Controller
      */
     public function importCurrentLanding()
     {
-        $landingPage = PageBuilder::where('slug', 'home')->firstOrFail();
+        $landingPage = $this->landingPageForWrite();
 
         // تحويل محتوى landing.blade.php إلى blocks
         $blocks = $this->parseLandingPageToBlocks();

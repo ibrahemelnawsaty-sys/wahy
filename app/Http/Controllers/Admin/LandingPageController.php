@@ -22,12 +22,11 @@ class LandingPageController extends Controller
             'site_favicon' => setting('site_favicon'),
         ];
 
-        // جلب صفحة الـ Landing أو إنشاء واحدة افتراضية
-        $landingPage = PageBuilder::where('slug', 'home')->first();
-
-        if (! $landingPage) {
-            $landingPage = $this->createDefaultLandingPage();
-        }
+        // جلب صفحة الـ Landing — أو قالباً افتراضياً **غير محفوظ** إن غابت.
+        // **يُمنع** الحفظ في طلب GET: صفّ home منشور يحجب landing.blade فوراً، فلا يجوز أن
+        // يَنشُر مجرّدُ فتح المحرّر صفحةً لم يقصدها الأدمن (الدستور §10.1.4 انضباط النشر).
+        $landingPage = PageBuilder::where('slug', 'home')->first()
+            ?? $this->defaultLandingPageDraft();
 
         return view('admin.landing-page', compact('themeSettings', 'landingPage'));
     }
@@ -62,14 +61,8 @@ class LandingPageController extends Controller
             'json_data' => 'required|json',
         ]);
 
-        $landingPage = PageBuilder::where('slug', 'home')->first();
-
-        if (! $landingPage) {
-            $landingPage = new PageBuilder;
-            $landingPage->page_name = 'الصفحة الرئيسية';
-            $landingPage->slug = 'home';
-            $landingPage->is_active = true;
-        }
+        $landingPage = PageBuilder::where('slug', 'home')->first()
+            ?? $this->defaultLandingPageDraft();
 
         $landingPage->json_data = json_decode($validated['json_data'], true);
         $landingPage->save();
@@ -80,9 +73,12 @@ class LandingPageController extends Controller
         ]);
     }
 
-    private function createDefaultLandingPage()
+    /**
+     * قالب صفحة رئيسية افتراضيّ **غير محفوظ** — يُعبَّأ في المحرّر ولا يُكتب حتى يحفظ الأدمن.
+     */
+    private function defaultLandingPageDraft(): PageBuilder
     {
-        return PageBuilder::create([
+        return new PageBuilder([
             'page_name' => 'الصفحة الرئيسية',
             'slug' => 'home',
             'json_data' => [
