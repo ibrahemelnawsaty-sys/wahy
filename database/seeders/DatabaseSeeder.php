@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            PermissionsSeeder::class, // أوّلاً: أدوار Spatie لازمة قبل إسناد الأدوار (assignRole)
             UsersSeeder::class,
             ValuesSeeder::class,
             ConceptsSeeder::class,

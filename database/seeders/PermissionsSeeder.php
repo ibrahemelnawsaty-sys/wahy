@@ -6,121 +6,66 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
+/**
+ * أدوار وصلاحيّات Spatie. **إلزاميّ التشغيل** — بدونه يفشل assignRole في التسجيل بـ
+ * «There is no role named `X` for guard `web`» (خطأ 500). idempotent (findOrCreate/syncPermissions).
+ */
 class PermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create Permissions
-
-        // User Management
-        Permission::create(['name' => 'view users']);
-        Permission::create(['name' => 'create users']);
-        Permission::create(['name' => 'edit users']);
-        Permission::create(['name' => 'delete users']);
-
-        // School Management
-        Permission::create(['name' => 'view schools']);
-        Permission::create(['name' => 'create schools']);
-        Permission::create(['name' => 'edit schools']);
-        Permission::create(['name' => 'delete schools']);
-
-        // Activity Management
-        Permission::create(['name' => 'view activities']);
-        Permission::create(['name' => 'create activities']);
-        Permission::create(['name' => 'edit activities']);
-        Permission::create(['name' => 'delete activities']);
-        Permission::create(['name' => 'grade activities']);
-
-        // Content Management
-        Permission::create(['name' => 'view content']);
-        Permission::create(['name' => 'create content']);
-        Permission::create(['name' => 'edit content']);
-        Permission::create(['name' => 'delete content']);
-
-        // Reports
-        Permission::create(['name' => 'view reports']);
-        Permission::create(['name' => 'export reports']);
-
-        // Settings
-        Permission::create(['name' => 'view settings']);
-        Permission::create(['name' => 'edit settings']);
-
-        // Backups
-        Permission::create(['name' => 'view backups']);
-        Permission::create(['name' => 'create backups']);
-        Permission::create(['name' => 'restore backups']);
-        Permission::create(['name' => 'delete backups']);
-
-        // Activity Logs
-        Permission::create(['name' => 'view activity-logs']);
-        Permission::create(['name' => 'delete activity-logs']);
-
-        // Teams
-        Permission::create(['name' => 'view teams']);
-        Permission::create(['name' => 'create teams']);
-        Permission::create(['name' => 'edit teams']);
-        Permission::create(['name' => 'delete teams']);
-
-        // Messages
-        Permission::create(['name' => 'view messages']);
-        Permission::create(['name' => 'send messages']);
-
-        // Ratings
-        Permission::create(['name' => 'view ratings']);
-        Permission::create(['name' => 'create ratings']);
-
-        // Create Roles and Assign Permissions
-
-        // Super Admin - Full Access
-        $superAdmin = Role::create(['name' => 'super_admin']);
-        $superAdmin->givePermissionTo(Permission::all());
-
-        // School Admin
-        $schoolAdmin = Role::create(['name' => 'school_admin']);
-        $schoolAdmin->givePermissionTo([
-            'view users', 'create users', 'edit users',
+        $permissions = [
+            'view users', 'create users', 'edit users', 'delete users',
+            'view schools', 'create schools', 'edit schools', 'delete schools',
             'view activities', 'create activities', 'edit activities', 'delete activities', 'grade activities',
-            'view content',
+            'view content', 'create content', 'edit content', 'delete content',
             'view reports', 'export reports',
-            'view settings',
+            'view settings', 'edit settings',
+            'view backups', 'create backups', 'restore backups', 'delete backups',
+            'view activity-logs', 'delete activity-logs',
             'view teams', 'create teams', 'edit teams', 'delete teams',
             'view messages', 'send messages',
-            'view ratings',
-        ]);
+            'view ratings', 'create ratings',
+            'view tickets', 'manage tickets',
+        ];
+        foreach ($permissions as $p) {
+            Permission::findOrCreate($p);
+        }
 
-        // Teacher
-        $teacher = Role::create(['name' => 'teacher']);
-        $teacher->givePermissionTo([
-            'view activities', 'create activities', 'edit activities', 'delete activities', 'grade activities',
-            'view content',
-            'view reports',
-            'view teams', 'create teams', 'edit teams', 'delete teams',
-            'view messages', 'send messages',
-            'view ratings',
-        ]);
+        // الأدوار الستّة (يجب أن تطابق عمود role في users) — idempotent
+        $roles = [
+            'super_admin' => Permission::pluck('name')->all(), // كل الصلاحيّات
+            'school_admin' => [
+                'view users', 'create users', 'edit users',
+                'view activities', 'create activities', 'edit activities', 'delete activities', 'grade activities',
+                'view content', 'view reports', 'export reports', 'view settings',
+                'view teams', 'create teams', 'edit teams', 'delete teams',
+                'view messages', 'send messages', 'view ratings',
+            ],
+            'teacher' => [
+                'view activities', 'create activities', 'edit activities', 'delete activities', 'grade activities',
+                'view content', 'view reports',
+                'view teams', 'create teams', 'edit teams', 'delete teams',
+                'view messages', 'send messages', 'view ratings',
+            ],
+            'student' => [
+                'view activities', 'view content', 'view teams', 'view messages', 'send messages', 'create ratings',
+            ],
+            'parent' => [
+                'view activities', 'view content', 'view reports', 'view messages', 'send messages',
+            ],
+            'technical_support' => [
+                'view users', 'view messages', 'send messages', 'view reports', 'view tickets', 'manage tickets',
+            ],
+        ];
+        foreach ($roles as $roleName => $perms) {
+            Role::findOrCreate($roleName)->syncPermissions($perms);
+        }
 
-        // Student
-        $student = Role::create(['name' => 'student']);
-        $student->givePermissionTo([
-            'view activities',
-            'view content',
-            'view teams',
-            'view messages', 'send messages',
-            'create ratings',
-        ]);
-
-        // Parent
-        $parent = Role::create(['name' => 'parent']);
-        $parent->givePermissionTo([
-            'view activities',
-            'view content',
-            'view reports',
-            'view messages', 'send messages',
-        ]);
-
-        $this->command->info('✅ Permissions and Roles created successfully!');
+        if ($this->command) {
+            $this->command->info('✅ جاهز: 6 أدوار + الصلاحيّات (Spatie).');
+        }
     }
 }
