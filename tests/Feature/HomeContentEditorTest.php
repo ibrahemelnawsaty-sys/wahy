@@ -87,6 +87,30 @@ class HomeContentEditorTest extends TestCase
         $this->assertDatabaseMissing('landing_content', ['key' => 'contact_title']);
     }
 
+    public function test_landing_page_renders_defaults_and_reflects_saved_overrides(): void
+    {
+        // الصفحة تُصيَّر وتُظهر الافتراضيّات الخادميّة (header/hero/values/teams/cta/footer)
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('كيف نبني القيم؟')            // values (منهجية)
+            ->assertSee('التعلم التعاوني مع الفرق')   // teams
+            ->assertSee('جاهز للانضمام؟')             // cta
+            ->assertSee('روابط سريعة');                // footer
+
+        // حفظ تخصيص لعدّة أقسام ⟶ يظهر خادميّاً فوراً (بلا سكربت متصفّح)
+        LandingContent::setValue('cta_title', 'انضم إلينا اليوم', ['section' => 'home']);
+        LandingContent::setValue('nav_link_1', 'الصفحة الرئيسية', ['section' => 'home']);
+        LandingContent::setValue('footer_quick_title', 'روابط مفيدة', ['section' => 'home']);
+        lc_forget();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('انضم إلينا اليوم')
+            ->assertSee('الصفحة الرئيسية')
+            ->assertSee('روابط مفيدة')
+            ->assertDontSee('جاهز للانضمام؟'); // الافتراضيّ استُبدل
+    }
+
     public function test_update_only_touches_submitted_fields(): void
     {
         $admin = $this->admin();
