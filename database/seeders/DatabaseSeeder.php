@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             ConceptsSeeder::class,
             LessonsSeeder::class,
             BadgesSeeder::class,
+            ShopItemsSeeder::class,  // كتالوج المتجر (أفاتار/شارات/ثيمات/قوى) — كان غير مربوط فاختفى المتجر
+            ShopExtrasSeeder::class, // براويز + قوى إضافية
         ]);
     }
 }

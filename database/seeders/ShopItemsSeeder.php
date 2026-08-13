@@ -195,7 +195,11 @@ class ShopItemsSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            ShopItem::create($item);
+            // idempotent: بالاسم+النوع فلا يُكرّر عند إعادة التشغيل (بذر آمن على الإنتاج)
+            ShopItem::updateOrCreate(
+                ['name' => $item['name'], 'type' => $item['type']],
+                $item,
+            );
         }
     }
 }
