@@ -68,6 +68,17 @@
                 <option value="h4">عنوان صغير</option>
                 <option value="p">فقرة عادية</option>
             </select>
+            <select data-cmd="fontName" title="الخط">
+                <option value="'IBM Plex Sans Arabic', sans-serif">خط الموقع</option>
+                <option value="'Tajawal', sans-serif">تجوال</option>
+                <option value="'Cairo', sans-serif">القاهرة</option>
+                <option value="'Almarai', sans-serif">المراعي</option>
+                <option value="'Amiri', serif">أميري</option>
+                <option value="'Reem Kufi', sans-serif">ريم كوفي</option>
+                <option value="'El Messiri', sans-serif">المسيري</option>
+                <option value="'Changa', sans-serif">تشانجا</option>
+                <option value="'Markazi Text', serif">مركزي</option>
+            </select>
             <span class="rte-sep"></span>
             <label title="لون النص" class="rte-color">
                 <span>🎨</span>
@@ -275,10 +286,22 @@
         });
 
         toolbar.querySelectorAll('select[data-cmd]').forEach(sel => {
+            // منتقي الخط يحتاج حفظ/استعادة التحديد (كمنتقي اللون) كي يُطبَّق على النصّ المختار.
+            if (sel.dataset.cmd === 'fontName') {
+                sel.addEventListener('mousedown', () => saveSelection(editor));
+                sel.addEventListener('focus', () => saveSelection(editor));
+            }
             sel.addEventListener('change', () => {
                 const cmd = sel.dataset.cmd;
-                if (cmd === 'heading') applyHeading(editor, sel.value);
-                sel.value = '';
+                if (cmd === 'heading') {
+                    applyHeading(editor, sel.value);
+                    sel.value = '';
+                } else if (cmd === 'fontName') {
+                    editor.focus();
+                    restoreSelection();
+                    if (sel.value) execCmd('fontName', sel.value);
+                    saveSelection(editor);
+                }
                 editor.dispatchEvent(new Event('input'));
             });
         });
@@ -309,8 +332,10 @@
             const cleaned = String(text)
                 .replace(/<\!--[\s\S]*?-->/g, '')
                 .replace(/<\/?(o:p|w:[^>]*|m:[^>]*|xml|meta|link|style|script)[^>]*>/gi, '')
+                .replace(/<\/?font[^>]*>/gi, '')                 // وسوم <font face/size> القديمة (وورد)
                 .replace(/\sclass="[^"]*"/gi, '')
-                .replace(/\smso-[^:;"]*:[^;"]*;?/gi, '');
+                .replace(/\smso-[^:;"]*:[^;"]*;?/gi, '')
+                .replace(/font-family\s*:[^;"']*;?/gi, '');       // الخطّ المضمّن ⟵ يبقى خطّ الموقع الافتراضيّ
             execCmd('insertHTML', cleaned);
             editor.dispatchEvent(new Event('input'));
         });
@@ -342,7 +367,7 @@
             .wahy-rte-toolbar .rte-sep { width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px; }
             .wahy-rte-toolbar .rte-color { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; cursor: pointer; }
             .wahy-rte-toolbar .rte-color input[type=color] { width: 22px; height: 22px; padding: 0; border: 0; background: transparent; cursor: pointer; }
-            [data-rich-editor] { min-height: 200px; padding: 14px 18px; outline: none; line-height: 1.8; font-size: 15px; background: #fff; color: #1f2937; }
+            [data-rich-editor] { min-height: 200px; padding: 14px 18px; outline: none; line-height: 1.8; font-size: 15px; background: #fff; color: #1f2937; font-family: 'IBM Plex Sans Arabic', 'Tajawal', 'Segoe UI', Tahoma, sans-serif; }
             [data-rich-editor] img { max-width: 100%; height: auto; }
             [data-rich-editor]:focus { background: #fffef9; }
             [data-rich-editor] h2 { font-size: 22px; font-weight: 800; margin: 14px 0 8px; }
@@ -371,10 +396,25 @@
         document.head.appendChild(css);
     }
 
+    // تحميل خطوط المنتقي مرّة واحدة كي تظهر داخل المحرّر (والعرض يحمّلها عبر partials/rich-fonts).
+    function ensureFonts() {
+        if (document.getElementById('wahy-rte-fonts')) return;
+        const pre1 = document.createElement('link'); pre1.rel = 'preconnect'; pre1.href = 'https://fonts.googleapis.com';
+        const pre2 = document.createElement('link'); pre2.rel = 'preconnect'; pre2.href = 'https://fonts.gstatic.com'; pre2.crossOrigin = 'anonymous';
+        const link = document.createElement('link');
+        link.id = 'wahy-rte-fonts';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;700&family=El+Messiri:wght@400;700&family=Changa:wght@400;700&family=Markazi+Text:wght@400;700&display=swap';
+        document.head.appendChild(pre1);
+        document.head.appendChild(pre2);
+        document.head.appendChild(link);
+    }
+
     function init(el) {
         if (el.dataset.rteReady === '1') return;
 
         ensureStyles();
+        ensureFonts();
         el.setAttribute('contenteditable', 'true');
         el.setAttribute('spellcheck', 'true');
 

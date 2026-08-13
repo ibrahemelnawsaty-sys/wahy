@@ -3,6 +3,7 @@
 @section('title', $activity->title ?? 'نشاط')
 
 @push('styles')
+@include('partials.rich-fonts')
 <style>
     /* Activity View - الافتراضي تدرج بنفسجي/أزرق (Issues #87, #99)
        وضع الفاتح يستبدل بـ background فاتح. */

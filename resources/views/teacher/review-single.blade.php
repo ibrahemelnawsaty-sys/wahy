@@ -3,6 +3,7 @@
 @section('title', 'تقييم النشاط')
 
 @push('styles')
+@include('partials.rich-fonts')
 <link rel="stylesheet" href="{{ asset('css/teacher-glass.css') }}?v={{ time() }}">
 <style>
     /* صندوق «المكافأة التلقائية» — يتبع لون نصّ البطاقة (نهاراً/ليلاً) عبر color: inherit */

@@ -3,6 +3,7 @@
 @section('title', $lesson->title ?? 'الدرس')
 
 @push('styles')
+@include('partials.rich-fonts')
 <style>
     /* Lesson View — الثيم موحّد مع بقيّة صفحات الطالب عبر var(--app-bg).
        الوضع الفاتح يستخدم html[data-theme="light"] (متوافق مع الـ toggle العالمي). */
