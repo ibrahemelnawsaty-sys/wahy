@@ -134,7 +134,20 @@ class SurveyController extends Controller
         }
 
         if (! $wantsJson) {
-            return redirect()->back()->with('success', 'شكراً لك! تم حفظ إجاباتك بنجاح');
+            // إغلاق الاستبيان: انتقل مباشرةً للاستبيان المُعلَّق التالي (إن وُجد)، وإلّا لصفحة التعلّم.
+            $next = $user ? Survey::getPendingSurveysForUser($user)->first() : null;
+            if ($next && $next->id !== $survey->id) {
+                return redirect()->route('survey.show', $next->id)
+                    ->with('success', 'تم حفظ إجاباتك ✓ — إليك الاستبيان التالي');
+            }
+
+            // لا مزيد: الطالب ⟶ صفحة التعلّم، الأدوار الأخرى ⟶ لوحتها، الضيف ⟶ رجوع.
+            if (! $user) {
+                return redirect()->back()->with('success', 'شكراً لك! تم حفظ إجاباتك بنجاح');
+            }
+            $to = $user->role === 'student' ? route('student.learn') : url('/dashboard');
+
+            return redirect($to)->with('success', 'شكراً لك! تم حفظ إجاباتك بنجاح');
         }
 
         return response()->json([
