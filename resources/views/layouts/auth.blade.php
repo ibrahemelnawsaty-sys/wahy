@@ -42,14 +42,14 @@
     
     <!-- Async CSS للباقي - تحميل غير متزامن لتحسين الأداء -->
     <link rel="preload" href="{{ asset('css/auth-glass.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="{{ asset('css/auth.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="{{ asset('css/auth.css') }}?v={{ @filemtime(public_path('css/auth.css')) ?: '1' }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link rel="stylesheet" href="{{ asset('css/auth-glass.css') }}">
         <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
     </noscript>
 
     {{-- توحيد الهيدر/الفوتر مع الصفحة الرئيسية «ابدأ الآن» (نفس التصميم) --}}
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v={{ @filemtime(public_path('css/landing.css')) ?: '1' }}">
     <link rel="stylesheet" href="{{ asset('css/glass-luxury.css') }}">
 
     <!-- تم استبدال Font Awesome بأيقونات SVG مباشرة في الصفحات -->

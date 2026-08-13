@@ -2181,9 +2181,10 @@ svg.icon,
     color: var(--text-muted);
 }
 
-/* الوضع الليلي: خيارات القائمة المنسدلة على سطح المكتب (بلا تلوين صريح تظهر بألوان النظام
-   — نص فاتح على خلفية بيضاء = غير مرئية). */
-[data-theme="dark"] .form-select { color: #f1f5f9; }
+/* الوضع الليلي: القائمة المنسدلة كانت بخلفيّة بيضاء ونصّ فاتح = غير مرئية على سطح المكتب.
+   color-scheme يجعل المتصفّح يعرض القائمة داكنةً أصلًا؛ وتلوين <option> احتياطيّ. */
+[data-theme="dark"] .form-select { color-scheme: dark; color: #f1f5f9; }
+[data-theme="light"] .form-select { color-scheme: light; }
 [data-theme="dark"] .form-select option { background-color: #1e293b; color: #f1f5f9; }
 [data-theme="light"] .form-select option { background-color: #ffffff; color: #0f172a; }
 
