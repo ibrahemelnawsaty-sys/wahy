@@ -2,6 +2,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    {{-- تهيئة الوضع الليلي فورًا (يطابق بقيّة المنصّة، بلا وميض) --}}
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('wahy-theme') || 'dark');</script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('doc_title') - {{ $__site }}</title>
@@ -36,9 +38,12 @@
         .lg-foot{max-width:820px;margin:0 auto;padding:0 20px 40px;color:var(--lg-muted);font-size:.9rem;text-align:center}
         .lg-foot a{margin:0 8px}
         .lg-foot .cr{margin-top:10px;display:block}
+        /* الوضع الليلي عبر مفتاح التطبيق (data-theme) — يطابق بقيّة المنصّة، مع احتياطيّ نظام التشغيل */
+        :root[data-theme="dark"]{--lg-ink:#e2e8f0;--lg-muted:#94a3b8;--lg-bg:#0f172a;--lg-card:#0b1220;--lg-border:#1f2937}
+        :root[data-theme="dark"] .lg-note{background:#1c1917;border-color:#78350f;color:#fcd34d}
         @media (prefers-color-scheme: dark){
-            :root{--lg-ink:#e2e8f0;--lg-muted:#94a3b8;--lg-bg:#0f172a;--lg-card:#0b1220;--lg-border:#1f2937}
-            .lg-note{background:#1c1917;border-color:#78350f;color:#fcd34d}
+            :root:not([data-theme="light"]){--lg-ink:#e2e8f0;--lg-muted:#94a3b8;--lg-bg:#0f172a;--lg-card:#0b1220;--lg-border:#1f2937}
+            :root:not([data-theme="light"]) .lg-note{background:#1c1917;border-color:#78350f;color:#fcd34d}
         }
         @media (max-width:560px){.lg-doc{padding:26px 20px}}
     </style>

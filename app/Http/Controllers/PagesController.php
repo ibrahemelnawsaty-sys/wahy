@@ -20,18 +20,10 @@ class PagesController extends Controller
      */
     public function landing()
     {
-        // محرّر v2 له الأسبقيّة إن رُفِع علمه لـ home وُوجِدت صفحة منشورة (ت-١٢).
-        if ($v2 = PageResolver::resolve('home', app()->getLocale())) {
-            return view('pb.document', ['page' => $v2]);
-        }
-
-        // مصدر حقيقة واحد للصفحة الرئيسية: إن وُجدت صفحة PageBuilder مفعّلة **وذات محتوى** بـ slug=home
-        // نعرضها، وإلا نرجع للصفحة الثابتة (fallback). يحلّ عدم انعكاس تخصيص الأدمن على / — Issue 12.
-        // صفٌّ فارغ لا يُعتبر تخصيصاً: لولا ذلك لحجب landing.blade وأعاد صفحة بيضاء.
-        if ($page = PageBuilder::servableBySlug('home')) {
-            return view('pages.show', compact('page'));
-        }
-
+        // مصدر الحقيقة الوحيد للصفحة الرئيسية هو landing.blade — يُحرَّر عبر لوحة الأدمن
+        // («محتوى الصفحة الرئيسية» + المحرّر المدمج). أُلغي تجاوزُ Page Builder لـslug=home
+        // (بطلب المالك): كان فتحُ محرّر الصفحات يُنشئ صفحةَ home مبنيّة/تجريبيّة تحجب الصفحة
+        // الحقيقيّة. لا يزال Page Builder يعمل لبقيّة الصفحات (about-us…) عبر showPage.
         return view('landing');
     }
 

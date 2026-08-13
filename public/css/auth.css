@@ -311,6 +311,11 @@
     color: #94A3B8 !important;
 }
 
+/* قائمة select المنسدلة على سطح المكتب: بلا تلوين صريح للخيارات تُصيّرها المتصفّحات
+   بألوان النظام (نص فاتح على خلفية بيضاء = غير مرئية) في الوضع الليلي. */
+[data-theme="dark"] .form-select option { background-color: #1e293b !important; color: #F1F5F9 !important; }
+[data-theme="light"] .form-select option { background-color: #ffffff !important; color: #0F172A !important; }
+
 /* Light Mode Inputs */
 [data-theme="light"] .form-input,
 [data-theme="light"] .form-select {

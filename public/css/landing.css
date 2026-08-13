@@ -2181,6 +2181,12 @@ svg.icon,
     color: var(--text-muted);
 }
 
+/* الوضع الليلي: خيارات القائمة المنسدلة على سطح المكتب (بلا تلوين صريح تظهر بألوان النظام
+   — نص فاتح على خلفية بيضاء = غير مرئية). */
+[data-theme="dark"] .form-select { color: #f1f5f9; }
+[data-theme="dark"] .form-select option { background-color: #1e293b; color: #f1f5f9; }
+[data-theme="light"] .form-select option { background-color: #ffffff; color: #0f172a; }
+
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
