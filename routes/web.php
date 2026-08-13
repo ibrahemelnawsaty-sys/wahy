@@ -62,9 +62,15 @@ Route::get('/', [PagesController::class, 'landing'])->name('landing');
 Route::get('/terms', [PagesController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PagesController::class, 'privacy'])->name('privacy');
 
-// محرّر الصفحة الرئيسية القديم (API الكتابة عبر LandingContentController) أُزيل —
-// التحرير صار عبر لوحة الأدمن ← «محتوى الصفحة الرئيسية». أُبقيت لقطة النسخ الاحتياطيّ فقط.
+// Landing Content Management API
+Route::get('/api/landing/content', [\App\Http\Controllers\Api\LandingContentController::class, 'index']);
+
+// باقي العمليات محمية (Super Admin Only)
 Route::middleware(['auth', 'role:super_admin'])->prefix('api/landing')->group(function () {
+    Route::post('/content/update', [\App\Http\Controllers\Api\LandingContentController::class, 'update']);
+    Route::post('/content/bulk-update', [\App\Http\Controllers\Api\LandingContentController::class, 'bulkUpdate']);
+    Route::post('/content/upload-image', [\App\Http\Controllers\Api\LandingContentController::class, 'uploadImage']);
+    Route::post('/content/restore/{versionId}', [\App\Http\Controllers\Api\LandingContentController::class, 'restoreVersion']);
     Route::post('/content/snapshot', [PagesController::class, 'landingSnapshot']);
 });
 

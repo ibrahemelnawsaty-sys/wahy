@@ -1,0 +1,1457 @@
+/* Landing Page Edit Mode Styles - Super Admin Only */
+/* فصل CSS الخاص بوضع التحرير لتحسين الأداء */
+
+/* ======================================
+   إصلاح Layout للعناصر المُغلّفة بـ editable-element
+   هذا يضمن أن wrapper divs لا تكسر flex/grid layouts
+   ====================================== */
+
+/* Navigation & Header */
+.nav-links .editable-element,
+.nav-actions .editable-element,
+.navbar .editable-element {
+    display: contents;
+}
+
+/* Hero Section */
+.hero-actions .editable-element,
+.hero-stats > .editable-element:not(.stat-item),
+.hero-text > .editable-element,
+.hero-content > .editable-element,
+.hero-visual > .editable-element {
+    display: contents;
+}
+
+/* Sections Headers & Content */
+.section-header > .editable-element,
+.section-header .editable-element {
+    display: contents;
+}
+
+/* Grid Layouts */
+.features-grid > .editable-element:not(.feature-card),
+.values-grid > .editable-element,
+.activities-grid > .editable-element:not(.activity-card),
+.partners-grid > .editable-element,
+.testimonials-grid > .editable-element {
+    display: contents;
+}
+
+/* Flow Section */
+.values-flow > .editable-element:not(.flow-card):not(.flow-arrow) {
+    display: contents;
+}
+
+/* Support Section */
+.support-content > .editable-element,
+.support-actions > .editable-element {
+    display: contents;
+}
+
+/* Footer */
+.footer-content > .editable-element,
+.footer-links > .editable-element,
+.footer-social > .editable-element {
+    display: contents;
+}
+
+/* Generic flex/grid children */
+[style*="display: flex"] > .editable-element,
+[style*="display:flex"] > .editable-element,
+[style*="display: grid"] > .editable-element,
+[style*="display:grid"] > .editable-element {
+    display: contents;
+}
+
+/* ======================================
+   Edit Mode Specific - position relative للـ actions
+   ====================================== */
+body.edit-mode .editable-element {
+    position: relative;
+}
+
+/* العناصر التي لها class خاص + editable-element تحتفظ بـ display الأصلي */
+/* stat-item: يستخدم flex-direction: column */
+div.stat-item.editable-element,
+.hero-stats .stat-item.editable-element {
+    display: flex !important;
+    flex-direction: column;
+}
+
+/* feature-card: ليس له display محدد في الأصل (block) */
+article.feature-card.editable-element,
+.features-grid .feature-card.editable-element {
+    display: block !important;
+}
+
+/* flow-card: ليس له display محدد في الأصل (block) */
+div.flow-card.editable-element,
+.values-flow .flow-card.editable-element {
+    display: block !important;
+}
+
+/* flow-arrow: يستخدم flex */
+div.flow-arrow.editable-element,
+.values-flow .flow-arrow.editable-element {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* activity-card: ليس له display محدد (block) */
+div.activity-card.editable-element,
+.activities-grid .activity-card.editable-element {
+    display: block !important;
+}
+
+/* partner-card: يستخدم flex */
+div.partner-card.editable-element,
+.partners-grid .partner-card.editable-element {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* testimonial-card: ليس له display محدد (block) */
+div.testimonial-card.editable-element,
+.testimonials-grid .testimonial-card.editable-element {
+    display: block !important;
+}
+
+/* team-card: ليس له display محدد (block) */
+div.team-card.editable-element,
+.teams-visual .team-card.editable-element {
+    display: block !important;
+}
+
+/* benefit-card: ليس له display محدد (block) */
+div.benefit-card.editable-element,
+.benefits-grid .benefit-card.editable-element {
+    display: block !important;
+}
+
+/* partner-logo: يستخدم flex للمحاذاة */
+div.partner-logo.editable-element,
+.partners-grid .partner-logo.editable-element {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ======================================
+   دعم الـ wrapper divs داخل grids/flex containers
+   يضمن أن العناصر المُغلّفة تأخذ مكانها الصحيح
+   ====================================== */
+.teams-visual > .editable-element,
+.benefits-grid > .editable-element,
+.partners-grid > .editable-element {
+    display: contents;
+}
+
+/* Footer Layout Fixes */
+.footer-grid > .editable-element,
+.footer-brand > .editable-element,
+.footer-col > .editable-element {
+    display: contents;
+}
+
+/* Footer links list - li elements with editable-element class */
+.footer-links li.editable-element {
+    display: list-item !important;
+    margin-bottom: 14px;
+}
+
+/* CTA Section Layout Fixes */
+.cta-content > .editable-element,
+.cta-actions > .editable-element {
+    display: contents;
+}
+
+/* Contact Section Layout Fixes */
+.contact-info-panel > .editable-element {
+    display: contents;
+}
+
+/* ======================================
+   إخفاء جميع أدوات التحرير افتراضياً
+   ====================================== */
+.element-actions,
+.section-actions,
+.component-actions {
+    display: none !important;
+}
+
+/* إظهارها فقط في وضع التحرير */
+body.edit-mode .element-actions,
+body.edit-mode .section-actions,
+body.edit-mode .component-actions {
+    display: none; /* يظهر عند hover */
+}
+
+body.edit-mode .editable-element:hover .element-actions,
+body.edit-mode section:hover > .section-actions {
+    display: flex !important;
+}
+
+/* ======================================
+   شريط الأدوات العلوي - Edit Toolbar
+   (محذوف - تم نقله للوحة الجانبية)
+   ====================================== */
+.edit-toolbar {
+    display: none !important; /* محذوف - تم نقله للوحة الجانبية */
+}
+
+[data-editable] {
+    transition: all 0.3s;
+    position: relative;
+}
+
+body.edit-mode [data-editable]:hover {
+    outline: 2px dashed #667eea;
+    outline-offset: 4px;
+    cursor: pointer;
+}
+
+body.edit-mode [data-editable][contenteditable="true"] {
+    outline: 2px solid #3CCB8A;
+    background: rgba(60, 203, 138, 0.1);
+}
+
+/* ======================================
+   نظام التحرير الاحترافي - Edit FAB System
+   ====================================== */
+
+/* الحاوية الرئيسية للزر - قابلة للسحب */
+.edit-fab-container {
+    position: fixed;
+    z-index: 9998;
+    transition: opacity 0.3s ease;
+}
+
+/* تطبيق الموقع الافتراضي */
+.edit-fab-container.position-bottom-left {
+    bottom: 30px;
+    left: 30px;
+}
+
+.edit-fab-container.position-bottom-right {
+    bottom: 30px;
+    right: 30px;
+}
+
+.edit-fab-container.position-top-left {
+    top: 100px;
+    left: 30px;
+}
+
+.edit-fab-container.position-top-right {
+    top: 100px;
+    right: 30px;
+}
+
+/* حالة الإخفاء المصغر */
+.edit-fab-container.minimized {
+    opacity: 0.3;
+}
+
+.edit-fab-container.minimized:hover {
+    opacity: 1;
+}
+
+/* حالة السحب */
+.edit-fab-container.dragging {
+    opacity: 0.8;
+    cursor: grabbing !important;
+}
+
+/* الزر الرئيسي */
+.edit-toggle-btn {
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    font-size: 22px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    overflow: hidden;
+}
+
+.edit-toggle-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.edit-toggle-btn:hover::before {
+    opacity: 1;
+}
+
+.edit-toggle-btn.active {
+    background: linear-gradient(135deg, #3CCB8A 0%, #27AE60 100%);
+    box-shadow: 0 4px 20px rgba(60, 203, 138, 0.5);
+    border-radius: 12px;
+}
+
+.edit-toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    color: white;
+}
+
+.edit-toggle-btn.active:hover {
+    box-shadow: 0 8px 25px rgba(60, 203, 138, 0.6);
+}
+
+/* أيقونة الزر */
+.edit-toggle-btn .fab-icon {
+    transition: transform 0.3s ease;
+    pointer-events: none;
+}
+
+.edit-toggle-btn.active .fab-icon {
+    transform: rotate(45deg);
+}
+
+/* قائمة الإعدادات */
+.edit-fab-menu {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    padding: 8px;
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.edit-fab-container:hover .edit-fab-menu,
+.edit-fab-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) scale(1);
+}
+
+.edit-fab-menu::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: white;
+}
+
+.edit-fab-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    color: #374151;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: right;
+}
+
+.edit-fab-menu-item:hover {
+    background: #f3f4f6;
+}
+
+.edit-fab-menu-item.active {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.edit-fab-menu-item .menu-icon {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.edit-fab-menu-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 6px 0;
+}
+
+/* مؤشر السحب */
+.edit-fab-drag-handle {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 4px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 2px;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.edit-fab-container:hover .edit-fab-drag-handle {
+    opacity: 1;
+}
+
+/* Badge للإشعارات */
+.edit-fab-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+}
+
+.image-upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    border-radius: inherit;
+}
+
+body.edit-mode [data-editable-image]:hover .image-upload-overlay {
+    display: flex;
+}
+
+/* ======================================
+   لوحة التحرير الجانبية - تدفع المحتوى
+   ====================================== */
+
+/* عند تفعيل وضع التحرير، الصفحة تنكمش لإفساح المجال */
+body.edit-mode {
+    transition: padding 0.3s ease;
+}
+
+body.edit-mode.editor-right {
+    padding-right: 320px;
+}
+
+body.edit-mode.editor-left {
+    padding-left: 320px;
+}
+
+body.edit-mode.editor-collapsed {
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* اللوحة الجانبية */
+.editor-panel {
+    position: fixed;
+    top: 0;
+    width: 320px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    z-index: 9997;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+    transform: translateX(100%);
+}
+
+/* الموقع - يمين */
+.editor-panel.position-right {
+    right: 0;
+    left: auto;
+    transform: translateX(100%);
+    border-left: 1px solid #e5e7eb;
+}
+
+/* الموقع - يسار */
+.editor-panel.position-left {
+    left: 0;
+    right: auto;
+    transform: translateX(-100%);
+    border-right: 1px solid #e5e7eb;
+}
+
+/* حالة الفتح */
+.editor-panel.open {
+    transform: translateX(0);
+}
+
+/* حالة التصغير */
+.editor-panel.collapsed {
+    width: 48px;
+    transform: translateX(0);
+}
+
+.editor-panel.collapsed .editor-panel-content,
+.editor-panel.collapsed .editor-tabs {
+    display: none;
+}
+
+/* شريط العنوان */
+.editor-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* تأثير لامع على الهيدر */
+.editor-panel-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: headerShine 3s ease-in-out infinite;
+}
+
+@keyframes headerShine {
+    0% { left: -100%; }
+    50%, 100% { left: 100%; }
+}
+
+.editor-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.editor-panel-title .title-icon {
+    font-size: 18px;
+}
+
+.editor-panel.collapsed .editor-panel-title .title-text {
+    display: none;
+}
+
+.editor-panel-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.panel-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.panel-action-btn:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+.panel-action-btn svg {
+    transition: transform 0.3s;
+}
+
+.panel-action-btn svg.rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* المحتوى */
+.editor-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* التبويبات */
+.editor-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+    flex-shrink: 0;
+    padding: 4px;
+    gap: 4px;
+}
+
+.editor-tab {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.editor-tab span:first-child {
+    font-size: 20px;
+    transition: transform 0.25s ease;
+}
+
+.editor-tab:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.editor-tab:hover span:first-child {
+    transform: scale(1.1);
+}
+
+.editor-tab.active {
+    color: #667eea;
+    background: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.editor-tab.active span:first-child {
+    transform: scale(1.15);
+}
+
+/* محتوى التبويبات */
+.editor-tab-content {
+    flex: 1;
+    padding: 18px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+/* قسم الأدوات */
+.tools-section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.save-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.save-status.has-changes {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border: 1px solid #fbbf24;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+}
+
+.save-status.has-changes .status-dot {
+    background: #f59e0b;
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+.tools-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.tool-btn svg {
+    flex-shrink: 0;
+}
+
+.tool-btn:hover:not(:disabled) {
+    border-color: #667eea;
+    background: #f5f3ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.tool-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.tool-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tool-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
+}
+
+.tool-btn.primary:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    transform: translateY(-3px);
+}
+
+.tool-btn.warning {
+    color: #dc2626;
+    border-color: #fecaca;
+    background: #fff5f5;
+}
+
+.tool-btn.warning:hover:not(:disabled) {
+    background: #fef2f2;
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+.last-saved {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* قسم المكونات */
+.components-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.component-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 10px;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    cursor: grab;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.component-card:hover {
+    border-color: #667eea;
+    border-style: solid;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+}
+
+.component-card:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+
+.component-icon {
+    font-size: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.component-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #4b5563;
+    text-align: center;
+}
+
+.components-hint {
+    margin-top: 16px;
+    padding: 12px;
+    background: #eff6ff;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #1e40af;
+    text-align: center;
+}
+
+/* قسم الخصائص */
+.properties-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.property-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.property-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.color-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-input-wrapper input[type="color"] {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.property-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.property-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    border-color: #667eea;
+    background: #f5f3ff;
+    transform: scale(1.1);
+}
+
+.apply-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.apply-btn:hover {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.no-selection {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+}
+
+.no-selection-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.no-selection p {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* زر التوسيع عند التصغير */
+.editor-collapsed-hint {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editor-panel.position-left .editor-collapsed-hint {
+    left: auto;
+    right: 0;
+}
+
+.editor-collapsed-hint:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* إخفاء القوائم القديمة */
+.components-sidebar,
+.properties-panel {
+    display: none !important;
+}
+
+.drop-zone {
+    min-height: 100px;
+    border: 3px dashed transparent;
+    margin: 20px 0;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+body.edit-mode .drop-zone:hover {
+    border-color: #3CCB8A;
+    background: rgba(60, 203, 138, 0.05);
+}
+
+.drop-zone.drag-over {
+    border-color: #667eea !important;
+    background: rgba(102, 126, 234, 0.1) !important;
+}
+
+.component-actions {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    display: none;
+    gap: 5px;
+    z-index: 100;
+}
+
+body.edit-mode [data-component]:hover .component-actions,
+body.edit-mode section:hover > .section-actions {
+    display: flex;
+}
+
+.section-actions {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: none;
+    gap: 8px;
+    z-index: 100;
+}
+
+body.edit-mode section {
+    position: relative;
+    outline: 1px dashed transparent;
+    transition: all 0.3s;
+}
+
+body.edit-mode section:hover {
+    outline-color: #667eea;
+    outline-offset: -2px;
+}
+
+/* ======================================
+   أزرار العناصر المحسّنة
+   ====================================== */
+.component-actions button,
+.section-actions button,
+.element-actions button {
+    background: white;
+    border: 1px solid #e5e7eb;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-size: 12px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+}
+
+.component-actions button:hover,
+.section-actions button:hover,
+.element-actions button:hover {
+    background: #f9fafb;
+    border-color: #3CCB8A;
+    color: #3CCB8A;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(60, 203, 138, 0.15);
+}
+
+.element-actions button.danger:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.15);
+}
+
+.element-actions {
+    position: absolute;
+    top: -44px;
+    right: 10px;
+    display: none;
+    gap: 4px;
+    z-index: 9990;
+    background: white;
+    padding: 6px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: 1px solid #e5e7eb;
+    pointer-events: auto;
+}
+
+/* تحسين إمكانية الوصول للأزرار داخل العناصر الصغيرة */
+body.edit-mode .editable-element {
+    position: relative;
+    z-index: auto;
+}
+
+body.edit-mode .editable-element:hover {
+    z-index: 100;
+}
+
+/* سهم صغير يشير للعنصر */
+.element-actions::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 20px;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    transform: rotate(45deg);
+}
+
+body.edit-mode .editable-element:hover {
+    outline: 2px dashed #3CCB8A;
+    outline-offset: 4px;
+}
+
+body.edit-mode .editable-element:hover .element-actions {
+    display: flex;
+    animation: fadeInDown 0.2s ease;
+}
+
+/* ضمان ظهور أدوات التحرير حتى للعناصر الداخلية */
+body.edit-mode .editable-element .element-actions {
+    pointer-events: auto;
+}
+
+/* تحسين للعناصر المتداخلة */
+body.edit-mode .editable-element .editable-element:hover {
+    z-index: 101;
+}
+
+body.edit-mode .editable-element .editable-element .editable-element:hover {
+    z-index: 102;
+}
+
+/* إظهار أدوات التحرير للعناصر حتى مع overflow hidden */
+body.edit-mode [class*="card"],
+body.edit-mode [class*="section"],
+body.edit-mode [class*="container"] {
+    overflow: visible !important;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تحسينات خاصة لعناصر Nav Links */
+body.edit-mode .nav-links .editable-element {
+    display: inline-block;
+    position: relative;
+}
+
+body.edit-mode .nav-links .editable-element .element-actions {
+    top: -48px;
+    right: 50%;
+    transform: translateX(50%);
+}
+
+body.edit-mode .nav-links .editable-element .element-actions::after {
+    right: calc(50% - 5px);
+}
+
+/* تحسينات Flow Cards */
+body.edit-mode .flow-card.editable-element {
+    min-height: 280px;
+}
+
+body.edit-mode .flow-arrow.editable-element:hover {
+    outline: 2px dashed #ff6b6b;
+}
+
+body.edit-mode .flow-arrow.editable-element .element-actions {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.edit-highlight {
+    outline: 2px solid #667eea !important;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.wordpress-toolbar {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 9995;
+    display: none;
+    gap: 15px;
+    align-items: center;
+}
+
+.wordpress-toolbar.active {
+    display: flex;
+}
+
+.wordpress-toolbar button {
+    background: transparent;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    transition: all 0.2s;
+}
+
+.wordpress-toolbar button:hover {
+    background: #f0f0f0;
+}
+
+.wordpress-toolbar .divider {
+    width: 1px;
+    height: 30px;
+    background: #e0e0e0;
+}
+
+/* Animation for element controls */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* تحسين العرض في وضع التحرير */
+body.edit-mode .hero-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+body.edit-mode .hero-actions .editable-element {
+    display: inline-flex;
+}
+
+body.edit-mode .stat-item.editable-element {
+    padding: 15px;
+    border-radius: 8px;
+}
+
+body.edit-mode .feature-card.editable-element {
+    padding-top: 30px;
+}
+
+.floating-add-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    z-index: 9994;
+    transition: all 0.3s;
+}
+
+.floating-add-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+.properties-panel {
+    position: fixed;
+    left: -350px;
+    top: 80px;
+    width: 330px;
+    height: calc(100vh - 100px);
+    background: white;
+    box-shadow: 5px 0 20px rgba(0,0,0,0.1);
+    border-radius: 0 15px 15px 0;
+    transition: left 0.3s;
+    z-index: 9996;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.properties-panel.active {
+    left: 0;
+}
+
+.properties-panel h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    color: #667eea;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.property-group {
+    margin-bottom: 20px;
+}
+
+.property-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 14px;
+}
+
+.property-group input,
+.property-group select,
+.property-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+.property-group input:focus,
+.property-group select:focus,
+.property-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.property-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.icon-picker {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.icon-picker button {
+    padding: 10px;
+    font-size: 24px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-picker button:hover,
+.icon-picker button.selected {
+    border-color: #667eea;
+    background: #f0f0ff;
+}
+
+/* Responsive Fixes for Edit Mode Elements */
+@media (max-width: 768px) {
+    /* على الموبايل، اللوحة تكون overlay وليس push */
+    body.edit-mode.editor-right,
+    body.edit-mode.editor-left {
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+    }
+    
+    /* لوحة التحرير على الموبايل */
+    .editor-panel {
+        width: 85%;
+        max-width: 320px;
+    }
+    
+    .editor-panel.collapsed {
+        width: 48px;
+    }
+    
+    .components-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* تحسينات الزر للشاشات الصغيرة */
+    .edit-fab-container {
+        bottom: 20px !important;
+        left: 20px !important;
+        right: auto !important;
+        top: auto !important;
+    }
+    
+    .edit-toggle-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+        border-radius: 12px;
+    }
+    
+    .edit-fab-menu {
+        min-width: 160px;
+        left: 0;
+        transform: translateX(0) scale(0.8);
+    }
+    
+    .edit-fab-container:hover .edit-fab-menu,
+    .edit-fab-menu.show {
+        transform: translateX(0) scale(1);
+    }
+    
+    .edit-fab-menu::after {
+        left: 24px;
+        transform: none;
+    }
+    
+    .element-actions {
+        transform: scale(0.85);
+    }
+}
+
+@media (max-width: 480px) {
+    .editor-panel {
+        width: 90%;
+        max-width: 280px;
+    }
+    
+    .editor-tabs {
+        flex-wrap: nowrap;
+    }
+    
+    .editor-tab {
+        padding: 10px 4px;
+        font-size: 10px;
+    }
+    
+    .components-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .component-card {
+        padding: 10px 6px;
+    }
+    
+    .icon-picker-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
