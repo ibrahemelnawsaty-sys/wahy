@@ -8,6 +8,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -100,9 +101,13 @@ class AuthApiController extends Controller
             $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
             $user->save();
 
+            // فوريّ لا مُصفَّف — مطابقةً لمسار الويب: لا عامل طابور يُفرغ jobs على الاستضافة،
+            // فالتصفيف يعني كوداً لا يصل أبداً وفشلاً صامتاً لا يلتقطه catch.
             try {
-                Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
+                Mail::to($user->email)->send(new TwoFactorCodeMail($code, $user->name));
             } catch (\Exception $e) {
+                Log::error('فشل إرسال 2FA code (API)', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'حدث خطأ في إرسال كود التحقق. يرجى المحاولة لاحقاً',

@@ -115,10 +115,14 @@ class AuthController extends Controller
             $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
             $user->save();
 
-            // إرسال الكود عبر البريد الإلكتروني (في الخلفية - async)
+            // إرسال الكود فوراً (متزامن) — **يُمنع** `queue()` هنا: المستخدم واقفٌ ينتظر الكود،
+            // ولا عامل طابور يعمل على الاستضافة، فالرسالة المُصفَّفة تبقى في جدول jobs بلا إرسال
+            // (وكان `catch` لا يلتقط ذلك لأنّ الإضافة للطابور تنجح — فشلٌ صامت). يُطابق resend.
             try {
-                Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
+                Mail::to($user->email)->send(new TwoFactorCodeMail($code, $user->name));
             } catch (\Exception $e) {
+                Log::error('فشل إرسال 2FA code', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+
                 return back()->withErrors([
                     'email' => 'حدث خطأ في إرسال كود التحقق. يرجى المحاولة لاحقاً.',
                 ])->withInput($request->except('password'));
