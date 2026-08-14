@@ -23,6 +23,9 @@ class EmailSettingsController extends Controller
         'parent_child_activity_graded' => 'وليّ الأمر — تصحيح نشاط الابن',
         'parent_child_inactive' => 'وليّ الأمر — خمول الابن (لم يدخل المنصّة)',
         'parent_weekly_digest' => 'وليّ الأمر — الملخّص الأسبوعيّ عن أبنائه',
+        'parent_new_activity' => 'وليّ الأمر — نشاط جديد لابنه',
+        // الطالب
+        'student_new_activity' => 'الطالب — نشاط جديد أُتيح له',
         // مدير المدرسة
         'schooladmin_activity_pending' => 'مدير المدرسة — نشاط بانتظار الاعتماد',
         // المعلّم

@@ -220,7 +220,7 @@ class ActivityApprovalController extends Controller
         if (! $activity->classroom_id) {
             return;
         }
-        $activity->loadMissing('classroom.students', 'lesson.concept');
+        $activity->loadMissing('classroom.students.parents', 'lesson.concept');
         $classroom = $activity->classroom;
         if (! $classroom) {
             return;
@@ -241,6 +241,18 @@ class ActivityApprovalController extends Controller
             // (إشعار مضلِّل يقود لبابٍ مغلق). isAccessibleByStudent المصدرُ الموحّد للويب والجوّال.
             if ($activity->isAccessibleByStudent($student)) {
                 NotificationService::newActivity($student->id, $activity->title);
+
+                // بريد للطالب ولأولياء أمره بإتاحة نشاط جديد (خطّة أدوار البريد + P5)
+                if ($student->email) {
+                    \App\Services\Mail\MailGate::send($student, 'student_new_activity', 'event',
+                        new \App\Mail\StudentNewActivityMail($student, (string) $activity->title));
+                }
+                foreach ($student->parents as $parentUser) {
+                    if ($parentUser->email) {
+                        \App\Services\Mail\MailGate::send($parentUser, 'parent_new_activity', 'event',
+                            new \App\Mail\ParentNewActivityMail($parentUser, $student, (string) $activity->title));
+                    }
+                }
             }
         }
     }
