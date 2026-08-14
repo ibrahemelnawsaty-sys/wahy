@@ -41,6 +41,32 @@ class PageBuilderV2EditorUiTest extends TestCase
         $this->actingAs($admin)->get(route('admin.pb.ui.edit', $page))->assertOk()->assertSee('صفحتي');
     }
 
+    public function test_history_ui_and_revision_restore(): void
+    {
+        $admin = $this->admin();
+        $page = \App\PageBuilder\Models\Page::create([
+            'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
+            'title' => 'ص', 'slug' => 'rev-page', 'status' => 'draft',
+            'blocks' => [['type' => 'heading', 'props' => ['text' => 'النسخة الأولى', 'level' => 'h2']]],
+        ]);
+
+        // حفظ ثانٍ يُنشئ لقطة للحالة الأولى ثمّ يغيّر المحتوى
+        $this->actingAs($admin)->putJson(route('admin.pb.pages.update', $page), [
+            'title' => 'ص', 'slug' => 'rev-page',
+            'blocks' => [['type' => 'heading', 'props' => ['text' => 'النسخة الثانية', 'level' => 'h2']]],
+        ])->assertOk();
+
+        // زرّ السجلّ + بيانات النُّسخ تُشحَن للمحرّر
+        $this->actingAs($admin)->get(route('admin.pb.ui.edit', $page->fresh()))->assertOk()->assertSee('pbHistory', false);
+
+        $rev = $page->revisions()->firstOrFail();
+        $this->assertSame('النسخة الأولى', $rev->blocks[0]['props']['text']);
+
+        // الاسترجاع يعيد الجسم للنسخة الأولى
+        $this->actingAs($admin)->postJson(route('admin.pb.pages.restore', ['page' => $page->id, 'revision' => $rev->id]))->assertOk();
+        $this->assertSame('النسخة الأولى', $page->fresh()->blocks[0]['props']['text']);
+    }
+
     public function test_editor_pages_forbidden_for_non_admin(): void
     {
         $student = User::factory()->student()->create();

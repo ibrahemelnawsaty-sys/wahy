@@ -103,6 +103,23 @@ class PageBuilderV2PublicRenderTest extends TestCase
         $this->get('/')->assertOk()->assertSee('فوائد التعلم التعاوني', false);
     }
 
+    public function test_scheduled_future_page_not_served_until_due(): void
+    {
+        $page = Page::create([
+            'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
+            'title' => 'مجدولة', 'slug' => 'sched', 'status' => 'published', 'published_at' => now()->addDay(),
+            'blocks' => [['type' => 'hero', 'props' => ['title' => 'محتوى مجدول']]],
+        ]);
+        PageResolver::enable('sched');
+
+        // تاريخ نشرٍ مستقبليّ ⟶ لا يُخدَم بعد (يرتدّ 404 إذ لا نظير قديم)
+        $this->get('/pages/sched')->assertNotFound();
+
+        // حان الوقت ⟶ يُخدَم
+        $page->update(['published_at' => now()->subMinute()]);
+        $this->get('/pages/sched')->assertOk()->assertSee('محتوى مجدول');
+    }
+
     public function test_metadata_only_update_preserves_blocks(): void
     {
         $admin = User::factory()->create(['role' => 'super_admin']);

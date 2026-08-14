@@ -63,6 +63,11 @@ class PageBuilderUiController extends Controller
             'isLive' => $isLive,
             'parts' => ['header' => $partsFor('header'), 'footer' => $partsFor('footer')],
             'patterns' => \App\PageBuilder\Patterns::all(),
+            'revisions' => $page ? $page->revisions()->limit(25)->get()->map(fn ($r) => [
+                'id' => $r->id,
+                'label' => $r->label,
+                'at' => $r->created_at?->format('Y/m/d H:i'),
+            ])->all() : [],
             'translations' => $page ? $page->translations()->get(['id', 'locale', 'title'])->toArray() : [],
             'urls' => [
                 'store' => route('admin.pb.pages.store'),

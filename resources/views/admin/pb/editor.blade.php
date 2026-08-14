@@ -20,6 +20,7 @@
             <button class="btn btn-success btn-sm" id="pbPublish">🚀 نشر</button>
             <button class="btn btn-outline-primary btn-sm" id="pbGoLive"></button>
             <button class="btn btn-outline-secondary btn-sm" id="pbDesign">🎨 التصميم</button>
+            <button class="btn btn-outline-secondary btn-sm" id="pbHistory">🕓 السجلّ</button>
             <span class="pb-lang" id="pbLang"></span>
         </div>
     </div>
@@ -127,6 +128,14 @@
     </div>
 </div>
 
+{{-- سجلّ النُّسخ (تراجع) --}}
+<div class="pb-modal" id="pbHistoryModal" hidden>
+    <div class="pb-modal-box">
+        <div class="pb-modal-head"><b>🕓 سجلّ النُّسخ — استرجاع نسخة سابقة من الجسم</b><button class="pb-modal-x" data-pb-close>✕</button></div>
+        <div class="pb-modal-body"><div id="pbRevList" class="pb-rev-list"></div></div>
+    </div>
+</div>
+
 {{-- أنماط/أقسام جاهزة (كالووردبريس) --}}
 <div class="pb-modal" id="pbPatternsModal" hidden>
     <div class="pb-modal-box pb-modal-wide">
@@ -215,6 +224,9 @@
     .pb-card.pb-drop-before{box-shadow:0 -3px 0 #6366f1}
     .pb-card.pb-drop-after{box-shadow:0 3px 0 #6366f1}
     .pb-card-grip{color:#cbd5e1;cursor:grab;font-size:.9rem;padding:0 2px}
+    .pb-rev-list{display:flex;flex-direction:column;gap:8px}
+    .pb-rev-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;font-size:.85rem}
+    .pb-rev-row small{color:#94a3b8}
 
     .pb-preview-col{height:calc(100vh - 230px);min-height:460px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;display:flex;justify-content:center}
     .pb-preview-frame{width:100%;height:100%;border:0;background:#fff;transition:width .2s;max-width:100%}

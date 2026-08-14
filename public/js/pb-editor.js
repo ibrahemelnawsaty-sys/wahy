@@ -571,6 +571,33 @@
         });
     }
 
+    /* ============ سجلّ النُّسخ (تراجع) ============ */
+    function openRevisions() {
+        var host = $('pbRevList'); host.innerHTML = '';
+        if (!state.page.id) { host.innerHTML = '<p class="pb-hint">احفظ الصفحة أوّلاً لتظهر النُّسخ.</p>'; }
+        else {
+            var revs = B.revisions || [];
+            if (!revs.length) host.innerHTML = '<p class="pb-hint">لا نُسخ بعد — تُحفَظ لقطة تلقائيّاً قبل كل حفظ.</p>';
+            revs.forEach(function (r) {
+                var row = document.createElement('div'); row.className = 'pb-rev-row';
+                var span = document.createElement('span'); span.innerHTML = '📸 ' + esc(r.at || '') + ' <small>(' + esc(r.label || '') + ')</small>';
+                var btn = document.createElement('button'); btn.className = 'pb-back-btn'; btn.textContent = 'استرجاع';
+                btn.onclick = function () { if (confirm('استرجاع هذه النسخة سيستبدل محتوى الجسم الحاليّ. متابعة؟')) restoreRevision(r.id); };
+                row.appendChild(span); row.appendChild(btn); host.appendChild(row);
+            });
+        }
+        $('pbHistoryModal').hidden = false;
+    }
+    function restoreRevision(id) {
+        api(B.urls.update + '/' + state.page.id + '/restore/' + id, 'POST').then(function (res) {
+            if (!res.ok) { toast(res.data.message || 'تعذّر الاسترجاع.', true); return; }
+            state.page.blocks = (res.data.page && res.data.page.blocks) || [];
+            state.region = 'body'; state.selected = null;
+            $('pbHistoryModal').hidden = true;
+            switchRegion('body'); toast('تمّ استرجاع النسخة. احفظ لتثبيتها.');
+        });
+    }
+
     /* ============ اللغات ============ */
     function renderLang() {
         var host = $('pbLang'); host.innerHTML = '';
@@ -634,6 +661,7 @@
         $('pbGoLive').onclick = function () { toggleLive(); };
         $('pbDesign').onclick = function () { openDesign(); };
         $('pbTkSave').onclick = function () { saveDesign(); };
+        $('pbHistory').onclick = function () { openRevisions(); };
         $('pbRefreshPreview').onclick = function () { refreshPreview(); };
         $('pbOpenPreview').onclick = function () { openPreviewWindow(); };
         $('pbPatternsBtn').onclick = function () { openPatterns(); };

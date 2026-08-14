@@ -56,6 +56,10 @@ class PageResolver
             ->where('slug', $slug)
             ->where('locale', $locale)
             ->where('status', 'published')
+            // جدولة: صفحة منشورة بتاريخ نشرٍ مستقبليّ لا تُخدَم حتى يحين وقتها (null = فوريّ).
+            ->where(function ($q) {
+                $q->whereNull('published_at')->orWhere('published_at', '<=', now());
+            })
             ->first();
     }
 
