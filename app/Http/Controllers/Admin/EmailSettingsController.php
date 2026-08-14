@@ -25,6 +25,7 @@ class EmailSettingsController extends Controller
         // مدير المدرسة
         'schooladmin_activity_pending' => 'مدير المدرسة — نشاط بانتظار الاعتماد',
         // المعلّم
+        'teacher_submission_pending' => 'المعلّم — تسليم طالب بانتظار المراجعة',
         'teacher_activity_approved' => 'المعلّم — اعتماد نشاطه',
         'teacher_activity_rejected' => 'المعلّم — رفض نشاطه',
         // الأدمن

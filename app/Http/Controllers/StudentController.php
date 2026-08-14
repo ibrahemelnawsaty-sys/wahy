@@ -1055,6 +1055,24 @@ class StudentController extends Controller
         $streakBonus = 0;
         $streakMessage = null;
 
+        // بريد المعلّم المراجِع عند تسليمٍ يحتاج مراجعة يدويّة (خطّة أدوار البريد T1) — لا يُنبَّه
+        // إن كان التسليم موقوفًا على موافقة الوليّ أوّلًا.
+        try {
+            if (($status ?? null) === 'pending' && empty($deferForParent) && ! empty($submissionResult['submission'])) {
+                $reviewer = $activity->created_by
+                    ? \App\Models\User::find($activity->created_by)
+                    : optional(\App\Models\Classroom::with('teacher')->find($activity->classroom_id))->teacher;
+                if ($reviewer && $reviewer->email && $reviewer->role === 'teacher' && (int) $reviewer->id !== (int) $student->id) {
+                    \App\Services\Mail\MailGate::send(
+                        $reviewer, 'teacher_submission_pending', 'event',
+                        new \App\Mail\TeacherSubmissionPendingMail($reviewer, $student, (string) $activity->title, route('teacher.review')),
+                    );
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('T1 teacher submission email failed: ' . $e->getMessage());
+        }
+
         // النقاط الفعلية بناءً على الدرجة (درجة% × نقاط النشاط)؛ null (مراجعة يدوية) → 0 الآن.
         $xp = $score !== null ? (int) round(($score / 100) * $activityPoints) : 0;
 
