@@ -52,6 +52,16 @@ class SendWelcomeNotification implements ShouldQueue
             \App\Services\Mail\MailGate::send($student, 'welcome', 'transactional', new WelcomeStudentMail($student));
         }
 
+        // بريد أولياء الأمور بتفعيل حساب الابن (خطّة أدوار البريد P1)
+        foreach ($student->parents as $parentUser) {
+            if ($parentUser->email) {
+                \App\Services\Mail\MailGate::send(
+                    $parentUser, 'parent_child_activated', 'transactional',
+                    new \App\Mail\ParentChildActivatedMail($parentUser, $student),
+                );
+            }
+        }
+
         // إرسال إشعار لولي الأمر
         if ($student->parent) {
             $parentMessage = "تم تفعيل حساب ابنك/ابنتك {$student->name} بنجاح على منصة قِيَم.\n";

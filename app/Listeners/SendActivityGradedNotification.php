@@ -48,6 +48,16 @@ class SendActivityGradedNotification implements ShouldQueue
             \App\Services\Mail\MailGate::send($student, 'activity_graded', 'event', new ActivityGradedMail($submission));
         }
 
+        // بريد أولياء الأمور بتصحيح نشاط الابن (خطّة أدوار البريد P2)
+        foreach ($student->parents as $parentUser) {
+            if ($parentUser->email) {
+                \App\Services\Mail\MailGate::send(
+                    $parentUser, 'parent_child_activity_graded', 'event',
+                    new \App\Mail\ParentChildActivityGradedMail($parentUser, $student, (string) $activity->title, $event->grade),
+                );
+            }
+        }
+
         // إرسال إشعار لولي الأمر إن وجد
         $parent = $student->parent;
         if ($parent) {

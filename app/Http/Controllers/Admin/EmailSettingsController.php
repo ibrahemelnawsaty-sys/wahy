@@ -17,6 +17,11 @@ class EmailSettingsController extends Controller
         'activity_graded' => 'إشعار تصحيح نشاط',
         'badge_earned' => 'إشعار منح شارة',
         'level_up' => 'إشعار ترقية المستوى',
+        'weekly_digest' => 'الملخّص الأسبوعيّ للطالب',
+        // وليّ الأمر (خطّة أدوار البريد)
+        'parent_child_activated' => 'وليّ الأمر — تفعيل حساب الابن',
+        'parent_child_activity_graded' => 'وليّ الأمر — تصحيح نشاط الابن',
+        'parent_child_inactive' => 'وليّ الأمر — خمول الابن (لم يدخل المنصّة)',
     ];
 
     public function edit()

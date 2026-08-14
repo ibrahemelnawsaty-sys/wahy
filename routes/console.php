@@ -84,3 +84,11 @@ Schedule::call(fn () => \App\Models\EmailLog::markStuckAsFailed(20))
     ->hourly()
     ->name('email-reconcile-stuck')
     ->withoutOverlapping();
+
+// خطّة أدوار البريد P7 - تنبيه أولياء الأمور عند خمول أبنائهم (يوميًّا)
+Schedule::command('emails:parent-inactive-children --days=2')
+    ->daily()
+    ->at('17:00')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/email-parent-inactive.log'));
