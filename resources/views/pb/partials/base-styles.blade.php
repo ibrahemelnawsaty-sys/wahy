@@ -109,6 +109,25 @@
     .pb-cover-title{font-size:clamp(1.6rem,4vw,2.6rem);margin:0 0 12px;font-weight:800}
     .pb-cover-sub{font-size:1.1rem;opacity:.95;margin:0 0 20px;line-height:1.7}
     .pb-map iframe{display:block}
+    /* كتل تفاعليّة: عدّاد/تقدّم/تنبيه/تقييم */
+    .pb-countdown{text-align:center}
+    .pb-cd-label{font-weight:700;margin-bottom:10px;opacity:.85}
+    .pb-cd-grid{display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center}
+    .pb-cd-grid>div{min-width:72px;background:#f1f5f9;border-radius:var(--pb-radius,12px);padding:12px 8px}
+    .pb-cd-grid span{display:block;font-size:1.9rem;font-weight:800;color:var(--pb-primary,#4338ca)}
+    .pb-cd-grid small{opacity:.7;font-size:.8rem}
+    .pb-progress-wrap{max-width:720px;margin-inline:auto}
+    .pb-progress-label{display:flex;justify-content:space-between;font-weight:700;margin-bottom:6px}
+    .pb-progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+    .pb-progress-bar{height:100%;background:linear-gradient(90deg,var(--pb-primary,#667eea),var(--pb-secondary,#764ba2));border-radius:999px;transition:width .6s}
+    .pb-alert{padding:14px 18px;border-radius:var(--pb-radius,12px);border-inline-start:4px solid;line-height:1.7}
+    .pb-alert-info{background:#eff6ff;border-color:#3b82f6;color:#1e40af}
+    .pb-alert-success{background:#ecfdf5;border-color:#10b981;color:#065f46}
+    .pb-alert-warning{background:#fffbeb;border-color:#f59e0b;color:#92400e}
+    .pb-alert-error{background:#fef2f2;border-color:#ef4444;color:#991b1b}
+    .pb-rating{display:flex;align-items:center;gap:10px;justify-content:center}
+    .pb-stars{color:#f59e0b;font-size:1.5rem;letter-spacing:2px}
+    .pb-rating-label{opacity:.75;font-weight:600}
     /* هيدر/فوتر الموقع الموحّد للصفحات الثانوية */
     .pb-site-header{background:var(--pb-bg,#fff);border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:50}
     .pb-site-header-inner{max-width:1140px;margin-inline:auto;padding:12px 20px;display:flex;align-items:center;gap:20px}
@@ -150,4 +169,6 @@
     :root[data-theme="dark"] .pb-table th,:root[data-theme="dark"] .pb-table td{border-color:#334155}
     :root[data-theme="dark"] .pb-table thead th{background:#1e293b}
     :root[data-theme="dark"] .pb-theme-toggle{background:#1e293b;color:#e2e8f0;border-color:#334155}
+    :root[data-theme="dark"] .pb-cd-grid>div{background:#1e293b}
+    :root[data-theme="dark"] .pb-progress{background:#334155}
 </style>

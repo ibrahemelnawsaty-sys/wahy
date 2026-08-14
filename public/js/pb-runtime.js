@@ -24,7 +24,25 @@
         });
     }
 
-    function init(root) { initTabs(root || document); }
+    function initCountdown(root) {
+        root.querySelectorAll('[data-pb-countdown]').forEach(function (el) {
+            if (el.__pbCd) return; el.__pbCd = true;
+            var raw = (el.getAttribute('data-target') || '').replace(' ', 'T');
+            var target = new Date(raw).getTime();
+            if (isNaN(target)) return;
+            function set(k, v) { var n = el.querySelector('[data-cd="' + k + '"]'); if (n) n.textContent = v; }
+            function tick() {
+                var diff = target - Date.now(); if (diff < 0) diff = 0;
+                set('d', Math.floor(diff / 864e5));
+                set('h', Math.floor((diff % 864e5) / 36e5));
+                set('m', Math.floor((diff % 36e5) / 6e4));
+                set('s', Math.floor((diff % 6e4) / 1e3));
+            }
+            tick(); setInterval(tick, 1000);
+        });
+    }
+
+    function init(root) { initTabs(root || document); initCountdown(root || document); }
 
     if (document.readyState !== 'loading') init(document);
     else document.addEventListener('DOMContentLoaded', function () { init(document); });

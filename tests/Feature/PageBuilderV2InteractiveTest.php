@@ -57,6 +57,21 @@ class PageBuilderV2InteractiveTest extends TestCase
         $this->assertStringContainsString('جواب أوّل', $html);
     }
 
+    public function test_interactive_extra_blocks_render(): void
+    {
+        $html = $this->previewHtml([
+            ['type' => 'countdown', 'props' => ['date' => '2027-01-01 00:00', 'label' => 'الإطلاق خلال']],
+            ['type' => 'progress', 'props' => ['label' => 'الإنجاز', 'value' => 80]],
+            ['type' => 'alert', 'props' => ['type' => 'warning', 'text' => 'انتبه لهذا']],
+            ['type' => 'rating', 'props' => ['value' => 4, 'label' => 'ممتاز']],
+        ]);
+        $this->assertStringContainsString('data-pb-countdown', $html);
+        $this->assertStringContainsString('width:80%', $html);
+        $this->assertStringContainsString('pb-alert-warning', $html);
+        $this->assertStringContainsString('★★★★☆', $html);
+        $this->assertStringContainsString('pb-runtime.js', $html); // العدّاد يحتاج خطّ الأصول
+    }
+
     public function test_extra_blocks_render_and_are_injection_safe(): void
     {
         $html = $this->previewHtml([

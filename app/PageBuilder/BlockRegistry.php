@@ -45,6 +45,11 @@ class BlockRegistry
             'gallery' => ['v' => 1, 'view' => 'pb.blocks.gallery'],
             'cover' => ['v' => 1, 'view' => 'pb.blocks.cover'],
             'map' => ['v' => 1, 'view' => 'pb.blocks.map'],
+            // حزمة كتل تفاعليّة (تغذية راجعة)
+            'countdown' => ['v' => 1, 'view' => 'pb.blocks.countdown', 'runtime' => true],
+            'progress' => ['v' => 1, 'view' => 'pb.blocks.progress'],
+            'alert' => ['v' => 1, 'view' => 'pb.blocks.alert'],
+            'rating' => ['v' => 1, 'view' => 'pb.blocks.rating'],
         ];
     }
 
@@ -204,6 +209,22 @@ class BlockRegistry
                 ['key' => 'address', 'label' => 'العنوان/المكان', 'type' => 'text'],
                 ['key' => 'height', 'label' => 'الارتفاع (px)', 'type' => 'number', 'min' => 150, 'max' => 800],
             ]],
+            'countdown' => ['label' => 'عدّاد تنازليّ', 'icon' => '⏳', 'category' => 'تفاعل', 'fields' => [
+                ['key' => 'date', 'label' => 'التاريخ المستهدف (YYYY-MM-DD HH:MM)', 'type' => 'text'],
+                ['key' => 'label', 'label' => 'نصّ أعلى العدّاد', 'type' => 'text'],
+            ]],
+            'progress' => ['label' => 'شريط تقدّم', 'icon' => '📊', 'category' => 'محتوى', 'fields' => [
+                ['key' => 'label', 'label' => 'العنوان', 'type' => 'text'],
+                ['key' => 'value', 'label' => 'النسبة (0-100)', 'type' => 'number', 'min' => 0, 'max' => 100],
+            ]],
+            'alert' => ['label' => 'تنبيه', 'icon' => '🔔', 'category' => 'محتوى', 'fields' => [
+                ['key' => 'type', 'label' => 'النوع', 'type' => 'select', 'options' => ['info' => 'معلومة', 'success' => 'نجاح', 'warning' => 'تحذير', 'error' => 'خطأ']],
+                ['key' => 'text', 'label' => 'النصّ', 'type' => 'textarea'],
+            ]],
+            'rating' => ['label' => 'تقييم نجوم', 'icon' => '⭐', 'category' => 'تسويق', 'fields' => [
+                ['key' => 'value', 'label' => 'عدد النجوم (0-5)', 'type' => 'number', 'min' => 0, 'max' => 5],
+                ['key' => 'label', 'label' => 'نصّ بجانبه', 'type' => 'text'],
+            ]],
         ];
     }
 
@@ -236,6 +257,10 @@ class BlockRegistry
             'icon' => ['icon' => '⭐', 'size' => 'lg', 'align' => 'center'],
             'cover' => ['title' => 'عنوان الغلاف', 'subtitle' => 'نصّ يظهر فوق الخلفيّة.', 'overlay' => 'dark', 'button_text' => 'ابدأ الآن', 'button_link' => '#'],
             'map' => ['address' => 'مكة المكرمة', 'height' => 320],
+            'countdown' => ['date' => '2026-12-31 23:59', 'label' => 'العرض ينتهي خلال'],
+            'progress' => ['label' => 'نسبة الإنجاز', 'value' => 75],
+            'alert' => ['type' => 'info', 'text' => 'اكتب رسالة التنبيه هنا.'],
+            'rating' => ['value' => 5, 'label' => 'تقييم ممتاز'],
         ];
     }
 
