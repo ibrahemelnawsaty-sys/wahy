@@ -57,6 +57,8 @@ class PageBuilderUiController extends Controller
                 'footer_part_id' => $page->footer_part_id,
                 'hide_header' => (bool) $page->hide_header,
                 'hide_footer' => (bool) $page->hide_footer,
+                'use_site_header' => (bool) $page->use_site_header,
+                'use_site_footer' => (bool) $page->use_site_footer,
             ] : null,
             'isLive' => $isLive,
             'parts' => ['header' => $partsFor('header'), 'footer' => $partsFor('footer')],

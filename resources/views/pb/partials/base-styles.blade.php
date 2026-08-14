@@ -86,7 +86,26 @@
     .pb-video-frame{position:relative;padding-top:56.25%;border-radius:var(--pb-radius,12px);overflow:hidden;background:#000}
     .pb-video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
     .pb-video-cap{text-align:center;opacity:.6;font-size:.9rem;margin-top:8px}
-    @media (max-width:640px){.pb-columns{grid-template-columns:1fr}}
+    /* هيدر/فوتر الموقع الموحّد للصفحات الثانوية */
+    .pb-site-header{background:var(--pb-bg,#fff);border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:50}
+    .pb-site-header-inner{max-width:1140px;margin-inline:auto;padding:12px 20px;display:flex;align-items:center;gap:20px}
+    .pb-site-brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;font-weight:800;font-size:1.15rem}
+    .pb-site-logo{height:38px;width:auto}
+    .pb-site-logo-icon{font-size:1.3rem}
+    .pb-site-nav{display:flex;gap:18px;margin-inline-start:auto;flex-wrap:wrap}
+    .pb-site-nav a{text-decoration:none;color:inherit;font-weight:700;opacity:.85}
+    .pb-site-nav a:hover{opacity:1;color:var(--pb-primary,#667eea)}
+    .pb-site-actions{display:flex;gap:8px}
+    .pb-site-actions .pb-btn{padding:8px 18px;font-size:.9rem}
+    .pb-site-footer{background:#0f172a;color:#e2e8f0;margin-top:40px}
+    .pb-site-footer-inner{max-width:1140px;margin-inline:auto;padding:40px 20px;display:flex;gap:32px;flex-wrap:wrap;justify-content:space-between}
+    .pb-site-footer-name{font-weight:800;font-size:1.15rem;display:flex;align-items:center;gap:8px}
+    .pb-site-footer-desc{opacity:.7;margin:10px 0 0;max-width:420px;line-height:1.7}
+    .pb-site-footer-links{display:flex;flex-direction:column;gap:8px}
+    .pb-site-footer-links a{color:#cbd5e1;text-decoration:none}
+    .pb-site-footer-links a:hover{color:#fff}
+    .pb-site-footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding:16px 20px;text-align:center;opacity:.7;font-size:.88rem}
+    @media (max-width:640px){.pb-columns{grid-template-columns:1fr}.pb-site-header-inner{flex-wrap:wrap}.pb-site-nav{margin-inline-start:0}}
     /* زرّ تبديل الوضع (ليليّ/نهاريّ) العائم */
     .pb-theme-toggle{position:fixed;bottom:20px;inset-inline-start:20px;z-index:950;width:46px;height:46px;border-radius:50%;
         border:1px solid #e5e7eb;background:#fff;color:#334155;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.15)}

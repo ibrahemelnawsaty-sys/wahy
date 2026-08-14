@@ -227,11 +227,16 @@ class PageManagerController extends Controller
             return BlockTree::prepare($part?->blocks ?? []);
         };
 
+        $useSiteHeader = $request->boolean('use_site_header');
+        $useSiteFooter = $request->boolean('use_site_footer');
+
         return view('pb.preview-doc', [
             'locale' => $locale,
-            'headerBlocks' => $request->boolean('hide_header') ? [] : $resolvePart('header'),
+            'useSiteHeader' => $useSiteHeader,
+            'useSiteFooter' => $useSiteFooter,
+            'headerBlocks' => ($request->boolean('hide_header') || $useSiteHeader) ? [] : $resolvePart('header'),
             'bodyBlocks' => $bodyBlocks,
-            'footerBlocks' => $request->boolean('hide_footer') ? [] : $resolvePart('footer'),
+            'footerBlocks' => ($request->boolean('hide_footer') || $useSiteFooter) ? [] : $resolvePart('footer'),
         ]);
     }
 
@@ -333,6 +338,8 @@ class PageManagerController extends Controller
             'footer_part_id' => 'nullable|integer|exists:pb_template_parts,id',
             'hide_header' => 'sometimes|boolean',
             'hide_footer' => 'sometimes|boolean',
+            'use_site_header' => 'sometimes|boolean',
+            'use_site_footer' => 'sometimes|boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
         ]);
@@ -353,7 +360,7 @@ class PageManagerController extends Controller
                 $data[$k] = $request->input($k);
             }
         }
-        foreach (['hide_header', 'hide_footer'] as $k) {
+        foreach (['hide_header', 'hide_footer', 'use_site_header', 'use_site_footer'] as $k) {
             if ($request->has($k)) {
                 $data[$k] = $request->boolean($k);
             }

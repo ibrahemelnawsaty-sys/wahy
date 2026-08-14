@@ -12,6 +12,7 @@
         id: null, title: '', slug: '', locale: 'ar', status: 'draft',
         meta_title: '', meta_description: '', blocks: [],
         header_part_id: null, footer_part_id: null, hide_header: false, hide_footer: false,
+        use_site_header: false, use_site_footer: false,
     };
 
     var state = {
@@ -298,26 +299,32 @@
     function partSelectValue(kind) {
         var idKey = kind === 'header' ? 'header_part_id' : 'footer_part_id';
         var hideKey = kind === 'header' ? 'hide_header' : 'hide_footer';
+        var siteKey = kind === 'header' ? 'use_site_header' : 'use_site_footer';
+        if (state.page[siteKey]) return '__site__';
         if (state.page[hideKey]) return '__none__';
         return state.page[idKey] ? String(state.page[idKey]) : '';
     }
     function renderPartSelect(kind) {
         var sel = kind === 'header' ? $('pbHeaderPart') : $('pbFooterPart');
         var list = (B.parts && B.parts[kind]) || [];
+        var word = kind === 'header' ? 'هيدر' : 'فوتر';
         sel.innerHTML = '';
         function opt(v, label) { var o = document.createElement('option'); o.value = v; o.textContent = label; sel.appendChild(o); }
         opt('', 'الافتراضيّ العامّ');
-        opt('__none__', 'بلا ' + (kind === 'header' ? 'هيدر' : 'فوتر'));
+        opt('__site__', word + ' الموقع الرئيسيّ (يُعدَّل من محتوى الرئيسية)');
+        opt('__none__', 'بلا ' + word);
         list.forEach(function (p) { opt(String(p.id), p.name + (p.is_active ? ' — الافتراضيّ' : '')); });
         sel.value = partSelectValue(kind);
         sel.onchange = function () {
             var idKey = kind === 'header' ? 'header_part_id' : 'footer_part_id';
             var hideKey = kind === 'header' ? 'hide_header' : 'hide_footer';
+            var siteKey = kind === 'header' ? 'use_site_header' : 'use_site_footer';
             var v = sel.value;
-            if (v === '__none__') { state.page[hideKey] = true; state.page[idKey] = null; }
-            else if (v === '') { state.page[hideKey] = false; state.page[idKey] = null; }
-            else { state.page[hideKey] = false; state.page[idKey] = parseInt(v, 10); }
-            if (state.region === kind) { state.parts[kind] = null; switchRegion(kind); }
+            state.page[siteKey] = false; state.page[hideKey] = false; state.page[idKey] = null;
+            if (v === '__site__') state.page[siteKey] = true;
+            else if (v === '__none__') state.page[hideKey] = true;
+            else if (v !== '') state.page[idKey] = parseInt(v, 10);
+            if (state.region === kind && v !== '__site__') { state.parts[kind] = null; switchRegion(kind); }
             else schedulePreview();
         };
     }
@@ -380,6 +387,7 @@
             blocks: state.page.blocks,
             header_part_id: state.page.header_part_id, footer_part_id: state.page.footer_part_id,
             hide_header: state.page.hide_header, hide_footer: state.page.hide_footer,
+            use_site_header: state.page.use_site_header, use_site_footer: state.page.use_site_footer,
         };
         var isNew = !state.page.id;
         var url = isNew ? B.urls.store : (B.urls.update + '/' + state.page.id);
@@ -421,7 +429,9 @@
 
     /* ============ المعاينة الحيّة (دائمة في الخطوة 2) ============ */
     function buildPreviewPayload() {
-        var p = { locale: state.page.locale || 'ar', body: state.page.blocks, hide_header: !!state.page.hide_header, hide_footer: !!state.page.hide_footer };
+        var p = { locale: state.page.locale || 'ar', body: state.page.blocks,
+            hide_header: !!state.page.hide_header, hide_footer: !!state.page.hide_footer,
+            use_site_header: !!state.page.use_site_header, use_site_footer: !!state.page.use_site_footer };
         if (state.parts.header) p.header = state.parts.header.blocks;
         else if (state.page.header_part_id) p.header_part_id = state.page.header_part_id;
         if (state.parts.footer) p.footer = state.parts.footer.blocks;

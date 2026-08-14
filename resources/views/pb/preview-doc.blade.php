@@ -15,7 +15,9 @@
 </head>
 <body>
     <div class="pb-page">
-        @if(!empty($headerBlocks))
+        @if(!empty($useSiteHeader))
+            @include('pb.partials.site-header')
+        @elseif(!empty($headerBlocks))
             <header class="pb-page-header">@include('pb.renderer', ['blocks' => $headerBlocks])</header>
         @endif
 
@@ -27,7 +29,9 @@
             @endif
         </main>
 
-        @if(!empty($footerBlocks))
+        @if(!empty($useSiteFooter))
+            @include('pb.partials.site-footer')
+        @elseif(!empty($footerBlocks))
             <footer class="pb-page-footer">@include('pb.renderer', ['blocks' => $footerBlocks])</footer>
         @endif
     </div>

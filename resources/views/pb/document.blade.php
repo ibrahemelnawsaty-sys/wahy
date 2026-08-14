@@ -10,9 +10,9 @@
     $locale = $page->locale ?? 'ar';
     $isRtl = in_array($locale, ['ar', 'he', 'fa', 'ur'], true);
 
-    // hide_header/hide_footer (دفعة 1): تُلغي المنطقة لهذه الصفحة صراحةً (تختلف عن null = الافتراضيّ العالميّ).
-    $headerPart = $page->hide_header ? null : ($page->header ?: TemplatePart::activeFor('header', $locale));
-    $footerPart = $page->hide_footer ? null : ($page->footer ?: TemplatePart::activeFor('footer', $locale));
+    // hide_header/hide_footer (دفعة 1): تُلغي المنطقة صراحةً. use_site_*: تستبدلها بهيدر/فوتر الموقع.
+    $headerPart = ($page->hide_header || $page->use_site_header) ? null : ($page->header ?: TemplatePart::activeFor('header', $locale));
+    $footerPart = ($page->hide_footer || $page->use_site_footer) ? null : ($page->footer ?: TemplatePart::activeFor('footer', $locale));
 
     $headerBlocks = BlockTree::prepare($headerPart?->blocks ?? []);
     $bodyBlocks   = BlockTree::prepare($page->blocks ?? []);
@@ -47,13 +47,17 @@
 </head>
 <body>
     <div class="pb-page">
-        @if(!empty($headerBlocks))
+        @if($page->use_site_header)
+            @include('pb.partials.site-header')
+        @elseif(!empty($headerBlocks))
             <header class="pb-page-header">@include('pb.renderer', ['blocks' => $headerBlocks])</header>
         @endif
 
         <main class="pb-page-body">@include('pb.renderer', ['blocks' => $bodyBlocks])</main>
 
-        @if(!empty($footerBlocks))
+        @if($page->use_site_footer)
+            @include('pb.partials.site-footer')
+        @elseif(!empty($footerBlocks))
             <footer class="pb-page-footer">@include('pb.renderer', ['blocks' => $footerBlocks])</footer>
         @endif
     </div>
