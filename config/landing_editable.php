@@ -2,13 +2,32 @@
 
 /**
  * سِجلّ حقول محتوى الصفحة الرئيسية القابلة للتحرير (المصدر الواحد).
- * يقود: (1) نموذج تحرير الأدمن (يُولَّد تلقائيّاً)، (2) العرض الخادميّ عبر lc('key', الافتراضيّ).
+ * يقود: (1) نموذج تحرير الأدمن «محتوى الصفحة الرئيسية» (يُولَّد تلقائيّاً)،
+ *        (2) العرض الخادميّ عبر lc('key', الافتراضيّ) في landing.blade + components/footer.
  *
  * البنية: قسم => [ 'label' => عنوان القسم، 'fields' => [ مفتاح => [label, type, default] ] ]
  * الأنواع: text | textarea. الافتراضيّ = النصّ الحاليّ في القالب (يظهر إن لم يُحفَظ تخصيص).
- * الإضافة لاحقاً: أضِف الحقل هنا ثمّ لُفّ العنصر في landing.blade.php بـ{{ lc('key', 'default') }}.
+ * الإضافة لاحقاً: أضِف الحقل هنا ثمّ لُفّ العنصر في القالب بـ{{ lc('key', 'default') }}.
+ *
+ * ملاحظة: اسم الموقع/الشعار/الوصف تُدار من «الإعدادات العامّة» (site_name/site_logo/
+ * site_description) — مصدرٌ واحد — فلا تُكرَّر هنا. هذا السِّجلّ لبقيّة نصوص الصفحة.
  */
 return [
+
+    'header' => [
+        'label' => 'الهيدر (القائمة والأزرار)',
+        'fields' => [
+            'logo_icon' => ['label' => 'أيقونة الشعار (إن لم تُرفع صورة)', 'type' => 'text', 'default' => '🌟'],
+            'nav_link_1' => ['label' => 'رابط القائمة 1', 'type' => 'text', 'default' => 'الرئيسية'],
+            'nav_link_2' => ['label' => 'رابط القائمة 2', 'type' => 'text', 'default' => 'المميزات'],
+            'nav_link_3' => ['label' => 'رابط القائمة 3', 'type' => 'text', 'default' => 'القيم'],
+            'nav_link_4' => ['label' => 'رابط القائمة 4', 'type' => 'text', 'default' => 'الأنشطة'],
+            'nav_link_5' => ['label' => 'رابط القائمة 5 (الشركاء)', 'type' => 'text', 'default' => 'الشركاء'],
+            'nav_link_6' => ['label' => 'رابط القائمة 6', 'type' => 'text', 'default' => 'الدعم'],
+            'login_btn_text' => ['label' => 'زرّ تسجيل الدخول', 'type' => 'text', 'default' => 'تسجيل دخول'],
+            'register_btn_text' => ['label' => 'زرّ التسجيل', 'type' => 'text', 'default' => 'ابدأ الآن'],
+        ],
+    ],
 
     'hero' => [
         'label' => 'الواجهة (الهيرو)',
@@ -17,6 +36,12 @@ return [
             'hero_description' => ['label' => 'الوصف', 'type' => 'textarea', 'default' => 'من مكة المكرمة .. نبع الهدايات، انطلقت منصتنا تلهم الواردين من الطلاب والمعلمين.. تجمع بين المتعة والفائدة لتبني جيلاً فعالاً متخلقاً بقيم وأخلاق النبوة'],
             'hero_btn_primary' => ['label' => 'زرّ أساسيّ', 'type' => 'text', 'default' => 'ابدأ الآن'],
             'hero_btn_secondary' => ['label' => 'زرّ ثانويّ', 'type' => 'text', 'default' => 'اعرف المزيد'],
+            'stat_schools' => ['label' => 'إحصائيّة 1 — الرقم', 'type' => 'text', 'default' => '500+'],
+            'stat_schools_label' => ['label' => 'إحصائيّة 1 — التسمية', 'type' => 'text', 'default' => 'مدرسة'],
+            'stat_students' => ['label' => 'إحصائيّة 2 — الرقم', 'type' => 'text', 'default' => '50k+'],
+            'stat_students_label' => ['label' => 'إحصائيّة 2 — التسمية', 'type' => 'text', 'default' => 'طالب'],
+            'stat_teachers' => ['label' => 'إحصائيّة 3 — الرقم', 'type' => 'text', 'default' => '2k+'],
+            'stat_teachers_label' => ['label' => 'إحصائيّة 3 — التسمية', 'type' => 'text', 'default' => 'معلم'],
         ],
     ],
 
@@ -47,10 +72,64 @@ return [
     ],
 
     'values' => [
-        'label' => 'قسم «كيف نبني القيم؟»',
+        'label' => 'قسم «كيف نبني القيم؟» (خطوات المنهجيّة)',
         'fields' => [
             'values_title' => ['label' => 'عنوان القسم', 'type' => 'text', 'default' => 'كيف نبني القيم؟'],
             'values_subtitle' => ['label' => 'العنوان الفرعيّ', 'type' => 'text', 'default' => 'منهجية متكاملة من القيمة إلى التطبيق العملي'],
+            'flow_1_number' => ['label' => 'خطوة 1 — الرقم', 'type' => 'text', 'default' => '1'],
+            'flow_1_title' => ['label' => 'خطوة 1 — العنوان', 'type' => 'text', 'default' => 'القيمة الكلية'],
+            'flow_1_example' => ['label' => 'خطوة 1 — المثال', 'type' => 'text', 'default' => 'الرحمة'],
+            'flow_1_desc' => ['label' => 'خطوة 1 — الوصف', 'type' => 'textarea', 'default' => 'اختيار قيمة كلية تندرج تحتها مجموعة من القيم الضمنية'],
+            'flow_2_number' => ['label' => 'خطوة 2 — الرقم', 'type' => 'text', 'default' => '2'],
+            'flow_2_title' => ['label' => 'خطوة 2 — العنوان', 'type' => 'text', 'default' => 'القيمة الضمنية'],
+            'flow_2_example' => ['label' => 'خطوة 2 — المثال', 'type' => 'text', 'default' => 'بر الوالدين'],
+            'flow_2_desc' => ['label' => 'خطوة 2 — الوصف', 'type' => 'textarea', 'default' => 'حصر القيم الضمنية المتعلقة بالقيمة الكلية وإدراجها في المنظومة'],
+            'flow_3_number' => ['label' => 'خطوة 3 — الرقم', 'type' => 'text', 'default' => '3'],
+            'flow_3_title' => ['label' => 'خطوة 3 — العنوان', 'type' => 'text', 'default' => 'المفاهيم الرئيسية'],
+            'flow_3_example' => ['label' => 'خطوة 3 — المثال', 'type' => 'text', 'default' => 'الإحسان إلى الوالدين'],
+            'flow_3_desc' => ['label' => 'خطوة 3 — الوصف', 'type' => 'textarea', 'default' => 'استخراج المفاهيم الرئيسية من القيمة الضمنية'],
+            'flow_4_number' => ['label' => 'خطوة 4 — الرقم', 'type' => 'text', 'default' => '4'],
+            'flow_4_title' => ['label' => 'خطوة 4 — العنوان', 'type' => 'text', 'default' => 'المعاني المرتبطة'],
+            'flow_4_example' => ['label' => 'خطوة 4 — المثال', 'type' => 'text', 'default' => 'طاعة الوالدين – إكرام الوالدين – الدعاء لهما'],
+            'flow_4_desc' => ['label' => 'خطوة 4 — الوصف', 'type' => 'textarea', 'default' => 'تحديد أهم المعاني المتعلقة بالمفهوم'],
+            'flow_5_number' => ['label' => 'خطوة 5 — الرقم', 'type' => 'text', 'default' => '5'],
+            'flow_5_title' => ['label' => 'خطوة 5 — العنوان', 'type' => 'text', 'default' => 'الأنشطة'],
+            'flow_5_example' => ['label' => 'خطوة 5 — المثال', 'type' => 'text', 'default' => 'حفل الإحسان'],
+            'flow_5_desc' => ['label' => 'خطوة 5 — الوصف', 'type' => 'textarea', 'default' => 'تنفيذ أنشطة ومشاريع لتعزيز المفاهيم والمعاني وتطبيقها'],
+        ],
+    ],
+
+    'teams' => [
+        'label' => 'قسم الفِرَق والتعلّم التعاونيّ',
+        'fields' => [
+            'teams_title' => ['label' => 'عنوان القسم', 'type' => 'text', 'default' => 'التعلم التعاوني مع الفرق'],
+            'teams_subtitle' => ['label' => 'العنوان الفرعيّ', 'type' => 'text', 'default' => 'نظام فرق ذكي يحفز الطلاب على التعاون والتنافس الإيجابي'],
+            'team_1_rank' => ['label' => 'فريق 1 — الترتيب', 'type' => 'text', 'default' => '1'],
+            'team_1_name' => ['label' => 'فريق 1 — الاسم', 'type' => 'text', 'default' => 'فريق الريادة'],
+            'team_1_points' => ['label' => 'فريق 1 — النقاط', 'type' => 'text', 'default' => '2,450 نقطة'],
+            'team_2_rank' => ['label' => 'فريق 2 — الترتيب', 'type' => 'text', 'default' => '2'],
+            'team_2_name' => ['label' => 'فريق 2 — الاسم', 'type' => 'text', 'default' => 'فريق السمو'],
+            'team_2_points' => ['label' => 'فريق 2 — النقاط', 'type' => 'text', 'default' => '2,180 نقطة'],
+            'team_3_rank' => ['label' => 'فريق 3 — الترتيب', 'type' => 'text', 'default' => '3'],
+            'team_3_name' => ['label' => 'فريق 3 — الاسم', 'type' => 'text', 'default' => 'فريق المعالي'],
+            'team_3_points' => ['label' => 'فريق 3 — النقاط', 'type' => 'text', 'default' => '1,920 نقطة'],
+            'benefits_title' => ['label' => 'عنوان الفوائد', 'type' => 'text', 'default' => 'فوائد التعلم التعاوني'],
+            'benefit_1_title' => ['label' => 'فائدة 1 — العنوان', 'type' => 'text', 'default' => 'تعزيز التعاون'],
+            'benefit_1_desc' => ['label' => 'فائدة 1 — الوصف', 'type' => 'textarea', 'default' => 'يتعلم الطلاب العمل معاً وتحقيق الأهداف المشتركة'],
+            'benefit_2_title' => ['label' => 'فائدة 2 — العنوان', 'type' => 'text', 'default' => 'تطوير التواصل'],
+            'benefit_2_desc' => ['label' => 'فائدة 2 — الوصف', 'type' => 'textarea', 'default' => 'تحسين مهارات التواصل والاستماع للآخرين'],
+            'benefit_3_title' => ['label' => 'فائدة 3 — العنوان', 'type' => 'text', 'default' => 'تنمية التفكير'],
+            'benefit_3_desc' => ['label' => 'فائدة 3 — الوصف', 'type' => 'textarea', 'default' => 'تبادل الأفكار يساعد على التفكير النقدي والإبداعي'],
+            'benefit_4_title' => ['label' => 'فائدة 4 — العنوان', 'type' => 'text', 'default' => 'بناء العلاقات'],
+            'benefit_4_desc' => ['label' => 'فائدة 4 — الوصف', 'type' => 'textarea', 'default' => 'تكوين صداقات وعلاقات إيجابية بين الطلاب'],
+        ],
+    ],
+
+    'partners' => [
+        'label' => 'قسم الشركاء',
+        'fields' => [
+            'partners_title' => ['label' => 'عنوان القسم', 'type' => 'text', 'default' => 'شركاؤنا في النجاح'],
+            'partners_subtitle' => ['label' => 'العنوان الفرعيّ', 'type' => 'text', 'default' => 'ثقة أكثر من 500 مدرسة ومؤسسة تعليمية رائدة'],
         ],
     ],
 
@@ -59,6 +138,28 @@ return [
         'fields' => [
             'contact_title' => ['label' => 'العنوان', 'type' => 'text', 'default' => 'يسعدنا تواصلك معنا'],
             'contact_description' => ['label' => 'الوصف', 'type' => 'textarea', 'default' => 'فريقنا جاهز للإجابة على جميع استفساراتكم المتعلقة بالمنصة، القيم، الأنشطة، أو الدعم الفني.'],
+        ],
+    ],
+
+    'cta' => [
+        'label' => 'قسم الدعوة للانضمام (CTA)',
+        'fields' => [
+            'cta_title' => ['label' => 'العنوان', 'type' => 'text', 'default' => 'جاهز للانضمام؟'],
+            'cta_subtitle' => ['label' => 'العنوان الفرعيّ', 'type' => 'text', 'default' => 'ابدأ رحلتك اليوم'],
+            'cta_button_text' => ['label' => 'نصّ الزرّ', 'type' => 'text', 'default' => 'ابدأ مجاناً'],
+        ],
+    ],
+
+    'footer' => [
+        'label' => 'الفوتر (روابط القدم)',
+        'fields' => [
+            'footer_logo_icon' => ['label' => 'أيقونة شعار الفوتر', 'type' => 'text', 'default' => '🌟'],
+            'footer_quick_title' => ['label' => 'عنوان الروابط السريعة', 'type' => 'text', 'default' => 'روابط سريعة'],
+            'footer_link_home' => ['label' => 'رابط 1', 'type' => 'text', 'default' => 'الرئيسية'],
+            'footer_link_features' => ['label' => 'رابط 2', 'type' => 'text', 'default' => 'المميزات'],
+            'footer_link_values' => ['label' => 'رابط 3', 'type' => 'text', 'default' => 'القيم'],
+            'footer_link_activities' => ['label' => 'رابط 4', 'type' => 'text', 'default' => 'الأنشطة'],
+            'footer_link_partners' => ['label' => 'رابط 5 (الشركاء)', 'type' => 'text', 'default' => 'الشركاء'],
         ],
     ],
 

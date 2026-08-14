@@ -219,7 +219,7 @@
                         @if($siteLogo)
                             <img src="{{ asset('storage/data/' . $siteLogo) }}" alt="{{ $siteName }}" class="logo-img" data-editable-image="site_logo">
                         @else
-                            <span class="logo-icon" data-editable="logo_icon" data-section="header">🌟</span>
+                            <span class="logo-icon" data-editable="logo_icon" data-section="header">{{ lc('logo_icon', '🌟') }}</span>
                             <span class="logo-text" data-editable="logo_text" data-section="header">{{ $siteName }}</span>
                         @endif
                     </a>
@@ -227,27 +227,27 @@
                 <div class="nav-links" id="navLinks">
                     <div class="editable-element" data-element="nav-link-1">
                         <x-element-actions />
-                        <a href="#home" class="nav-link active" data-editable="nav_link_1" data-section="header">الرئيسية</a>
+                        <a href="#home" class="nav-link active" data-editable="nav_link_1" data-section="header">{{ lc('nav_link_1', 'الرئيسية') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-2">
                         <x-element-actions />
-                        <a href="#features" class="nav-link" data-editable="nav_link_2" data-section="header">المميزات</a>
+                        <a href="#features" class="nav-link" data-editable="nav_link_2" data-section="header">{{ lc('nav_link_2', 'المميزات') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-3">
                         <x-element-actions />
-                        <a href="#values" class="nav-link" data-editable="nav_link_3" data-section="header">القيم</a>
+                        <a href="#values" class="nav-link" data-editable="nav_link_3" data-section="header">{{ lc('nav_link_3', 'القيم') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-4">
                         <x-element-actions />
-                        <a href="#activities" class="nav-link" data-editable="nav_link_4" data-section="header">الأنشطة</a>
+                        <a href="#activities" class="nav-link" data-editable="nav_link_4" data-section="header">{{ lc('nav_link_4', 'الأنشطة') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-5">
                         <x-element-actions />
-                        @if(setting('show_partners'))<a href="#partners" class="nav-link" data-editable="nav_link_5" data-section="header">الشركاء</a>@endif
+                        @if(setting('show_partners'))<a href="#partners" class="nav-link" data-editable="nav_link_5" data-section="header">{{ lc('nav_link_5', 'الشركاء') }}</a>@endif
                     </div>
                     <div class="editable-element" data-element="nav-link-6">
                         <x-element-actions />
-                        <a href="#support" class="nav-link" data-editable="nav_link_6" data-section="header">الدعم</a>
+                        <a href="#support" class="nav-link" data-editable="nav_link_6" data-section="header">{{ lc('nav_link_6', 'الدعم') }}</a>
                     </div>
                     {{-- زر تسجيل الدخول داخل قائمة الجوال (مخفي على الديسكتوب حيث يظهر في nav-actions) --}}
                     <a href="{{ url('/login') }}" class="nav-link nav-mobile-login">تسجيل الدخول</a>
@@ -263,11 +263,11 @@
                     </div>
                     <div class="editable-element" data-element="login-btn">
                         <x-element-actions />
-                        <a href="/login" class="btn btn-outline" data-editable="login_btn_text" data-section="header">تسجيل دخول</a>
+                        <a href="/login" class="btn btn-outline" data-editable="login_btn_text" data-section="header">{{ lc('login_btn_text', 'تسجيل دخول') }}</a>
                     </div>
                     <div class="editable-element" data-element="register-btn">
                         <x-element-actions />
-                        <a href="/register" class="btn btn-primary" data-editable="register_btn_text" data-section="header">ابدأ الآن</a>
+                        <a href="/register" class="btn btn-primary" data-editable="register_btn_text" data-section="header">{{ lc('register_btn_text', 'ابدأ الآن') }}</a>
                     </div>
                 </div>
                 <button class="menu-toggle" aria-label="فتح القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
@@ -314,18 +314,18 @@
                         <div class="hero-stats">
                             <div class="stat-item editable-element" data-element="stat-schools">
                                 <x-element-actions />
-                                <span class="stat-number" data-editable="stat_schools" data-section="hero">500+</span>
-                                <span class="stat-label" data-editable="stat_schools_label" data-section="hero">مدرسة</span>
+                                <span class="stat-number" data-editable="stat_schools" data-section="hero">{{ lc('stat_schools', '500+') }}</span>
+                                <span class="stat-label" data-editable="stat_schools_label" data-section="hero">{{ lc('stat_schools_label', 'مدرسة') }}</span>
                             </div>
                             <div class="stat-item editable-element" data-element="stat-students">
                                 <x-element-actions />
-                                <span class="stat-number" data-editable="stat_students" data-section="hero">50k+</span>
-                                <span class="stat-label" data-editable="stat_students_label" data-section="hero">طالب</span>
+                                <span class="stat-number" data-editable="stat_students" data-section="hero">{{ lc('stat_students', '50k+') }}</span>
+                                <span class="stat-label" data-editable="stat_students_label" data-section="hero">{{ lc('stat_students_label', 'طالب') }}</span>
                             </div>
                             <div class="stat-item editable-element" data-element="stat-teachers">
                                 <x-element-actions />
-                                <span class="stat-number" data-editable="stat_teachers" data-section="hero">2k+</span>
-                                <span class="stat-label" data-editable="stat_teachers_label" data-section="hero">معلم</span>
+                                <span class="stat-number" data-editable="stat_teachers" data-section="hero">{{ lc('stat_teachers', '2k+') }}</span>
+                                <span class="stat-label" data-editable="stat_teachers_label" data-section="hero">{{ lc('stat_teachers_label', 'معلم') }}</span>
                             </div>
                         </div>
                         @endif
@@ -460,11 +460,11 @@
                 <div class="values-flow">
                     <div class="flow-card editable-element" data-element="flow-card-1">
                         <x-element-actions />
-                        <div class="flow-number" data-editable="flow_1_number" data-section="values">1</div>
+                        <div class="flow-number" data-editable="flow_1_number" data-section="values">{{ lc('flow_1_number', '1') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-heart"/></svg></div>
-                        <h3 data-editable="flow_1_title" data-section="values">القيمة الكلية</h3>
-                        <p data-editable="flow_1_example" data-section="values">مثال: <strong>الرحمة</strong></p>
-                        <span class="flow-desc" data-editable="flow_1_desc" data-section="values">اختيار قيمة كلية تندرج تحتها مجموعة من القيم الضمنية</span>
+                        <h3 data-editable="flow_1_title" data-section="values">{{ lc('flow_1_title', 'القيمة الكلية') }}</h3>
+                        <p data-editable="flow_1_example" data-section="values">مثال: <strong>{{ lc('flow_1_example', 'الرحمة') }}</strong></p>
+                        <span class="flow-desc" data-editable="flow_1_desc" data-section="values">{{ lc('flow_1_desc', 'اختيار قيمة كلية تندرج تحتها مجموعة من القيم الضمنية') }}</span>
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-1">
@@ -474,11 +474,11 @@
                     
                     <div class="flow-card editable-element" data-element="flow-card-2">
                         <x-element-actions />
-                        <div class="flow-number" data-editable="flow_2_number" data-section="values">2</div>
+                        <div class="flow-number" data-editable="flow_2_number" data-section="values">{{ lc('flow_2_number', '2') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-star"/></svg></div>
-                        <h3 data-editable="flow_2_title" data-section="values">القيمة الضمنية</h3>
-                        <p data-editable="flow_2_example" data-section="values">مثال: <strong>بر الوالدين</strong></p>
-                        <span class="flow-desc" data-editable="flow_2_desc" data-section="values">حصر القيم الضمنية المتعلقة بالقيمة الكلية وإدراجها في المنظومة</span>
+                        <h3 data-editable="flow_2_title" data-section="values">{{ lc('flow_2_title', 'القيمة الضمنية') }}</h3>
+                        <p data-editable="flow_2_example" data-section="values">مثال: <strong>{{ lc('flow_2_example', 'بر الوالدين') }}</strong></p>
+                        <span class="flow-desc" data-editable="flow_2_desc" data-section="values">{{ lc('flow_2_desc', 'حصر القيم الضمنية المتعلقة بالقيمة الكلية وإدراجها في المنظومة') }}</span>
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-2">
@@ -488,11 +488,11 @@
                     
                     <div class="flow-card editable-element" data-element="flow-card-3">
                         <x-element-actions />
-                        <div class="flow-number" data-editable="flow_3_number" data-section="values">3</div>
+                        <div class="flow-number" data-editable="flow_3_number" data-section="values">{{ lc('flow_3_number', '3') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-lightbulb"/></svg></div>
-                        <h3 data-editable="flow_3_title" data-section="values">المفاهيم الرئيسية</h3>
-                        <p data-editable="flow_3_example" data-section="values">مثال: <strong>الإحسان إلى الوالدين</strong></p>
-                        <span class="flow-desc" data-editable="flow_3_desc" data-section="values">استخراج المفاهيم الرئيسية من القيمة الضمنية</span>
+                        <h3 data-editable="flow_3_title" data-section="values">{{ lc('flow_3_title', 'المفاهيم الرئيسية') }}</h3>
+                        <p data-editable="flow_3_example" data-section="values">مثال: <strong>{{ lc('flow_3_example', 'الإحسان إلى الوالدين') }}</strong></p>
+                        <span class="flow-desc" data-editable="flow_3_desc" data-section="values">{{ lc('flow_3_desc', 'استخراج المفاهيم الرئيسية من القيمة الضمنية') }}</span>
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-3">
@@ -502,11 +502,11 @@
                     
                     <div class="flow-card editable-element" data-element="flow-card-4">
                         <x-element-actions />
-                        <div class="flow-number" data-editable="flow_4_number" data-section="values">4</div>
+                        <div class="flow-number" data-editable="flow_4_number" data-section="values">{{ lc('flow_4_number', '4') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-book-open"/></svg></div>
-                        <h3 data-editable="flow_4_title" data-section="values">المعاني المرتبطة</h3>
-                        <p data-editable="flow_4_example" data-section="values">مثال: <strong>طاعة الوالدين – إكرام الوالدين – الدعاء لهما</strong></p>
-                        <span class="flow-desc" data-editable="flow_4_desc" data-section="values">تحديد أهم المعاني المتعلقة بالمفهوم</span>
+                        <h3 data-editable="flow_4_title" data-section="values">{{ lc('flow_4_title', 'المعاني المرتبطة') }}</h3>
+                        <p data-editable="flow_4_example" data-section="values">مثال: <strong>{{ lc('flow_4_example', 'طاعة الوالدين – إكرام الوالدين – الدعاء لهما') }}</strong></p>
+                        <span class="flow-desc" data-editable="flow_4_desc" data-section="values">{{ lc('flow_4_desc', 'تحديد أهم المعاني المتعلقة بالمفهوم') }}</span>
                     </div>
 
                     <div class="flow-arrow editable-element" data-element="flow-arrow-4">
@@ -516,11 +516,11 @@
 
                     <div class="flow-card editable-element" data-element="flow-card-5">
                         <x-element-actions />
-                        <div class="flow-number" data-editable="flow_5_number" data-section="values">5</div>
+                        <div class="flow-number" data-editable="flow_5_number" data-section="values">{{ lc('flow_5_number', '5') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_5_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-tasks"/></svg></div>
-                        <h3 data-editable="flow_5_title" data-section="values">الأنشطة</h3>
-                        <p data-editable="flow_5_example" data-section="values">مثال: <strong>حفل الإحسان</strong></p>
-                        <span class="flow-desc" data-editable="flow_5_desc" data-section="values">تنفيذ أنشطة ومشاريع لتعزيز المفاهيم والمعاني وتطبيقها</span>
+                        <h3 data-editable="flow_5_title" data-section="values">{{ lc('flow_5_title', 'الأنشطة') }}</h3>
+                        <p data-editable="flow_5_example" data-section="values">مثال: <strong>{{ lc('flow_5_example', 'حفل الإحسان') }}</strong></p>
+                        <span class="flow-desc" data-editable="flow_5_desc" data-section="values">{{ lc('flow_5_desc', 'تنفيذ أنشطة ومشاريع لتعزيز المفاهيم والمعاني وتطبيقها') }}</span>
                     </div>
                 </div>
                 
@@ -533,11 +533,11 @@
                 <div class="section-header">
                     <div class="editable-element" data-element="teams-title">
                         <x-element-actions />
-                        <h2 class="section-title" data-editable="teams_title" data-section="teams">التعلم التعاوني مع الفرق</h2>
+                        <h2 class="section-title" data-editable="teams_title" data-section="teams">{{ lc('teams_title', 'التعلم التعاوني مع الفرق') }}</h2>
                     </div>
                     <div class="editable-element" data-element="teams-subtitle">
                         <x-element-actions />
-                        <p class="section-subtitle" data-editable="teams_subtitle" data-section="teams">نظام فرق ذكي يحفز الطلاب على التعاون والتنافس الإيجابي</p>
+                        <p class="section-subtitle" data-editable="teams_subtitle" data-section="teams">{{ lc('teams_subtitle', 'نظام فرق ذكي يحفز الطلاب على التعاون والتنافس الإيجابي') }}</p>
                     </div>
                 </div>
                 
@@ -579,10 +579,10 @@
                     <div class="teams-visual">
                         <div class="team-card team-card-primary editable-element" data-element="team-card-1">
                             <x-element-actions />
-                            <div class="team-rank" data-editable="team_1_rank" data-section="teams">1</div>
+                            <div class="team-rank" data-editable="team_1_rank" data-section="teams">{{ lc('team_1_rank', '1') }}</div>
                             <div class="team-icon" data-editable-icon="team_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-trophy"/></svg></div>
-                            <h4 data-editable="team_1_name" data-section="teams">فريق الريادة</h4>
-                            <div class="team-points" data-editable="team_1_points" data-section="teams">2,450 نقطة</div>
+                            <h4 data-editable="team_1_name" data-section="teams">{{ lc('team_1_name', 'فريق الريادة') }}</h4>
+                            <div class="team-points" data-editable="team_1_points" data-section="teams">{{ lc('team_1_points', '2,450 نقطة') }}</div>
                             <div class="team-members">
                                 <span class="member-avatar">أ</span>
                                 <span class="member-avatar">م</span>
@@ -594,10 +594,10 @@
                         
                         <div class="team-card team-card-secondary editable-element" data-element="team-card-2">
                             <x-element-actions />
-                            <div class="team-rank" data-editable="team_2_rank" data-section="teams">2</div>
+                            <div class="team-rank" data-editable="team_2_rank" data-section="teams">{{ lc('team_2_rank', '2') }}</div>
                             <div class="team-icon" data-editable-icon="team_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-rocket"/></svg></div>
-                            <h4 data-editable="team_2_name" data-section="teams">فريق السمو</h4>
-                            <div class="team-points" data-editable="team_2_points" data-section="teams">2,180 نقطة</div>
+                            <h4 data-editable="team_2_name" data-section="teams">{{ lc('team_2_name', 'فريق السمو') }}</h4>
+                            <div class="team-points" data-editable="team_2_points" data-section="teams">{{ lc('team_2_points', '2,180 نقطة') }}</div>
                             <div class="team-members">
                                 <span class="member-avatar">ف</span>
                                 <span class="member-avatar">ر</span>
@@ -608,10 +608,10 @@
                         
                         <div class="team-card team-card-accent editable-element" data-element="team-card-3">
                             <x-element-actions />
-                            <div class="team-rank" data-editable="team_3_rank" data-section="teams">3</div>
+                            <div class="team-rank" data-editable="team_3_rank" data-section="teams">{{ lc('team_3_rank', '3') }}</div>
                             <div class="team-icon" data-editable-icon="team_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-gem"/></svg></div>
-                            <h4 data-editable="team_3_name" data-section="teams">فريق المعالي</h4>
-                            <div class="team-points" data-editable="team_3_points" data-section="teams">1,920 نقطة</div>
+                            <h4 data-editable="team_3_name" data-section="teams">{{ lc('team_3_name', 'فريق المعالي') }}</h4>
+                            <div class="team-points" data-editable="team_3_points" data-section="teams">{{ lc('team_3_points', '1,920 نقطة') }}</div>
                             <div class="team-members">
                                 <span class="member-avatar">ن</span>
                                 <span class="member-avatar">ب</span>
@@ -627,32 +627,32 @@
                 <div class="teams-benefits">
                     <div class="editable-element" data-element="benefits-title">
                         <x-element-actions />
-                        <h3 data-editable="benefits_title" data-section="teams">فوائد التعلم التعاوني</h3>
+                        <h3 data-editable="benefits_title" data-section="teams">{{ lc('benefits_title', 'فوائد التعلم التعاوني') }}</h3>
                     </div>
                     <div class="benefits-grid">
                         <div class="benefit-card editable-element" data-element="benefit-card-1">
                             <x-element-actions />
                             <div data-editable-icon="benefit_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-handshake"/></svg></div>
-                            <h4 data-editable="benefit_1_title" data-section="teams">تعزيز التعاون</h4>
-                            <p data-editable="benefit_1_desc" data-section="teams">يتعلم الطلاب العمل معاً وتحقيق الأهداف المشتركة</p>
+                            <h4 data-editable="benefit_1_title" data-section="teams">{{ lc('benefit_1_title', 'تعزيز التعاون') }}</h4>
+                            <p data-editable="benefit_1_desc" data-section="teams">{{ lc('benefit_1_desc', 'يتعلم الطلاب العمل معاً وتحقيق الأهداف المشتركة') }}</p>
                         </div>
                         <div class="benefit-card editable-element" data-element="benefit-card-2">
                             <x-element-actions />
                             <div data-editable-icon="benefit_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-comments"/></svg></div>
-                            <h4 data-editable="benefit_2_title" data-section="teams">تطوير التواصل</h4>
-                            <p data-editable="benefit_2_desc" data-section="teams">تحسين مهارات التواصل والاستماع للآخرين</p>
+                            <h4 data-editable="benefit_2_title" data-section="teams">{{ lc('benefit_2_title', 'تطوير التواصل') }}</h4>
+                            <p data-editable="benefit_2_desc" data-section="teams">{{ lc('benefit_2_desc', 'تحسين مهارات التواصل والاستماع للآخرين') }}</p>
                         </div>
                         <div class="benefit-card editable-element" data-element="benefit-card-3">
                             <x-element-actions />
                             <div data-editable-icon="benefit_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-brain"/></svg></div>
-                            <h4 data-editable="benefit_3_title" data-section="teams">تنمية التفكير</h4>
-                            <p data-editable="benefit_3_desc" data-section="teams">تبادل الأفكار يساعد على التفكير النقدي والإبداعي</p>
+                            <h4 data-editable="benefit_3_title" data-section="teams">{{ lc('benefit_3_title', 'تنمية التفكير') }}</h4>
+                            <p data-editable="benefit_3_desc" data-section="teams">{{ lc('benefit_3_desc', 'تبادل الأفكار يساعد على التفكير النقدي والإبداعي') }}</p>
                         </div>
                         <div class="benefit-card editable-element" data-element="benefit-card-4">
                             <x-element-actions />
                             <div data-editable-icon="benefit_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-heart"/></svg></div>
-                            <h4 data-editable="benefit_4_title" data-section="teams">بناء العلاقات</h4>
-                            <p data-editable="benefit_4_desc" data-section="teams">تكوين صداقات وعلاقات إيجابية بين الطلاب</p>
+                            <h4 data-editable="benefit_4_title" data-section="teams">{{ lc('benefit_4_title', 'بناء العلاقات') }}</h4>
+                            <p data-editable="benefit_4_desc" data-section="teams">{{ lc('benefit_4_desc', 'تكوين صداقات وعلاقات إيجابية بين الطلاب') }}</p>
                         </div>
                     </div>
                 </div>
@@ -666,11 +666,11 @@
                 <div class="section-header">
                     <div class="editable-element" data-element="partners-title">
                         <x-element-actions />
-                        <h2 class="section-title" data-editable="partners_title" data-section="partners">شركاؤنا في النجاح</h2>
+                        <h2 class="section-title" data-editable="partners_title" data-section="partners">{{ lc('partners_title', 'شركاؤنا في النجاح') }}</h2>
                     </div>
                     <div class="editable-element" data-element="partners-subtitle">
                         <x-element-actions />
-                        <p class="section-subtitle" data-editable="partners_subtitle" data-section="partners">ثقة أكثر من 500 مدرسة ومؤسسة تعليمية رائدة</p>
+                        <p class="section-subtitle" data-editable="partners_subtitle" data-section="partners">{{ lc('partners_subtitle', 'ثقة أكثر من 500 مدرسة ومؤسسة تعليمية رائدة') }}</p>
                     </div>
                 </div>
 
@@ -859,16 +859,16 @@
                 <div class="cta-content">
                     <div class="editable-element" data-element="cta-title">
                         <x-element-actions />
-                        <h2 data-editable="cta_title" data-section="cta">جاهز للانضمام؟</h2>
+                        <h2 data-editable="cta_title" data-section="cta">{{ lc('cta_title', 'جاهز للانضمام؟') }}</h2>
                     </div>
                     <div class="editable-element" data-element="cta-subtitle">
                         <x-element-actions />
-                        <p data-editable="cta_subtitle" data-section="cta">ابدأ رحلتك اليوم</p>
+                        <p data-editable="cta_subtitle" data-section="cta">{{ lc('cta_subtitle', 'ابدأ رحلتك اليوم') }}</p>
                     </div>
                     <div class="cta-actions">
                         <div class="editable-element" data-element="cta-button">
                             <x-element-actions />
-                            <a href="/register" class="btn btn-primary btn-lg" data-editable="cta_button_text" data-section="cta">ابدأ مجاناً</a>
+                            <a href="/register" class="btn btn-primary btn-lg" data-editable="cta_button_text" data-section="cta">{{ lc('cta_button_text', 'ابدأ مجاناً') }}</a>
                         </div>
                     </div>
                 </div>
