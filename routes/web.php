@@ -213,6 +213,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/pages/{page}/go-live', [$pm, 'goLive'])->name('pages.go-live');
             Route::post('/pages/{page}/take-down', [$pm, 'takeDown'])->name('pages.take-down');
             Route::post('/pages/{page}/translate', [$pm, 'translate'])->name('pages.translate');
+            Route::post('/pages/{page}/duplicate', [$pm, 'duplicate'])->name('pages.duplicate');
             Route::delete('/pages/{page}', [$pm, 'destroy'])->name('pages.destroy');
             Route::put('/parts/{part}', [$pm, 'updatePart'])->name('parts.update');
             // إدارة أجزاء القالب المتعدّدة (دفعة 1: هيدر/فوتر لكلّ صفحة)

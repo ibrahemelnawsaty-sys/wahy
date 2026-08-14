@@ -101,6 +101,39 @@ class PageManagerController extends Controller
         return response()->json(['success' => true, 'page' => $page]);
     }
 
+    /** تكرار صفحة — نسخة مسودّة بمسارٍ فريد، تنسخ الجسم والبيانات وإسناد الهيدر/الفوتر. */
+    public function duplicate(Request $request, Page $page): JsonResponse
+    {
+        $base = $page->slug . '-copy';
+        $slug = $base;
+        $n = 2;
+        while (Page::where('slug', $slug)->where('locale', $page->locale)->exists()) {
+            $slug = $base . '-' . $n;
+            $n++;
+        }
+
+        $copy = Page::create([
+            'translation_group' => (string) Str::uuid(),
+            'locale' => $page->locale,
+            'title' => $page->title . ' (نسخة)',
+            'slug' => $slug,
+            'status' => 'draft',
+            'blocks' => $page->blocks ?? [],
+            'header_part_id' => $page->header_part_id,
+            'footer_part_id' => $page->footer_part_id,
+            'hide_header' => $page->hide_header,
+            'hide_footer' => $page->hide_footer,
+            'use_site_header' => $page->use_site_header,
+            'use_site_footer' => $page->use_site_footer,
+            'meta_title' => $page->meta_title,
+            'meta_description' => $page->meta_description,
+            'created_by' => $request->user()?->id,
+            'updated_by' => $request->user()?->id,
+        ]);
+
+        return response()->json(['success' => true, 'page' => $copy], 201);
+    }
+
     public function destroy(Page $page): JsonResponse
     {
         PageResolver::disable($page->slug); // لا نُبقي علماً معلَّقاً لمسار محذوف

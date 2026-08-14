@@ -588,6 +588,14 @@
         }
         $('pbHistoryModal').hidden = false;
     }
+    function duplicatePage() {
+        if (!state.page.id) { toast('احفظ الصفحة أوّلاً قبل النسخ.', true); return; }
+        api(B.urls.update + '/' + state.page.id + '/duplicate', 'POST').then(function (res) {
+            if (!res.ok) { toast(res.data.message || 'تعذّر النسخ.', true); return; }
+            toast('أُنشئت نسخة — يجري فتحها…');
+            window.location.href = B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + res.data.page.id;
+        });
+    }
     function restoreRevision(id) {
         api(B.urls.update + '/' + state.page.id + '/restore/' + id, 'POST').then(function (res) {
             if (!res.ok) { toast(res.data.message || 'تعذّر الاسترجاع.', true); return; }
@@ -662,6 +670,7 @@
         $('pbDesign').onclick = function () { openDesign(); };
         $('pbTkSave').onclick = function () { saveDesign(); };
         $('pbHistory').onclick = function () { openRevisions(); };
+        $('pbDuplicate').onclick = function () { duplicatePage(); };
         $('pbRefreshPreview').onclick = function () { refreshPreview(); };
         $('pbOpenPreview').onclick = function () { openPreviewWindow(); };
         $('pbPatternsBtn').onclick = function () { openPatterns(); };

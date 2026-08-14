@@ -131,6 +131,26 @@ class PageBuilderV2PerPagePartsTest extends TestCase
         $this->assertTrue((bool) TemplatePart::find($id)->is_active);
     }
 
+    public function test_duplicate_creates_a_draft_copy_with_unique_slug(): void
+    {
+        $admin = $this->admin();
+        $page = Page::create([
+            'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
+            'title' => 'الأصل', 'slug' => 'orig', 'status' => 'published', 'published_at' => now(),
+            'blocks' => [['type' => 'hero', 'props' => ['title' => 'محتوى أصليّ']]],
+            'use_site_header' => true,
+        ]);
+
+        $copyId = $this->actingAs($admin)->postJson(route('admin.pb.pages.duplicate', $page))
+            ->assertCreated()->json('page.id');
+
+        $copy = Page::findOrFail($copyId);
+        $this->assertSame('orig-copy', $copy->slug);
+        $this->assertSame('draft', $copy->status);
+        $this->assertTrue((bool) $copy->use_site_header);
+        $this->assertSame('محتوى أصليّ', $copy->blocks[0]['props']['title']);
+    }
+
     public function test_preview_renders_full_document_with_live_header(): void
     {
         $admin = $this->admin();

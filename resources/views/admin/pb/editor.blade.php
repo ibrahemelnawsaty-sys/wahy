@@ -21,6 +21,7 @@
             <button class="btn btn-outline-primary btn-sm" id="pbGoLive"></button>
             <button class="btn btn-outline-secondary btn-sm" id="pbDesign">🎨 التصميم</button>
             <button class="btn btn-outline-secondary btn-sm" id="pbHistory">🕓 السجلّ</button>
+            <button class="btn btn-outline-secondary btn-sm" id="pbDuplicate">📄 نسخة</button>
             <span class="pb-lang" id="pbLang"></span>
         </div>
     </div>
