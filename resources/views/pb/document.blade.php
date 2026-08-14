@@ -26,12 +26,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $docTitle }}</title>
+    <link rel="canonical" href="{{ url('/pages/' . $page->slug) }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $docTitle }}">
+    <meta property="og:url" content="{{ url('/pages/' . $page->slug) }}">
+    <meta name="twitter:card" content="{{ !empty($page->og_image) ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $docTitle }}">
     @if(!empty($page->meta_description))
         <meta name="description" content="{{ $page->meta_description }}">
+        <meta property="og:description" content="{{ $page->meta_description }}">
+        <meta name="twitter:description" content="{{ $page->meta_description }}">
     @endif
     @if(!empty($page->og_image))
-        <meta property="og:title" content="{{ $docTitle }}">
         <meta property="og:image" content="{{ safe_url($page->og_image) }}">
+        <meta name="twitter:image" content="{{ safe_url($page->og_image) }}">
     @endif
     @include('pb.partials.base-styles')
 </head>
