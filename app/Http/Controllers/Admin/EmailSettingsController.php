@@ -29,6 +29,9 @@ class EmailSettingsController extends Controller
         'teacher_activity_rejected' => 'المعلّم — رفض نشاطه',
         // الأدمن
         'admin_activity_pending' => 'الأدمن — نشاط بانتظار الاعتماد النهائيّ',
+        // الدعم الفنّي + صاحب التذكرة
+        'support_ticket_new' => 'الدعم — تذكرة جديدة',
+        'support_ticket_reply' => 'المستخدم — ردّ على تذكرته',
     ];
 
     public function edit()

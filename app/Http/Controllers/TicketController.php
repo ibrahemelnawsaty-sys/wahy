@@ -69,17 +69,23 @@ class TicketController extends Controller
         ]);
 
         // إشعار كل موظّفي الدعم الفنيّ + كل السوبر أدمن (العنوان منوّع برقم التذكرة لتجاوز dedup)
-        $staffIds = User::whereIn('role', ['technical_support', 'super_admin'])
-            ->pluck('id');
+        $staff = User::whereIn('role', ['technical_support', 'super_admin'])->get();
+        $staffUrl = route('support.tickets.show', $ticket);
 
-        foreach ($staffIds as $staffId) {
+        foreach ($staff as $member) {
             NotificationService::send(
-                $staffId,
+                $member->id,
                 "تذكرة دعم جديدة #{$ticket->id}: {$ticket->subject}",
                 "رفع {$user->name} تذكرة دعم فنيّ جديدة بحاجة للمراجعة.",
                 'support_ticket',
-                route('support.tickets.show', $ticket),
+                $staffUrl,
             );
+
+            // بريد لفريق الدعم (خطّة أدوار البريد S1)
+            if ($member->email) {
+                \App\Services\Mail\MailGate::send($member, 'support_ticket_new', 'event',
+                    new \App\Mail\SupportTicketNewMail($member, (int) $ticket->id, (string) $ticket->subject, (string) $user->name, $staffUrl));
+            }
         }
 
         return redirect()

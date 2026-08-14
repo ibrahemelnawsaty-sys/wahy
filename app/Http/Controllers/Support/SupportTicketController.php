@@ -120,6 +120,13 @@ class SupportTicketController extends Controller
             route('tickets.show', $ticket),
         );
 
+        // بريد لصاحب التذكرة (خطّة أدوار البريد S2)
+        $owner = $ticket->user;
+        if ($owner && $owner->email) {
+            \App\Services\Mail\MailGate::send($owner, 'support_ticket_reply', 'transactional',
+                new \App\Mail\SupportTicketUpdateMail($owner, (int) $ticket->id, (string) $ticket->subject, 'وصلك ردّ جديد على تذكرتك', route('tickets.show', $ticket)));
+        }
+
         return redirect()
             ->route('support.tickets.show', $ticket)
             ->with('success', 'تم إرسال ردّك للمستخدم. ✅');
