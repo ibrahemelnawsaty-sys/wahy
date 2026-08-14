@@ -23,6 +23,23 @@ if (! function_exists('lc_forget')) {
     }
 }
 
+if (! function_exists('email_unsubscribe_url')) {
+    /** رابط تفضيلات/إلغاء اشتراك البريد الموقَّع لمستخدم (خطّة البريد P4). */
+    function email_unsubscribe_url($user): string
+    {
+        if (! $user) {
+            return url('/');
+        }
+        $id = is_object($user) ? $user->id : $user;
+
+        try {
+            return \Illuminate\Support\Facades\URL::signedRoute('email.unsubscribe', ['user' => $id]);
+        } catch (\Throwable $e) {
+            return url('/');
+        }
+    }
+}
+
 if (! function_exists('setting')) {
     /**
      * Get or set a setting value

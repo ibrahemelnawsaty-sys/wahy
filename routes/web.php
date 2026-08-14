@@ -62,6 +62,12 @@ Route::get('/', [PagesController::class, 'landing'])->name('landing');
 Route::get('/terms', [PagesController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PagesController::class, 'privacy'])->name('privacy');
 
+// تفضيلات البريد وإلغاء الاشتراك — رابط موقَّع بلا تسجيل (خطّة البريد P4)
+Route::get('/email/preferences/{user}', [\App\Http\Controllers\UnsubscribeController::class, 'show'])
+    ->name('email.unsubscribe')->middleware('signed');
+Route::post('/email/preferences/{user}', [\App\Http\Controllers\UnsubscribeController::class, 'update'])
+    ->name('email.unsubscribe.update')->middleware('signed');
+
 // Landing Content Management API
 Route::get('/api/landing/content', [\App\Http\Controllers\Api\LandingContentController::class, 'index']);
 
