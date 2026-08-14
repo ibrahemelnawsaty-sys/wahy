@@ -2071,16 +2071,25 @@ class TeacherController extends Controller
 
         $admins = User::where('school_id', $teacher->school_id)
             ->where('role', 'school_admin')
-            ->pluck('id');
+            ->get();
 
-        foreach ($admins as $adminId) {
+        $approvalUrl = route('school-admin.activity-approvals');
+        foreach ($admins as $admin) {
             NotificationService::send(
-                $adminId,
+                $admin->id,
                 '📝 نشاط بانتظار اعتمادك',
                 "أرسل المعلم {$teacher->name} النشاط \"{$activity->title}\" لاعتماده.",
                 'activity_pending',
-                route('school-admin.activity-approvals'),
+                $approvalUrl,
             );
+
+            // بريد لمدير المدرسة عبر البوّابة (أعلام + opt-out — خطّة أدوار البريد SA4)
+            if ($admin->email) {
+                \App\Services\Mail\MailGate::send(
+                    $admin, 'schooladmin_activity_pending', 'event',
+                    new \App\Mail\ActivityPendingApprovalMail($admin, $teacher, (string) $activity->title, $approvalUrl),
+                );
+            }
         }
     }
 
