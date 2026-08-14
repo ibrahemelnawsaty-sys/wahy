@@ -173,6 +173,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Events\StudentRegistered::class,
             [\App\Listeners\SendWelcomeNotification::class, 'handle'],
         );
+
+        // تسجيل كل بريد صادر تلقائيًّا في email_logs (خطّة البريد P3) — بلا تعديل أيّ Mailable.
+        Event::listen(\Illuminate\Mail\Events\MessageSending::class, [\App\Listeners\RecordEmailActivity::class, 'sending']);
+        Event::listen(\Illuminate\Mail\Events\MessageSent::class, [\App\Listeners\RecordEmailActivity::class, 'sent']);
     }
 
     /**

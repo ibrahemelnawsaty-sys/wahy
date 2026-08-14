@@ -244,6 +244,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/home-content', [$hc, 'edit'])->name('home-content.edit');
         Route::post('/home-content', [$hc, 'update'])->name('home-content.update');
 
+        // مراقبة البريد الصادر (خطّة البريد P3)
+        $el = \App\Http\Controllers\Admin\EmailLogController::class;
+        Route::get('/email-logs', [$el, 'index'])->name('email-logs.index');
+        Route::get('/email-logs/{emailLog}', [$el, 'show'])->name('email-logs.show');
+        Route::post('/email-logs/{emailLog}/resend', [$el, 'resend'])->name('email-logs.resend');
+
         // Theme Customization
         Route::get('/theme', [ThemeController::class, 'index'])->name('theme');
         Route::post('/theme', [ThemeController::class, 'update'])->name('theme.update');
