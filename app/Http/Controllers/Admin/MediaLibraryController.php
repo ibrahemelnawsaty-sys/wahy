@@ -16,9 +16,13 @@ class MediaLibraryController extends Controller
 {
     public function __construct(private MediaService $media) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $assets = MediaAsset::query()->latest('id')->paginate(50);
+        $query = MediaAsset::query()->latest('id');
+        if (($s = trim((string) $request->input('search'))) !== '') {
+            $query->where('alt', 'like', '%' . $s . '%');
+        }
+        $assets = $query->paginate(50);
         $assets->getCollection()->transform(fn (MediaAsset $a) => [
             'id' => $a->id,
             'url' => $a->url,      // للعرض (مصغّرة)

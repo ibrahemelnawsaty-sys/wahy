@@ -21,6 +21,21 @@ class PageBuilderV2MediaTest extends TestCase
         return User::factory()->create(['role' => 'super_admin']);
     }
 
+    public function test_media_search_by_alt_and_delete(): void
+    {
+        $admin = $this->admin();
+        $cat = MediaAsset::create(['disk' => 'public', 'path' => 'pb-media/cat.jpg', 'mime' => 'image/jpeg', 'size' => 100, 'width' => 10, 'height' => 10, 'alt' => 'قطة لطيفة']);
+        MediaAsset::create(['disk' => 'public', 'path' => 'pb-media/dog.jpg', 'mime' => 'image/jpeg', 'size' => 100, 'width' => 10, 'height' => 10, 'alt' => 'كلب']);
+
+        // بحث بالنصّ البديل يُرشِّح النتائج
+        $this->actingAs($admin)->getJson(route('admin.pb.media.index') . '?search=' . urlencode('قطة'))
+            ->assertOk()->assertJsonFragment(['alt' => 'قطة لطيفة'])->assertJsonMissing(['alt' => 'كلب']);
+
+        // حذف يزيل الصفّ
+        $this->actingAs($admin)->deleteJson(route('admin.pb.media.destroy', $cat->id))->assertOk();
+        $this->assertDatabaseMissing('pb_media', ['id' => $cat->id]);
+    }
+
     public function test_admin_uploads_raster_image(): void
     {
         Storage::fake('public');

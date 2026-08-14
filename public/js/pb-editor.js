@@ -525,19 +525,35 @@
     }
 
     /* ============ الوسائط ============ */
-    function openMedia(onPick) {
-        openMedia._cb = onPick; $('pbMediaModal').hidden = false;
-        api(B.urls.mediaIndex, 'GET').then(function (res) {
+    function loadMedia(search) {
+        var url = B.urls.mediaIndex + (search ? ('?search=' + encodeURIComponent(search)) : '');
+        api(url, 'GET').then(function (res) {
             var grid = $('pbMediaGrid'); grid.innerHTML = '';
             var list = (res.data && res.data.data) || [];
-            if (!list.length) grid.innerHTML = '<p class="pb-hint">لا وسائط بعد — ارفع صورة.</p>';
+            if (!list.length) { grid.innerHTML = '<p class="pb-hint">لا نتائج.</p>'; return; }
             list.forEach(function (a) {
                 var cell = document.createElement('div'); cell.className = 'pb-media-cell';
-                cell.innerHTML = '<img src="' + esc(a.url) + '" alt="' + esc(a.alt || '') + '">';
-                cell.onclick = function () { if (openMedia._cb) openMedia._cb(a); $('pbMediaModal').hidden = true; };
+                var img = document.createElement('img'); img.src = a.url; img.alt = a.alt || ''; img.title = a.alt || '';
+                img.onclick = function () { if (openMedia._cb) openMedia._cb(a); $('pbMediaModal').hidden = true; };
+                var del = document.createElement('button'); del.className = 'pb-media-del'; del.textContent = '🗑'; del.title = 'حذف';
+                del.onclick = function (e) { e.stopPropagation(); deleteMedia(a.id); };
+                cell.appendChild(img); cell.appendChild(del);
                 grid.appendChild(cell);
             });
         });
+    }
+    function deleteMedia(id) {
+        if (!confirm('حذف هذه الصورة نهائيّاً؟')) return;
+        api(B.urls.mediaStore + '/' + id, 'DELETE').then(function (res) {
+            if (!res.ok) { toast(res.data.message || 'تعذّر الحذف.', true); return; }
+            toast('حُذِفت الصورة.'); loadMedia($('pbMediaSearch').value.trim());
+        });
+    }
+    function openMedia(onPick) {
+        openMedia._cb = onPick;
+        $('pbMediaSearch').value = '';
+        $('pbMediaModal').hidden = false;
+        loadMedia('');
     }
     function uploadMedia(file) {
         var alt = $('pbMediaAlt').value.trim();
@@ -545,7 +561,7 @@
         var fd = new FormData(); fd.append('file', file); fd.append('alt', alt);
         api(B.urls.mediaStore, 'POST', fd, true).then(function (res) {
             if (!res.ok) { toast(res.data.message || 'تعذّر الرفع.', true); return; }
-            toast('رُفِعت الصورة.'); openMedia(openMedia._cb);
+            $('pbMediaAlt').value = ''; toast('رُفِعت الصورة.'); loadMedia('');
         });
     }
 
@@ -680,6 +696,8 @@
         ['pbTitle', 'pbSlug', 'pbLocale', 'pbMetaTitle', 'pbMetaDescription'].forEach(function (id) { $(id).addEventListener('change', function () { syncPageFields(); schedulePreview(); }); });
         document.querySelectorAll('[data-pb-close]').forEach(function (x) { x.onclick = function () { x.closest('.pb-modal').hidden = true; }; });
         $('pbMediaFile').addEventListener('change', function (e) { if (e.target.files[0]) uploadMedia(e.target.files[0]); });
+        var mediaTimer;
+        $('pbMediaSearch').addEventListener('input', function () { clearTimeout(mediaTimer); mediaTimer = setTimeout(function () { loadMedia($('pbMediaSearch').value.trim()); }, 300); });
     }
 
     /* ============ الإقلاع ============ */

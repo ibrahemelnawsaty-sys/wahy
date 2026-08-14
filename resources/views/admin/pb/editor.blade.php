@@ -108,6 +108,7 @@
                 <span>⬆ رفع صورة (تحتاج نصّاً بديلاً)</span>
             </label>
             <input type="text" id="pbMediaAlt" placeholder="النصّ البديل للصورة المرفوعة" class="pb-media-alt">
+            <input type="text" id="pbMediaSearch" placeholder="🔎 ابحث في الوسائط بالنصّ البديل…" class="pb-media-alt" autocomplete="off">
             <div class="pb-media-grid" id="pbMediaGrid"></div>
         </div>
     </div>
@@ -275,8 +276,10 @@
     .pb-upload{display:block;border:2px dashed #c7d2fe;border-radius:12px;padding:16px;text-align:center;cursor:pointer;color:#4338ca;font-weight:700;background:#eef2ff}
     .pb-media-alt{width:100%;margin:10px 0;border:1px solid #d1d5db;border-radius:9px;padding:8px 10px}
     .pb-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
-    .pb-media-cell{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;cursor:pointer;aspect-ratio:1;background:#f8fafc}
+    .pb-media-cell{position:relative;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;cursor:pointer;aspect-ratio:1;background:#f8fafc}
     .pb-media-cell img{width:100%;height:100%;object-fit:cover}
+    .pb-media-del{position:absolute;top:3px;inset-inline-end:3px;border:0;background:rgba(220,38,38,.92);color:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:.72rem;opacity:0;transition:opacity .15s}
+    .pb-media-cell:hover .pb-media-del{opacity:1}
     .pb-inserter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:12px}
     .pb-ins-btn{display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid #e5e7eb;background:#f8fafc;border-radius:12px;padding:14px 8px;cursor:pointer;font-weight:700;font-size:.82rem;color:#334155;text-align:center}
     .pb-ins-btn:hover{border-color:#a5b4fc;background:#eef2ff}
