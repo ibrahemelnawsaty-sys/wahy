@@ -63,6 +63,13 @@ class EmailCampaignTest extends TestCase
         $this->assertSame(1, $campaign->fresh()->total_recipients);
     }
 
+    public function test_create_and_index_pages_render(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $this->actingAs($admin)->get(route('admin.email-campaigns.create'))->assertOk()->assertSee('إرسال بريد جماعيّ');
+        $this->actingAs($admin)->get(route('admin.email-campaigns.index'))->assertOk();
+    }
+
     public function test_master_switch_off_blocks_campaign_distribution(): void
     {
         Setting::set('email_master_enabled', false, 'boolean');

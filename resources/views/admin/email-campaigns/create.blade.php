@@ -14,7 +14,7 @@
         <div class="ec-card">
             <label class="ec-label">العنوان (Subject)</label>
             <input type="text" name="subject" class="ec-input" value="{{ old('subject') }}" required placeholder="مثال: تحديث مهمّ من {{ setting('site_name','أثيل مكة') }}">
-            <div class="ec-hint">يمكنك استخدام <code>{{ '{{name}}' }}</code> لإدراج اسم المستلِم.</div>
+            <div class="ec-hint">يمكنك استخدام <code>@{{name}}</code> لإدراج اسم المستلِم.</div>
         </div>
 
         <div class="ec-card">
