@@ -87,13 +87,22 @@
     /* ============ رندرة اللوحة (الكتل المتاحة) ============ */
     function renderPalette() {
         var host = $('pbPalette'); host.innerHTML = '';
+        var cats = {};
         Object.keys(B.schema).forEach(function (type) {
-            var s = B.schema[type];
-            var btn = document.createElement('button');
-            btn.className = 'pb-add-btn';
-            btn.innerHTML = '<span class="pb-emoji">' + esc(s.icon || '▪') + '</span>' + esc(s.label || type);
-            btn.onclick = function () { addBlock(type, null); };
-            host.appendChild(btn);
+            var cat = B.schema[type].category || 'عامّ';
+            (cats[cat] = cats[cat] || []).push(type);
+        });
+        Object.keys(cats).forEach(function (cat) {
+            var h = document.createElement('div'); h.className = 'pb-pal-cat'; h.textContent = cat;
+            host.appendChild(h);
+            cats[cat].forEach(function (type) {
+                var s = B.schema[type];
+                var btn = document.createElement('button');
+                btn.className = 'pb-add-btn';
+                btn.innerHTML = '<span class="pb-emoji">' + esc(s.icon || '▪') + '</span>' + esc(s.label || type);
+                btn.onclick = function () { addBlock(type, null); };
+                host.appendChild(btn);
+            });
         });
     }
 

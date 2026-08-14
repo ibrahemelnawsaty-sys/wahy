@@ -134,7 +134,7 @@
 <div class="pb-toast" id="pbToast" hidden></div>
 
 <script>window.PB_BOOT = @json($boot);</script>
-<script src="{{ asset('js/pb-editor.js') }}?v=2"></script>
+<script src="{{ asset('js/pb-editor.js') }}?v=3"></script>
 @endsection
 
 @push('styles')
@@ -156,6 +156,8 @@
     .pb-palette,.pb-inspector,.pb-page-settings{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px}
     .pb-panel-label{font-weight:800;font-size:.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px}
     .pb-palette-list{display:flex;flex-direction:column;gap:6px}
+    .pb-pal-cat{font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin:8px 2px 2px}
+    .pb-pal-cat:first-child{margin-top:0}
     .pb-add-btn{display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;background:#f8fafc;border-radius:10px;
         padding:9px 10px;cursor:pointer;font-weight:700;font-size:.9rem;color:#334155;text-align:start}
     .pb-add-btn:hover{border-color:#a5b4fc;background:#eef2ff}
