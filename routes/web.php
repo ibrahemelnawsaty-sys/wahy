@@ -70,6 +70,10 @@ Route::post('/email/preferences/{user}', [\App\Http\Controllers\UnsubscribeContr
 // (أُزيل Api\LandingContentController + مسارات api/landing — المحرّر المدمج WYSIWYG، خطّة الدمج دفعة 4؛
 //  تحرير الصفحة الرئيسية صار خادميّاً بالكامل عبر «محتوى الصفحة الرئيسية» / landing_content / lc())
 
+// استقبال نموذج تواصل صفحات المحرّر v2 (عامّ، CSRF+throttle+honeypot)
+Route::post('/pb/form-submit', [\App\Http\Controllers\PageFormController::class, 'submit'])
+    ->middleware('throttle:8,1')->name('pb.form-submit');
+
 // عرض الصفحات الديناميكية بـ Page Builder
 Route::get('/pages/{slug}', [PagesController::class, 'showPage'])->name('pages.show');
 

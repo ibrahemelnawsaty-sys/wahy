@@ -50,6 +50,7 @@ class BlockRegistry
             'progress' => ['v' => 1, 'view' => 'pb.blocks.progress'],
             'alert' => ['v' => 1, 'view' => 'pb.blocks.alert'],
             'rating' => ['v' => 1, 'view' => 'pb.blocks.rating'],
+            'form' => ['v' => 1, 'view' => 'pb.blocks.form'],
         ];
     }
 
@@ -225,6 +226,10 @@ class BlockRegistry
                 ['key' => 'value', 'label' => 'عدد النجوم (0-5)', 'type' => 'number', 'min' => 0, 'max' => 5],
                 ['key' => 'label', 'label' => 'نصّ بجانبه', 'type' => 'text'],
             ]],
+            'form' => ['label' => 'نموذج تواصل', 'icon' => '✉️', 'category' => 'تفاعل', 'fields' => [
+                ['key' => 'title', 'label' => 'العنوان', 'type' => 'text'],
+                ['key' => 'button_text', 'label' => 'نصّ زرّ الإرسال', 'type' => 'text'],
+            ]],
         ];
     }
 
@@ -261,6 +266,7 @@ class BlockRegistry
             'progress' => ['label' => 'نسبة الإنجاز', 'value' => 75],
             'alert' => ['type' => 'info', 'text' => 'اكتب رسالة التنبيه هنا.'],
             'rating' => ['value' => 5, 'label' => 'تقييم ممتاز'],
+            'form' => ['title' => 'تواصل معنا', 'button_text' => 'إرسال'],
         ];
     }
 

@@ -128,6 +128,13 @@
     .pb-rating{display:flex;align-items:center;gap:10px;justify-content:center}
     .pb-stars{color:#f59e0b;font-size:1.5rem;letter-spacing:2px}
     .pb-rating-label{opacity:.75;font-weight:600}
+    .pb-form{max-width:560px;margin-inline:auto}
+    .pb-form-title{margin:0 0 16px;text-align:center}
+    .pb-form-fields{display:flex;flex-direction:column;gap:12px}
+    .pb-form-fields input,.pb-form-fields textarea{border:1px solid #d1d5db;border-radius:10px;padding:11px 14px;font:inherit;width:100%}
+    .pb-form-fields input:focus,.pb-form-fields textarea:focus{outline:0;border-color:var(--pb-primary,#818cf8)}
+    .pb-hpot{position:absolute !important;left:-9999px !important;width:1px;height:1px;opacity:0}
+    .pb-form-fields button{align-self:flex-start}
     /* هيدر/فوتر الموقع الموحّد للصفحات الثانوية */
     .pb-site-header{background:var(--pb-bg,#fff);border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:50}
     .pb-site-header-inner{max-width:1140px;margin-inline:auto;padding:12px 20px;display:flex;align-items:center;gap:20px}
