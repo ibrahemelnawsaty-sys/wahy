@@ -28,7 +28,8 @@ class PageBuilderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'page_name' => 'required|string|max:255|unique:page_builder,page_name',
-            'slug' => 'required|string|max:255|unique:page_builder,slug|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+            // slug=home محجوز: الصفحة الرئيسية تُدار من «محتوى الصفحة الرئيسية» فقط (خطّة الدمج دفعة 0)
+            'slug' => 'required|string|max:255|not_in:home,index|unique:page_builder,slug|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             'json_data' => 'required|json',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -92,7 +93,7 @@ class PageBuilderController extends Controller
 
         $validator = Validator::make($request->all(), [
             'page_name' => 'required|string|max:255|unique:page_builder,page_name,' . $id,
-            'slug' => 'required|string|max:255|unique:page_builder,slug,' . $id . '|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+            'slug' => 'required|string|max:255|not_in:home,index|unique:page_builder,slug,' . $id . '|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             'json_data' => 'required|json',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',

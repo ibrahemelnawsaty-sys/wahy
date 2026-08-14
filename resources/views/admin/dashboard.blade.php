@@ -226,7 +226,7 @@
                     <span class="admin-action-icon">📄</span>
                     <span class="admin-action-text">بناء صفحة جديدة</span>
                 </a>
-                <a href="{{ route('admin.landing-page') }}" class="admin-action-btn gradient-blue">
+                <a href="{{ route('admin.home-content.edit') }}" class="admin-action-btn gradient-blue">
                     <span class="admin-action-icon">🏠</span>
                     <span class="admin-action-text">تحرير الصفحة الرئيسية</span>
                 </a>

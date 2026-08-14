@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\ActivityManagementController;
 use App\Http\Controllers\Admin\BadgeController;
 use App\Http\Controllers\Admin\ConceptManagementController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\LandingPageController;
 use App\Http\Controllers\Admin\LessonManagementController;
 use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\ParentManagementController;
@@ -290,16 +289,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/pages/preview', [PageBuilderController::class, 'preview'])->name('pages.preview');
         Route::get('/pages/preview/show', [PageBuilderController::class, 'showPreview'])->name('pages.preview.show');
 
-        // Landing Page Customization
-        // ⚠️ تحذير تصادُم (مؤكَّد عبر `artisan route:list --path=landing-page`): هذه الثلاثة
-        // **ميّتة** — تُعيد مجموعةُ محرّر الصفحة الرئيسية أدناه (SuperAdminController، ~س.٤١٩)
-        // تسجيلَ نفس (method + uri)، وLaravel يُبقي **الأخير** في خريطة المطابقة. فالمُخدَّم فعلياً
-        // هو SuperAdminController، وقالب resources/views/admin/landing-page.blade.php لا يُبلَغ أبداً.
-        // نتيجةً لذلك أيّ تعديل هنا لا أثر له، وأيّ إعادة ترتيب تقلب المحرّر المُخدَّم صامتةً.
-        // لا تُعدَّل هذه الأسطر بمعزل: إمّا حذف الميّت كاملاً مع قالبه، أو حذف نظيره أدناه.
-        Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing.index');
-        Route::post('/landing-page/theme', [LandingPageController::class, 'updateTheme'])->name('landing.theme');
-        Route::post('/landing-page/content', [LandingPageController::class, 'updateContent'])->name('landing.content');
+        // (أُزيل محرّر Landing المكرّر الميّت LandingPageController — خطّة الدمج دفعة 1)
 
         // User Management
         Route::resource('users', UserManagementController::class);
@@ -450,15 +440,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{id}', [SuperAdminController::class, 'destroyPvpChallenge'])->name('destroy');
         });
 
-        // إدارة الصفحة الرئيسية (Landing Page Editor)
-        Route::get('/landing-page', [SuperAdminController::class, 'landingPage'])->name('landing-page');
-        Route::post('/landing-page/theme', [SuperAdminController::class, 'updateLandingTheme'])->name('landing-page.theme');
-        Route::post('/landing-page/content', [SuperAdminController::class, 'updateLandingContent'])->name('landing-page.content');
-        Route::post('/landing-page/add-block', [SuperAdminController::class, 'addLandingBlock'])->name('landing-page.add-block');
-        Route::put('/landing-page/block/{id}', [SuperAdminController::class, 'updateLandingBlock'])->name('landing-page.update-block');
-        Route::delete('/landing-page/block/{id}', [SuperAdminController::class, 'deleteLandingBlock'])->name('landing-page.delete-block');
-        Route::post('/landing-page/reorder-blocks', [SuperAdminController::class, 'reorderLandingBlocks'])->name('landing-page.reorder-blocks');
-        Route::post('/landing-page/import-current', [SuperAdminController::class, 'importCurrentLanding'])->name('landing-page.import-current');
+        // (أُزيل محرّر الصفحة الرئيسية القديم عبر page_builder — خطّة الدمج دفعة 2؛ المحرّر الموحّد = admin.home-content)
 
         // المستخدمين النشطين أون لاين
         Route::get('/online-users', [SuperAdminController::class, 'onlineUsers'])->name('online-users');
@@ -482,7 +464,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity-logs', fn () => redirect()->route('admin.activity-logs'))->name('super-admin.activity-logs');
         Route::get('/excel-management', fn () => redirect()->route('admin.excel-management'))->name('super-admin.excel-management');
         Route::get('/question-bank', fn () => redirect()->route('admin.question-bank.index'))->name('super-admin.question-bank.index');
-        Route::get('/landing-page', fn () => redirect()->route('admin.landing-page'))->name('super-admin.landing-page');
         Route::get('/api-documentation', fn () => redirect()->route('admin.api-documentation'))->name('super-admin.api-documentation');
     });
 
