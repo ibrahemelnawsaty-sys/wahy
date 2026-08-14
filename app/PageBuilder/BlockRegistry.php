@@ -40,6 +40,11 @@ class BlockRegistry
             'accordion' => ['v' => 1, 'view' => 'pb.blocks.accordion'],
             'tabs' => ['v' => 1, 'view' => 'pb.blocks.tabs', 'runtime' => true],
             'video' => ['v' => 1, 'view' => 'pb.blocks.video'],
+            // جولة كتل إضافيّة (تغذية راجعة)
+            'icon' => ['v' => 1, 'view' => 'pb.blocks.icon'],
+            'gallery' => ['v' => 1, 'view' => 'pb.blocks.gallery'],
+            'cover' => ['v' => 1, 'view' => 'pb.blocks.cover'],
+            'map' => ['v' => 1, 'view' => 'pb.blocks.map'],
         ];
     }
 
@@ -176,6 +181,29 @@ class BlockRegistry
                 ['key' => 'url', 'label' => 'رابط الفيديو', 'type' => 'url'],
                 ['key' => 'caption', 'label' => 'تعليق', 'type' => 'text'],
             ]],
+            'icon' => ['label' => 'أيقونة', 'icon' => '⭐', 'category' => 'محتوى', 'fields' => [
+                ['key' => 'icon', 'label' => 'الأيقونة (إيموجي)', 'type' => 'text'],
+                ['key' => 'size', 'label' => 'الحجم', 'type' => 'select', 'options' => ['sm' => 'صغير', 'md' => 'متوسّط', 'lg' => 'كبير']],
+                ['key' => 'align', 'label' => 'المحاذاة', 'type' => 'select', 'options' => ['start' => 'بداية', 'center' => 'وسط', 'end' => 'نهاية']],
+            ]],
+            'gallery' => ['label' => 'معرض صور', 'icon' => '🖼️', 'category' => 'وسائط', 'fields' => [
+                ['key' => 'items', 'label' => 'الصور', 'type' => 'repeater', 'fields' => [
+                    ['key' => 'src', 'label' => 'الصورة', 'type' => 'media'],
+                    ['key' => 'alt', 'label' => 'نصّ بديل', 'type' => 'text'],
+                ]],
+            ]],
+            'cover' => ['label' => 'غلاف بخلفيّة', 'icon' => '🌄', 'category' => 'تسويق', 'fields' => [
+                ['key' => 'bg', 'label' => 'صورة الخلفيّة', 'type' => 'media'],
+                ['key' => 'overlay', 'label' => 'التعتيم', 'type' => 'select', 'options' => ['none' => 'بلا', 'dark' => 'داكن', 'light' => 'فاتح']],
+                ['key' => 'title', 'label' => 'العنوان', 'type' => 'text'],
+                ['key' => 'subtitle', 'label' => 'العنوان الفرعيّ', 'type' => 'textarea'],
+                ['key' => 'button_text', 'label' => 'نصّ الزرّ', 'type' => 'text'],
+                ['key' => 'button_link', 'label' => 'رابط الزرّ', 'type' => 'url'],
+            ]],
+            'map' => ['label' => 'خريطة', 'icon' => '🗺️', 'category' => 'تضمين', 'fields' => [
+                ['key' => 'address', 'label' => 'العنوان/المكان', 'type' => 'text'],
+                ['key' => 'height', 'label' => 'الارتفاع (px)', 'type' => 'number', 'min' => 150, 'max' => 800],
+            ]],
         ];
     }
 
@@ -205,6 +233,9 @@ class BlockRegistry
             'separator' => ['style' => 'line'],
             'spacer' => ['height' => 40],
             'columns' => ['count' => 2],
+            'icon' => ['icon' => '⭐', 'size' => 'lg', 'align' => 'center'],
+            'cover' => ['title' => 'عنوان الغلاف', 'subtitle' => 'نصّ يظهر فوق الخلفيّة.', 'overlay' => 'dark', 'button_text' => 'ابدأ الآن', 'button_link' => '#'],
+            'map' => ['address' => 'مكة المكرمة', 'height' => 320],
         ];
     }
 

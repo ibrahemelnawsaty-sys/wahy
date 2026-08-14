@@ -57,6 +57,29 @@ class PageBuilderV2InteractiveTest extends TestCase
         $this->assertStringContainsString('جواب أوّل', $html);
     }
 
+    public function test_extra_blocks_render_and_are_injection_safe(): void
+    {
+        $html = $this->previewHtml([
+            ['type' => 'icon', 'props' => ['icon' => '🚀', 'size' => 'lg', 'align' => 'center']],
+            ['type' => 'cover', 'props' => ['title' => 'عنوان الغلاف', 'subtitle' => 'وصف', 'overlay' => 'dark']],
+            ['type' => 'map', 'props' => ['address' => 'مكة المكرمة', 'height' => 300]],
+            ['type' => 'gallery', 'props' => ['items' => [['src' => 'https://example.com/a.jpg', 'alt' => 'صورة']]]],
+        ]);
+        $this->assertStringContainsString('pb-icon-lg', $html);
+        $this->assertStringContainsString('عنوان الغلاف', $html);
+        $this->assertStringContainsString('maps.google.com/maps?q=', $html);
+        $this->assertStringContainsString('pb-gallery', $html);
+
+        // حقن في العنوان/الخريطة/الخلفيّة يُهرَّب/يُرفَض
+        $bad = $this->previewHtml([
+            ['type' => 'map', 'props' => ['address' => '"><script>alert(1)</script>']],
+            ['type' => 'cover', 'props' => ['title' => '<script>bad</script>', 'bg' => 'javascript:alert(1)']],
+        ]);
+        $this->assertStringNotContainsString('<script>alert(1)</script>', $bad);
+        $this->assertStringNotContainsString('<script>bad</script>', $bad);
+        $this->assertStringNotContainsString('javascript:alert', $bad);
+    }
+
     public function test_tabs_render_and_inject_runtime_conditionally(): void
     {
         $withTabs = $this->previewHtml([['type' => 'tabs', 'props' => ['items' => [

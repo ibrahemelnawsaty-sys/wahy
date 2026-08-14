@@ -86,6 +86,23 @@
     .pb-video-frame{position:relative;padding-top:56.25%;border-radius:var(--pb-radius,12px);overflow:hidden;background:#000}
     .pb-video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
     .pb-video-cap{text-align:center;opacity:.6;font-size:.9rem;margin-top:8px}
+    /* كتل إضافيّة: أيقونة/معرض/غلاف/خريطة */
+    .pb-icon{line-height:1}
+    .pb-icon-sm{font-size:1.7rem}.pb-icon-md{font-size:2.8rem}.pb-icon-lg{font-size:4.2rem}
+    .pb-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+    .pb-gallery-item{margin:0;border-radius:var(--pb-radius,12px);overflow:hidden;aspect-ratio:4/3}
+    .pb-gallery-item img{width:100%;height:100%;object-fit:cover}
+    .pb-cover{position:relative;min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;
+        background-size:cover;background-position:center;color:#fff;border-radius:var(--pb-radius,12px);overflow:hidden;padding:60px 24px}
+    .pb-cover::before{content:"";position:absolute;inset:0}
+    .pb-cover-dark::before{background:rgba(0,0,0,.5)}
+    .pb-cover-light::before{background:rgba(255,255,255,.55)}
+    .pb-cover-light{color:#1f2937}
+    .pb-cover:not([style])::before{background:linear-gradient(135deg,var(--pb-primary,#667eea),var(--pb-secondary,#764ba2))}
+    .pb-cover-inner{position:relative;max-width:720px}
+    .pb-cover-title{font-size:clamp(1.6rem,4vw,2.6rem);margin:0 0 12px;font-weight:800}
+    .pb-cover-sub{font-size:1.1rem;opacity:.95;margin:0 0 20px;line-height:1.7}
+    .pb-map iframe{display:block}
     /* هيدر/فوتر الموقع الموحّد للصفحات الثانوية */
     .pb-site-header{background:var(--pb-bg,#fff);border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:50}
     .pb-site-header-inner{max-width:1140px;margin-inline:auto;padding:12px 20px;display:flex;align-items:center;gap:20px}
