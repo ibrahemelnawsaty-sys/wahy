@@ -25,10 +25,17 @@ class BlockValidator
         return array_values(array_unique($errors));
     }
 
-    private static function walk(mixed $blocks, string $path, array &$errors): void
+    private const MAX_DEPTH = 8;
+
+    private static function walk(mixed $blocks, string $path, array &$errors, int $depth = 0): void
     {
         if (! is_array($blocks)) {
             $errors[] = "{$path}: يجب أن تكون قائمة كتل";
+
+            return;
+        }
+        if ($depth > self::MAX_DEPTH) {
+            $errors[] = "{$path}: تداخل عميق جدّاً (الحدّ " . self::MAX_DEPTH . ')';
 
             return;
         }
@@ -54,7 +61,7 @@ class BlockValidator
             }
 
             if (array_key_exists('children', $block)) {
-                self::walk($block['children'], "{$p}.children", $errors);
+                self::walk($block['children'], "{$p}.children", $errors, $depth + 1);
             }
         }
     }

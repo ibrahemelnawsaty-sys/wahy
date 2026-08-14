@@ -51,6 +51,8 @@ class BlockRegistry
             'alert' => ['v' => 1, 'view' => 'pb.blocks.alert'],
             'rating' => ['v' => 1, 'view' => 'pb.blocks.rating'],
             'form' => ['v' => 1, 'view' => 'pb.blocks.form'],
+            // حاوية قسم (بنية): خلفيّة تمتدّ + كتل متداخلة (أعمدة/غيرها) — كالووردبريس.
+            'section' => ['v' => 1, 'view' => 'pb.blocks.section'],
         ];
     }
 
@@ -89,7 +91,7 @@ class BlockRegistry
             ]],
             'iconlist' => ['label' => 'قائمة أيقونات', 'icon' => '✅', 'category' => 'نصّ', 'fields' => [
                 ['key' => 'items', 'label' => 'العناصر', 'type' => 'repeater', 'fields' => [
-                    ['key' => 'icon', 'label' => 'أيقونة (إيموجي)', 'type' => 'text'],
+                    ['key' => 'icon', 'label' => 'أيقونة (إيموجي)', 'type' => 'icon'],
                     ['key' => 'text', 'label' => 'النصّ', 'type' => 'text'],
                 ]],
             ]],
@@ -131,7 +133,7 @@ class BlockRegistry
             'features' => ['label' => 'مزايا', 'icon' => '⭐', 'category' => 'تسويق', 'fields' => [
                 ['key' => 'heading', 'label' => 'العنوان', 'type' => 'text'],
                 ['key' => 'items', 'label' => 'العناصر', 'type' => 'repeater', 'fields' => [
-                    ['key' => 'icon', 'label' => 'أيقونة', 'type' => 'text'],
+                    ['key' => 'icon', 'label' => 'أيقونة', 'type' => 'icon'],
                     ['key' => 'title', 'label' => 'العنوان', 'type' => 'text'],
                     ['key' => 'text', 'label' => 'الوصف', 'type' => 'textarea'],
                 ]],
@@ -188,7 +190,7 @@ class BlockRegistry
                 ['key' => 'caption', 'label' => 'تعليق', 'type' => 'text'],
             ]],
             'icon' => ['label' => 'أيقونة', 'icon' => '⭐', 'category' => 'محتوى', 'fields' => [
-                ['key' => 'icon', 'label' => 'الأيقونة (إيموجي)', 'type' => 'text'],
+                ['key' => 'icon', 'label' => 'الأيقونة (إيموجي)', 'type' => 'icon'],
                 ['key' => 'size', 'label' => 'الحجم', 'type' => 'select', 'options' => ['sm' => 'صغير', 'md' => 'متوسّط', 'lg' => 'كبير']],
                 ['key' => 'align', 'label' => 'المحاذاة', 'type' => 'select', 'options' => ['start' => 'بداية', 'center' => 'وسط', 'end' => 'نهاية']],
             ]],
@@ -230,6 +232,11 @@ class BlockRegistry
                 ['key' => 'title', 'label' => 'العنوان', 'type' => 'text'],
                 ['key' => 'button_text', 'label' => 'نصّ زرّ الإرسال', 'type' => 'text'],
             ]],
+            'section' => ['label' => 'قسم (حاوية)', 'icon' => '🧱', 'category' => 'حاويات', 'children' => true,
+                'desc' => 'حاوية بخلفيّة تحوي كتلاً متداخلة', 'fields' => [
+                    ['key' => 'width', 'label' => 'عرض المحتوى', 'type' => 'select',
+                        'options' => ['boxed' => 'محدود (وسط)', 'full' => 'كامل العرض']],
+                ]],
         ];
     }
 
@@ -267,6 +274,7 @@ class BlockRegistry
             'alert' => ['type' => 'info', 'text' => 'اكتب رسالة التنبيه هنا.'],
             'rating' => ['value' => 5, 'label' => 'تقييم ممتاز'],
             'form' => ['title' => 'تواصل معنا', 'button_text' => 'إرسال'],
+            'section' => ['width' => 'boxed'],
         ];
     }
 

@@ -16,6 +16,7 @@
 
         <div class="pb-tool-actions">
             <span class="pb-status" id="pbStatusPill"></span>
+            <span class="pb-autosave" id="pbAutosave"></span>
             <button class="btn btn-outline-secondary btn-sm" id="pbUndo" title="تراجع (Ctrl+Z)" disabled>↶</button>
             <button class="btn btn-outline-secondary btn-sm" id="pbRedo" title="إعادة (Ctrl+Shift+Z)" disabled>↷</button>
             <button class="btn btn-primary btn-sm" id="pbSave">💾 حفظ</button>
@@ -24,6 +25,9 @@
             <button class="btn btn-outline-secondary btn-sm" id="pbDesign">🎨 التصميم</button>
             <button class="btn btn-outline-secondary btn-sm" id="pbHistory">🕓 السجلّ</button>
             <button class="btn btn-outline-secondary btn-sm" id="pbDuplicate">📄 نسخة</button>
+            <button class="btn btn-outline-secondary btn-sm" id="pbExport" title="تصدير الصفحة كملفّ JSON">⬇ تصدير</button>
+            <button class="btn btn-outline-secondary btn-sm" id="pbImport" title="استيراد كتل من ملفّ JSON">⬆ استيراد</button>
+            <input type="file" id="pbImportFile" accept="application/json,.json" hidden>
             <span class="pb-lang" id="pbLang"></span>
         </div>
     </div>
@@ -150,6 +154,14 @@
     </div>
 </div>
 
+{{-- مُنتقي الأيقونات (إيموجي) --}}
+<div class="pb-modal" id="pbIconModal" hidden>
+    <div class="pb-modal-box">
+        <div class="pb-modal-head"><b>اختر رمزاً</b><button class="pb-modal-x" data-pb-close>✕</button></div>
+        <div class="pb-modal-body"><div class="pb-icon-grid" id="pbIconGrid"></div></div>
+    </div>
+</div>
+
 {{-- مُنتقي الكتل (بديل prompt) --}}
 <div class="pb-modal" id="pbInserterModal" hidden>
     <div class="pb-modal-box">
@@ -179,6 +191,7 @@
     .pb-step-tab.is-active .pb-step-num{background:#4338ca;color:#fff}
     .pb-tool-actions{margin-inline-start:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .pb-status{font-size:.82rem;color:#94a3b8}
+    .pb-autosave{font-size:.76rem;color:#16a34a;min-width:0;white-space:nowrap}
     .pb-lang{display:inline-flex;gap:4px;align-items:center}
     .pb-lang a,.pb-lang button{font-size:.76rem;font-weight:700;border:1px solid #e5e7eb;border-radius:8px;padding:3px 9px;background:#f8fafc;color:#475569;cursor:pointer;text-decoration:none}
     .pb-lang a.is-current{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
@@ -259,6 +272,18 @@
     .pb-icon-btn:hover{background:#e2e8f0}
     .pb-icon-btn.danger:hover{background:#fee2e2;color:#b91c1c}
     .pb-canvas-empty{border:2px dashed #e5e7eb;border-radius:12px;padding:24px 12px;text-align:center;color:#94a3b8;font-size:.85rem}
+    /* شريط الإدراج بين الكتل (يظهر عند تمرير المؤشّر) */
+    .pb-insbar{display:flex;justify-content:center;align-items:center;height:8px;position:relative}
+    .pb-insbar-btn{opacity:0;border:0;background:#6366f1;color:#fff;border-radius:50%;width:20px;height:20px;line-height:1;
+        cursor:pointer;font-weight:800;font-size:.8rem;padding:0;transition:opacity .12s,transform .12s;box-shadow:0 1px 4px rgba(99,102,241,.45)}
+    .pb-canvas:hover .pb-insbar-btn,.pb-children:hover .pb-insbar-btn{opacity:.45}
+    .pb-insbar-btn:hover{opacity:1;transform:scale(1.15)}
+    /* حقل الأيقونة + مُنتقي الإيموجي */
+    .pb-icon-field{display:flex;gap:6px}
+    .pb-icon-field input{flex:1}
+    .pb-icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px}
+    .pb-icon-pick{border:1px solid #e5e7eb;background:#f8fafc;border-radius:10px;padding:8px 0;font-size:1.4rem;cursor:pointer;line-height:1}
+    .pb-icon-pick:hover{border-color:#a5b4fc;background:#eef2ff;transform:scale(1.08)}
 
     .pb-field{margin-bottom:12px;display:flex;flex-direction:column;gap:5px}
     .pb-field label{font-weight:700;font-size:.82rem;color:#475569}
@@ -306,6 +331,8 @@
         .pb-field input,.pb-field select,.pb-field textarea{background:#0b1220;border-color:#334155;color:#e2e8f0}
         .pb-rep-item{background:#111827;border-color:#1f2937}
         .pb-preview-col{background:#111827;border-color:#334155}
+        .pb-icon-pick{background:#111827;border-color:#1f2937}
+        .pb-icon-pick:hover{background:#1e293b}
     }
 </style>
 @endpush

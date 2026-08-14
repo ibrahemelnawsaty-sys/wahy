@@ -135,6 +135,9 @@
     .pb-form-fields input:focus,.pb-form-fields textarea:focus{outline:0;border-color:var(--pb-primary,#818cf8)}
     .pb-hpot{position:absolute !important;left:-9999px !important;width:1px;height:1px;opacity:0}
     .pb-form-fields button{align-self:flex-start}
+    .pb-section{width:100%}
+    .pb-section-inner{max-width:var(--pb-container,1120px);margin-inline:auto;padding-inline:16px}
+    .pb-section-inner.is-full{max-width:none;padding-inline:0}
     /* هيدر/فوتر الموقع الموحّد للصفحات الثانوية */
     .pb-site-header{background:var(--pb-bg,#fff);border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:50}
     .pb-site-header-inner{max-width:1140px;margin-inline:auto;padding:12px 20px;display:flex;align-items:center;gap:20px}

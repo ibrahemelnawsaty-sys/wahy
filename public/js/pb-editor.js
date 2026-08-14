@@ -60,6 +60,29 @@
         if (r) r.disabled = hist.ptr >= hist.stack.length - 1;
     }
 
+    /* ============ الحفظ التلقائيّ (للجسم فقط، بعد أوّل حفظ يدويّ) ============ */
+    var auto = { timer: null, lastSaved: null };
+    function bodyFingerprint() {
+        return JSON.stringify(state.page.blocks) + '|' + [
+            state.page.title, state.page.slug, state.page.locale, state.page.meta_title, state.page.meta_description,
+            state.page.header_part_id, state.page.footer_part_id, state.page.hide_header, state.page.hide_footer,
+            state.page.use_site_header, state.page.use_site_footer,
+        ].join('~');
+    }
+    function setAutoLabel(txt) { var el = $('pbAutosave'); if (el) el.textContent = txt || ''; }
+    function scheduleAutosave() {
+        if (!state.page.id || state.region !== 'body') return; // لا حفظ تلقائيّ قبل الحفظ اليدويّ الأوّل ولا للأجزاء
+        clearTimeout(auto.timer);
+        auto.timer = setTimeout(doAutosave, 2000);
+    }
+    function doAutosave() {
+        if (!state.page.id || state.region !== 'body') return;
+        if (bodyFingerprint() === auto.lastSaved) return; // لا تغيير منذ آخر حفظ
+        setAutoLabel('… حفظ تلقائيّ');
+        var p = saveBody(true);
+        if (p && p.then) p.then(function (ok) { if (ok) { auto.lastSaved = bodyFingerprint(); setAutoLabel('✓ حُفِظ تلقائيّاً'); } else setAutoLabel(''); });
+    }
+
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
     var uid = 0;
@@ -90,10 +113,12 @@
         var d = (B.defaults && B.defaults[type]) || {};
         var blk = { type: type, v: 1, props: JSON.parse(JSON.stringify(d)) };
         if (B.schema[type] && B.schema[type].children) {
-            // الأعمدة تأتي بعمودين جاهزين كي تظهر فوراً ويسهل إضافة المزيد
+            // الحاويات تأتي بمحتوى مبدئيّ كي تظهر فوراً ويسهل إضافة المزيد داخلها
             blk.children = (type === 'columns') ? [
                 { type: 'richtext', v: 1, props: { html: '<p>العمود الأوّل — اكتب هنا…</p>' } },
                 { type: 'richtext', v: 1, props: { html: '<p>العمود الثاني — اكتب هنا…</p>' } },
+            ] : (type === 'section') ? [
+                { type: 'richtext', v: 1, props: { html: '<p>محتوى القسم — أضِف كتلاً هنا…</p>' } },
             ] : [];
         }
         return blk;
@@ -140,6 +165,39 @@
         renderAll();
     }
 
+    /* ============ نسخ/لصق الكتل (داخل الصفحة + عبر الصفحات via localStorage) ============ */
+    var clip = null;
+    function copyBlock(path) {
+        var b = blockAt(path); if (!b) return;
+        clip = JSON.parse(JSON.stringify(b));
+        try { localStorage.setItem('pb_clip', JSON.stringify(clip)); } catch (_) {}
+        toast('نُسِخت الكتلة — Ctrl+V للّصق.');
+    }
+    function readClip() {
+        if (clip) return clip;
+        try { var s = localStorage.getItem('pb_clip'); if (s) return JSON.parse(s); } catch (_) {}
+        return null;
+    }
+    function pasteBlock() {
+        var src = readClip(); if (!src) { toast('لا كتلة منسوخة بعد.', true); return; }
+        var copy = JSON.parse(JSON.stringify(src));
+        if (state.selected) {
+            var ci = containerAndIndex(state.selected), arr = ci[0], i = ci[1];
+            arr.splice(i + 1, 0, copy); state.selected = state.selected.slice(0, -1).concat([i + 1]);
+        } else { var root = rootArray(); root.push(copy); state.selected = [root.length - 1]; }
+        renderAll(); toast('لُصِقت الكتلة.');
+    }
+    // إدراج نوع جديد عند فهرس محدَّد (شريط «＋» بين الكتل)
+    function insertAt(basePath, index, type) {
+        var arr;
+        if (basePath && basePath.length) { var b = blockAt(basePath); b.children = b.children || []; arr = b.children; }
+        else arr = rootArray();
+        var at = Math.max(0, Math.min(arr.length, index));
+        arr.splice(at, 0, newBlock(type));
+        state.selected = (basePath || []).concat([at]);
+        renderAll();
+    }
+
     /* ============ لوحة الكتل (بوصف مختصر) ============ */
     function renderPalette() {
         var host = $('pbPalette'); host.innerHTML = '';
@@ -169,7 +227,15 @@
         return String(s).replace(/<[^>]*>/g, '').slice(0, 60);
     }
     function renderList(arr, basePath, host) {
+        function insBar(index) {
+            var b = document.createElement('div'); b.className = 'pb-insbar';
+            var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'pb-insbar-btn';
+            btn.textContent = '＋'; btn.title = 'إدراج كتلة هنا';
+            btn.onclick = function () { openInserter(function (t) { insertAt(basePath, index, t); }); };
+            b.appendChild(btn); host.appendChild(b);
+        }
         arr.forEach(function (block, i) {
+            insBar(i);
             var path = basePath.concat([i]);
             var s = B.schema[block.type] || { icon: '▪', label: block.type };
             var card = document.createElement('div');
@@ -182,12 +248,14 @@
                 '<div class="pb-card-ops">' +
                 '<button class="pb-icon-btn" data-op="up" title="أعلى">▲</button>' +
                 '<button class="pb-icon-btn" data-op="down" title="أسفل">▼</button>' +
+                '<button class="pb-icon-btn" data-op="copy" title="نسخ (Ctrl+C)">📋</button>' +
                 '<button class="pb-icon-btn" data-op="dup" title="استنساخ">⧉</button>' +
                 '<button class="pb-icon-btn danger" data-op="del" title="حذف">🗑</button></div>';
             card.addEventListener('click', function (e) {
                 var op = e.target.getAttribute && e.target.getAttribute('data-op');
                 if (op === 'up') { e.stopPropagation(); moveBlock(path, -1); }
                 else if (op === 'down') { e.stopPropagation(); moveBlock(path, 1); }
+                else if (op === 'copy') { e.stopPropagation(); copyBlock(path); }
                 else if (op === 'dup') { e.stopPropagation(); duplicateBlock(path); }
                 else if (op === 'del') { e.stopPropagation(); deleteBlock(path); }
                 else { state.selected = path; renderAll(); }
@@ -211,11 +279,17 @@
             if (s.children) {
                 var wrap = document.createElement('div'); wrap.className = 'pb-children';
                 renderList(block.children || [], path, wrap);
-                var add = document.createElement('button'); add.className = 'pb-rep-add'; add.textContent = '＋ كتلة داخل الأعمدة';
-                add.onclick = function () { openInserter(function (t) { addBlock(t, path); }, { noContainers: true }); };
+                var add = document.createElement('button'); add.className = 'pb-rep-add';
+                add.textContent = '＋ كتلة داخل «' + (s.label || block.type) + '»';
+                add.onclick = function () {
+                    // داخل الأعمدة: امنع الحاويات (تعشيش مربك). داخل القسم: اسمح بالأعمدة، امنع قسماً داخل قسم.
+                    var hide = block.type === 'columns' ? ['columns', 'section'] : ['section'];
+                    openInserter(function (t) { addBlock(t, path); }, { hide: hide });
+                };
                 wrap.appendChild(add); host.appendChild(wrap);
             }
         });
+        insBar(arr.length);
     }
     function renderCanvas() {
         var host = $('pbCanvas'); host.innerHTML = '';
@@ -235,7 +309,7 @@
             var cats = {};
             Object.keys(B.schema).forEach(function (type) {
                 var s = B.schema[type];
-                if (opts.noContainers && s.children) return;
+                if (opts.hide && opts.hide.indexOf(type) !== -1) return;
                 var label = s.label || type;
                 if (filter && (label + ' ' + type).toLowerCase().indexOf(filter) === -1) return;
                 var cat = s.category || 'عامّ';
@@ -376,6 +450,14 @@
             el = document.createElement('input'); el.type = 'checkbox'; el.checked = !!value;
             el.onchange = function () { onChange(el.checked); };
             wrap.classList.add('pb-field-toggle');
+        } else if (field.type === 'icon') {
+            var irow = document.createElement('div'); irow.className = 'pb-icon-field';
+            var ii = document.createElement('input'); ii.type = 'text'; ii.value = value || ''; ii.placeholder = 'إيموجي';
+            ii.oninput = function () { onChange(ii.value); };
+            var ib = document.createElement('button'); ib.type = 'button'; ib.className = 'btn btn-sm btn-outline-primary'; ib.textContent = 'اختر رمزاً';
+            ib.onclick = function () { openIconPicker(function (emoji) { ii.value = emoji; onChange(emoji); }); };
+            irow.appendChild(ii); irow.appendChild(ib);
+            wrap.appendChild(irow); return wrap;
         } else {
             el = document.createElement('input'); el.type = 'text'; el.value = value || '';
             el.oninput = function () { onChange(el.value); };
@@ -483,7 +565,7 @@
         gl.textContent = state.isLive ? '● إيقاف البثّ' : '○ بثّ مباشر';
         gl.disabled = !state.page.id || state.page.status !== 'published';
     }
-    function renderAll() { renderCanvas(); renderInspector(); renderStatus(); schedulePreview(); scheduleHistory(); }
+    function renderAll() { renderCanvas(); renderInspector(); renderStatus(); schedulePreview(); scheduleHistory(); scheduleAutosave(); }
 
     /* ============ الخطوات ============ */
     function showStep(n) {
@@ -522,9 +604,9 @@
         state.page.meta_description = $('pbMetaDescription').value.trim();
     }
 
-    function saveBody() {
+    function saveBody(quiet) {
         syncPageFields();
-        if (!state.page.title || !state.page.slug) { toast('العنوان والمسار مطلوبان.', true); return Promise.resolve(false); }
+        if (!state.page.title || !state.page.slug) { if (!quiet) toast('العنوان والمسار مطلوبان.', true); return Promise.resolve(false); }
         var payload = {
             title: state.page.title, slug: state.page.slug, locale: state.page.locale,
             meta_title: state.page.meta_title, meta_description: state.page.meta_description,
@@ -541,7 +623,8 @@
             state.page.status = res.data.page.status;
             if (state.page.status === 'published') state.page.has_unpublished = true; // حُفِظت مسودّة على صفحة منشورة
             if (isNew) history.replaceState({}, '', B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + state.page.id);
-            renderStatus(); renderLang(); toast('حُفِظت المسودّة — لن تظهر للجمهور حتى تضغط «نشر».'); return true;
+            auto.lastSaved = bodyFingerprint(); // اضبط خطّ الأساس كي لا يُعيد الحفظ التلقائيّ فوراً
+            renderStatus(); renderLang(); if (!quiet) toast('حُفِظت المسودّة — لن تظهر للجمهور حتى تضغط «نشر».'); return true;
         });
     }
     function savePart() {
@@ -652,6 +735,55 @@
             if (!res.ok) { toast(res.data.message || 'تعذّر الرفع.', true); return; }
             $('pbMediaAlt').value = ''; toast('رُفِعت الصورة.'); loadMedia('');
         });
+    }
+
+    /* ============ مُنتقي الأيقونات (إيموجي منسّق) ============ */
+    var ICONS = ('⭐🌟✨💡🔥⚡🎯🚀🏆🥇👑💎🔑🛡️✅✔️❤️💙💚💜🧡💛🤝👍👏🙌🙏💪🎉🎊🎁🔔📣' +
+        '📌📍🧭🗺️📅⏰⏳📚📖✏️🖊️🎨🖼️📷🎬🎵🎧🏫🎓👨‍🏫👩‍🏫🧑‍🎓👥👤🏠🏢🕌🌍🌙☀️🌈🌱🌳🍃🌸' +
+        '🏅💰🛒🧩⚙️🔧🛠️💻📱📞✉️📧🌐🔗📊📈💬❓❗➕🔒🔓🎖️💭🕮').match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\S/g) || [];
+    function openIconPicker(cb) {
+        openIconPicker._cb = cb;
+        var grid = $('pbIconGrid'); grid.innerHTML = '';
+        ICONS.forEach(function (em) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'pb-icon-pick'; b.textContent = em;
+            b.onclick = function () { $('pbIconModal').hidden = true; if (openIconPicker._cb) openIconPicker._cb(em); };
+            grid.appendChild(b);
+        });
+        $('pbIconModal').hidden = false;
+    }
+
+    /* ============ تصدير/استيراد الصفحة (JSON) ============ */
+    function exportPage() {
+        syncPageFields();
+        var data = {
+            pb_export: 1, title: state.page.title, slug: state.page.slug, locale: state.page.locale,
+            meta_title: state.page.meta_title, meta_description: state.page.meta_description,
+            blocks: state.page.blocks,
+            hide_header: state.page.hide_header, hide_footer: state.page.hide_footer,
+            use_site_header: state.page.use_site_header, use_site_footer: state.page.use_site_footer,
+        };
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a'); a.href = url; a.download = (state.page.slug || 'page') + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        toast('صُدِّرت الصفحة كملفّ JSON.');
+    }
+    function importPageFile(file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+            var data; try { data = JSON.parse(reader.result); } catch (_) { toast('ملفّ غير صالح (JSON).', true); return; }
+            if (!data || !Array.isArray(data.blocks)) { toast('الملفّ لا يحوي كتلاً صالحة.', true); return; }
+            if (!confirm('سيستبدل الاستيراد محتوى الجسم الحاليّ. متابعة؟')) return;
+            state.region = 'body';
+            document.querySelectorAll('.pb-region-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-pb-region') === 'body'); });
+            state.page.blocks = data.blocks;
+            if (typeof data.meta_title === 'string' && !state.page.meta_title) state.page.meta_title = data.meta_title;
+            if (typeof data.meta_description === 'string' && !state.page.meta_description) state.page.meta_description = data.meta_description;
+            state.selected = null; renderPageSettings(); renderAll();
+            toast('استُورِدت الكتل — راجِعها ثمّ احفظ. (تُنقّى الأنواع غير المعروفة عند الحفظ.)');
+        };
+        reader.readAsText(file);
     }
 
     /* ============ رموز التصميم ============ */
@@ -793,10 +925,13 @@
         $('pbOpenPreview').onclick = function () { openPreviewWindow(); };
         $('pbPatternsBtn').onclick = function () { openPatterns(); };
         $('pbSavePatternBtn').onclick = function () { saveAsPattern(); };
+        $('pbExport').onclick = function () { exportPage(); };
+        $('pbImport').onclick = function () { $('pbImportFile').click(); };
+        $('pbImportFile').addEventListener('change', function (e) { if (e.target.files[0]) { importPageFile(e.target.files[0]); e.target.value = ''; } });
         document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) { b.onclick = function () { setPreviewDevice(b.getAttribute('data-dev')); }; });
         $('pbNewHeader').onclick = function () { createNewPart('header'); };
         $('pbNewFooter').onclick = function () { createNewPart('footer'); };
-        ['pbTitle', 'pbSlug', 'pbLocale', 'pbMetaTitle', 'pbMetaDescription'].forEach(function (id) { $(id).addEventListener('change', function () { syncPageFields(); schedulePreview(); }); });
+        ['pbTitle', 'pbSlug', 'pbLocale', 'pbMetaTitle', 'pbMetaDescription'].forEach(function (id) { $(id).addEventListener('change', function () { syncPageFields(); schedulePreview(); scheduleAutosave(); }); });
         document.querySelectorAll('[data-pb-close]').forEach(function (x) { x.onclick = function () { x.closest('.pb-modal').hidden = true; }; });
         $('pbMediaFile').addEventListener('change', function (e) { if (e.target.files[0]) uploadMedia(e.target.files[0]); });
         // رسائل إطار المعاينة: تحديد الكتلة (نقر) + تحرير النصّ في المكان
@@ -833,12 +968,15 @@
         if (mod && k === 'y') { e.preventDefault(); redo(); return; }
         if (mod && k === 's') { e.preventDefault(); save(); return; }
         if (typing) return;
+        if (mod && k === 'c' && state.selected) { e.preventDefault(); copyBlock(state.selected); return; }
+        if (mod && k === 'v') { e.preventDefault(); pasteBlock(); return; }
         if (mod && k === 'd') { e.preventDefault(); if (state.selected) duplicateBlock(state.selected); return; }
         if ((e.key === 'Delete' || e.key === 'Backspace') && state.selected) { e.preventDefault(); deleteBlock(state.selected); }
     }
 
     /* ============ الإقلاع ============ */
     renderPalette(); bind(); renderPageSettings(); renderStatus(); renderLang();
+    auto.lastSaved = bodyFingerprint(); // خطّ أساس الحفظ التلقائيّ = الحالة المُحمَّلة (لا حفظ حتى تغيير فعليّ)
     $('pbUndo').onclick = function () { undo(); };
     $('pbRedo').onclick = function () { redo(); };
     document.addEventListener('keydown', onKey);

@@ -8,10 +8,13 @@ namespace App\PageBuilder;
  */
 class BlockTree
 {
+    /** أقصى عمق تداخل مسموح (حاويات: قسم/أعمدة). يحمي من انفجار تعاود عند استيراد مُصطنَع. */
+    private const MAX_DEPTH = 8;
+
     /** يُحضِّر شجرة كتل للرندرة الآمنة. */
-    public static function prepare(?array $blocks): array
+    public static function prepare(?array $blocks, int $depth = 0): array
     {
-        if (! is_array($blocks)) {
+        if (! is_array($blocks) || $depth > self::MAX_DEPTH) {
             return [];
         }
 
@@ -26,7 +29,7 @@ class BlockTree
 
             $block = self::upgrade($block);
             $block['props'] = is_array($block['props'] ?? null) ? $block['props'] : [];
-            $block['children'] = self::prepare($block['children'] ?? []);
+            $block['children'] = self::prepare($block['children'] ?? [], $depth + 1);
             $out[] = $block;
         }
 
