@@ -17,12 +17,15 @@ class Page extends Model
 
     protected $fillable = [
         'translation_group', 'locale', 'title', 'slug', 'status', 'blocks',
-        'header_part_id', 'footer_part_id', 'meta_title', 'meta_description',
+        'header_part_id', 'footer_part_id', 'hide_header', 'hide_footer',
+        'meta_title', 'meta_description',
         'og_image', 'published_at', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'blocks' => 'array',
+        'hide_header' => 'boolean',
+        'hide_footer' => 'boolean',
         'published_at' => 'datetime',
     ];
 

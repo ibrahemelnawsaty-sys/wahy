@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\PageBuilder\BlockRegistry;
 use App\PageBuilder\Models\Page;
+use App\PageBuilder\Models\TemplatePart;
 use App\PageBuilder\PageResolver;
 use Illuminate\Contracts\View\View;
 
@@ -36,6 +37,10 @@ class PageBuilderUiController extends Controller
     /** حمولة إقلاع المحرّر (تُبنى في الخادم لتفادي مصفوفات inline داخل توجيهات Blade). */
     private function boot(?Page $page, bool $isLive): array
     {
+        $locale = $page?->locale ?? 'ar';
+        $partsFor = fn (string $kind) => TemplatePart::kind($kind)->where('locale', $locale)
+            ->orderByDesc('is_active')->orderBy('name')->get(['id', 'name', 'is_active'])->toArray();
+
         return [
             'csrf' => csrf_token(),
             'schema' => BlockRegistry::schema(),
@@ -48,8 +53,13 @@ class PageBuilderUiController extends Controller
                 'meta_title' => $page->meta_title,
                 'meta_description' => $page->meta_description,
                 'blocks' => $page->blocks ?? [],
+                'header_part_id' => $page->header_part_id,
+                'footer_part_id' => $page->footer_part_id,
+                'hide_header' => (bool) $page->hide_header,
+                'hide_footer' => (bool) $page->hide_footer,
             ] : null,
             'isLive' => $isLive,
+            'parts' => ['header' => $partsFor('header'), 'footer' => $partsFor('footer')],
             'translations' => $page ? $page->translations()->get(['id', 'locale', 'title'])->toArray() : [],
             'urls' => [
                 'store' => route('admin.pb.pages.store'),
@@ -59,6 +69,9 @@ class PageBuilderUiController extends Controller
                 'preview' => route('admin.pb.preview'),
                 'activePart' => url('admin/pb/parts/active'),
                 'updatePart' => url('admin/pb/parts'),
+                'partsList' => url('admin/pb/parts'),
+                'partCreate' => route('admin.pb.parts.create'),
+                'partBase' => url('admin/pb/parts'),
                 'design' => url('admin/pb/design'),
                 'mediaIndex' => route('admin.pb.media.index'),
                 'mediaStore' => route('admin.pb.media.store'),

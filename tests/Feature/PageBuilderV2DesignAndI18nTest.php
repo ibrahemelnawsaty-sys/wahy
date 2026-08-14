@@ -62,14 +62,15 @@ class PageBuilderV2DesignAndI18nTest extends TestCase
         $admin = $this->admin();
         $this->actingAs($admin)->putJson(route('admin.pb.design.save'), ['primary' => '#0abcde']);
 
+        // صفحة ثانويّة (v2 لم يعد يخدم «/» — landing غير مشروط) تُخدَم عبر /pages/{slug}.
         Page::create([
             'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
-            'title' => 'ر', 'slug' => 'home', 'status' => 'published', 'published_at' => now(),
+            'title' => 'ر', 'slug' => 'design-page', 'status' => 'published', 'published_at' => now(),
             'blocks' => [['type' => 'hero', 'props' => ['title' => 'ت']]],
         ]);
-        PageResolver::enable('home');
+        PageResolver::enable('design-page');
 
-        $this->get('/')->assertOk()->assertSee('--pb-primary:#0abcde', false);
+        $this->get('/pages/design-page')->assertOk()->assertSee('--pb-primary:#0abcde', false);
     }
 
     public function test_design_endpoints_forbidden_for_non_admin(): void

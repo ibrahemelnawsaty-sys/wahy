@@ -215,6 +215,12 @@ Route::middleware('auth')->group(function () {
             Route::post('/pages/{page}/translate', [$pm, 'translate'])->name('pages.translate');
             Route::delete('/pages/{page}', [$pm, 'destroy'])->name('pages.destroy');
             Route::put('/parts/{part}', [$pm, 'updatePart'])->name('parts.update');
+            // إدارة أجزاء القالب المتعدّدة (دفعة 1: هيدر/فوتر لكلّ صفحة)
+            Route::get('/parts', [$pm, 'parts'])->name('parts.index');
+            Route::post('/parts', [$pm, 'createPart'])->name('parts.create');
+            Route::get('/parts/{part}', [$pm, 'showPart'])->name('parts.show')->whereNumber('part');
+            Route::post('/parts/{part}/set-default', [$pm, 'setDefaultPart'])->name('parts.set-default');
+            Route::post('/parts/{part}/restore/{revision}', [$pm, 'restorePart'])->name('parts.restore');
 
             // مكتبة الوسائط (ت-٨)
             $ml = \App\Http\Controllers\Admin\MediaLibraryController::class;

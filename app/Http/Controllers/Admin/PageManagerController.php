@@ -8,6 +8,7 @@ use App\PageBuilder\BlockValidator;
 use App\PageBuilder\Models\Page;
 use App\PageBuilder\Models\PageRevision;
 use App\PageBuilder\Models\TemplatePart;
+use App\PageBuilder\Models\TemplatePartRevision;
 use App\PageBuilder\PageDesign;
 use App\PageBuilder\PageResolver;
 use App\PageBuilder\PageService;
@@ -15,6 +16,7 @@ use App\PageBuilder\SlugGuard;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -205,12 +207,101 @@ class PageManagerController extends Controller
         return response()->json(['success' => true, 'tokens' => $tokens]);
     }
 
-    /** معاينة آمنة: تُصيَّر الكتل عبر المُصيِّر الموثوق نفسه (قائمة سماح + تهريب) — لا HTML خامّ. */
+    /**
+     * معاينة حيّة آمنة للمستند الكامل (هيدر+جسم+فوتر+تصميم) عبر المُصيِّر الموثوق نفسه
+     * (قائمة سماح + تهريب) — لا HTML خامّ. تقبل كتلاً حيّة (غير محفوظة) لكلّ منطقة، أو تشتقّ
+     * الهيدر/الفوتر من المُعرّف المختار أو الافتراضيّ العالميّ. تحترم إخفاء المناطق.
+     */
     public function preview(Request $request): View
     {
-        $blocks = BlockTree::prepare($this->decodeBlocks($request->input('blocks', [])));
+        $locale = (string) $request->input('locale', 'ar');
+        $bodyBlocks = BlockTree::prepare($this->decodeBlocks($request->input('body', $request->input('blocks', []))));
 
-        return view('pb.preview', ['blocks' => $blocks]);
+        $resolvePart = function (string $kind) use ($request, $locale): array {
+            if ($request->has($kind)) { // كتل حيّة مُرسَلة للمنطقة (تحرير غير محفوظ)
+                return BlockTree::prepare($this->decodeBlocks($request->input($kind)));
+            }
+            $partId = $request->input($kind . '_part_id');
+            $part = $partId ? TemplatePart::find($partId) : TemplatePart::activeFor($kind, $locale);
+
+            return BlockTree::prepare($part?->blocks ?? []);
+        };
+
+        return view('pb.preview-doc', [
+            'locale' => $locale,
+            'headerBlocks' => $request->boolean('hide_header') ? [] : $resolvePart('header'),
+            'bodyBlocks' => $bodyBlocks,
+            'footerBlocks' => $request->boolean('hide_footer') ? [] : $resolvePart('footer'),
+        ]);
+    }
+
+    /** سرد أجزاء القالب (هيدر/فوتر) للُغةٍ ما — لاختيار الجزء لكلّ صفحة. */
+    public function parts(Request $request): JsonResponse
+    {
+        $kind = (string) $request->input('kind');
+        abort_unless(in_array($kind, ['header', 'footer'], true), 404);
+        $locale = (string) $request->input('locale', 'ar');
+
+        return response()->json([
+            'parts' => TemplatePart::kind($kind)->where('locale', $locale)
+                ->orderByDesc('is_active')->orderBy('name')
+                ->get(['id', 'name', 'kind', 'is_active']),
+        ]);
+    }
+
+    /** إنشاء جزء قالب مُسمّى جديد (ليس الافتراضيّ العالميّ إلّا بتعيينه صراحةً). */
+    public function createPart(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'kind' => 'required|in:header,footer',
+            'name' => 'required|string|max:255',
+            'locale' => 'sometimes|string|max:8',
+        ]);
+
+        $part = TemplatePart::create([
+            'translation_group' => (string) Str::uuid(),
+            'locale' => $data['locale'] ?? 'ar',
+            'name' => $data['name'],
+            'kind' => $data['kind'],
+            'blocks' => [],
+            'is_active' => false,
+            'created_by' => $request->user()?->id,
+            'updated_by' => $request->user()?->id,
+        ]);
+
+        return response()->json(['success' => true, 'part' => [
+            'id' => $part->id, 'name' => $part->name, 'kind' => $part->kind, 'is_active' => false, 'blocks' => [],
+        ]], 201);
+    }
+
+    /** جلب جزء قالب بعينه (كتله) — لتحرير الجزء الذي اختارته الصفحة تحديداً. */
+    public function showPart(TemplatePart $part): JsonResponse
+    {
+        return response()->json(['part' => [
+            'id' => $part->id, 'name' => $part->name, 'kind' => $part->kind, 'blocks' => $part->blocks ?? [],
+        ]]);
+    }
+
+    /** جعل هذا الجزء الافتراضيّ العالميّ لنوعه ولغته (يخفض is_active عن أشقائه). */
+    public function setDefaultPart(TemplatePart $part): JsonResponse
+    {
+        DB::transaction(function () use ($part) {
+            TemplatePart::kind($part->kind)->where('locale', $part->locale)
+                ->where('id', '!=', $part->id)->update(['is_active' => false]);
+            $part->update(['is_active' => true]);
+        });
+
+        return response()->json(['success' => true]);
+    }
+
+    /** استرجاع لقطة سابقة لجزء قالب (مرآة restore للصفحات). */
+    public function restorePart(Request $request, TemplatePart $part, TemplatePartRevision $revision): JsonResponse
+    {
+        $part = $this->pages->restoreTemplatePartRevision($part, $revision, $request->user()?->id);
+
+        return response()->json(['success' => true, 'part' => [
+            'id' => $part->id, 'name' => $part->name, 'kind' => $part->kind, 'blocks' => $part->blocks ?? [],
+        ]]);
     }
 
     public function updatePart(Request $request, TemplatePart $part): JsonResponse
@@ -240,6 +331,8 @@ class PageManagerController extends Controller
             'blocks' => 'sometimes',
             'header_part_id' => 'nullable|integer|exists:pb_template_parts,id',
             'footer_part_id' => 'nullable|integer|exists:pb_template_parts,id',
+            'hide_header' => 'sometimes|boolean',
+            'hide_footer' => 'sometimes|boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
         ]);
@@ -248,12 +341,23 @@ class PageManagerController extends Controller
             'title' => $request->input('title'),
             'slug' => SlugGuard::normalize($request->input('slug')),
             'locale' => $request->input('locale', 'ar'),
-            'header_part_id' => $request->input('header_part_id'),
-            'footer_part_id' => $request->input('footer_part_id'),
             'meta_title' => $request->input('meta_title'),
             'meta_description' => $request->input('meta_description'),
             'translation_group' => $request->input('translation_group'),
         ];
+
+        // حقول المناطق تُطبَّق فقط حين تُرسَل صراحةً (has) — كي لا يمسح حفظٌ لا يتضمّنها الإسنادَ القائم.
+        // (null صريح يعني «الافتراضيّ العالميّ»؛ الغياب يعني «اتركها كما هي».)
+        foreach (['header_part_id', 'footer_part_id'] as $k) {
+            if ($request->has($k)) {
+                $data[$k] = $request->input($k);
+            }
+        }
+        foreach (['hide_header', 'hide_footer'] as $k) {
+            if ($request->has($k)) {
+                $data[$k] = $request->boolean($k);
+            }
+        }
 
         // نُدرِج blocks فقط حين تُرسَل فعلاً — كي لا يمسح حفظُ بيانات وصفيّة (بلا كتل) جسمَ الصفحة.
         if ($request->has('blocks')) {

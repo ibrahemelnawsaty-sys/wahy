@@ -105,14 +105,14 @@ class PageBuilderV2EditorUiTest extends TestCase
             'blocks' => [['type' => 'hero', 'props' => ['title' => 'ترويسة الموقع']]],
         ])->assertOk();
 
-        // صفحة home منشورة تشير للهيدر الفعّال + بثّ مباشر
+        // صفحة ثانويّة منشورة تستعمل الهيدر الفعّال الافتراضيّ + بثّ مباشر (v2 لا يخدم «/»).
         $page = Page::create([
             'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
-            'title' => 'ر', 'slug' => 'home', 'status' => 'published', 'published_at' => now(),
+            'title' => 'ر', 'slug' => 'about-us', 'status' => 'published', 'published_at' => now(),
             'blocks' => [['type' => 'hero', 'props' => ['title' => 'جسم الصفحة']]],
         ]);
-        \App\PageBuilder\PageResolver::enable('home');
+        \App\PageBuilder\PageResolver::enable('about-us');
 
-        $this->get('/')->assertOk()->assertSee('ترويسة الموقع')->assertSee('جسم الصفحة');
+        $this->get('/pages/about-us')->assertOk()->assertSee('ترويسة الموقع')->assertSee('جسم الصفحة');
     }
 }

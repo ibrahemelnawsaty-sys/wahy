@@ -38,15 +38,17 @@ class PageBuilderV2PublicRenderTest extends TestCase
         $this->get('/pages/about-us')->assertNotFound(); // لم يُخدَم v2، ولا نظير قديم
     }
 
-    public function test_home_serves_v2_when_flag_on(): void
+    public function test_home_slug_v2_never_overrides_static_landing(): void
     {
+        // القرار (خطّة دمج محرّرات الرئيسية): «/» يعرض landing.blade **دائماً** — المصدر الوحيد
+        // «محتوى الصفحة الرئيسية». v2 لم يعد يخدم الجذر حتى مع صفحة home منشورة + العلم مرفوع.
         $this->publishedHome();
         PageResolver::enable('home');
 
         $res = $this->get('/');
         $res->assertOk();
-        $res->assertSee('مرحبا بالعالم v2');
-        $res->assertSee('pb-page', false);
+        $res->assertSee('فوائد التعلم التعاوني', false); // landing.blade الثابتة هي المُصيَّرة
+        $res->assertDontSee('مرحبا بالعالم v2');          // v2 لا يتجاوز الجذر
     }
 
     public function test_draft_page_is_not_served_even_when_enabled(): void
@@ -86,19 +88,19 @@ class PageBuilderV2PublicRenderTest extends TestCase
         $this->assertFalse(PageResolver::isEnabled('about-us'));
     }
 
-    public function test_full_home_migration_flow_scaffold_go_live_served(): void
+    public function test_scaffolded_home_v2_does_not_serve_at_root(): void
     {
         $admin = User::factory()->create(['role' => 'super_admin']);
 
-        // ترحيل home: أمر التهيئة يُنشئها منشورة (home محجوز لكنّه مقصود للترحيل)
+        // أمر التهيئة ما زال يُنشئ صفّ home v2، لكنّه لم يعد يُخدَم على «/» (landing غير مشروط).
         $this->artisan('pb:scaffold-home')->assertExitCode(0);
         $home = Page::where('slug', 'home')->firstOrFail();
 
-        // go-live يقبل home رغم كونه محجوزاً (لا يرفضه حارس الحجز)
         $this->actingAs($admin)->postJson(route('admin.pb.pages.go-live', $home))->assertOk();
         $this->assertTrue(PageResolver::isEnabled('home'));
 
-        $this->get('/')->assertOk()->assertSee('منصّة قِيَم التعليميّة');
+        // رغم النشر والتفعيل، «/» يبقى landing.blade (لا يُخدَم v2 home).
+        $this->get('/')->assertOk()->assertSee('فوائد التعلم التعاوني', false);
     }
 
     public function test_metadata_only_update_preserves_blocks(): void

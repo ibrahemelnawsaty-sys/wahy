@@ -17,7 +17,7 @@
 
         <div class="pb-tool-actions">
             <span class="pb-status" id="pbStatusPill"></span>
-            <button class="btn btn-outline-secondary btn-sm" id="pbPreview">👁 معاينة</button>
+            <button class="btn btn-outline-secondary btn-sm" id="pbPreview">👁 معاينة حيّة</button>
             <button class="btn btn-primary btn-sm" id="pbSave">💾 حفظ</button>
             <button class="btn btn-success btn-sm" id="pbPublish">🚀 نشر</button>
             <button class="btn btn-outline-primary btn-sm" id="pbGoLive"></button>
@@ -44,6 +44,22 @@
                 </div>
                 <div class="pb-field"><label>عنوان SEO</label><input type="text" id="pbMetaTitle" placeholder="اختياريّ"></div>
                 <div class="pb-field"><label>وصف SEO</label><textarea id="pbMetaDescription" rows="2" placeholder="اختياريّ"></textarea></div>
+
+                {{-- هيدر/فوتر لكلّ صفحة (دفعة 1): افتراضيّ عامّ / بلا / جزء مُسمّى --}}
+                <div class="pb-field">
+                    <label>الهيدر لهذه الصفحة</label>
+                    <div class="pb-part-row">
+                        <select id="pbHeaderPart"></select>
+                        <button type="button" class="pb-mini-btn" id="pbNewHeader" title="هيدر جديد">＋</button>
+                    </div>
+                </div>
+                <div class="pb-field">
+                    <label>الفوتر لهذه الصفحة</label>
+                    <div class="pb-part-row">
+                        <select id="pbFooterPart"></select>
+                        <button type="button" class="pb-mini-btn" id="pbNewFooter" title="فوتر جديد">＋</button>
+                    </div>
+                </div>
             </div>
 
             <div class="pb-canvas" id="pbCanvas"></div>
@@ -88,18 +104,37 @@
     </div>
 </div>
 
-{{-- المعاينة --}}
-<div class="pb-modal" id="pbPreviewModal" hidden>
-    <div class="pb-modal-box pb-modal-lg">
-        <div class="pb-modal-head"><b>معاينة</b><button class="pb-modal-x" data-pb-close>✕</button></div>
-        <iframe id="pbPreviewFrame" class="pb-preview-frame" title="معاينة"></iframe>
+{{-- مُنتقي الكتل (بديل prompt) --}}
+<div class="pb-modal" id="pbInserterModal" hidden>
+    <div class="pb-modal-box">
+        <div class="pb-modal-head"><b>إضافة كتلة</b><button class="pb-modal-x" data-pb-close>✕</button></div>
+        <div class="pb-modal-body">
+            <input type="text" id="pbInserterSearch" placeholder="🔎 ابحث عن كتلة…" class="pb-media-alt" autocomplete="off">
+            <div class="pb-inserter-grid" id="pbInserterGrid"></div>
+        </div>
+    </div>
+</div>
+
+{{-- لوح المعاينة الحيّة (مُثبَّت، يتحدّث تلقائيّاً) --}}
+<div class="pb-preview-dock" id="pbPreviewDock" hidden>
+    <div class="pb-preview-dock-head">
+        <b>👁 معاينة حيّة</b>
+        <span class="pb-preview-devices" id="pbPreviewDevices">
+            <button type="button" data-dev="desktop" class="is-active" title="سطح المكتب">🖥</button>
+            <button type="button" data-dev="tablet" title="لوحيّ">◻</button>
+            <button type="button" data-dev="mobile" title="جوّال">▯</button>
+        </span>
+        <button type="button" class="pb-modal-x" id="pbPreviewDockClose" title="إغلاق">✕</button>
+    </div>
+    <div class="pb-preview-dock-body">
+        <iframe id="pbPreviewFrame" class="pb-preview-frame" title="معاينة حيّة"></iframe>
     </div>
 </div>
 
 <div class="pb-toast" id="pbToast" hidden></div>
 
 <script>window.PB_BOOT = @json($boot);</script>
-<script src="{{ asset('js/pb-editor.js') }}?v=1"></script>
+<script src="{{ asset('js/pb-editor.js') }}?v=2"></script>
 @endsection
 
 @push('styles')
@@ -161,7 +196,35 @@
     .pb-media-cell{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;cursor:pointer;aspect-ratio:1;background:#f8fafc}
     .pb-media-cell img{width:100%;height:100%;object-fit:cover}
     .pb-media-cell:hover{border-color:#6366f1}
-    .pb-preview-frame{flex:1;border:0;width:100%;background:#fff}
+    .pb-preview-frame{flex:1;border:0;width:100%;height:100%;background:#fff}
+    /* هيدر/فوتر لكلّ صفحة */
+    .pb-part-row{display:flex;gap:6px;align-items:center}
+    .pb-part-row select{flex:1}
+    .pb-mini-btn{border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;border-radius:9px;
+        width:34px;height:34px;flex:0 0 auto;cursor:pointer;font-weight:800;font-size:1rem}
+    .pb-mini-btn:hover{background:#e0e7ff}
+    /* مُنتقي الكتل */
+    .pb-inserter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:12px}
+    .pb-ins-btn{display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid #e5e7eb;background:#f8fafc;
+        border-radius:12px;padding:14px 8px;cursor:pointer;font-weight:700;font-size:.82rem;color:#334155;text-align:center}
+    .pb-ins-btn:hover{border-color:#a5b4fc;background:#eef2ff}
+    .pb-ins-btn .pb-emoji{font-size:1.5rem}
+    .pb-ins-cat{grid-column:1/-1;font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-top:6px}
+    /* لوح المعاينة الحيّة المُثبَّت */
+    .pb-preview-dock{position:fixed;top:0;inset-inline-end:0;width:46vw;max-width:760px;height:100vh;z-index:900;
+        background:#f1f5f9;border-inline-start:1px solid #cbd5e1;box-shadow:-8px 0 24px rgba(15,23,42,.12);
+        display:flex;flex-direction:column}
+    .pb-preview-dock-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-bottom:1px solid #e5e7eb}
+    .pb-preview-dock-head b{font-size:.9rem}
+    .pb-preview-devices{margin-inline-start:auto;display:flex;gap:3px;background:#f1f5f9;border-radius:8px;padding:3px}
+    .pb-preview-devices button{border:0;background:transparent;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.95rem}
+    .pb-preview-devices button.is-active{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .pb-preview-dock-body{flex:1;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:14px}
+    .pb-preview-dock-body .pb-preview-frame{width:100%;height:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.08);transition:width .2s}
+    .pb-preview-dock[data-dev="tablet"] .pb-preview-frame{width:768px;max-width:100%}
+    .pb-preview-dock[data-dev="mobile"] .pb-preview-frame{width:390px;max-width:100%}
+    .pb-editor.pb-has-dock .pb-grid{margin-inline-end:46vw}
+    @media (max-width:1200px){.pb-preview-dock{width:100vw;max-width:100vw}.pb-editor.pb-has-dock .pb-grid{margin-inline-end:0}}
     .pb-toast{position:fixed;bottom:20px;inset-inline-start:50%;transform:translateX(50%);background:#111827;color:#fff;
         padding:10px 18px;border-radius:10px;z-index:1100;font-weight:700;font-size:.9rem}
     .pb-toast.err{background:#b91c1c}

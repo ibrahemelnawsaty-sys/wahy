@@ -26,8 +26,10 @@ class PageService
                     'slug' => $data['slug'] ?? $page->slug,
                     'locale' => $data['locale'] ?? $page->locale,
                     'blocks' => $data['blocks'] ?? $page->blocks,
-                    'header_part_id' => $data['header_part_id'] ?? $page->header_part_id,
-                    'footer_part_id' => $data['footer_part_id'] ?? $page->footer_part_id,
+                    'header_part_id' => array_key_exists('header_part_id', $data) ? $data['header_part_id'] : $page->header_part_id,
+                    'footer_part_id' => array_key_exists('footer_part_id', $data) ? $data['footer_part_id'] : $page->footer_part_id,
+                    'hide_header' => array_key_exists('hide_header', $data) ? $data['hide_header'] : $page->hide_header,
+                    'hide_footer' => array_key_exists('hide_footer', $data) ? $data['hide_footer'] : $page->hide_footer,
                     'meta_title' => $data['meta_title'] ?? $page->meta_title,
                     'meta_description' => $data['meta_description'] ?? $page->meta_description,
                     'og_image' => $data['og_image'] ?? $page->og_image,
@@ -47,6 +49,8 @@ class PageService
                 'blocks' => $data['blocks'] ?? [],
                 'header_part_id' => $data['header_part_id'] ?? null,
                 'footer_part_id' => $data['footer_part_id'] ?? null,
+                'hide_header' => $data['hide_header'] ?? false,
+                'hide_footer' => $data['hide_footer'] ?? false,
                 'meta_title' => $data['meta_title'] ?? null,
                 'meta_description' => $data['meta_description'] ?? null,
                 'og_image' => $data['og_image'] ?? null,
@@ -79,6 +83,19 @@ class PageService
             $page->update(['blocks' => $revision->blocks, 'updated_by' => $userId]);
 
             return $page;
+        }, 3);
+    }
+
+    /** استرجاع لقطة جزء قالب (هيدر/فوتر) — يُنشئ لقطة للحالة الحاليّة قبله (تراجع قابل للتراجع). */
+    public function restoreTemplatePartRevision(TemplatePart $part, TemplatePartRevision $revision, ?int $userId): TemplatePart
+    {
+        abort_unless((int) $revision->template_part_id === (int) $part->id, 404);
+
+        return DB::transaction(function () use ($part, $revision, $userId) {
+            $this->snapshotPart($part, $userId, 'pre-restore');
+            $part->update(['blocks' => $revision->blocks, 'updated_by' => $userId]);
+
+            return $part;
         }, 3);
     }
 

@@ -91,9 +91,10 @@ class PageBuilderRenderableTypesTest extends TestCase
 
     public function test_one_renderable_block_among_unrenderable_ones_is_enough(): void
     {
+        // v1 لم يعد يخدم «/» (landing غير مشروط) — يُختبَر عبر صفحة ثانويّة /pages/{slug}.
         PageBuilder::create([
-            'page_name' => 'الصفحة الرئيسية',
-            'slug' => 'home',
+            'page_name' => 'من نحن',
+            'slug' => 'about-x',
             'json_data' => [
                 ['id' => 'b1', 'type' => 'stats', 'content' => ['items' => []]],
                 ['id' => 'b2', 'type' => 'heading', 'content' => ['level' => 'h2', 'text' => 'عنوان ظاهر']],
@@ -101,7 +102,7 @@ class PageBuilderRenderableTypesTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->get('/')->assertOk()->assertSee('عنوان ظاهر', false);
+        $this->get('/pages/about-x')->assertOk()->assertSee('عنوان ظاهر', false);
     }
 
     public function test_sections_page_with_only_unknown_components_falls_back(): void
@@ -120,15 +121,16 @@ class PageBuilderRenderableTypesTest extends TestCase
 
     public function test_sections_page_with_a_known_component_is_served(): void
     {
+        // v1 لم يعد يخدم «/» — يُختبَر عبر صفحة ثانويّة /pages/{slug}.
         PageBuilder::create([
-            'page_name' => 'الصفحة الرئيسية',
-            'slug' => 'home',
+            'page_name' => 'من نحن',
+            'slug' => 'about-y',
             'json_data' => ['sections' => [
                 ['columns' => 1, 'grid' => [[['type' => 'heading', 'content' => ['level' => 'h1', 'text' => 'مرحبا بالأقسام']]]]],
             ]],
             'is_active' => true,
         ]);
 
-        $this->get('/')->assertOk()->assertSee('مرحبا بالأقسام', false);
+        $this->get('/pages/about-y')->assertOk()->assertSee('مرحبا بالأقسام', false);
     }
 }

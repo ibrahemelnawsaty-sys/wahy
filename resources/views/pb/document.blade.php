@@ -10,8 +10,9 @@
     $locale = $page->locale ?? 'ar';
     $isRtl = in_array($locale, ['ar', 'he', 'fa', 'ur'], true);
 
-    $headerPart = $page->header ?: TemplatePart::activeFor('header', $locale);
-    $footerPart = $page->footer ?: TemplatePart::activeFor('footer', $locale);
+    // hide_header/hide_footer (دفعة 1): تُلغي المنطقة لهذه الصفحة صراحةً (تختلف عن null = الافتراضيّ العالميّ).
+    $headerPart = $page->hide_header ? null : ($page->header ?: TemplatePart::activeFor('header', $locale));
+    $footerPart = $page->hide_footer ? null : ($page->footer ?: TemplatePart::activeFor('footer', $locale));
 
     $headerBlocks = BlockTree::prepare($headerPart?->blocks ?? []);
     $bodyBlocks   = BlockTree::prepare($page->blocks ?? []);
