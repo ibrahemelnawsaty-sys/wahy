@@ -28,7 +28,7 @@
                     هذه معاينة صفحتك الحيّة.<br>اضغط «🧩 أنماط جاهزة» أو «أضف كتلة» من اليمين — وستظهر فوراً هنا بمحتوى مبدئيّ.
                 </div>
             @else
-                @include('pb.renderer', ['blocks' => $bodyBlocks])
+                @include('pb.renderer', ['blocks' => $bodyBlocks, 'pvTop' => true])
             @endif
         </main>
 
@@ -38,6 +38,15 @@
             <footer class="pb-page-footer">@include('pb.renderer', ['blocks' => $footerBlocks])</footer>
         @endif
     </div>
+    {{-- انقر أيّ كتلة في المعاينة لتحديدها وتحريرها في المحرّر (postMessage — لا حقن). --}}
+    <script>
+        document.addEventListener('click', function (e) {
+            var el = e.target.closest('[data-pb-path]');
+            if (!el) return;
+            e.preventDefault();
+            try { parent.postMessage({ pbSelect: el.getAttribute('data-pb-path') }, '*'); } catch (x) {}
+        });
+    </script>
     <button class="pb-theme-toggle" type="button" title="تبديل الوضع الليليّ/النهاريّ" aria-label="تبديل الوضع"
         onclick="(function(r){var d=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',d);try{localStorage.setItem('wahy-theme',d);}catch(e){}})(document.documentElement)">🌓</button>
     @if(\App\PageBuilder\BlockRegistry::needsRuntime(array_merge($headerBlocks, $bodyBlocks, $footerBlocks)))

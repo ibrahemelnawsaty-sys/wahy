@@ -27,6 +27,9 @@
     .pb-spacer{padding:0}
     .pb-cta{text-align:center;background:#f9fafb;border-radius:calc(var(--pb-radius,12px) + 4px)}
     .pb-image figcaption,.pb-image-caption{text-align:center;opacity:.6;font-size:.9rem;margin-top:8px}
+    /* «انقر للتحرير» في المعاينة (يظهر فقط داخل المحرّر عبر pvTop) */
+    .pb-pv-block{cursor:pointer;position:relative}
+    .pb-pv-block:hover{outline:2px dashed var(--pb-primary,#6366f1);outline-offset:-2px}
     /* دفعة 3: غلاف تصميم الكتلة (خلفيّة/حشو/عرض مُعقَّمة) */
     .pb-blockwrap{width:100%}
     .pb-blockwrap>.pb-block{margin-block:0}

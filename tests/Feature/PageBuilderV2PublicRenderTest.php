@@ -103,6 +103,27 @@ class PageBuilderV2PublicRenderTest extends TestCase
         $this->get('/')->assertOk()->assertSee('فوائد التعلم التعاوني', false);
     }
 
+    public function test_preview_tags_blocks_for_click_to_edit_but_public_does_not(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $body = [['type' => 'heading', 'props' => ['text' => 'عنوان', 'level' => 'h2']]];
+
+        // المعاينة تلفّ الكتل بـdata-pb-path لتفعيل «انقر للتحرير»
+        $preview = $this->actingAs($admin)->post(route('admin.pb.preview'), ['body' => $body])->assertOk()->getContent();
+        $this->assertStringContainsString('data-pb-path="0"', $preview);
+        $this->assertStringContainsString('<div class="pb-pv-block"', $preview);
+
+        // الصفحة العامّة **لا** تلفّها (بلا سمات تحرير)
+        $page = Page::create([
+            'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
+            'title' => 'ص', 'slug' => 'clk', 'status' => 'published', 'published_at' => now(), 'blocks' => $body,
+        ]);
+        PageResolver::enable('clk');
+        $public = $this->get('/pages/clk')->assertOk()->getContent();
+        $this->assertStringNotContainsString('data-pb-path', $public);
+        $this->assertStringNotContainsString('<div class="pb-pv-block"', $public);
+    }
+
     public function test_draft_edits_do_not_affect_live_until_republish(): void
     {
         $admin = User::factory()->create(['role' => 'super_admin']);
