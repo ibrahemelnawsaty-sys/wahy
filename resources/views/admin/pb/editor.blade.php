@@ -74,6 +74,7 @@
             {{-- لوحة الكتل --}}
             <aside class="pb-palette">
                 <button type="button" class="pb-patterns-btn" id="pbPatternsBtn">🧩 أنماط جاهزة</button>
+                <button type="button" class="pb-save-pattern-btn" id="pbSavePatternBtn">💾 احفظ الحاليّ كنمط</button>
                 <div class="pb-panel-label">أو أضف كتلة مفردة</div>
                 <div id="pbPalette" class="pb-palette-list"></div>
             </aside>
@@ -213,6 +214,10 @@
     .pb-patterns-btn{width:100%;border:1px solid #c7d2fe;background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#4338ca;
         border-radius:10px;padding:11px;font-weight:800;font-size:.9rem;cursor:pointer;margin-bottom:10px}
     .pb-patterns-btn:hover{background:#e0e7ff}
+    .pb-save-pattern-btn{width:100%;border:1px dashed #cbd5e1;background:#f8fafc;color:#475569;border-radius:10px;padding:8px;font-weight:700;font-size:.82rem;cursor:pointer;margin-bottom:10px}
+    .pb-save-pattern-btn:hover{border-color:#a5b4fc;color:#4338ca}
+    .pb-pat-del{border:0;background:transparent;color:#cbd5e1;cursor:pointer;font-size:.9rem;position:absolute;top:4px;inset-inline-end:6px}
+    .pb-pattern-card:hover .pb-pat-del{color:#ef4444}
     .pb-modal-wide{width:760px}
     .pb-patterns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:6px}
     .pb-pattern-card{border:1px solid #e5e7eb;background:#f8fafc;border-radius:12px;padding:16px 10px;cursor:pointer;text-align:center}

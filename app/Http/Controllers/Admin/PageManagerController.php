@@ -9,6 +9,7 @@ use App\PageBuilder\Models\Page;
 use App\PageBuilder\Models\PageRevision;
 use App\PageBuilder\Models\TemplatePart;
 use App\PageBuilder\Models\TemplatePartRevision;
+use App\PageBuilder\Models\UserPattern;
 use App\PageBuilder\PageDesign;
 use App\PageBuilder\PageResolver;
 use App\PageBuilder\PageService;
@@ -221,6 +222,46 @@ class PageManagerController extends Controller
         return response()->json(['part' => [
             'id' => $part->id, 'name' => $part->name, 'kind' => $part->kind, 'blocks' => $part->blocks ?? [],
         ]]);
+    }
+
+    /** أنماط المستخدم المحفوظة (سرد). */
+    public function userPatterns(): JsonResponse
+    {
+        return response()->json(['patterns' => UserPattern::latest('id')->get(['id', 'name'])]);
+    }
+
+    /** حفظ الكتل الحاليّة كنمط قابل لإعادة الاستخدام. */
+    public function savePattern(Request $request): JsonResponse
+    {
+        $request->validate(['name' => 'required|string|max:120', 'blocks' => 'required']);
+        $blocks = $this->decodeBlocks($request->input('blocks'));
+        if (! $blocks) {
+            return $this->reject('لا كتل لحفظها كنمط.');
+        }
+        if ($errors = BlockValidator::validate($blocks)) {
+            return $this->reject('محتوى غير صالح/غير آمن.', $errors);
+        }
+
+        $pat = UserPattern::create([
+            'name' => $request->input('name'),
+            'blocks' => $blocks,
+            'created_by' => $request->user()?->id,
+        ]);
+
+        return response()->json(['success' => true, 'pattern' => ['id' => $pat->id, 'name' => $pat->name]], 201);
+    }
+
+    /** جلب كتل نمط مستخدم (للإدراج). */
+    public function showPattern(UserPattern $pattern): JsonResponse
+    {
+        return response()->json(['pattern' => ['id' => $pattern->id, 'name' => $pattern->name, 'blocks' => $pattern->blocks ?? []]]);
+    }
+
+    public function deletePattern(UserPattern $pattern): JsonResponse
+    {
+        $pattern->delete();
+
+        return response()->json(['success' => true]);
     }
 
     /** رموز التصميم الحاليّة + الخطوط المتاحة (ت-١٠). */

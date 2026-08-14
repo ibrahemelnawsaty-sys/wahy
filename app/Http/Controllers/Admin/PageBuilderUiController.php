@@ -66,6 +66,7 @@ class PageBuilderUiController extends Controller
             'isLive' => $isLive,
             'parts' => ['header' => $partsFor('header'), 'footer' => $partsFor('footer')],
             'patterns' => \App\PageBuilder\Patterns::all(),
+            'userPatterns' => \App\PageBuilder\Models\UserPattern::latest('id')->get(['id', 'name'])->toArray(),
             'revisions' => $page ? $page->revisions()->limit(25)->get()->map(fn ($r) => [
                 'id' => $r->id,
                 'label' => $r->label,
@@ -84,6 +85,7 @@ class PageBuilderUiController extends Controller
                 'partCreate' => route('admin.pb.parts.create'),
                 'partBase' => url('admin/pb/parts'),
                 'design' => url('admin/pb/design'),
+                'userPatternBase' => url('admin/pb/user-patterns'),
                 'mediaIndex' => route('admin.pb.media.index'),
                 'mediaStore' => route('admin.pb.media.store'),
                 'indexUi' => route('admin.pb.ui.index'),

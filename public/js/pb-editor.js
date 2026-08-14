@@ -226,27 +226,68 @@
         setTimeout(function () { search.focus(); }, 30);
     }
 
-    /* ============ الأنماط الجاهزة ============ */
+    /* ============ الأنماط الجاهزة + أنماط المستخدم ============ */
+    function patternCard(label, icon, cat, onClick, onDelete) {
+        var card = document.createElement('button'); card.type = 'button'; card.className = 'pb-pattern-card';
+        var html = '<span class="pb-pattern-icon">' + esc(icon || '🧩') + '</span><div class="pb-pattern-label">' + esc(label) + '</div>';
+        if (cat) html += '<div class="pb-pattern-cat">' + esc(cat) + '</div>';
+        card.innerHTML = html; card.onclick = onClick;
+        if (onDelete) {
+            var del = document.createElement('span'); del.className = 'pb-pat-del'; del.textContent = '🗑'; del.title = 'حذف';
+            del.onclick = function (e) { e.stopPropagation(); onDelete(); };
+            card.appendChild(del);
+        }
+        return card;
+    }
     function openPatterns() {
         var grid = $('pbPatternsGrid'); grid.innerHTML = '';
         (B.patterns || []).forEach(function (pat) {
-            var card = document.createElement('button'); card.type = 'button'; card.className = 'pb-pattern-card';
-            card.innerHTML = '<span class="pb-pattern-icon">' + esc(pat.icon || '🧩') + '</span>' +
-                '<div class="pb-pattern-label">' + esc(pat.label) + '</div>' +
-                '<div class="pb-pattern-cat">' + esc(pat.category || '') + '</div>';
-            card.onclick = function () { insertPattern(pat); $('pbPatternsModal').hidden = true; };
-            grid.appendChild(card);
+            grid.appendChild(patternCard(pat.label, pat.icon, pat.category, function () { insertPattern(pat); $('pbPatternsModal').hidden = true; }));
         });
+        var ups = B.userPatterns || [];
+        if (ups.length) {
+            var h = document.createElement('div'); h.className = 'pb-ins-cat'; h.textContent = '💾 أنماطك المحفوظة'; grid.appendChild(h);
+            ups.forEach(function (up) {
+                grid.appendChild(patternCard(up.name, '💾', '', function () { insertUserPattern(up.id); }, function () { deleteUserPattern(up.id); }));
+            });
+        }
         $('pbPatternsModal').hidden = false;
     }
-    function insertPattern(pat) {
-        var arr = rootArray();
-        var blocks = JSON.parse(JSON.stringify(pat.blocks || []));
-        var startLen = arr.length;
-        blocks.forEach(function (b) { arr.push(b); });
-        if (blocks.length) state.selected = [startLen];
+    function insertBlocks(blocks) {
+        var arr = rootArray(); var start = arr.length;
+        (blocks || []).forEach(function (b) { arr.push(b); });
+        if ((blocks || []).length) state.selected = [start];
         renderAll();
+    }
+    function insertPattern(pat) {
+        insertBlocks(JSON.parse(JSON.stringify(pat.blocks || [])));
         toast('أُدرِج «' + (pat.label || 'النمط') + '» — عدّل محتواه من «بنية الصفحة».');
+    }
+    function insertUserPattern(id) {
+        api(B.urls.userPatternBase + '/' + id, 'GET').then(function (res) {
+            if (!res.ok) { toast('تعذّر جلب النمط.', true); return; }
+            insertBlocks(JSON.parse(JSON.stringify((res.data.pattern && res.data.pattern.blocks) || [])));
+            $('pbPatternsModal').hidden = true; toast('أُدرِج نمطك المحفوظ.');
+        });
+    }
+    function saveAsPattern() {
+        var blocks = rootArray();
+        if (!blocks.length) { toast('لا كتل لحفظها — أضِف كتلاً أوّلاً.', true); return; }
+        var name = prompt('اسم النمط (لإعادة استخدامه لاحقاً):');
+        if (!name) return;
+        api(B.urls.userPatternBase, 'POST', { name: name, blocks: blocks }).then(function (res) {
+            if (!res.ok) { toast(res.data.message || 'تعذّر الحفظ.', true); return; }
+            B.userPatterns = (B.userPatterns || []).concat([{ id: res.data.pattern.id, name: res.data.pattern.name }]);
+            toast('حُفِظ النمط «' + name + '» — تجده في «🧩 أنماط جاهزة».');
+        });
+    }
+    function deleteUserPattern(id) {
+        if (!confirm('حذف هذا النمط المحفوظ؟')) return;
+        api(B.urls.userPatternBase + '/' + id, 'DELETE').then(function (res) {
+            if (!res.ok) { toast('تعذّر الحذف.', true); return; }
+            B.userPatterns = (B.userPatterns || []).filter(function (p) { return p.id !== id; });
+            openPatterns();
+        });
     }
 
     /* ============ المفتّش ============ */
@@ -700,6 +741,7 @@
         $('pbRefreshPreview').onclick = function () { refreshPreview(); };
         $('pbOpenPreview').onclick = function () { openPreviewWindow(); };
         $('pbPatternsBtn').onclick = function () { openPatterns(); };
+        $('pbSavePatternBtn').onclick = function () { saveAsPattern(); };
         document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) { b.onclick = function () { setPreviewDevice(b.getAttribute('data-dev')); }; });
         $('pbNewHeader').onclick = function () { createNewPart('header'); };
         $('pbNewFooter').onclick = function () { createNewPart('footer'); };

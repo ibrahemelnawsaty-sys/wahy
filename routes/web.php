@@ -203,6 +203,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/parts/active/{kind}', [$pm, 'activePart'])->name('parts.active');
             Route::get('/design', [$pm, 'design'])->name('design.show');
             Route::put('/design', [$pm, 'saveDesign'])->name('design.save');
+            // أنماط المستخدم القابلة لإعادة الاستخدام
+            Route::get('/user-patterns', [$pm, 'userPatterns'])->name('user-patterns.index');
+            Route::post('/user-patterns', [$pm, 'savePattern'])->name('user-patterns.store');
+            Route::get('/user-patterns/{pattern}', [$pm, 'showPattern'])->name('user-patterns.show')->whereNumber('pattern');
+            Route::delete('/user-patterns/{pattern}', [$pm, 'deletePattern'])->name('user-patterns.destroy');
 
             // نقاط JSON للبيانات
             Route::get('/pages', [$pm, 'index'])->name('pages.index');
