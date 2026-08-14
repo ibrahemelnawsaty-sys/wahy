@@ -112,6 +112,13 @@ class ActivityApprovalController extends Controller
                 'activity_approved',
                 $target,
             );
+
+            // بريد المعلّم عبر البوّابة (خطّة أدوار البريد T3)
+            $teacher = \App\Models\User::find($activity->created_by);
+            if ($teacher && $teacher->email) {
+                \App\Services\Mail\MailGate::send($teacher, 'teacher_activity_approved', 'transactional',
+                    new \App\Mail\TeacherActivityApprovedMail($teacher, (string) $activity->title, $target, $publishedDirect));
+            }
         }
 
         return redirect()->route('admin.activity-approval.index')
@@ -150,6 +157,13 @@ class ActivityApprovalController extends Controller
                 'activity_rejected',
                 $target,
             );
+
+            // بريد المعلّم عبر البوّابة (خطّة أدوار البريد T4)
+            $teacher = \App\Models\User::find($activity->created_by);
+            if ($teacher && $teacher->email) {
+                \App\Services\Mail\MailGate::send($teacher, 'teacher_activity_rejected', 'transactional',
+                    new \App\Mail\TeacherActivityRejectedMail($teacher, (string) $activity->title, (string) $request->rejection_reason, $target));
+            }
         }
 
         return redirect()->route('admin.activity-approval.index')

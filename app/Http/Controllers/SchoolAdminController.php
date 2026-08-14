@@ -964,15 +964,23 @@ class SchoolAdminController extends Controller
             ->schoolApprove($activity, $schoolId, $validated['publish_mode'], Auth::id());
 
         // إشعار السوبر أدمن (كلّهم) بوجود نشاط بانتظار الاعتماد النهائي
-        $superAdmins = User::whereIn('role', ['admin', 'super_admin'])->pluck('id');
-        foreach ($superAdmins as $adminId) {
+        $superAdmins = User::whereIn('role', ['admin', 'super_admin'])->get();
+        $activityCreator = User::find($activity->created_by);
+        $adminApprovalUrl = route('admin.activity-approval.index');
+        foreach ($superAdmins as $admin) {
             NotificationService::send(
-                $adminId,
+                $admin->id,
                 '📝 نشاط بانتظار الاعتماد النهائي',
                 "اعتمد مدير المدرسة النشاط \"{$activity->title}\" وهو بانتظار مراجعتك.",
                 'activity_pending_admin',
-                route('admin.activity-approval.index'),
+                $adminApprovalUrl,
             );
+
+            // بريد للأدمن عبر البوّابة (خطّة أدوار البريد A1) — إعادة استخدام رسالة «بانتظار الاعتماد»
+            if ($admin->email && $activityCreator) {
+                \App\Services\Mail\MailGate::send($admin, 'admin_activity_pending', 'event',
+                    new \App\Mail\ActivityPendingApprovalMail($admin, $activityCreator, (string) $activity->title, $adminApprovalUrl));
+            }
         }
 
         return back()->with('success', 'تم اعتماد النشاط ورفعه للإدارة للمراجعة النهائية');
