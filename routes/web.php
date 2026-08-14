@@ -67,17 +67,8 @@ Route::get('/email/preferences/{user}', [\App\Http\Controllers\UnsubscribeContro
 Route::post('/email/preferences/{user}', [\App\Http\Controllers\UnsubscribeController::class, 'update'])
     ->name('email.unsubscribe.update')->middleware('signed');
 
-// Landing Content Management API
-Route::get('/api/landing/content', [\App\Http\Controllers\Api\LandingContentController::class, 'index']);
-
-// باقي العمليات محمية (Super Admin Only)
-Route::middleware(['auth', 'role:super_admin'])->prefix('api/landing')->group(function () {
-    Route::post('/content/update', [\App\Http\Controllers\Api\LandingContentController::class, 'update']);
-    Route::post('/content/bulk-update', [\App\Http\Controllers\Api\LandingContentController::class, 'bulkUpdate']);
-    Route::post('/content/upload-image', [\App\Http\Controllers\Api\LandingContentController::class, 'uploadImage']);
-    Route::post('/content/restore/{versionId}', [\App\Http\Controllers\Api\LandingContentController::class, 'restoreVersion']);
-    Route::post('/content/snapshot', [PagesController::class, 'landingSnapshot']);
-});
+// (أُزيل Api\LandingContentController + مسارات api/landing — المحرّر المدمج WYSIWYG، خطّة الدمج دفعة 4؛
+//  تحرير الصفحة الرئيسية صار خادميّاً بالكامل عبر «محتوى الصفحة الرئيسية» / landing_content / lc())
 
 // عرض الصفحات الديناميكية بـ Page Builder
 Route::get('/pages/{slug}', [PagesController::class, 'showPage'])->name('pages.show');

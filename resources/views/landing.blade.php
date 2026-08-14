@@ -144,16 +144,6 @@
     <script src="{{ asset('js/landing.js') }}?v={{ @filemtime(public_path('js/landing.js')) ?: '1' }}" defer></script>
     <script src="{{ asset('js/theme.js') }}?v={{ @filemtime(public_path('js/theme.js')) ?: '1' }}" defer></script>
     
-    @auth
-    @if(auth()->user()->role === 'super_admin')
-    <!-- Edit Mode Styles - ملف منفصل -->
-    <link rel="stylesheet" href="{{ asset('css/landing-edit-mode.css') }}">
-    <!-- Edit Mode JavaScript - يُحمّل أولاً قبل Alpine.js -->
-    <script src="{{ asset('js/landing-editor.js') }}"></script>
-    <!-- Alpine.js for Edit Mode - يُحمّل بعد landing-editor.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
-    @endif
-    @endauth
 
     {{-- ⚡ تحسين الأداء على الجوال (Issue 28) — توسيع للنسخة المُحسَّنة --}}
     <style>
@@ -207,14 +197,13 @@
         });
     </script>
 </head>
-<body @auth @if(auth()->user()->role === 'super_admin') x-data="landingEditor()" @endif @endauth>
+<body>
     <a href="#main-content" class="skip-link">الانتقال إلى المحتوى الرئيسي</a>
     
     <header class="header">
         <div class="container">
             <nav class="navbar" role="navigation">
                 <div class="editable-element" data-element="header-logo">
-                    <x-element-actions />
                     <a href="/" class="logo">
                         @if($siteLogo)
                             <img src="{{ asset('storage/data/' . $siteLogo) }}" alt="{{ $siteName }}" class="logo-img" data-editable-image="site_logo">
@@ -226,27 +215,21 @@
                 </div>
                 <div class="nav-links" id="navLinks">
                     <div class="editable-element" data-element="nav-link-1">
-                        <x-element-actions />
                         <a href="#home" class="nav-link active" data-editable="nav_link_1" data-section="header">{{ lc('nav_link_1', 'الرئيسية') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-2">
-                        <x-element-actions />
                         <a href="#features" class="nav-link" data-editable="nav_link_2" data-section="header">{{ lc('nav_link_2', 'المميزات') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-3">
-                        <x-element-actions />
                         <a href="#values" class="nav-link" data-editable="nav_link_3" data-section="header">{{ lc('nav_link_3', 'القيم') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-4">
-                        <x-element-actions />
                         <a href="#activities" class="nav-link" data-editable="nav_link_4" data-section="header">{{ lc('nav_link_4', 'الأنشطة') }}</a>
                     </div>
                     <div class="editable-element" data-element="nav-link-5">
-                        <x-element-actions />
                         @if(setting('show_partners'))<a href="#partners" class="nav-link" data-editable="nav_link_5" data-section="header">{{ lc('nav_link_5', 'الشركاء') }}</a>@endif
                     </div>
                     <div class="editable-element" data-element="nav-link-6">
-                        <x-element-actions />
                         <a href="#support" class="nav-link" data-editable="nav_link_6" data-section="header">{{ lc('nav_link_6', 'الدعم') }}</a>
                     </div>
                     {{-- زر تسجيل الدخول داخل قائمة الجوال (مخفي على الديسكتوب حيث يظهر في nav-actions) --}}
@@ -255,18 +238,15 @@
                 <div class="nav-actions">
                     <!-- Theme Toggle Button -->
                     <div class="editable-element" data-element="theme-toggle">
-                        <x-element-actions />
                         <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع">
                             <span class="icon-sun" data-editable-icon="theme_sun">☀️</span>
                             <span class="icon-moon" data-editable-icon="theme_moon">🌙</span>
                         </button>
                     </div>
                     <div class="editable-element" data-element="login-btn">
-                        <x-element-actions />
                         <a href="/login" class="btn btn-outline" data-editable="login_btn_text" data-section="header">{{ lc('login_btn_text', 'تسجيل دخول') }}</a>
                     </div>
                     <div class="editable-element" data-element="register-btn">
-                        <x-element-actions />
                         <a href="/register" class="btn btn-primary" data-editable="register_btn_text" data-section="header">{{ lc('register_btn_text', 'ابدأ الآن') }}</a>
                     </div>
                 </div>
@@ -276,34 +256,23 @@
     </header>
     <main id="main-content">
         <section class="hero" id="home">
-            @auth @if(auth()->user()->role === 'super_admin')
-            <div class="section-actions" style="display:none;">
-                <button onclick="window.landingEditorInstance.duplicateSection(this.closest('section'))" title="نسخ القسم">📋</button>
-                <button onclick="window.landingEditorInstance.editSectionProperties(this.closest('section'))" title="تعديل الخصائص">⚙️</button>
-                <button onclick="if(confirm('حذف هذا القسم؟')) this.closest('section').remove()" title="حذف القسم">🗑️</button>
-            </div>
-            @endif @endauth
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-text">
                         <div class="editable-element" data-element="hero-title">
-                            <x-element-actions />
                             <h1 class="hero-title" data-editable="hero_title" data-section="hero">{{ lc('hero_title', 'منصة ' . $siteName . '.. قيم نبوية يحيى بها الطالب') }}</h1>
                         </div>
                         <div class="editable-element" data-element="hero-description">
-                            <x-element-actions />
                             <p class="hero-description" data-editable="hero_description" data-section="hero">{{ lc('hero_description', 'من مكة المكرمة .. نبع الهدايات، انطلقت منصتنا تلهم الواردين من الطلاب والمعلمين.. تجمع بين المتعة والفائدة لتبني جيلاً فعالاً متخلقاً بقيم وأخلاق النبوة') }}</p>
                         </div>
                         <div class="hero-actions">
                             <div class="editable-element" data-element="hero-btn-primary">
-                                <x-element-actions />
                                 <a href="/register" class="btn btn-primary btn-lg">
                                     <span data-editable="hero_btn_primary" data-section="hero">{{ lc('hero_btn_primary', 'ابدأ الآن') }}</span>
                                     <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-arrow-left"/></svg>
                                 </a>
                             </div>
                             <div class="editable-element" data-element="hero-btn-secondary">
-                                <x-element-actions />
                                 <a href="#features" class="btn btn-secondary btn-lg">
                                     <span data-editable="hero_btn_secondary" data-section="hero">{{ lc('hero_btn_secondary', 'اعرف المزيد') }}</span>
                                     <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-chevron-down"/></svg>
@@ -313,17 +282,14 @@
                         @if(setting('show_hero_stats'))
                         <div class="hero-stats">
                             <div class="stat-item editable-element" data-element="stat-schools">
-                                <x-element-actions />
                                 <span class="stat-number" data-editable="stat_schools" data-section="hero">{{ lc('stat_schools', '500+') }}</span>
                                 <span class="stat-label" data-editable="stat_schools_label" data-section="hero">{{ lc('stat_schools_label', 'مدرسة') }}</span>
                             </div>
                             <div class="stat-item editable-element" data-element="stat-students">
-                                <x-element-actions />
                                 <span class="stat-number" data-editable="stat_students" data-section="hero">{{ lc('stat_students', '50k+') }}</span>
                                 <span class="stat-label" data-editable="stat_students_label" data-section="hero">{{ lc('stat_students_label', 'طالب') }}</span>
                             </div>
                             <div class="stat-item editable-element" data-element="stat-teachers">
-                                <x-element-actions />
                                 <span class="stat-number" data-editable="stat_teachers" data-section="hero">{{ lc('stat_teachers', '2k+') }}</span>
                                 <span class="stat-label" data-editable="stat_teachers_label" data-section="hero">{{ lc('stat_teachers_label', 'معلم') }}</span>
                             </div>
@@ -351,7 +317,6 @@
                             </video>
                         @else
                         <div class="editable-element" data-element="hero-image">
-                            <x-element-actions />
                             <picture>
                                 <source type="image/webp" data-srcset="{{ asset('images/hero-illustration.webp') }}">
                                 <img data-src="{{ asset('images/hero-illustration.svg') }}"
@@ -367,75 +332,57 @@
             </div>
         </section>
         <section class="features section" id="features">
-            @auth @if(auth()->user()->role === 'super_admin')
-            <div class="section-actions" style="display:none;">
-                <button onclick="window.landingEditorInstance.duplicateSection(this.closest('section'))" title="نسخ القسم">📋</button>
-                <button onclick="window.landingEditorInstance.editSectionProperties(this.closest('section'))" title="تعديل الخصائص">⚙️</button>
-                <button onclick="if(confirm('حذف هذا القسم؟')) this.closest('section').remove()" title="حذف القسم">🗑️</button>
-            </div>
-            @endif @endauth
             <div class="container">
                 <div class="section-header">
                     <div class="editable-element" data-element="features-title">
-                        <x-element-actions />
                         <h2 class="section-title" data-editable="features_title" data-section="features">{{ lc('features_title', 'لماذا ' . $siteName . '؟') }}</h2>
                     </div>
                     <div class="editable-element" data-element="features-subtitle">
-                        <x-element-actions />
                         <p class="section-subtitle" data-editable="features_subtitle" data-section="features">{{ lc('features_subtitle', 'نظام متكامل بمميزات فريدة') }}</p>
                     </div>
                 </div>
                 <div class="features-grid">
                     <article class="feature-card editable-element" data-element="feature-card-5">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_5_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-medal"/></svg></div>
                         <h3 data-editable="feature_5_title" data-section="features">{{ lc('feature_5_title', 'تحديات ومنافسات') }}</h3>
                         <p data-editable="feature_5_desc" data-section="features">{{ lc('feature_5_desc', 'تحفز المشاركين وترفع مستوى التفكير والإدراك') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-6">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_6_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-chart-bar"/></svg></div>
                         <h3 data-editable="feature_6_title" data-section="features">{{ lc('feature_6_title', 'قياس الأثر') }}</h3>
                         <p data-editable="feature_6_desc" data-section="features">{{ lc('feature_6_desc', 'وجود استبانات توضح مدى نسبة الاستفادة من الأنشطة والتمارين لتحقيق الهدف') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-7">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_7_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-tasks"/></svg></div>
                         <h3 data-editable="feature_7_title" data-section="features">{{ lc('feature_7_title', 'أنشطة سلوكية') }}</h3>
                         <p data-editable="feature_7_desc" data-section="features">{{ lc('feature_7_desc', 'تساعد على تطبيق المفاهيم وتحويلها إلى ممارسات حياتية') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-8">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_8_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-rocket"/></svg></div>
                         <h3 data-editable="feature_8_title" data-section="features">{{ lc('feature_8_title', 'تحفيز وتنشيط') }}</h3>
                         <p data-editable="feature_8_desc" data-section="features">{{ lc('feature_8_desc', 'يساعدان في رفع المعنويات ودفع التقدم وتحريك الطاقات الكامنة') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-9">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_9_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-gem"/></svg></div>
                         <h3 data-editable="feature_9_title" data-section="features">{{ lc('feature_9_title', 'الانسيابية والسهولة') }}</h3>
                         <p data-editable="feature_9_desc" data-section="features">{{ lc('feature_9_desc', 'الوضوح واليسر والمتابعة بانتظام ودون تعقيد وتكلف') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-1">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-qrcode"/></svg></div>
                         <h3 data-editable="feature_1_title" data-section="features">{{ lc('feature_1_title', 'QR فريد لكل مستخدم') }}</h3>
                         <p data-editable="feature_1_desc" data-section="features">{{ lc('feature_1_desc', 'كل طالب ومعلم لديه رمز QR خاص للدخول السريع وتسجيل الحضور والأنشطة') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-2">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-trophy"/></svg></div>
                         <h3 data-editable="feature_2_title" data-section="features">{{ lc('feature_2_title', 'لوحة صدارة ذكية') }}</h3>
                         <p data-editable="feature_2_desc" data-section="features">{{ lc('feature_2_desc', 'نظام تنافسي محفز يعرض أفضل الطلاب والفرق بناءً على الإنجازات والنقاط') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-3">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-brain"/></svg></div>
                         <h3 data-editable="feature_3_title" data-section="features">{{ lc('feature_3_title', 'اقتراح أنشطة بالذكاء الاصطناعي') }}</h3>
                         <p data-editable="feature_3_desc" data-section="features">{{ lc('feature_3_desc', 'نظام ذكي يقترح أنشطة مخصصة لكل طالب حسب مستواه واهتماماته') }}</p>
                     </article>
                     <article class="feature-card editable-element" data-element="feature-card-4">
-                        <x-element-actions />
                         <div class="feature-icon" data-editable-icon="feature_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-user-check"/></svg></div>
                         <h3 data-editable="feature_4_title" data-section="features">{{ lc('feature_4_title', 'متابعة وتقييم المعلمين') }}</h3>
                         <p data-editable="feature_4_desc" data-section="features">{{ lc('feature_4_desc', 'أدوات شاملة لمتابعة أداء الطلاب وتقييمهم بطرق متنوعة ومرنة') }}</p>
@@ -448,18 +395,15 @@
             <div class="container">
                 <div class="section-header">
                     <div class="editable-element" data-element="values-title">
-                        <x-element-actions />
                         <h2 class="section-title" data-editable="values_title" data-section="values">{{ lc('values_title', 'كيف نبني القيم؟') }}</h2>
                     </div>
                     <div class="editable-element" data-element="values-subtitle">
-                        <x-element-actions />
                         <p class="section-subtitle" data-editable="values_subtitle" data-section="values">{{ lc('values_subtitle', 'منهجية متكاملة من القيمة إلى التطبيق العملي') }}</p>
                     </div>
                 </div>
                 
                 <div class="values-flow">
                     <div class="flow-card editable-element" data-element="flow-card-1">
-                        <x-element-actions />
                         <div class="flow-number" data-editable="flow_1_number" data-section="values">{{ lc('flow_1_number', '1') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-heart"/></svg></div>
                         <h3 data-editable="flow_1_title" data-section="values">{{ lc('flow_1_title', 'القيمة الكلية') }}</h3>
@@ -468,12 +412,10 @@
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-1">
-                        <x-element-actions />
                         <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-arrow-left"/></svg>
                     </div>
                     
                     <div class="flow-card editable-element" data-element="flow-card-2">
-                        <x-element-actions />
                         <div class="flow-number" data-editable="flow_2_number" data-section="values">{{ lc('flow_2_number', '2') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-star"/></svg></div>
                         <h3 data-editable="flow_2_title" data-section="values">{{ lc('flow_2_title', 'القيمة الضمنية') }}</h3>
@@ -482,12 +424,10 @@
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-2">
-                        <x-element-actions />
                         <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-arrow-left"/></svg>
                     </div>
                     
                     <div class="flow-card editable-element" data-element="flow-card-3">
-                        <x-element-actions />
                         <div class="flow-number" data-editable="flow_3_number" data-section="values">{{ lc('flow_3_number', '3') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-lightbulb"/></svg></div>
                         <h3 data-editable="flow_3_title" data-section="values">{{ lc('flow_3_title', 'المفاهيم الرئيسية') }}</h3>
@@ -496,12 +436,10 @@
                     </div>
                     
                     <div class="flow-arrow editable-element" data-element="flow-arrow-3">
-                        <x-element-actions />
                         <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-arrow-left"/></svg>
                     </div>
                     
                     <div class="flow-card editable-element" data-element="flow-card-4">
-                        <x-element-actions />
                         <div class="flow-number" data-editable="flow_4_number" data-section="values">{{ lc('flow_4_number', '4') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-book-open"/></svg></div>
                         <h3 data-editable="flow_4_title" data-section="values">{{ lc('flow_4_title', 'المعاني المرتبطة') }}</h3>
@@ -510,12 +448,10 @@
                     </div>
 
                     <div class="flow-arrow editable-element" data-element="flow-arrow-4">
-                        <x-element-actions />
                         <svg class="icon"><use href="{{ asset('icons.svg') }}#icon-arrow-left"/></svg>
                     </div>
 
                     <div class="flow-card editable-element" data-element="flow-card-5">
-                        <x-element-actions />
                         <div class="flow-number" data-editable="flow_5_number" data-section="values">{{ lc('flow_5_number', '5') }}</div>
                         <div class="flow-icon" data-editable-icon="flow_5_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-tasks"/></svg></div>
                         <h3 data-editable="flow_5_title" data-section="values">{{ lc('flow_5_title', 'الأنشطة') }}</h3>
@@ -532,11 +468,9 @@
             <div class="container">
                 <div class="section-header">
                     <div class="editable-element" data-element="teams-title">
-                        <x-element-actions />
                         <h2 class="section-title" data-editable="teams_title" data-section="teams">{{ lc('teams_title', 'التعلم التعاوني مع الفرق') }}</h2>
                     </div>
                     <div class="editable-element" data-element="teams-subtitle">
-                        <x-element-actions />
                         <p class="section-subtitle" data-editable="teams_subtitle" data-section="teams">{{ lc('teams_subtitle', 'نظام فرق ذكي يحفز الطلاب على التعاون والتنافس الإيجابي') }}</p>
                     </div>
                 </div>
@@ -578,7 +512,6 @@
                     
                     <div class="teams-visual">
                         <div class="team-card team-card-primary editable-element" data-element="team-card-1">
-                            <x-element-actions />
                             <div class="team-rank" data-editable="team_1_rank" data-section="teams">{{ lc('team_1_rank', '1') }}</div>
                             <div class="team-icon" data-editable-icon="team_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-trophy"/></svg></div>
                             <h4 data-editable="team_1_name" data-section="teams">{{ lc('team_1_name', 'فريق الريادة') }}</h4>
@@ -593,7 +526,6 @@
                         </div>
                         
                         <div class="team-card team-card-secondary editable-element" data-element="team-card-2">
-                            <x-element-actions />
                             <div class="team-rank" data-editable="team_2_rank" data-section="teams">{{ lc('team_2_rank', '2') }}</div>
                             <div class="team-icon" data-editable-icon="team_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-rocket"/></svg></div>
                             <h4 data-editable="team_2_name" data-section="teams">{{ lc('team_2_name', 'فريق السمو') }}</h4>
@@ -607,7 +539,6 @@
                         </div>
                         
                         <div class="team-card team-card-accent editable-element" data-element="team-card-3">
-                            <x-element-actions />
                             <div class="team-rank" data-editable="team_3_rank" data-section="teams">{{ lc('team_3_rank', '3') }}</div>
                             <div class="team-icon" data-editable-icon="team_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-gem"/></svg></div>
                             <h4 data-editable="team_3_name" data-section="teams">{{ lc('team_3_name', 'فريق المعالي') }}</h4>
@@ -626,30 +557,25 @@
                 @if(setting('show_coop_benefits', true))
                 <div class="teams-benefits">
                     <div class="editable-element" data-element="benefits-title">
-                        <x-element-actions />
                         <h3 data-editable="benefits_title" data-section="teams">{{ lc('benefits_title', 'فوائد التعلم التعاوني') }}</h3>
                     </div>
                     <div class="benefits-grid">
                         <div class="benefit-card editable-element" data-element="benefit-card-1">
-                            <x-element-actions />
                             <div data-editable-icon="benefit_1_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-handshake"/></svg></div>
                             <h4 data-editable="benefit_1_title" data-section="teams">{{ lc('benefit_1_title', 'تعزيز التعاون') }}</h4>
                             <p data-editable="benefit_1_desc" data-section="teams">{{ lc('benefit_1_desc', 'يتعلم الطلاب العمل معاً وتحقيق الأهداف المشتركة') }}</p>
                         </div>
                         <div class="benefit-card editable-element" data-element="benefit-card-2">
-                            <x-element-actions />
                             <div data-editable-icon="benefit_2_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-comments"/></svg></div>
                             <h4 data-editable="benefit_2_title" data-section="teams">{{ lc('benefit_2_title', 'تطوير التواصل') }}</h4>
                             <p data-editable="benefit_2_desc" data-section="teams">{{ lc('benefit_2_desc', 'تحسين مهارات التواصل والاستماع للآخرين') }}</p>
                         </div>
                         <div class="benefit-card editable-element" data-element="benefit-card-3">
-                            <x-element-actions />
                             <div data-editable-icon="benefit_3_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-brain"/></svg></div>
                             <h4 data-editable="benefit_3_title" data-section="teams">{{ lc('benefit_3_title', 'تنمية التفكير') }}</h4>
                             <p data-editable="benefit_3_desc" data-section="teams">{{ lc('benefit_3_desc', 'تبادل الأفكار يساعد على التفكير النقدي والإبداعي') }}</p>
                         </div>
                         <div class="benefit-card editable-element" data-element="benefit-card-4">
-                            <x-element-actions />
                             <div data-editable-icon="benefit_4_icon"><svg class="icon"><use href="{{ asset('icons.svg') }}#icon-heart"/></svg></div>
                             <h4 data-editable="benefit_4_title" data-section="teams">{{ lc('benefit_4_title', 'بناء العلاقات') }}</h4>
                             <p data-editable="benefit_4_desc" data-section="teams">{{ lc('benefit_4_desc', 'تكوين صداقات وعلاقات إيجابية بين الطلاب') }}</p>
@@ -665,39 +591,33 @@
             <div class="container">
                 <div class="section-header">
                     <div class="editable-element" data-element="partners-title">
-                        <x-element-actions />
                         <h2 class="section-title" data-editable="partners_title" data-section="partners">{{ lc('partners_title', 'شركاؤنا في النجاح') }}</h2>
                     </div>
                     <div class="editable-element" data-element="partners-subtitle">
-                        <x-element-actions />
                         <p class="section-subtitle" data-editable="partners_subtitle" data-section="partners">{{ lc('partners_subtitle', 'ثقة أكثر من 500 مدرسة ومؤسسة تعليمية رائدة') }}</p>
                     </div>
                 </div>
 
                 <div class="partners-grid">
                     <div class="partner-logo editable-element" data-element="partner-logo-1">
-                        <x-element-actions />
                         <picture>
                             <source type="image/webp" data-srcset="{{ asset('images/partners/school-1.webp') }}">
                             <img data-src="{{ asset('images/partners/school-1.png') }}" alt="شعار مدرسة النور الأهلية" loading="lazy" data-editable-image="partner_logo_1">
                         </picture>
                     </div>
                     <div class="partner-logo editable-element" data-element="partner-logo-2">
-                        <x-element-actions />
                         <picture>
                             <source type="image/webp" data-srcset="{{ asset('images/partners/school-2.webp') }}">
                             <img data-src="{{ asset('images/partners/school-2.png') }}" alt="شعار مدرسة الرؤية الحديثة" loading="lazy" data-editable-image="partner_logo_2">
                         </picture>
                     </div>
                     <div class="partner-logo editable-element" data-element="partner-logo-3">
-                        <x-element-actions />
                         <picture>
                             <source type="image/webp" data-srcset="{{ asset('images/partners/school-3.webp') }}">
                             <img data-src="{{ asset('images/partners/school-3.png') }}" alt="شعار أكاديمية التميز الدولية" loading="lazy" data-editable-image="partner_logo_3">
                         </picture>
                     </div>
                     <div class="partner-logo editable-element" data-element="partner-logo-4">
-                        <x-element-actions />
                         <picture>
                             <source type="image/webp" data-srcset="{{ asset('images/partners/school-4.webp') }}">
                             <img data-src="{{ asset('images/partners/school-4.png') }}" alt="شعار مدارس الإبداع" loading="lazy" data-editable-image="partner_logo_4">
@@ -715,11 +635,9 @@
                     <!-- Info Panel -->
                     <div class="contact-info-panel">
                         <div class="editable-element" data-element="contact-title">
-                            <x-element-actions />
                             <h2 class="contact-title" data-editable="contact_title" data-section="contact">{{ lc('contact_title', 'يسعدنا تواصلك معنا') }}</h2>
                         </div>
                         <div class="editable-element" data-element="contact-description">
-                            <x-element-actions />
                             <p class="contact-description" data-editable="contact_description" data-section="contact">{{ lc('contact_description', 'فريقنا جاهز للإجابة على جميع استفساراتكم المتعلقة بالمنصة، القيم، الأنشطة، أو الدعم الفني.') }}</p>
                         </div>
 
@@ -858,16 +776,13 @@
             <div class="container">
                 <div class="cta-content">
                     <div class="editable-element" data-element="cta-title">
-                        <x-element-actions />
                         <h2 data-editable="cta_title" data-section="cta">{{ lc('cta_title', 'جاهز للانضمام؟') }}</h2>
                     </div>
                     <div class="editable-element" data-element="cta-subtitle">
-                        <x-element-actions />
                         <p data-editable="cta_subtitle" data-section="cta">{{ lc('cta_subtitle', 'ابدأ رحلتك اليوم') }}</p>
                     </div>
                     <div class="cta-actions">
                         <div class="editable-element" data-element="cta-button">
-                            <x-element-actions />
                             <a href="/register" class="btn btn-primary btn-lg" data-editable="cta_button_text" data-section="cta">{{ lc('cta_button_text', 'ابدأ مجاناً') }}</a>
                         </div>
                     </div>
@@ -878,388 +793,6 @@
     
     @include('components.footer')
     
-    @auth
-    @if(auth()->user()->role === 'super_admin')
-    <!-- ======================================
-         نظام التحرير الاحترافي - Professional Edit FAB
-         ====================================== -->
-    <div class="edit-fab-container" 
-         :class="[
-            'position-' + fabPosition,
-            { 'minimized': fabMinimized, 'dragging': fabDragging }
-         ]"
-         x-data="{
-            fabPosition: localStorage.getItem('editFabPosition') || 'bottom-left',
-            fabMinimized: localStorage.getItem('editFabMinimized') === 'true',
-            fabDragging: false,
-            menuOpen: false,
-            
-            get isEditMode() {
-                return window.landingEditorInstance?.editMode || false;
-            },
-            
-            setPosition(pos) {
-                this.fabPosition = pos;
-                localStorage.setItem('editFabPosition', pos);
-                this.menuOpen = false;
-            },
-            
-            toggleMinimize() {
-                this.fabMinimized = !this.fabMinimized;
-                localStorage.setItem('editFabMinimized', this.fabMinimized);
-            },
-            
-            handleToggle() {
-                if (this.fabMinimized) {
-                    this.fabMinimized = false;
-                    localStorage.setItem('editFabMinimized', 'false');
-                } else {
-                    if (window.landingEditorInstance) {
-                        window.landingEditorInstance.toggleEditMode();
-                    }
-                }
-            }
-         }">
-        
-        <!-- قائمة الإعدادات المنبثقة -->
-        <div class="edit-fab-menu" :class="{ 'show': menuOpen }" @click.away="menuOpen = false">
-            <button class="edit-fab-menu-item" :class="{ 'active': isEditMode }" @click="handleToggle()">
-                <span class="menu-icon" x-text="isEditMode ? '✅' : '✏️'"></span>
-                <span x-text="isEditMode ? 'وضع التحرير نشط' : 'تفعيل التحرير'"></span>
-            </button>
-            
-            <div class="edit-fab-menu-divider"></div>
-            
-            <button class="edit-fab-menu-item" :class="{ 'active': fabPosition === 'bottom-left' }" @click="setPosition('bottom-left')">
-                <span class="menu-icon">↙️</span>
-                <span>أسفل يسار</span>
-            </button>
-            <button class="edit-fab-menu-item" :class="{ 'active': fabPosition === 'bottom-right' }" @click="setPosition('bottom-right')">
-                <span class="menu-icon">↘️</span>
-                <span>أسفل يمين</span>
-            </button>
-            <button class="edit-fab-menu-item" :class="{ 'active': fabPosition === 'top-left' }" @click="setPosition('top-left')">
-                <span class="menu-icon">↖️</span>
-                <span>أعلى يسار</span>
-            </button>
-            <button class="edit-fab-menu-item" :class="{ 'active': fabPosition === 'top-right' }" @click="setPosition('top-right')">
-                <span class="menu-icon">↗️</span>
-                <span>أعلى يمين</span>
-            </button>
-            
-            <div class="edit-fab-menu-divider"></div>
-            
-            <button class="edit-fab-menu-item" @click="toggleMinimize()">
-                <span class="menu-icon" x-text="fabMinimized ? '👁️' : '👁️‍🗨️'"></span>
-                <span x-text="fabMinimized ? 'إظهار دائم' : 'تصغير عند عدم الاستخدام'"></span>
-            </button>
-        </div>
-        
-        <!-- الزر الرئيسي -->
-        <button @click="handleToggle()" 
-                @contextmenu.prevent="menuOpen = !menuOpen"
-                class="edit-toggle-btn" 
-                :class="{ 'active': isEditMode }"
-                :title="isEditMode ? 'إيقاف وضع التحرير (كليك يمين للإعدادات)' : 'تعديل الصفحة (كليك يمين للإعدادات)'">
-            <span class="fab-icon" x-text="isEditMode ? '✕' : '✏️'"></span>
-            <span class="edit-fab-badge" x-show="window.landingEditorInstance && Object.keys(window.landingEditorInstance.changes || {}).length > 0" x-text="Object.keys(window.landingEditorInstance?.changes || {}).length"></span>
-        </button>
-    </div>
-    
-    <!-- ======================================
-         لوحة التحرير الجانبية الموحدة
-         ====================================== -->
-    <div class="editor-panel" 
-         :class="{ 
-            'open': isEditMode, 
-            'collapsed': editorCollapsed,
-            'position-left': editorPosition === 'left',
-            'position-right': editorPosition === 'right'
-         }"
-         x-data="{
-            editorCollapsed: localStorage.getItem('editor-collapsed') === 'true',
-            editorPosition: localStorage.getItem('editor-position') || 'right',
-            activeTab: 'tools',
-            
-            get isEditMode() {
-                return window.landingEditorInstance?.editMode || false;
-            },
-            
-            get changes() {
-                return window.landingEditorInstance?.changes || {};
-            },
-            
-            get saving() {
-                return window.landingEditorInstance?.saving || false;
-            },
-            
-            get lastSaved() {
-                return window.landingEditorInstance?.lastSaved || null;
-            },
-            
-            get selectedElement() {
-                return window.landingEditorInstance?.selectedElement || null;
-            },
-            
-            toggleCollapse() {
-                this.editorCollapsed = !this.editorCollapsed;
-                localStorage.setItem('editor-collapsed', this.editorCollapsed);
-                // تحديث body class
-                if (window.landingEditorInstance) {
-                    window.landingEditorInstance.toggleEditorCollapse(this.editorCollapsed);
-                }
-            },
-            
-            switchPosition() {
-                this.editorPosition = this.editorPosition === 'right' ? 'left' : 'right';
-                localStorage.setItem('editor-position', this.editorPosition);
-                // تحديث body class
-                if (window.landingEditorInstance) {
-                    window.landingEditorInstance.setEditorPosition(this.editorPosition);
-                }
-            }
-         }">
-        
-        <!-- شريط العنوان -->
-        <div class="editor-panel-header">
-            <div class="editor-panel-title">
-                <span class="title-icon">🎨</span>
-                <span class="title-text">محرر الصفحة</span>
-            </div>
-            <div class="editor-panel-actions">
-                <button @click="switchPosition()" class="panel-action-btn" title="تبديل الجهة">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3m8-18h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3M12 8l4 4-4 4m-4-8l-4 4 4 4"/>
-                    </svg>
-                </button>
-                <button @click="toggleCollapse()" class="panel-action-btn" title="تصغير/توسيع">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" :class="{ 'rotate-180': editorCollapsed }">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        
-        <!-- المحتوى -->
-        <div class="editor-panel-content" x-show="!editorCollapsed">
-            <!-- التبويبات -->
-            <div class="editor-tabs">
-                <button class="editor-tab" :class="{ 'active': activeTab === 'tools' }" @click="activeTab = 'tools'">
-                    <span>🛠️</span> الأدوات
-                </button>
-                <button class="editor-tab" :class="{ 'active': activeTab === 'components' }" @click="activeTab = 'components'">
-                    <span>📦</span> المكونات
-                </button>
-                <button class="editor-tab" :class="{ 'active': activeTab === 'properties' }" @click="activeTab = 'properties'">
-                    <span>⚙️</span> الخصائص
-                </button>
-            </div>
-            
-            <!-- تبويب الأدوات -->
-            <div class="editor-tab-content" x-show="activeTab === 'tools'">
-                <div class="tools-section">
-                    <!-- حالة الحفظ -->
-                    <div class="save-status" :class="{ 'has-changes': Object.keys(changes).length > 0 }">
-                        <span class="status-dot"></span>
-                        <span x-text="Object.keys(changes).length > 0 ? Object.keys(changes).length + ' تغيير غير محفوظ' : 'لا توجد تغييرات'"></span>
-                    </div>
-                    
-                    <!-- أزرار الإجراءات -->
-                    <div class="tools-grid">
-                        <button class="tool-btn primary" @click="window.landingEditorInstance?.saveChanges()" :disabled="saving || Object.keys(changes).length === 0">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                                <polyline points="17 21 17 13 7 13 7 21"/>
-                                <polyline points="7 3 7 8 15 8"/>
-                            </svg>
-                            <span x-text="saving ? 'جاري الحفظ...' : 'حفظ التغييرات'"></span>
-                        </button>
-                        
-                        <button class="tool-btn" @click="window.landingEditorInstance?.createSnapshot()">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                <polyline points="21 15 16 10 5 21"/>
-                            </svg>
-                            <span>نسخة احتياطية</span>
-                        </button>
-                        
-                        <button class="tool-btn warning" @click="window.landingEditorInstance?.cancelEdit()" x-show="Object.keys(changes).length > 0">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                <path d="M3 3v5h5"/>
-                            </svg>
-                            <span>إلغاء التغييرات</span>
-                        </button>
-                    </div>
-                    
-                    <!-- آخر حفظ -->
-                    <div class="last-saved" x-show="lastSaved">
-                        <span>💾</span> آخر حفظ: <span x-text="lastSaved"></span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- تبويب المكونات -->
-            <div class="editor-tab-content" x-show="activeTab === 'components'">
-                <div class="components-grid">
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'hero')">
-                        <span class="component-icon">🎯</span>
-                        <span class="component-name">Hero Section</span>
-                    </div>
-                    
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'feature-card')">
-                        <span class="component-icon">⭐</span>
-                        <span class="component-name">Feature Card</span>
-                    </div>
-                    
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'cta')">
-                        <span class="component-icon">🚀</span>
-                        <span class="component-name">Call to Action</span>
-                    </div>
-                    
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'stats')">
-                        <span class="component-icon">📊</span>
-                        <span class="component-name">إحصائيات</span>
-                    </div>
-                    
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'testimonial')">
-                        <span class="component-icon">💬</span>
-                        <span class="component-name">شهادة عميل</span>
-                    </div>
-                    
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'image-text')">
-                        <span class="component-icon">🖼️</span>
-                        <span class="component-name">صورة + نص</span>
-                    </div>
-                    
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'pricing')">
-                        <span class="component-icon">💰</span>
-                        <span class="component-name">جدول أسعار</span>
-                    </div>
-                    
-                    <div class="component-card" draggable="true" @dragstart="window.landingEditorInstance?.dragStart($event, 'faq')">
-                        <span class="component-icon">❓</span>
-                        <span class="component-name">أسئلة شائعة</span>
-                    </div>
-                </div>
-                
-                <p class="components-hint">💡 اسحب المكون وأفلته في الصفحة</p>
-            </div>
-            
-            <!-- تبويب الخصائص -->
-            <div class="editor-tab-content" x-show="activeTab === 'properties'">
-                <div x-show="selectedElement" class="properties-form">
-                    <div class="property-group">
-                        <label>🎨 لون الخلفية</label>
-                        <div class="color-input-wrapper">
-                            <input type="color" @input="window.landingEditorInstance?.updateProperty('background', $event.target.value)">
-                            <span class="color-value"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="property-group">
-                        <label>🖊️ لون النص</label>
-                        <div class="color-input-wrapper">
-                            <input type="color" @input="window.landingEditorInstance?.updateProperty('color', $event.target.value)">
-                            <span class="color-value"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="property-group">
-                        <label>📐 المسافات الداخلية</label>
-                        <select @change="window.landingEditorInstance?.updateProperty('padding', $event.target.value)" class="property-select">
-                            <option value="">افتراضي</option>
-                            <option value="20px">صغير</option>
-                            <option value="40px">متوسط</option>
-                            <option value="60px">كبير</option>
-                            <option value="80px">كبير جداً</option>
-                        </select>
-                    </div>
-                    
-                    <div class="property-group">
-                        <label>🔤 حجم الخط</label>
-                        <select @change="window.landingEditorInstance?.updateProperty('fontSize', $event.target.value)" class="property-select">
-                            <option value="">افتراضي</option>
-                            <option value="14px">صغير</option>
-                            <option value="16px">عادي</option>
-                            <option value="18px">متوسط</option>
-                            <option value="24px">كبير</option>
-                            <option value="32px">كبير جداً</option>
-                        </select>
-                    </div>
-                    
-                    <div class="property-group">
-                        <label>😀 الأيقونة</label>
-                        <div class="icon-picker-grid">
-                            <button @click="window.landingEditorInstance?.updateIcon('⭐')" class="icon-btn">⭐</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('🎯')" class="icon-btn">🎯</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('🚀')" class="icon-btn">🚀</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('💎')" class="icon-btn">💎</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('🏆')" class="icon-btn">🏆</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('📊')" class="icon-btn">📊</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('💡')" class="icon-btn">💡</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('🎨')" class="icon-btn">🎨</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('🔒')" class="icon-btn">🔒</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('✨')" class="icon-btn">✨</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('🌟')" class="icon-btn">🌟</button>
-                            <button @click="window.landingEditorInstance?.updateIcon('💬')" class="icon-btn">💬</button>
-                        </div>
-                    </div>
-                    
-                    <button @click="window.landingEditorInstance?.closeProperties()" class="apply-btn">
-                        ✅ تطبيق التغييرات
-                    </button>
-                </div>
-                
-                <div x-show="!selectedElement" class="no-selection">
-                    <div class="no-selection-icon">👆</div>
-                    <p>اضغط على أي عنصر في الصفحة لتعديل خصائصه</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- زر التوسيع عند التصغير -->
-        <div class="editor-collapsed-hint" x-show="editorCollapsed" @click="toggleCollapse()">
-            <span>🎨</span>
-        </div>
-    </div>
-    
-    <!-- ✅ Edit Mode Logic تم نقله بالكامل إلى /public/js/landing-editor.js -->
-    @endif
-    @endauth
-    
-    {{--
-        ملاحظة: النصوص المُدارة من «محتوى الصفحة الرئيسية» تُعرَض الآن خادميّاً عبر lc('key', الافتراضيّ)،
-        فلا وميض ولا محتوى قديم. يبقى هذا السكربت للزوّار فقط كطبقة احتياطيّة تطبّق أيّ مفاتيح
-        محفوظة في landing_content لم تُلَفّ خادميّاً بعد — بلا كاش localStorage (كان يؤخّر ظهور تعديلات
-        الأدمن حتى 5 دقائق)، فيُجلب الطازج دائماً ويُطبَّق نصّاً فقط (textContent) بلا أيّ حقن HTML.
-    --}}
-    @guest
-    <script>
-        (function() {
-            fetch('/api/landing/content')
-                .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                    if (data && data.success && data.content && Object.keys(data.content).length > 0) {
-                        applyContent(data.content);
-                    }
-                })
-                .catch(err => console.warn('Landing content fetch failed:', err));
-
-            function applyContent(content) {
-                Object.entries(content).forEach(([key, value]) => {
-                    const el = document.querySelector(`[data-editable="${key}"]`);
-                    if (el) {
-                        if (el.tagName === 'IMG') el.src = value;
-                        else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = value;
-                        else el.textContent = value;
-                    }
-                });
-            }
-        })();
-    </script>
-    @endguest
     
     {{-- زرّ واتساب عائم (مهمّة 18) — يظهر فقط عند ضبط whatsapp_number؛ القيمة أرقام فقط (بلا حقن) --}}
     @php $__wa = preg_replace('/[^0-9]/', '', (string) setting('whatsapp_number')); @endphp

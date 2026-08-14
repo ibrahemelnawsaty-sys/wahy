@@ -57,7 +57,6 @@
                 <!-- Company Info -->
                 <div class="footer-col footer-brand">
                     <div class="editable-element" data-element="footer-logo">
-                        <x-element-actions />
                         <a href="/" class="footer-logo">
                             @if(!empty($siteLogo))
                                 <img src="{{ asset('storage/data/' . $siteLogo) }}" alt="{{ $siteName }}" class="logo-img" data-editable-image="site_logo" style="height:40px;width:auto;">
@@ -68,7 +67,6 @@
                         </a>
                     </div>
                     <div class="editable-element" data-element="footer-description">
-                        <x-element-actions />
                         <p class="footer-description" data-editable="footer_description" data-section="footer">
                             {{ $siteDescription }}
                         </p>
@@ -78,29 +76,23 @@
                 <!-- Quick Links -->
                 <div class="footer-col">
                     <div class="editable-element" data-element="footer-quick-title">
-                        <x-element-actions />
                         <h3 class="footer-title" data-editable="footer_quick_title" data-section="footer">{{ lc('footer_quick_title', 'روابط سريعة') }}</h3>
                     </div>
                     <ul class="footer-links">
                         <li class="editable-element" data-element="footer-link-home">
-                            <x-element-actions />
                             <a href="/" data-editable="footer_link_home" data-section="footer">{{ lc('footer_link_home', 'الرئيسية') }}</a>
                         </li>
                         <li class="editable-element" data-element="footer-link-features">
-                            <x-element-actions />
                             <a href="/#features" data-editable="footer_link_features" data-section="footer">{{ lc('footer_link_features', 'المميزات') }}</a>
                         </li>
                         <li class="editable-element" data-element="footer-link-values">
-                            <x-element-actions />
                             <a href="/#values" data-editable="footer_link_values" data-section="footer">{{ lc('footer_link_values', 'القيم') }}</a>
                         </li>
                         <li class="editable-element" data-element="footer-link-activities">
-                            <x-element-actions />
                             <a href="/#activities" data-editable="footer_link_activities" data-section="footer">{{ lc('footer_link_activities', 'الأنشطة') }}</a>
                         </li>
                         @if(setting('show_partners'))
                         <li class="editable-element" data-element="footer-link-partners">
-                            <x-element-actions />
                             <a href="/#partners" data-editable="footer_link_partners" data-section="footer">{{ lc('footer_link_partners', 'الشركاء') }}</a>
                         </li>
                         @endif

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LandingContent;
 use App\Models\PageBuilder;
 use App\Models\Survey;
 use App\PageBuilder\PageResolver;
@@ -105,19 +104,13 @@ class PagesController extends Controller
     }
 
     /**
-     * الصفحة الرئيسية المخصصة /home
+     * /home — يُحوَّل للجذر «/».
+     * الصفحة الرئيسية مصدرها الوحيد landing.blade (تُحرَّر عبر «محتوى الصفحة الرئيسية»).
+     * لم يعد /home يُخدَّم من page_builder (خطّة الدمج) لمنع رئيسيّة موازية مُتباعِدة.
      */
     public function home()
     {
-        if ($v2 = PageResolver::resolve('home', app()->getLocale())) {
-            return view('pb.document', ['page' => $v2]);
-        }
-
-        if ($page = PageBuilder::servableBySlug('home')) {
-            return view('pages.show', compact('page'));
-        }
-
-        abort(404);
+        return redirect('/');
     }
 
     /**
@@ -128,19 +121,4 @@ class PagesController extends Controller
         return response()->json(['token' => csrf_token()]);
     }
 
-    /**
-     * حفظ snapshot للـ Landing Content
-     */
-    public function landingSnapshot()
-    {
-        try {
-            LandingContent::createSnapshot();
-
-            return response()->json(['success' => true, 'message' => 'تم حفظ النسخة']);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Landing snapshot failed', ['error' => $e->getMessage()]);
-
-            return response()->json(['success' => false, 'message' => 'حدث خطأ غير متوقع'], 500);
-        }
-    }
 }
