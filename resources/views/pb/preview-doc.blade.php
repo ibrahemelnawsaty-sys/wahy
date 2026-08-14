@@ -30,5 +30,8 @@
             <footer class="pb-page-footer">@include('pb.renderer', ['blocks' => $footerBlocks])</footer>
         @endif
     </div>
+    @if(\App\PageBuilder\BlockRegistry::needsRuntime(array_merge($headerBlocks, $bodyBlocks, $footerBlocks)))
+        <script src="{{ asset('js/pb-runtime.js') }}" defer></script>
+    @endif
 </body>
 </html>

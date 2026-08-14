@@ -35,6 +35,11 @@ class BlockRegistry
             'pricing' => ['v' => 1, 'view' => 'pb.blocks.pricing'],
             'social' => ['v' => 1, 'view' => 'pb.blocks.social'],
             'table' => ['v' => 1, 'view' => 'pb.blocks.table'],
+            // دفعة 4: كتل تفاعليّة + تضمينات. accordion=details أصليّ (بلا JS)، tabs=خطّ أصول
+            // خفيف مُدقَّق (runtime)، video=iframe مبنيّ خادميّاً من مضيف مسموح.
+            'accordion' => ['v' => 1, 'view' => 'pb.blocks.accordion'],
+            'tabs' => ['v' => 1, 'view' => 'pb.blocks.tabs', 'runtime' => true],
+            'video' => ['v' => 1, 'view' => 'pb.blocks.video'],
         ];
     }
 
@@ -155,12 +160,51 @@ class BlockRegistry
             'spacer' => ['label' => 'فراغ', 'icon' => '↕️', 'category' => 'تخطيط', 'fields' => [
                 ['key' => 'height', 'label' => 'الارتفاع (بكسل)', 'type' => 'number', 'min' => 0, 'max' => 400],
             ]],
+            'accordion' => ['label' => 'أكورديون / أسئلة', 'icon' => '🪗', 'category' => 'تفاعل', 'fields' => [
+                ['key' => 'items', 'label' => 'العناصر', 'type' => 'repeater', 'fields' => [
+                    ['key' => 'title', 'label' => 'العنوان', 'type' => 'text'],
+                    ['key' => 'content', 'label' => 'المحتوى', 'type' => 'textarea'],
+                ]],
+            ]],
+            'tabs' => ['label' => 'تبويبات', 'icon' => '🗂️', 'category' => 'تفاعل', 'fields' => [
+                ['key' => 'items', 'label' => 'التبويبات', 'type' => 'repeater', 'fields' => [
+                    ['key' => 'title', 'label' => 'عنوان التبويب', 'type' => 'text'],
+                    ['key' => 'content', 'label' => 'المحتوى', 'type' => 'textarea'],
+                ]],
+            ]],
+            'video' => ['label' => 'فيديو (يوتيوب/ﭬيميو)', 'icon' => '▶️', 'category' => 'تضمين', 'fields' => [
+                ['key' => 'url', 'label' => 'رابط الفيديو', 'type' => 'url'],
+                ['key' => 'caption', 'label' => 'تعليق', 'type' => 'text'],
+            ]],
         ];
     }
 
     public static function has(string $type): bool
     {
         return isset(self::all()[$type]);
+    }
+
+    /** هل تحتاج شجرة الكتل خطّ أصول pb-runtime.js؟ (يُحقَن شرطيّاً فقط عند الحاجة). */
+    public static function needsRuntime(mixed $blocks): bool
+    {
+        if (! is_array($blocks)) {
+            return false;
+        }
+        $all = self::all();
+        foreach ($blocks as $b) {
+            if (! is_array($b)) {
+                continue;
+            }
+            $t = $b['type'] ?? null;
+            if (is_string($t) && ! empty($all[$t]['runtime'])) {
+                return true;
+            }
+            if (isset($b['children']) && self::needsRuntime($b['children'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function view(string $type): ?string
