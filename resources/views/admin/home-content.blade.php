@@ -45,6 +45,28 @@
             <button type="submit" class="hc-save-btn">💾 حفظ التغييرات</button>
         </div>
     </form>
+
+    @if(isset($versions) && count($versions) > 0)
+    <div class="hc-card hc-versions">
+        <div class="hc-card-header">
+            <h3>🕓 النسخ السابقة (تراجع)</h3>
+        </div>
+        <div class="hc-card-body">
+            <p class="hc-versions-note">تُحفَظ لقطة تلقائيّاً قبل كلّ حفظ. يمكنك استرجاع أيّ نسخة سابقة — وتُحفَظ الحالة الحاليّة أوّلاً فالاسترجاع نفسه قابل للتراجع.</p>
+            <ul class="hc-versions-list">
+                @foreach ($versions as $v)
+                    <li class="hc-version-item">
+                        <span class="hc-version-time">📸 {{ \Illuminate\Support\Carbon::parse($v->created_at)->format('Y/m/d — H:i') }}</span>
+                        <form action="{{ route('admin.home-content.restore', $v->id) }}" method="POST" onsubmit="return confirm('استرجاع هذه النسخة سيستبدل المحتوى الحاليّ. متابعة؟');">
+                            @csrf
+                            <button type="submit" class="hc-restore-btn">↩️ استرجاع</button>
+                        </form>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+    @endif
 </div>
 
 <style>
@@ -93,5 +115,24 @@
 [data-theme="dark"] .hc-label { color: #cbd5e1; }
 [data-theme="dark"] .hc-input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
 [data-theme="dark"] .hc-alert-success { background: #14532d; color: #bbf7d0; border-color: #166534; }
+
+.hc-versions-note { margin: 0 0 14px; color: #64748b; font-size: 13px; line-height: 1.7; }
+.hc-versions-list { list-style: none; margin: 0; padding: 0; }
+.hc-version-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 11px 14px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 8px; background: #f8fafc;
+}
+.hc-version-time { font-size: 13.5px; color: #334155; font-weight: 600; }
+.hc-version-item form { margin: 0; }
+.hc-restore-btn {
+    background: #fff; color: #b45309; border: 1.5px solid #fcd34d; padding: 7px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.hc-restore-btn:hover { background: #fef3c7; border-color: #f59e0b; }
+[data-theme="dark"] .hc-version-item { background: #0f172a; border-color: #334155; }
+[data-theme="dark"] .hc-version-time { color: #cbd5e1; }
+[data-theme="dark"] .hc-versions-note { color: #94a3b8; }
+[data-theme="dark"] .hc-restore-btn { background: #1e293b; color: #fcd34d; border-color: #92400e; }
+[data-theme="dark"] .hc-restore-btn:hover { background: #78350f; }
 </style>
 @endsection

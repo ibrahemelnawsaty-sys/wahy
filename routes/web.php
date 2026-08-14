@@ -239,6 +239,7 @@ Route::middleware('auth')->group(function () {
         $hc = \App\Http\Controllers\Admin\HomeContentController::class;
         Route::get('/home-content', [$hc, 'edit'])->name('home-content.edit');
         Route::post('/home-content', [$hc, 'update'])->name('home-content.update');
+        Route::post('/home-content/restore/{version}', [$hc, 'restore'])->name('home-content.restore')->whereNumber('version');
 
         // مراقبة البريد الصادر (خطّة البريد P3)
         $el = \App\Http\Controllers\Admin\EmailLogController::class;
