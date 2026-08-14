@@ -278,6 +278,25 @@
         add.onclick = function () { items.push({}); renderInspector(); };
         wrap.appendChild(add); return wrap;
     }
+    /* تصميم الكتلة (دفعة 3) — خلفيّة/نصّ/محاذاة/حشو/عرض، تُخزَّن في props._style وتُعقَّم خادميّاً. */
+    function styleControls(block) {
+        block.props._style = (block.props._style && typeof block.props._style === 'object') ? block.props._style : {};
+        var st = block.props._style;
+        var wrap = document.createElement('div'); wrap.className = 'pb-style-sec';
+        var h = document.createElement('div'); h.className = 'pb-style-title'; h.textContent = '🎨 تصميم الكتلة'; wrap.appendChild(h);
+        function on(key, v) { if (v === '' || v == null) delete st[key]; else st[key] = v; renderCanvas(); schedulePreview(); }
+        wrap.appendChild(fieldControl({ label: 'لون الخلفيّة', type: 'color' }, st.bg, function (v) { on('bg', v); }));
+        wrap.appendChild(fieldControl({ label: 'لون النصّ', type: 'color' }, st.color, function (v) { on('color', v); }));
+        wrap.appendChild(fieldControl({ label: 'المحاذاة', type: 'select',
+            options: { '': '—', 'start': 'بداية', 'center': 'وسط', 'end': 'نهاية' } }, st.align || '', function (v) { on('align', v); }));
+        wrap.appendChild(fieldControl({ label: 'حشو علويّ (px)', type: 'number', min: 0, max: 200 }, st.pt, function (v) { on('pt', v); }));
+        wrap.appendChild(fieldControl({ label: 'حشو سفليّ (px)', type: 'number', min: 0, max: 200 }, st.pb, function (v) { on('pb', v); }));
+        wrap.appendChild(fieldControl({ label: 'أقصى عرض (px)', type: 'number', min: 0, max: 1600 }, st.maxw, function (v) { on('maxw', v); }));
+        var clr = document.createElement('button'); clr.className = 'pb-rep-del'; clr.textContent = 'مسح التنسيق';
+        clr.onclick = function () { block.props._style = {}; renderInspector(); renderCanvas(); schedulePreview(); };
+        wrap.appendChild(clr);
+        return wrap;
+    }
     function renderInspector() {
         var host = $('pbInspector'); host.innerHTML = '';
         var block = blockAt(state.selected);
@@ -291,6 +310,7 @@
                 block.props[field.key] = v; renderCanvas(); schedulePreview();
             }));
         });
+        host.appendChild(styleControls(block));
     }
 
     /* ============ إعدادات الصفحة + اختيار الهيدر/الفوتر ============ */

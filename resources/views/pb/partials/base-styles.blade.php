@@ -27,6 +27,9 @@
     .pb-spacer{padding:0}
     .pb-cta{text-align:center;background:#f9fafb;border-radius:calc(var(--pb-radius,12px) + 4px)}
     .pb-image figcaption,.pb-image-caption{text-align:center;opacity:.6;font-size:.9rem;margin-top:8px}
+    /* دفعة 3: غلاف تصميم الكتلة (خلفيّة/حشو/عرض مُعقَّمة) */
+    .pb-blockwrap{width:100%}
+    .pb-blockwrap>.pb-block{margin-block:0}
     /* دفعة 2: كتل غنيّة */
     .pb-heading{font-weight:800;line-height:1.3}
     .pb-list{padding-inline-start:1.4em;line-height:1.9}

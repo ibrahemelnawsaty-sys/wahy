@@ -134,7 +134,7 @@
 <div class="pb-toast" id="pbToast" hidden></div>
 
 <script>window.PB_BOOT = @json($boot);</script>
-<script src="{{ asset('js/pb-editor.js') }}?v=3"></script>
+<script src="{{ asset('js/pb-editor.js') }}?v=4"></script>
 @endsection
 
 @push('styles')
@@ -186,6 +186,10 @@
     .pb-rep-add{border:1px dashed #c7d2fe;background:#eef2ff;color:#4338ca;border-radius:9px;padding:7px;width:100%;cursor:pointer;font-weight:700}
     .pb-rep-del{border:0;background:#fee2e2;color:#b91c1c;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.8rem;font-weight:700;margin-top:4px}
     .pb-children{border-top:1px dashed #e5e7eb;margin-top:10px;padding-top:10px}
+    .pb-style-sec{border-top:2px solid #eef2ff;margin-top:14px;padding-top:12px}
+    .pb-style-title{font-weight:800;font-size:.82rem;color:#6366f1;margin-bottom:10px}
+    .pb-field-toggle{flex-direction:row;align-items:center;gap:8px}
+    .pb-field-toggle input{width:auto}
     .pb-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
     .pb-modal-box{background:#fff;border-radius:16px;width:520px;max-width:100%;max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
     .pb-modal-lg{width:1000px;height:82vh}
