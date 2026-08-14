@@ -263,6 +263,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/email-campaigns', [$ec, 'store'])->name('email-campaigns.store');
         Route::get('/email-campaigns/{emailCampaign}', [$ec, 'show'])->name('email-campaigns.show');
 
+        // إعدادات بريد الأحداث (أعلام التفعيل — خطّة البريد P6)
+        $es = \App\Http\Controllers\Admin\EmailSettingsController::class;
+        Route::get('/email-settings', [$es, 'edit'])->name('email-settings.edit');
+        Route::post('/email-settings', [$es, 'update'])->name('email-settings.update');
+
         // Theme Customization
         Route::get('/theme', [ThemeController::class, 'index'])->name('theme');
         Route::post('/theme', [ThemeController::class, 'update'])->name('theme.update');

@@ -39,13 +39,9 @@ class SendBadgeEarnedNotification implements ShouldQueue
             '/student/badges',
         );
 
-        // إرسال بريد إلكتروني
+        // بريد عبر البوّابة المركزيّة (تحترم أعلام النوع وإلغاء الاشتراك — خطّة البريد P6)
         if ($user->email) {
-            try {
-                Mail::to($user->email)->send(new BadgeEarnedMail($user, $badge));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send badge earned email: ' . $e->getMessage());
-            }
+            \App\Services\Mail\MailGate::send($user, 'badge_earned', 'event', new BadgeEarnedMail($user, $badge));
         }
 
         // إرسال إشعار لولي الأمر إن وجد

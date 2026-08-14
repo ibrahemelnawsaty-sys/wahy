@@ -43,13 +43,9 @@ class SendActivityGradedNotification implements ShouldQueue
             "/student/activities/{$activity->id}",
         );
 
-        // إرسال بريد إلكتروني للطالب
+        // بريد الطالب عبر البوّابة المركزيّة (تحترم أعلام النوع وإلغاء الاشتراك — خطّة البريد P6)
         if ($student->email) {
-            try {
-                Mail::to($student->email)->send(new ActivityGradedMail($submission));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send activity graded email: ' . $e->getMessage());
-            }
+            \App\Services\Mail\MailGate::send($student, 'activity_graded', 'event', new ActivityGradedMail($submission));
         }
 
         // إرسال إشعار لولي الأمر إن وجد

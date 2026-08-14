@@ -47,13 +47,9 @@ class SendWelcomeNotification implements ShouldQueue
             '/student/dashboard',
         );
 
-        // إرسال بريد إلكتروني ترحيبي مع التحقق من صحة العنوان
+        // بريد ترحيبيّ عبر البوّابة (فئة transactional — لا يتجاوزه إلغاء الاشتراك — خطّة البريد P6)
         if (! empty($student->email) && filter_var($student->email, FILTER_VALIDATE_EMAIL)) {
-            try {
-                Mail::to($student->email)->send(new WelcomeStudentMail($student));
-            } catch (\Exception $e) {
-                \Log::error('فشل إرسال إيميل الترحيب', ['student_id' => $student->id, 'error' => $e->getMessage()]);
-            }
+            \App\Services\Mail\MailGate::send($student, 'welcome', 'transactional', new WelcomeStudentMail($student));
         }
 
         // إرسال إشعار لولي الأمر

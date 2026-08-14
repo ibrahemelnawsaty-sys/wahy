@@ -208,6 +208,11 @@
                             <span class="admin-nav-text">سجلّ البريد</span>
                         </a>
 
+                        <a href="{{ route('admin.email-settings.edit') }}" class="admin-nav-item {{ request()->routeIs('admin.email-settings.*') ? 'active' : '' }}">
+                            <span class="admin-nav-icon">⚙️</span>
+                            <span class="admin-nav-text">إعدادات البريد</span>
+                        </a>
+
                         <a href="{{ route('admin.pages.index') }}" class="admin-nav-item {{ request()->routeIs('admin.pages*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">📄</span>
                             <span class="admin-nav-text">بناء الصفحات</span>

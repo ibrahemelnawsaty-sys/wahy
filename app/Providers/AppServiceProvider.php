@@ -174,6 +174,9 @@ class AppServiceProvider extends ServiceProvider
             [\App\Listeners\SendWelcomeNotification::class, 'handle'],
         );
 
+        // بريد ترقية المستوى للطالب (خطّة البريد P6)
+        Event::listen(\App\Events\LevelUp::class, [\App\Listeners\SendLevelUpNotification::class, 'handle']);
+
         // تسجيل كل بريد صادر تلقائيًّا في email_logs (خطّة البريد P3) — بلا تعديل أيّ Mailable.
         Event::listen(\Illuminate\Mail\Events\MessageSending::class, [\App\Listeners\RecordEmailActivity::class, 'sending']);
         Event::listen(\Illuminate\Mail\Events\MessageSent::class, [\App\Listeners\RecordEmailActivity::class, 'sent']);
