@@ -62,3 +62,19 @@ Schedule::command('notifications:cleanup --days=90')
     ->withoutOverlapping()
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/notifications-cleanup.log'));
+
+// خطّة البريد P7 - الملخّص الأسبوعيّ للطلاب النشِطين (خميس مساءً)
+Schedule::command('emails:digest-weekly')
+    ->weekly()
+    ->thursdays()
+    ->at('18:00')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/email-digest.log'));
+
+// خطّة البريد P7 - تقليم سجلّ البريد الأقدم من 180 يومًا (شهريًّا)
+Schedule::command('emails:prune-logs --days=180')
+    ->monthlyOn(1, '04:30')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/email-prune.log'));
