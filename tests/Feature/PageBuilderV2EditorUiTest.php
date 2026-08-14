@@ -26,7 +26,13 @@ class PageBuilderV2EditorUiTest extends TestCase
     {
         $admin = $this->admin();
         $this->actingAs($admin)->get(route('admin.pb.ui.index'))->assertOk()->assertSee('محرّر الصفحات');
-        $this->actingAs($admin)->get(route('admin.pb.ui.create'))->assertOk()->assertSee('pbEditor', false);
+        // بنية المحرّر الجديدة (خطوتان + معاينة مُضمَّنة + لوحة كتل) تُخدَم فعلاً
+        $this->actingAs($admin)->get(route('admin.pb.ui.create'))->assertOk()
+            ->assertSee('pbEditor', false)
+            ->assertSee('data-pb-step="2"', false)   // تبويب خطوة المحتوى
+            ->assertSee('pbPreviewFrame', false)     // إطار المعاينة المُضمَّن
+            ->assertSee('pbToStep2', false)          // زرّ «التالي»
+            ->assertSee('pbPalette', false);         // لوحة الكتل
 
         $page = Page::create([
             'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
