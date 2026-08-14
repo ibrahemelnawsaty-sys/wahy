@@ -2673,6 +2673,12 @@ class StudentController extends Controller
             } catch (\Throwable $e) {
                 \Log::warning('PvP invite notification failed', ['error' => $e->getMessage()]);
             }
+
+            // بريد للمنافس بالدعوة (خطّة أدوار البريد — PvP)
+            if ($opponent->email) {
+                \App\Services\Mail\MailGate::send($opponent, 'student_pvp_invite', 'event',
+                    new \App\Mail\StudentPvpInviteMail($opponent, $student, (string) $challenge->title, route('student.pvp.lobby')));
+            }
         }
 
         return response()->json([
