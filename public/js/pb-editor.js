@@ -627,6 +627,19 @@
             $('pbTkRadius').value = t.radius != null ? t.radius : 12;
             var sel = $('pbTkFont'); sel.innerHTML = '';
             fonts.forEach(function (f) { var o = document.createElement('option'); o.value = f; o.textContent = f; if (f === t.font) o.selected = true; sel.appendChild(o); });
+            // لوحات الألوان الجاهزة
+            var pals = (res.data && res.data.palettes) || {};
+            var host = $('pbTkPalettes'); host.innerHTML = '';
+            Object.keys(pals).forEach(function (name) {
+                var p = pals[name];
+                var sw = document.createElement('button'); sw.type = 'button'; sw.className = 'pb-swatch'; sw.title = name;
+                sw.style.background = 'linear-gradient(135deg,' + p.primary + ',' + p.secondary + ')';
+                sw.onclick = function () {
+                    $('pbTkPrimary').value = p.primary; $('pbTkSecondary').value = p.secondary;
+                    $('pbTkText').value = p.text; $('pbTkBg').value = p.bg;
+                };
+                host.appendChild(sw);
+            });
             $('pbDesignModal').hidden = false;
         });
     }

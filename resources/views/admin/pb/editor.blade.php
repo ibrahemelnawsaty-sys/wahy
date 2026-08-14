@@ -120,6 +120,7 @@
     <div class="pb-modal-box">
         <div class="pb-modal-head"><b>رموز التصميم (تُطبَّق على كلّ الصفحات)</b><button class="pb-modal-x" data-pb-close>✕</button></div>
         <div class="pb-modal-body">
+            <div class="pb-field"><label>لوحات ألوان جاهزة (طبّق بنقرة)</label><div id="pbTkPalettes" class="pb-palettes"></div></div>
             <div class="pb-field"><label>اللون الأساسيّ</label><input type="color" id="pbTkPrimary"></div>
             <div class="pb-field"><label>اللون الثانويّ</label><input type="color" id="pbTkSecondary"></div>
             <div class="pb-field"><label>لون النصّ</label><input type="color" id="pbTkText"></div>
@@ -234,6 +235,9 @@
     .pb-rev-list{display:flex;flex-direction:column;gap:8px}
     .pb-rev-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;font-size:.85rem}
     .pb-rev-row small{color:#94a3b8}
+    .pb-palettes{display:flex;flex-wrap:wrap;gap:8px}
+    .pb-swatch{width:38px;height:38px;border-radius:9px;border:2px solid #fff;box-shadow:0 0 0 1px #e5e7eb;cursor:pointer}
+    .pb-swatch:hover{box-shadow:0 0 0 2px #6366f1;transform:scale(1.06)}
 
     .pb-preview-col{height:calc(100vh - 230px);min-height:460px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;display:flex;justify-content:center}
     .pb-preview-frame{width:100%;height:100%;border:0;background:#fff;transition:width .2s;max-width:100%}

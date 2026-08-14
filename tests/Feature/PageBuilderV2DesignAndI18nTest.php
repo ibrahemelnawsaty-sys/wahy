@@ -57,6 +57,14 @@ class PageBuilderV2DesignAndI18nTest extends TestCase
             ->assertOk()->assertJsonPath('tokens.radius', 20);
     }
 
+    public function test_design_endpoint_returns_named_palettes(): void
+    {
+        $this->actingAs($this->admin())->getJson(route('admin.pb.design.show'))
+            ->assertOk()
+            ->assertJsonStructure(['tokens', 'fonts', 'palettes'])
+            ->assertJsonFragment(['primary' => '#667eea', 'secondary' => '#764ba2', 'text' => '#1f2937', 'bg' => '#ffffff']);
+    }
+
     public function test_design_tokens_apply_on_live_page(): void
     {
         $admin = $this->admin();

@@ -22,6 +22,18 @@ class PageDesign
         'radius' => 12,
     ];
 
+    /** لوحات ألوان جاهزة مسمّاة (تُطبَّق بنقرة على رموز التصميم). */
+    public const PALETTES = [
+        'بنفسجيّ' => ['primary' => '#667eea', 'secondary' => '#764ba2', 'text' => '#1f2937', 'bg' => '#ffffff'],
+        'أزرق ملكيّ' => ['primary' => '#2563eb', 'secondary' => '#1e40af', 'text' => '#0f172a', 'bg' => '#ffffff'],
+        'أخضر طبيعيّ' => ['primary' => '#10b981', 'secondary' => '#059669', 'text' => '#064e3b', 'bg' => '#ffffff'],
+        'ذهبيّ دافئ' => ['primary' => '#d97706', 'secondary' => '#b45309', 'text' => '#1c1917', 'bg' => '#fffbeb'],
+        'ورديّ أنيق' => ['primary' => '#ec4899', 'secondary' => '#be185d', 'text' => '#500724', 'bg' => '#ffffff'],
+        'فيروزيّ' => ['primary' => '#0891b2', 'secondary' => '#0e7490', 'text' => '#083344', 'bg' => '#f0fdff'],
+        'داكن ليليّ' => ['primary' => '#818cf8', 'secondary' => '#a78bfa', 'text' => '#e5e7eb', 'bg' => '#0f172a'],
+        'رماديّ راقٍ' => ['primary' => '#475569', 'secondary' => '#334155', 'text' => '#0f172a', 'bg' => '#f8fafc'],
+    ];
+
     /** خطوط مسموحة: الاسم => مَعلَم Google Fonts (null = خطّ نظام، بلا تحميل خارجيّ). */
     public const FONTS = [
         'Tajawal' => 'Tajawal',

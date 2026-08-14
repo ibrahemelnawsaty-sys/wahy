@@ -270,6 +270,7 @@ class PageManagerController extends Controller
         return response()->json([
             'tokens' => PageDesign::tokens(),
             'fonts' => array_keys(PageDesign::FONTS),
+            'palettes' => PageDesign::PALETTES,
         ]);
     }
 
