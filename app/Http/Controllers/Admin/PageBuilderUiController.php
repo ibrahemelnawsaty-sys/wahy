@@ -44,6 +44,7 @@ class PageBuilderUiController extends Controller
         return [
             'csrf' => csrf_token(),
             'schema' => BlockRegistry::schema(),
+            'defaults' => BlockRegistry::defaults(),
             'page' => $page ? [
                 'id' => $page->id,
                 'title' => $page->title,

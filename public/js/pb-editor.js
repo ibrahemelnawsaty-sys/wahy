@@ -53,8 +53,15 @@
 
     /* ============ عمليّات الكتل ============ */
     function newBlock(type) {
-        var blk = { type: type, v: 1, props: {} };
-        if (B.schema[type] && B.schema[type].children) blk.children = [];
+        var d = (B.defaults && B.defaults[type]) || {};
+        var blk = { type: type, v: 1, props: JSON.parse(JSON.stringify(d)) };
+        if (B.schema[type] && B.schema[type].children) {
+            // الأعمدة تأتي بعمودين جاهزين كي تظهر فوراً ويسهل إضافة المزيد
+            blk.children = (type === 'columns') ? [
+                { type: 'richtext', v: 1, props: { html: '<p>العمود الأوّل — اكتب هنا…</p>' } },
+                { type: 'richtext', v: 1, props: { html: '<p>العمود الثاني — اكتب هنا…</p>' } },
+            ] : [];
+        }
         return blk;
     }
     function addBlock(type, containerPath) {

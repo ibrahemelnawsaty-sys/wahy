@@ -179,6 +179,35 @@ class BlockRegistry
         ];
     }
 
+    /**
+     * محتوى مبدئيّ (placeholder) لكلّ كتلة عند إضافتها — كي تظهر فوراً في المعاينة قبل التحرير
+     * (سلوك الووردبريس). يستبدله المستخدم. الأنواع البصريّة (صورة/فيديو) تبقى فارغة حتى الاختيار.
+     */
+    public static function defaults(): array
+    {
+        return [
+            'hero' => ['title' => 'عنوان رئيسيّ جذّاب', 'subtitle' => 'اكتب هنا وصفاً مختصراً يشرح فكرتك.', 'button_text' => 'ابدأ الآن', 'button_link' => '#'],
+            'heading' => ['text' => 'عنوان جديد', 'level' => 'h2', 'align' => 'start'],
+            'richtext' => ['html' => '<p>اكتب نصّك هنا…</p>'],
+            'list' => ['items' => [['text' => 'عنصر أوّل'], ['text' => 'عنصر ثانٍ'], ['text' => 'عنصر ثالث']]],
+            'quote' => ['text' => 'اقتباسٌ ملهم يعبّر عن رسالتك.', 'cite' => 'المصدر'],
+            'button' => ['text' => 'اضغط هنا', 'link' => '#', 'style' => 'primary', 'align' => 'start'],
+            'buttons' => ['align' => 'start', 'items' => [['text' => 'زرّ أساسيّ', 'link' => '#', 'style' => 'primary'], ['text' => 'زرّ ثانويّ', 'link' => '#', 'style' => 'ghost']]],
+            'iconlist' => ['items' => [['icon' => '✅', 'text' => 'ميزة أولى'], ['icon' => '✅', 'text' => 'ميزة ثانية'], ['icon' => '✅', 'text' => 'ميزة ثالثة']]],
+            'features' => ['heading' => 'مزايانا', 'items' => [['icon' => '⭐', 'title' => 'ميزة', 'text' => 'وصف مختصر.'], ['icon' => '⚡', 'title' => 'ميزة', 'text' => 'وصف مختصر.'], ['icon' => '🔒', 'title' => 'ميزة', 'text' => 'وصف مختصر.']]],
+            'cta' => ['title' => 'جاهز للبدء؟', 'text' => 'انضمّ إلينا اليوم وابدأ رحلتك.', 'button_text' => 'ابدأ الآن', 'button_link' => '#'],
+            'testimonial' => ['quote' => 'خدمة رائعة أنصح بها بشدّة.', 'name' => 'اسم العميل', 'role' => 'الصفة'],
+            'pricing' => ['items' => [['name' => 'الباقة', 'price' => '99', 'period' => '/شهر', 'features' => "ميزة أولى\nميزة ثانية", 'button_text' => 'اشترك', 'button_link' => '#', 'featured' => false]]],
+            'social' => ['items' => [['network' => 'facebook', 'url' => 'https://facebook.com'], ['network' => 'twitter', 'url' => 'https://x.com'], ['network' => 'instagram', 'url' => 'https://instagram.com']]],
+            'table' => ['headers' => 'العمود الأوّل|العمود الثاني', 'rows' => [['cells' => 'خليّة|خليّة'], ['cells' => 'خليّة|خليّة']]],
+            'accordion' => ['items' => [['title' => 'سؤال شائع؟', 'content' => 'اكتب الإجابة هنا.'], ['title' => 'سؤال آخر؟', 'content' => 'اكتب الإجابة هنا.']]],
+            'tabs' => ['items' => [['title' => 'التبويب الأوّل', 'content' => 'محتوى التبويب الأوّل.'], ['title' => 'التبويب الثاني', 'content' => 'محتوى التبويب الثاني.']]],
+            'separator' => ['style' => 'line'],
+            'spacer' => ['height' => 40],
+            'columns' => ['count' => 2],
+        ];
+    }
+
     public static function has(string $type): bool
     {
         return isset(self::all()[$type]);

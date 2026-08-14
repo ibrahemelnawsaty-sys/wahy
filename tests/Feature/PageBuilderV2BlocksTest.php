@@ -61,6 +61,24 @@ class PageBuilderV2BlocksTest extends TestCase
         $this->assertStringContainsString('<h2 class="pb-block pb-heading"', $html);
     }
 
+    public function test_default_block_content_is_valid_and_renders_immediately(): void
+    {
+        // كل كتلة لها محتوى مبدئيّ (placeholder) يجعلها تظهر فور الإضافة قبل التحرير.
+        $blocks = [];
+        foreach (\App\PageBuilder\BlockRegistry::defaults() as $type => $props) {
+            $blocks[] = ['type' => $type, 'v' => 1, 'props' => $props];
+        }
+        $this->assertSame([], BlockValidator::validate($blocks));
+
+        $html = $this->actingAs($this->admin())
+            ->post(route('admin.pb.preview'), ['body' => $blocks])
+            ->assertOk()->getContent();
+
+        $this->assertStringContainsString('عنوان رئيسيّ جذّاب', $html); // hero
+        $this->assertStringContainsString('عنوان جديد', $html);        // heading
+        $this->assertStringContainsString('اكتب نصّك هنا', $html);      // richtext (بعد التعقيم)
+    }
+
     public function test_validator_accepts_all_new_block_types(): void
     {
         $blocks = [];

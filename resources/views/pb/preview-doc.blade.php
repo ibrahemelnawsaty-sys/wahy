@@ -11,7 +11,7 @@
     <script>(function(){try{var t=localStorage.getItem('wahy-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
     <title>معاينة حيّة</title>
     @include('pb.partials.base-styles')
-    <style>body{padding:0}.pb-preview-empty{padding:64px 20px;text-align:center;color:#9ca3af}</style>
+    <style>body{padding:0}.pb-preview-empty{padding:72px 24px;text-align:center;color:#94a3b8;line-height:1.9}.pb-preview-empty .pb-pe-ico{font-size:2.6rem;margin-bottom:8px}</style>
 </head>
 <body>
     <div class="pb-page">
@@ -23,7 +23,10 @@
 
         <main class="pb-page-body">
             @if(empty($bodyBlocks))
-                <div class="pb-preview-empty">لا كتل في الجسم بعد — أضِف كتلة لتظهر هنا.</div>
+                <div class="pb-preview-empty">
+                    <div class="pb-pe-ico">📄</div>
+                    هذه معاينة صفحتك الحيّة.<br>اضغط «🧩 أنماط جاهزة» أو «أضف كتلة» من اليمين — وستظهر فوراً هنا بمحتوى مبدئيّ.
+                </div>
             @else
                 @include('pb.renderer', ['blocks' => $bodyBlocks])
             @endif
