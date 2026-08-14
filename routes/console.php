@@ -72,6 +72,15 @@ Schedule::command('emails:digest-weekly')
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/email-digest.log'));
 
+// خطّة أدوار البريد P8 - الملخّص الأسبوعيّ لأولياء الأمور عن أبنائهم (خميس مساءً)
+Schedule::command('emails:digest-parent-weekly')
+    ->weekly()
+    ->thursdays()
+    ->at('18:30')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/email-parent-digest.log'));
+
 // خطّة البريد P7 - تقليم سجلّ البريد الأقدم من 180 يومًا (شهريًّا)
 Schedule::command('emails:prune-logs --days=180')
     ->monthlyOn(1, '04:30')
