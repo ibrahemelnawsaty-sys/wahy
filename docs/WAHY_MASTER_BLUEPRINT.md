@@ -6660,8 +6660,21 @@ public function store(Request $request)
 
 #### 10.10.5 `PagesController` (عام)
 
+> **⚠️ تعديل دستوريّ (2026‑08 — خطّة دمج محرّرات الصفحة الرئيسية، انظر `docs/HOME_EDITORS_MERGE_PLAN.md`):**
+> ما يلي في هذا القسم و§10.9/§10.11/§14.7 هو وصفٌ **تاريخيّ** للنموذج القديم، وقد **نُسِخ**:
+> - `landing()` صار يعرض `view('landing')` **دائماً** (غير مشروط) — لا يتجاوزه `page_builder slug='home'` إطلاقاً. و`slug='home'` صار **محجوزاً** في v1 (`not_in:home`) وv2 (`SlugGuard::RESERVED`)، و`/home` يُحوَّل إلى `/`.
+> - المصدر الوحيد لتحرير الصفحة الرئيسية = جدول `landing_content` عبر `lc('key', الافتراضيّ)`، يُدار من محرّرٍ واحد هو `Admin\HomeContentController` («محتوى الصفحة الرئيسية»)، مُولَّدٌ من `config/landing_editable.php` (95 حقلاً / 9 أقسام تغطّي الصفحة كاملةً + الفوتر).
+> - **حُذِف**: `Admin\LandingPageController`؛ ومجموعة كتل الصفحة في `SuperAdminController` (`admin.landing-page.*`)؛ والمحرّر المدمج WYSIWYG (`landing-editor.js` + `Api\LandingContentController` + مسارات `api/landing` + `landingSnapshot` + مكوّن `x-element-actions`).
+> - v1 (`admin.pages.*`) وv2 (`admin.pb.*`) يبقيان **للصفحات الثانوية فقط** (من نحن…) معزولَين عن `/`.
+> - اللقطات: `HomeContentController@update` يأخذ `LandingContent::createSnapshot()` قبل كل حفظ ضمن `DB::transaction`، مع مسار `admin.home-content.restore/{version}` للاسترجاع الذرّيّ.
+
 ```php
+// النموذج الحاليّ (بعد التعديل أعلاه):
 public function landing() {
+    return view('landing');  // غير مشروط — المصدر الوحيد؛ يُحرَّر عبر landing_content/lc()
+}
+// ▼▼▼ تاريخيّ (منسوخ) ▼▼▼
+public function landing_OLD() {
     $page = PageBuilder::where('slug', 'home')->where('is_active', true)->first();
     if ($page) {
         return view('pages.show', ['page' => $page]);

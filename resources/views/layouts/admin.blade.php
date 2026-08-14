@@ -215,12 +215,12 @@
 
                         <a href="{{ route('admin.pages.index') }}" class="admin-nav-item {{ request()->routeIs('admin.pages*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">📄</span>
-                            <span class="admin-nav-text">بناء الصفحات</span>
+                            <span class="admin-nav-text">الصفحات الثانوية (من نحن…)</span>
                         </a>
 
                         <a href="{{ route('admin.pb.ui.index') }}" class="admin-nav-item {{ request()->routeIs('admin.pb.*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">🧱</span>
-                            <span class="admin-nav-text">محرّر الصفحات (جديد)</span>
+                            <span class="admin-nav-text">محرّر الصفحات الثانوية (جديد)</span>
                         </a>
 
                         <a href="{{ route('admin.settings') }}" class="admin-nav-item {{ request()->routeIs('admin.settings*') ? 'active' : '' }}">
