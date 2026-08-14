@@ -158,6 +158,13 @@ class SupportTicketController extends Controller
             route('tickets.show', $ticket),
         );
 
+        // بريد لصاحب التذكرة بحلّها (خطّة أدوار البريد S4) — نفس مفتاح تحديثات التذكرة
+        $owner = $ticket->user;
+        if ($owner && $owner->email) {
+            \App\Services\Mail\MailGate::send($owner, 'support_ticket_reply', 'transactional',
+                new \App\Mail\SupportTicketUpdateMail($owner, (int) $ticket->id, (string) $ticket->subject, 'حُلَّت تذكرتك', route('tickets.show', $ticket)));
+        }
+
         return redirect()
             ->route('support.tickets.show', $ticket)
             ->with('success', 'تم وضع التذكرة كمحلولة. ✅');
