@@ -412,6 +412,10 @@
         wrap.appendChild(fieldControl({ label: 'حشو علويّ (px)', type: 'number', min: 0, max: 200 }, st.pt, function (v) { on('pt', v); }));
         wrap.appendChild(fieldControl({ label: 'حشو سفليّ (px)', type: 'number', min: 0, max: 200 }, st.pb, function (v) { on('pb', v); }));
         wrap.appendChild(fieldControl({ label: 'أقصى عرض (px)', type: 'number', min: 0, max: 1600 }, st.maxw, function (v) { on('maxw', v); }));
+        var vh = document.createElement('div'); vh.className = 'pb-style-title'; vh.textContent = '📱 الإظهار حسب الجهاز'; wrap.appendChild(vh);
+        wrap.appendChild(fieldControl({ label: 'إخفاء على الجوّال', type: 'toggle' }, st.hide_mobile, function (v) { on('hide_mobile', v || undefined); }));
+        wrap.appendChild(fieldControl({ label: 'إخفاء على اللوحيّ', type: 'toggle' }, st.hide_tablet, function (v) { on('hide_tablet', v || undefined); }));
+        wrap.appendChild(fieldControl({ label: 'إخفاء على سطح المكتب', type: 'toggle' }, st.hide_desktop, function (v) { on('hide_desktop', v || undefined); }));
         var clr = document.createElement('button'); clr.className = 'pb-rep-del'; clr.textContent = 'مسح التنسيق';
         clr.onclick = function () { block.props._style = {}; renderInspector(); renderCanvas(); schedulePreview(); };
         wrap.appendChild(clr); return wrap;

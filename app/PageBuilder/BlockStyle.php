@@ -49,8 +49,28 @@ class BlockStyle
         return implode(';', $decl);
     }
 
+    /** أصناف الإظهار حسب الجهاز (تجاوب) — قائمة سماح ثابتة، لا قيم حرّة. */
+    public static function classes(mixed $style): string
+    {
+        if (! is_array($style)) {
+            return '';
+        }
+        $c = [];
+        if (! empty($style['hide_mobile'])) {
+            $c[] = 'pb-hide-mobile';
+        }
+        if (! empty($style['hide_tablet'])) {
+            $c[] = 'pb-hide-tablet';
+        }
+        if (! empty($style['hide_desktop'])) {
+            $c[] = 'pb-hide-desktop';
+        }
+
+        return implode(' ', $c);
+    }
+
     public static function has(mixed $style): bool
     {
-        return self::inline($style) !== '';
+        return self::inline($style) !== '' || self::classes($style) !== '';
     }
 }

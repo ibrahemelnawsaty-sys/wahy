@@ -54,6 +54,16 @@ class PageBuilderV2BlockStyleTest extends TestCase
         $this->assertStringContainsString('مُلوَّن', $html);
     }
 
+    public function test_device_visibility_classes_render_on_wrapper(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $html = $this->actingAs($admin)->post(route('admin.pb.preview'), ['body' => [
+            ['type' => 'heading', 'props' => ['text' => 'مخفيّ على الجوّال', 'level' => 'h2', '_style' => ['hide_mobile' => true, 'hide_desktop' => true]]],
+        ]])->assertOk()->getContent();
+
+        $this->assertStringContainsString('<div class="pb-blockwrap pb-hide-mobile pb-hide-desktop"', $html);
+    }
+
     public function test_unstyled_block_is_not_wrapped(): void
     {
         $admin = User::factory()->create(['role' => 'super_admin']);

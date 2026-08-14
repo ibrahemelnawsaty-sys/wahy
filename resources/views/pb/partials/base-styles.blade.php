@@ -30,8 +30,11 @@
     /* «انقر للتحرير» في المعاينة (يظهر فقط داخل المحرّر عبر pvTop) */
     .pb-pv-block{cursor:pointer;position:relative}
     .pb-pv-block:hover{outline:2px dashed var(--pb-primary,#6366f1);outline-offset:-2px}
-    /* دفعة 3: غلاف تصميم الكتلة (خلفيّة/حشو/عرض مُعقَّمة) */
+    /* دفعة 3: غلاف تصميم الكتلة (خلفيّة/حشو/عرض مُعقَّمة) + الإظهار حسب الجهاز */
     .pb-blockwrap{width:100%}
+    @media (max-width:640px){.pb-hide-mobile{display:none !important}}
+    @media (min-width:641px) and (max-width:1024px){.pb-hide-tablet{display:none !important}}
+    @media (min-width:1025px){.pb-hide-desktop{display:none !important}}
     .pb-blockwrap>.pb-block{margin-block:0}
     /* دفعة 2: كتل غنيّة */
     .pb-heading{font-weight:800;line-height:1.3}
