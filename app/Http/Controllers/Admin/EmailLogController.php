@@ -67,6 +67,14 @@ class EmailLogController extends Controller
     /** إعادة إرسال نسخة من الرسالة المخزَّنة (يُنشئ سجلًّا جديدًا عبر مستمع التسجيل). */
     public function resend(EmailLog $emailLog)
     {
+        // لا نُعيد إرسال الرسائل الحسّاسة (روابط/رموز أمنيّة) — أجسامها غير مخزَّنة أصلًا.
+        if (in_array($emailLog->category, ['transactional', 'auth', 'security'], true)) {
+            return back()->with('error', 'لا يمكن إعادة إرسال الرسائل الأمنيّة/المعاملاتيّة.');
+        }
+        // المفتاح الرئيسيّ يوقف كل الإرسال بما فيه إعادة الإرسال.
+        if (! (bool) setting('email_master_enabled', true)) {
+            return back()->with('error', 'البريد موقوف مؤقّتًا عبر المفتاح الرئيسيّ للإعدادات.');
+        }
         if (! $emailLog->body || ! $emailLog->to_email) {
             return back()->with('error', 'لا يمكن إعادة الإرسال: لا يوجد محتوى/مستلِم محفوظ.');
         }

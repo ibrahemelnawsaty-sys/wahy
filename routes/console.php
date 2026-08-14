@@ -78,3 +78,9 @@ Schedule::command('emails:prune-logs --days=180')
     ->withoutOverlapping()
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/email-prune.log'));
+
+// خطّة البريد - مصالحة السجلّات العالقة (sending→failed) كل ساعة، فيعكس العدّاد الفشل الحقيقيّ
+Schedule::call(fn () => \App\Models\EmailLog::markStuckAsFailed(20))
+    ->hourly()
+    ->name('email-reconcile-stuck')
+    ->withoutOverlapping();

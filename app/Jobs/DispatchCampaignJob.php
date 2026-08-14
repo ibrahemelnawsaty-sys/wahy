@@ -23,16 +23,29 @@ class DispatchCampaignJob implements ShouldQueue
 
     public int $timeout = 1800;
 
+    public int $tries = 1; // بلا إعادة محاولة — يمنع إعادة بثّ الحملة كاملةً عند الفشل
+
     public function __construct(public int $campaignId) {}
 
     public function handle(): void
     {
         $campaign = EmailCampaign::find($this->campaignId);
-        if (! $campaign || $campaign->status === 'sent') {
+        if (! $campaign) {
             return;
         }
 
-        $campaign->update(['status' => 'sending']);
+        // إيقاف طارئ: المفتاح الرئيسيّ يوقف الحملات أيضًا (لا يقتصر أثره على بريد الأحداث).
+        if (! (bool) setting('email_master_enabled', true)) {
+            return; // تبقى الحالة queued؛ يُعاد الإرسال عند إعادة التفعيل
+        }
+
+        // ادّعاء ذرّيّ: نسخة واحدة فقط تنقل queued→sending، فيُمنَع إعادةُ البثّ عند إعادة تشغيل
+        // الوظيفة/التوازي (retry_after<timeout). الحملة المقطوعة تبقى ناقصةً لا مُكرَّرة.
+        $claimed = EmailCampaign::where('id', $this->campaignId)->where('status', 'queued')->update(['status' => 'sending']);
+        if (! $claimed) {
+            return;
+        }
+
         $count = 0;
 
         if ($q = $campaign->usersQuery()) {

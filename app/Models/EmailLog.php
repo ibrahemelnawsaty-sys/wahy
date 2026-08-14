@@ -65,4 +65,18 @@ class EmailLog extends Model
             && $this->created_at
             && $this->created_at->lt(now()->subMinutes(10));
     }
+
+    /**
+     * مصالحة: يحوّل الصفوف العالقة في «sending» إلى «failed» (لا مستمع لفشل SMTP، فبدونها
+     * يبقى العالق sending للأبد ويُظهر عدّاد «فشل» صفرًا زائفًا). تُجدوَل دوريًّا.
+     */
+    public static function markStuckAsFailed(int $minutes = 20): int
+    {
+        return static::where('status', 'sending')
+            ->where('created_at', '<', now()->subMinutes($minutes))
+            ->update([
+                'status' => 'failed',
+                'error_message' => 'انتهت المهلة دون تأكيد الإرسال — تحقّق من عمل العامل (queue:work) وإعداد SMTP.',
+            ]);
+    }
 }

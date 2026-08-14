@@ -19,7 +19,7 @@
 
         <div class="ec-card">
             <label class="ec-label">المتن (Body)</label>
-            <div data-rich-editor="campaignBody" data-target="bodyHidden" dir="rtl" hidden>{!! old('body') !!}</div>
+            <div data-rich-editor="campaignBody" data-target="bodyHidden" dir="rtl" hidden>{!! safe_html(old('body')) !!}</div>
             <textarea name="body" id="bodyHidden" rows="8" class="ec-input" required>{{ old('body') }}</textarea>
             <div class="ec-hint">يُعقَّم المحتوى تلقائيًّا، ويظهر داخل قالب البريد الموحّد مع تذييل «إلغاء الاشتراك».</div>
         </div>

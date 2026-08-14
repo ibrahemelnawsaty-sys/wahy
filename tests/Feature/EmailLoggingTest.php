@@ -31,6 +31,32 @@ class EmailLoggingTest extends TestCase
         $this->assertContains($log->status, ['sent', 'sending']);
     }
 
+    public function test_sensitive_category_body_is_not_stored(): void
+    {
+        Mail::raw('رمز الدخول السرّي 123456', function ($m) {
+            $m->to('secret@example.com')->subject('رمز الدخول');
+            $m->getHeaders()->addTextHeader('X-Wahy-Category', 'auth');
+        });
+
+        $log = EmailLog::where('to_email', 'secret@example.com')->first();
+        $this->assertNotNull($log);
+        $this->assertSame('auth', $log->category);
+        $this->assertNull($log->body, 'يجب ألّا يُخزَّن جسم الرسائل الحسّاسة (رموز/روابط)');
+    }
+
+    public function test_mark_stuck_as_failed_reconciles_only_old_sending(): void
+    {
+        $stuck = EmailLog::create(['to_email' => 's@example.com', 'status' => 'sending']);
+        $stuck->created_at = now()->subMinutes(30);
+        $stuck->save();
+        $recent = EmailLog::create(['to_email' => 'r@example.com', 'status' => 'sending']);
+
+        $this->assertSame(1, EmailLog::markStuckAsFailed(20));
+        $this->assertSame('failed', $stuck->fresh()->status);
+        $this->assertNotNull($stuck->fresh()->error_message);
+        $this->assertSame('sending', $recent->fresh()->status);
+    }
+
     public function test_admin_dashboard_lists_logs_and_guest_is_blocked(): void
     {
         EmailLog::create(['to_email' => 'seen@example.com', 'subject' => 'مرئيّة', 'status' => 'sent', 'category' => 'transactional']);

@@ -57,6 +57,9 @@ class EmailCampaignController extends Controller
 
         // إرسال تجريبيّ لبريد الأدمن نفسه (بلا حفظ حملة)
         if (($data['action'] ?? 'send') === 'test') {
+            if (! (bool) setting('email_master_enabled', true)) {
+                return back()->with('error', 'البريد موقوف مؤقّتًا عبر المفتاح الرئيسيّ للإعدادات.')->withInput();
+            }
             $to = auth()->user()->email;
             if ($to) {
                 Mail::to($to)->send(new CampaignMail('[اختبار] ' . $data['subject'], $body, null, 0, auth()->id()));

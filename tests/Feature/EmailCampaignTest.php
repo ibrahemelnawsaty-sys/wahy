@@ -6,6 +6,7 @@ use App\Jobs\DispatchCampaignJob;
 use App\Mail\CampaignMail;
 use App\Models\EmailCampaign;
 use App\Models\EmailPreference;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -60,5 +61,21 @@ class EmailCampaignTest extends TestCase
         Mail::assertQueued(CampaignMail::class, fn ($m) => $m->hasTo('s1@example.com'));
         $this->assertSame('sent', $campaign->fresh()->status);
         $this->assertSame(1, $campaign->fresh()->total_recipients);
+    }
+
+    public function test_master_switch_off_blocks_campaign_distribution(): void
+    {
+        Setting::set('email_master_enabled', false, 'boolean');
+        User::factory()->create(['role' => 'student', 'email' => 'x@example.com']);
+        $campaign = EmailCampaign::create([
+            'subject' => 'س', 'body' => '<p>ن</p>',
+            'audience_type' => 'role', 'audience_value' => 'student', 'status' => 'queued',
+        ]);
+
+        Mail::fake();
+        (new DispatchCampaignJob($campaign->id))->handle();
+
+        Mail::assertNothingQueued();
+        $this->assertSame('queued', $campaign->fresh()->status); // لم تُدَّعَ — تُستأنَف لاحقًا
     }
 }
