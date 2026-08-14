@@ -1,8 +1,7 @@
 /*
- * محرّر الصفحات الخفيف (المرحلة 2 — بلا React). واجهة كتل مُولَّدة من مخطّط BlockRegistry،
- * تحرّر ثلاث مناطق مستقلّة (الجسم/الهيدر/الفوتر)، وتحفظ عبر نقاط JSON الآمنة.
- * لا يبني HTML خامّاً للموقع — الرندرة النهائيّة دائماً عبر مكوّنات Blade على الخادم.
- * دفعة 1: معاينة حيّة مُثبَّتة (iframe خادميّ يتحدّث تلقائيّاً) + هيدر/فوتر لكلّ صفحة + مُنتقي كتل + استنساخ.
+ * محرّر الصفحات الخفيف (المرحلة 2 — بلا React). خطوتان واضحتان: (1) بيانات الصفحة، (2) المحتوى
+ * مع **معاينة حيّة دائمة** (iframe مُصيَّر خادميّاً يتحدّث تلقائيّاً) — WYSIWYG آمن.
+ * يحرّر ثلاث مناطق (الجسم/الهيدر/الفوتر) ويحفظ عبر نقاط JSON الآمنة. الرندرة النهائيّة دائماً Blade خادميّاً.
  */
 (function () {
     'use strict';
@@ -17,11 +16,12 @@
 
     var state = {
         page: Object.assign({}, PAGE_DEFAULTS, B.page || {}),
+        step: 1,
         region: 'body',
-        parts: { header: null, footer: null }, // {id, name, blocks} تُحمّل عند فتح التبويب
-        selected: null,                        // مسار الكتلة المختارة داخل منطقةٍ ما
+        parts: { header: null, footer: null },
+        selected: null,
         isLive: !!B.isLive,
-        preview: { open: false, device: 'desktop', timer: null },
+        preview: { device: 'desktop', timer: null },
     };
     if (!Array.isArray(state.page.blocks)) state.page.blocks = [];
 
@@ -29,7 +29,7 @@
     var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
     var uid = 0;
 
-    /* ============ الوصول لكتل المنطقة الحاليّة عبر مسار ============ */
+    /* ============ الوصول لكتل المنطقة الحاليّة ============ */
     function rootArray() {
         if (state.region === 'body') return state.page.blocks;
         var part = state.parts[state.region];
@@ -50,7 +50,7 @@
     }
     function samePath(a, b) { return a && b && a.join('.') === b.join('.'); }
 
-    /* ============ عمليّات ============ */
+    /* ============ عمليّات الكتل ============ */
     function newBlock(type) {
         var blk = { type: type, v: 1, props: {} };
         if (B.schema[type] && B.schema[type].children) blk.children = [];
@@ -66,8 +66,7 @@
     }
     function duplicateBlock(path) {
         var ci = containerAndIndex(path), arr = ci[0], i = ci[1];
-        var copy = JSON.parse(JSON.stringify(arr[i])); // نسخة عميقة
-        arr.splice(i + 1, 0, copy);
+        arr.splice(i + 1, 0, JSON.parse(JSON.stringify(arr[i])));
         state.selected = path.slice(0, -1).concat([i + 1]);
         renderAll();
     }
@@ -84,7 +83,7 @@
         renderAll();
     }
 
-    /* ============ رندرة اللوحة (الكتل المتاحة) ============ */
+    /* ============ لوحة الكتل (بوصف مختصر) ============ */
     function renderPalette() {
         var host = $('pbPalette'); host.innerHTML = '';
         var cats = {};
@@ -93,24 +92,24 @@
             (cats[cat] = cats[cat] || []).push(type);
         });
         Object.keys(cats).forEach(function (cat) {
-            var h = document.createElement('div'); h.className = 'pb-pal-cat'; h.textContent = cat;
-            host.appendChild(h);
+            var h = document.createElement('div'); h.className = 'pb-pal-cat'; h.textContent = cat; host.appendChild(h);
             cats[cat].forEach(function (type) {
                 var s = B.schema[type];
-                var btn = document.createElement('button');
-                btn.className = 'pb-add-btn';
-                btn.innerHTML = '<span class="pb-emoji">' + esc(s.icon || '▪') + '</span>' + esc(s.label || type);
+                var btn = document.createElement('button'); btn.className = 'pb-add-btn';
+                var top = '<div class="pb-add-top"><span class="pb-emoji">' + esc(s.icon || '▪') + '</span>' + esc(s.label || type) + '</div>';
+                var desc = s.desc ? '<div class="pb-add-desc">' + esc(s.desc) + '</div>' : '';
+                btn.innerHTML = top + desc;
                 btn.onclick = function () { addBlock(type, null); };
                 host.appendChild(btn);
             });
         });
     }
 
-    /* ============ رندرة اللوح (قائمة الكتل) ============ */
+    /* ============ بنية الصفحة (بطاقات) ============ */
     function summaryOf(block) {
         var p = block.props || {};
-        var s = p.title || p.heading || p.text || p.html || p.alt || p.caption || '';
-        return String(s).replace(/<[^>]*>/g, '').slice(0, 80); // جرِّد الوسوم للملخّص
+        var s = p.title || p.heading || p.text || p.html || p.alt || p.caption || p.quote || '';
+        return String(s).replace(/<[^>]*>/g, '').slice(0, 60);
     }
     function renderList(arr, basePath, host) {
         arr.forEach(function (block, i) {
@@ -138,29 +137,22 @@
             host.appendChild(card);
 
             if (s.children) {
-                var wrap = document.createElement('div');
-                wrap.className = 'pb-children';
+                var wrap = document.createElement('div'); wrap.className = 'pb-children';
                 renderList(block.children || [], path, wrap);
-                var add = document.createElement('button');
-                add.className = 'pb-rep-add';
-                add.textContent = '＋ كتلة داخل الأعمدة';
+                var add = document.createElement('button'); add.className = 'pb-rep-add'; add.textContent = '＋ كتلة داخل الأعمدة';
                 add.onclick = function () { openInserter(function (t) { addBlock(t, path); }, { noContainers: true }); };
-                wrap.appendChild(add);
-                host.appendChild(wrap);
+                wrap.appendChild(add); host.appendChild(wrap);
             }
         });
     }
     function renderCanvas() {
         var host = $('pbCanvas'); host.innerHTML = '';
         var arr = rootArray();
-        if (!arr.length) {
-            host.innerHTML = '<div class="pb-canvas-empty">لا كتل بعد — أضِف كتلة من اللوحة اليمنى.</div>';
-            return;
-        }
+        if (!arr.length) { host.innerHTML = '<div class="pb-canvas-empty">لا كتل بعد — أضِف كتلة من «أضف كتلة».</div>'; return; }
         renderList(arr, [], host);
     }
 
-    /* ============ مُنتقي الكتل (بديل prompt) ============ */
+    /* ============ مُنتقي الكتل ============ */
     function openInserter(cb, opts) {
         opts = opts || {};
         openInserter._cb = cb;
@@ -171,24 +163,21 @@
             var cats = {};
             Object.keys(B.schema).forEach(function (type) {
                 var s = B.schema[type];
-                if (opts.noContainers && s.children) return; // لا تداخل عميق
+                if (opts.noContainers && s.children) return;
                 var label = s.label || type;
                 if (filter && (label + ' ' + type).toLowerCase().indexOf(filter) === -1) return;
                 var cat = s.category || 'عامّ';
                 (cats[cat] = cats[cat] || []).push(type);
             });
-            var catNames = Object.keys(cats);
-            if (!catNames.length) { grid.innerHTML = '<p class="pb-hint">لا نتائج.</p>'; return; }
-            catNames.forEach(function (cat) {
+            var names = Object.keys(cats);
+            if (!names.length) { grid.innerHTML = '<p class="pb-hint">لا نتائج.</p>'; return; }
+            names.forEach(function (cat) {
                 var h = document.createElement('div'); h.className = 'pb-ins-cat'; h.textContent = cat; grid.appendChild(h);
                 cats[cat].forEach(function (type) {
                     var s = B.schema[type];
                     var btn = document.createElement('button'); btn.className = 'pb-ins-btn';
                     btn.innerHTML = '<span class="pb-emoji">' + esc(s.icon || '▪') + '</span>' + esc(s.label || type);
-                    btn.onclick = function () {
-                        $('pbInserterModal').hidden = true;
-                        if (openInserter._cb) openInserter._cb(type);
-                    };
+                    btn.onclick = function () { $('pbInserterModal').hidden = true; if (openInserter._cb) openInserter._cb(type); };
                     grid.appendChild(btn);
                 });
             });
@@ -199,7 +188,7 @@
         setTimeout(function () { search.focus(); }, 30);
     }
 
-    /* ============ المفتّش (خصائص الكتلة المختارة) ============ */
+    /* ============ المفتّش ============ */
     function fieldControl(field, value, onChange) {
         var wrap = document.createElement('div'); wrap.className = 'pb-field';
         var lab = document.createElement('label'); lab.textContent = field.label; wrap.appendChild(lab);
@@ -208,13 +197,10 @@
             var ta = document.createElement('textarea'); ta.id = rid; ta.rows = 6; ta.value = value || '';
             ta.oninput = function () { onChange(ta.value); };
             var ed = document.createElement('div');
-            ed.setAttribute('data-rich-editor', rid + '_e');
-            ed.setAttribute('data-target', rid);
-            ed.setAttribute('dir', 'rtl'); ed.setAttribute('hidden', 'hidden');
-            ed.innerHTML = value || '';
+            ed.setAttribute('data-rich-editor', rid + '_e'); ed.setAttribute('data-target', rid);
+            ed.setAttribute('dir', 'rtl'); ed.setAttribute('hidden', 'hidden'); ed.innerHTML = value || '';
             var syncRich = function () { onChange(ed.innerHTML); };
-            ed.addEventListener('input', syncRich);
-            ed.addEventListener('blur', syncRich);
+            ed.addEventListener('input', syncRich); ed.addEventListener('blur', syncRich);
             wrap.appendChild(ed); wrap.appendChild(ta);
             setTimeout(function () { if (window.WahyRichEditor) window.WahyRichEditor.init(ed); }, 0);
             return wrap;
@@ -278,7 +264,6 @@
         add.onclick = function () { items.push({}); renderInspector(); };
         wrap.appendChild(add); return wrap;
     }
-    /* تصميم الكتلة (دفعة 3) — خلفيّة/نصّ/محاذاة/حشو/عرض، تُخزَّن في props._style وتُعقَّم خادميّاً. */
     function styleControls(block) {
         block.props._style = (block.props._style && typeof block.props._style === 'object') ? block.props._style : {};
         var st = block.props._style;
@@ -287,33 +272,29 @@
         function on(key, v) { if (v === '' || v == null) delete st[key]; else st[key] = v; renderCanvas(); schedulePreview(); }
         wrap.appendChild(fieldControl({ label: 'لون الخلفيّة', type: 'color' }, st.bg, function (v) { on('bg', v); }));
         wrap.appendChild(fieldControl({ label: 'لون النصّ', type: 'color' }, st.color, function (v) { on('color', v); }));
-        wrap.appendChild(fieldControl({ label: 'المحاذاة', type: 'select',
-            options: { '': '—', 'start': 'بداية', 'center': 'وسط', 'end': 'نهاية' } }, st.align || '', function (v) { on('align', v); }));
+        wrap.appendChild(fieldControl({ label: 'المحاذاة', type: 'select', options: { '': '—', 'start': 'بداية', 'center': 'وسط', 'end': 'نهاية' } }, st.align || '', function (v) { on('align', v); }));
         wrap.appendChild(fieldControl({ label: 'حشو علويّ (px)', type: 'number', min: 0, max: 200 }, st.pt, function (v) { on('pt', v); }));
         wrap.appendChild(fieldControl({ label: 'حشو سفليّ (px)', type: 'number', min: 0, max: 200 }, st.pb, function (v) { on('pb', v); }));
         wrap.appendChild(fieldControl({ label: 'أقصى عرض (px)', type: 'number', min: 0, max: 1600 }, st.maxw, function (v) { on('maxw', v); }));
         var clr = document.createElement('button'); clr.className = 'pb-rep-del'; clr.textContent = 'مسح التنسيق';
         clr.onclick = function () { block.props._style = {}; renderInspector(); renderCanvas(); schedulePreview(); };
-        wrap.appendChild(clr);
-        return wrap;
+        wrap.appendChild(clr); return wrap;
     }
     function renderInspector() {
         var host = $('pbInspector'); host.innerHTML = '';
         var block = blockAt(state.selected);
-        if (!block) { host.innerHTML = '<p class="pb-hint">اختر كتلةً لتحرير خصائصها.</p>'; return; }
+        if (!block) { host.innerHTML = '<p class="pb-hint">اختر كتلةً من «بنية الصفحة» لتحرير خصائصها.</p>'; return; }
         var s = B.schema[block.type];
         if (!s) { host.innerHTML = '<p class="pb-hint">نوع غير معروف.</p>'; return; }
         block.props = block.props || {};
         (s.fields || []).forEach(function (field) {
             if (field.type === 'repeater') host.appendChild(repeaterControl(field, block));
-            else host.appendChild(fieldControl(field, block.props[field.key], function (v) {
-                block.props[field.key] = v; renderCanvas(); schedulePreview();
-            }));
+            else host.appendChild(fieldControl(field, block.props[field.key], function (v) { block.props[field.key] = v; renderCanvas(); schedulePreview(); }));
         });
         host.appendChild(styleControls(block));
     }
 
-    /* ============ إعدادات الصفحة + اختيار الهيدر/الفوتر ============ */
+    /* ============ إعدادات الصفحة (الخطوة 1) ============ */
     function partSelectValue(kind) {
         var idKey = kind === 'header' ? 'header_part_id' : 'footer_part_id';
         var hideKey = kind === 'header' ? 'hide_header' : 'hide_footer';
@@ -336,31 +317,39 @@
             if (v === '__none__') { state.page[hideKey] = true; state.page[idKey] = null; }
             else if (v === '') { state.page[hideKey] = false; state.page[idKey] = null; }
             else { state.page[hideKey] = false; state.page[idKey] = parseInt(v, 10); }
-            // إن كنّا نحرّر منطقة هذا النوع، أعِد تحميل الجزء المطابق للاختيار الجديد
             if (state.region === kind) { state.parts[kind] = null; switchRegion(kind); }
             else schedulePreview();
         };
     }
     function renderPageSettings() {
-        $('pbPageSettings').style.display = state.region === 'body' ? '' : 'none';
         $('pbTitle').value = state.page.title || '';
         $('pbSlug').value = state.page.slug || '';
         $('pbLocale').value = state.page.locale || 'ar';
         $('pbMetaTitle').value = state.page.meta_title || '';
         $('pbMetaDescription').value = state.page.meta_description || '';
-        renderPartSelect('header');
-        renderPartSelect('footer');
+        renderPartSelect('header'); renderPartSelect('footer');
     }
     function renderStatus() {
-        var pill = $('pbStatusPill');
-        pill.textContent = (state.page.status === 'published' ? 'منشورة' : 'مسودّة') + (state.page.id ? '' : ' (غير محفوظة)');
+        $('pbStatusPill').textContent = (state.page.status === 'published' ? 'منشورة' : 'مسودّة') + (state.page.id ? '' : ' (غير محفوظة)');
         var gl = $('pbGoLive');
         gl.textContent = state.isLive ? '● إيقاف البثّ' : '○ بثّ مباشر';
         gl.disabled = !state.page.id || state.page.status !== 'published';
     }
     function renderAll() { renderCanvas(); renderInspector(); renderStatus(); schedulePreview(); }
 
-    /* ============ نداءات الشبكة ============ */
+    /* ============ الخطوات ============ */
+    function showStep(n) {
+        if (n === 2) {
+            syncPageFields();
+            if (!state.page.title || !state.page.slug) { toast('أدخِل العنوان والمسار أوّلاً.', true); return; }
+        }
+        state.step = n;
+        $('pbEditor').setAttribute('data-step', String(n));
+        document.querySelectorAll('.pb-step-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-pb-step') === String(n)); });
+        if (n === 2) { renderAll(); refreshPreview(); }
+    }
+
+    /* ============ الشبكة ============ */
     function api(url, method, body, isForm) {
         var headers = { 'X-CSRF-TOKEN': B.csrf, 'Accept': 'application/json' };
         var opts = { method: method, headers: headers };
@@ -374,7 +363,6 @@
         var t = $('pbToast'); t.textContent = msg; t.className = 'pb-toast' + (isErr ? ' err' : ''); t.hidden = false;
         clearTimeout(toast._t); toast._t = setTimeout(function () { t.hidden = true; }, 2600);
     }
-
     function syncPageFields() {
         state.page.title = $('pbTitle').value.trim();
         state.page.slug = $('pbSlug').value.trim();
@@ -406,14 +394,12 @@
     function savePart() {
         var part = state.parts[state.region];
         if (!part) return Promise.resolve(false);
-        return api(B.urls.updatePart + '/' + part.id, 'PUT', { name: part.name, blocks: part.blocks })
-            .then(function (res) {
-                if (!res.ok) { toast(res.data.message || 'تعذّر الحفظ.', true); return false; }
-                toast('حُفِظ ' + (state.region === 'header' ? 'الهيدر' : 'الفوتر') + '.'); return true;
-            });
+        return api(B.urls.updatePart + '/' + part.id, 'PUT', { name: part.name, blocks: part.blocks }).then(function (res) {
+            if (!res.ok) { toast(res.data.message || 'تعذّر الحفظ.', true); return false; }
+            toast('حُفِظ ' + (state.region === 'header' ? 'الهيدر' : 'الفوتر') + '.'); return true;
+        });
     }
     function save() { return state.region === 'body' ? saveBody() : savePart(); }
-
     function publish() {
         var chain = state.page.id ? Promise.resolve(true) : saveBody();
         chain.then(function (ok) {
@@ -433,15 +419,9 @@
         });
     }
 
-    /* ============ المعاينة الحيّة المُثبَّتة (دفعة 1) ============ */
+    /* ============ المعاينة الحيّة (دائمة في الخطوة 2) ============ */
     function buildPreviewPayload() {
-        var p = {
-            locale: state.page.locale || 'ar',
-            body: state.page.blocks,
-            hide_header: !!state.page.hide_header,
-            hide_footer: !!state.page.hide_footer,
-        };
-        // كتل حيّة للهيدر/الفوتر إن كانت محمّلة (تحرير غير محفوظ)، وإلّا نمرّر المُعرّف ليشتقّها الخادم.
+        var p = { locale: state.page.locale || 'ar', body: state.page.blocks, hide_header: !!state.page.hide_header, hide_footer: !!state.page.hide_footer };
         if (state.parts.header) p.header = state.parts.header.blocks;
         else if (state.page.header_part_id) p.header_part_id = state.page.header_part_id;
         if (state.parts.footer) p.footer = state.parts.footer.blocks;
@@ -449,42 +429,31 @@
         return p;
     }
     function refreshPreview() {
-        if (!state.preview.open) return;
+        if (state.step !== 2) return;
         fetch(B.urls.preview, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': B.csrf, 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'X-CSRF-TOKEN': B.csrf, 'Content-Type': 'application/json' },
             body: JSON.stringify(buildPreviewPayload()),
-        }).then(function (r) { return r.text(); }).then(function (html) {
-            $('pbPreviewFrame').srcdoc = html;
-        }).catch(function () { /* صامت — لا نُزعج المحرّر */ });
+        }).then(function (r) { return r.text(); }).then(function (html) { $('pbPreviewFrame').srcdoc = html; })
+            .catch(function () { /* صامت */ });
     }
     function schedulePreview() {
-        if (!state.preview.open) return;
+        if (state.step !== 2) return;
         clearTimeout(state.preview.timer);
-        state.preview.timer = setTimeout(refreshPreview, 350);
-    }
-    function togglePreview(force) {
-        state.preview.open = (force != null) ? force : !state.preview.open;
-        $('pbPreviewDock').hidden = !state.preview.open;
-        $('pbEditor').classList.toggle('pb-has-dock', state.preview.open);
-        if (state.preview.open) refreshPreview();
+        state.preview.timer = setTimeout(refreshPreview, 300);
     }
     function setPreviewDevice(dev) {
         state.preview.device = dev;
-        $('pbPreviewDock').setAttribute('data-dev', dev);
-        document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) {
-            b.classList.toggle('is-active', b.getAttribute('data-dev') === dev);
-        });
+        $('pbEditor').setAttribute('data-dev', dev);
+        document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) { b.classList.toggle('is-active', b.getAttribute('data-dev') === dev); });
     }
 
     /* ============ الوسائط ============ */
     function openMedia(onPick) {
-        openMedia._cb = onPick;
-        $('pbMediaModal').hidden = false;
+        openMedia._cb = onPick; $('pbMediaModal').hidden = false;
         api(B.urls.mediaIndex, 'GET').then(function (res) {
             var grid = $('pbMediaGrid'); grid.innerHTML = '';
             var list = (res.data && res.data.data) || [];
-            if (!list.length) { grid.innerHTML = '<p class="pb-hint">لا وسائط بعد — ارفع صورة.</p>'; }
+            if (!list.length) grid.innerHTML = '<p class="pb-hint">لا وسائط بعد — ارفع صورة.</p>';
             list.forEach(function (a) {
                 var cell = document.createElement('div'); cell.className = 'pb-media-cell';
                 cell.innerHTML = '<img src="' + esc(a.url) + '" alt="' + esc(a.alt || '') + '">';
@@ -503,56 +472,41 @@
         });
     }
 
-    /* ============ رموز التصميم (ت-١٠) ============ */
+    /* ============ رموز التصميم ============ */
     function openDesign() {
         api(B.urls.design, 'GET').then(function (res) {
-            var t = (res.data && res.data.tokens) || {};
-            var fonts = (res.data && res.data.fonts) || ['Tajawal'];
+            var t = (res.data && res.data.tokens) || {}, fonts = (res.data && res.data.fonts) || ['Tajawal'];
             if (/^#[0-9a-fA-F]{6}$/.test(t.primary)) $('pbTkPrimary').value = t.primary;
             if (/^#[0-9a-fA-F]{6}$/.test(t.secondary)) $('pbTkSecondary').value = t.secondary;
             if (/^#[0-9a-fA-F]{6}$/.test(t.text)) $('pbTkText').value = t.text;
             if (/^#[0-9a-fA-F]{6}$/.test(t.bg)) $('pbTkBg').value = t.bg;
             $('pbTkRadius').value = t.radius != null ? t.radius : 12;
             var sel = $('pbTkFont'); sel.innerHTML = '';
-            fonts.forEach(function (f) {
-                var o = document.createElement('option'); o.value = f; o.textContent = f;
-                if (f === t.font) o.selected = true; sel.appendChild(o);
-            });
+            fonts.forEach(function (f) { var o = document.createElement('option'); o.value = f; o.textContent = f; if (f === t.font) o.selected = true; sel.appendChild(o); });
             $('pbDesignModal').hidden = false;
         });
     }
     function saveDesign() {
-        var payload = {
-            primary: $('pbTkPrimary').value, secondary: $('pbTkSecondary').value,
-            text: $('pbTkText').value, bg: $('pbTkBg').value,
-            font: $('pbTkFont').value, radius: parseInt($('pbTkRadius').value, 10) || 0,
-        };
+        var payload = { primary: $('pbTkPrimary').value, secondary: $('pbTkSecondary').value, text: $('pbTkText').value, bg: $('pbTkBg').value, font: $('pbTkFont').value, radius: parseInt($('pbTkRadius').value, 10) || 0 };
         api(B.urls.design, 'PUT', payload).then(function (res) {
             if (!res.ok) { toast('تعذّر حفظ التصميم.', true); return; }
             $('pbDesignModal').hidden = true; toast('حُفِظت رموز التصميم.'); refreshPreview();
         });
     }
 
-    /* ============ اللغات (ت-٣) ============ */
+    /* ============ اللغات ============ */
     function renderLang() {
         var host = $('pbLang'); host.innerHTML = '';
         if (!state.page.id) return;
-        var cur = document.createElement('a'); cur.className = 'is-current';
-        cur.textContent = (state.page.locale || 'ar').toUpperCase();
-        cur.href = 'javascript:void(0)'; host.appendChild(cur);
+        var cur = document.createElement('a'); cur.className = 'is-current'; cur.textContent = (state.page.locale || 'ar').toUpperCase(); cur.href = 'javascript:void(0)'; host.appendChild(cur);
         (B.translations || []).forEach(function (tr) {
-            var a = document.createElement('a');
-            a.textContent = (tr.locale || '').toUpperCase();
-            a.href = B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + tr.id;
-            host.appendChild(a);
+            var a = document.createElement('a'); a.textContent = (tr.locale || '').toUpperCase();
+            a.href = B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + tr.id; host.appendChild(a);
         });
         var have = [state.page.locale].concat((B.translations || []).map(function (t) { return t.locale; }));
         ['ar', 'en'].forEach(function (loc) {
             if (have.indexOf(loc) !== -1) return;
-            var b = document.createElement('button');
-            b.textContent = '＋ ' + loc.toUpperCase();
-            b.onclick = function () { addTranslation(loc); };
-            host.appendChild(b);
+            var b = document.createElement('button'); b.textContent = '＋ ' + loc.toUpperCase(); b.onclick = function () { addTranslation(loc); }; host.appendChild(b);
         });
     }
     function addTranslation(locale) {
@@ -563,27 +517,17 @@
         });
     }
 
-    /* ============ المناطق (التبويبات) + أجزاء القالب ============ */
+    /* ============ المناطق + أجزاء القالب ============ */
     function switchRegion(region) {
         state.region = region; state.selected = null;
-        document.querySelectorAll('.pb-tab').forEach(function (t) {
-            t.classList.toggle('is-active', t.getAttribute('data-pb-region') === region);
-        });
-        renderPageSettings();
+        document.querySelectorAll('.pb-region-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-pb-region') === region); });
         if (region === 'body') { renderAll(); return; }
-
         var idKey = region === 'header' ? 'header_part_id' : 'footer_part_id';
         var pagePartId = state.page[idKey];
         var loaded = state.parts[region];
         if (loaded && (!pagePartId || loaded.id === pagePartId)) { renderAll(); return; }
-
-        // الصفحة تختار جزءاً مُسمّى؟ حرّره تحديداً؛ وإلّا الافتراضيّ العالميّ (يُنشَأ إن غاب).
-        var url = pagePartId
-            ? B.urls.partBase + '/' + pagePartId
-            : B.urls.activePart + '/' + region + '?locale=' + encodeURIComponent(state.page.locale || 'ar');
-        api(url, 'GET').then(function (res) {
-            state.parts[region] = res.data.part; renderAll();
-        });
+        var url = pagePartId ? B.urls.partBase + '/' + pagePartId : B.urls.activePart + '/' + region + '?locale=' + encodeURIComponent(state.page.locale || 'ar');
+        api(url, 'GET').then(function (res) { state.parts[region] = res.data.part; renderAll(); });
     }
     function createNewPart(kind) {
         var name = prompt('اسم ال' + (kind === 'header' ? 'هيدر' : 'فوتر') + ' الجديد:');
@@ -597,39 +541,31 @@
             state.page[idKey] = p.id; state.page[hideKey] = false;
             state.parts[kind] = { id: p.id, name: p.name, blocks: [] };
             renderPageSettings();
-            switchRegion(kind);
-            toast('أُنشئ الجزء — حرّره ثمّ احفظ (احفظ الصفحة لربطه بها).');
+            showStep(2); switchRegion(kind);
+            toast('أُنشئ الجزء — حرّره ثمّ احفظ.');
         });
     }
 
     /* ============ الربط ============ */
     function bind() {
-        document.querySelectorAll('.pb-tab').forEach(function (t) {
-            t.onclick = function () { switchRegion(t.getAttribute('data-pb-region')); };
-        });
+        document.querySelectorAll('.pb-step-tab').forEach(function (t) { t.onclick = function () { showStep(Number(t.getAttribute('data-pb-step'))); }; });
+        $('pbToStep2').onclick = function () { showStep(2); };
+        $('pbBackStep1').onclick = function () { showStep(1); };
+        document.querySelectorAll('.pb-region-tab').forEach(function (t) { t.onclick = function () { switchRegion(t.getAttribute('data-pb-region')); }; });
         $('pbSave').onclick = function () { save(); };
         $('pbPublish').onclick = function () { publish(); };
-        $('pbPreview').onclick = function () { togglePreview(); };
         $('pbGoLive').onclick = function () { toggleLive(); };
         $('pbDesign').onclick = function () { openDesign(); };
         $('pbTkSave').onclick = function () { saveDesign(); };
-        $('pbPreviewDockClose').onclick = function () { togglePreview(false); };
-        document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) {
-            b.onclick = function () { setPreviewDevice(b.getAttribute('data-dev')); };
-        });
+        document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) { b.onclick = function () { setPreviewDevice(b.getAttribute('data-dev')); }; });
         $('pbNewHeader').onclick = function () { createNewPart('header'); };
         $('pbNewFooter').onclick = function () { createNewPart('footer'); };
-        ['pbTitle', 'pbSlug', 'pbLocale', 'pbMetaTitle', 'pbMetaDescription'].forEach(function (id) {
-            $(id).addEventListener('change', function () { syncPageFields(); schedulePreview(); });
-        });
-        document.querySelectorAll('[data-pb-close]').forEach(function (x) {
-            x.onclick = function () { x.closest('.pb-modal').hidden = true; };
-        });
-        $('pbMediaFile').addEventListener('change', function (e) {
-            if (e.target.files[0]) uploadMedia(e.target.files[0]);
-        });
+        ['pbTitle', 'pbSlug', 'pbLocale', 'pbMetaTitle', 'pbMetaDescription'].forEach(function (id) { $(id).addEventListener('change', function () { syncPageFields(); schedulePreview(); }); });
+        document.querySelectorAll('[data-pb-close]').forEach(function (x) { x.onclick = function () { x.closest('.pb-modal').hidden = true; }; });
+        $('pbMediaFile').addEventListener('change', function (e) { if (e.target.files[0]) uploadMedia(e.target.files[0]); });
     }
 
     /* ============ الإقلاع ============ */
-    renderPalette(); bind(); renderPageSettings(); renderAll(); renderLang();
+    renderPalette(); bind(); renderPageSettings(); renderStatus(); renderLang();
+    showStep(1);
 })();

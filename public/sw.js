@@ -1,6 +1,6 @@
 // Service Worker - Aggressive Caching Strategy
 // ⚠️ ارفع رقم الإصدار عند كل نشر يغيّر الأصول (يُبطِل الكاش القديم لدى كل الزوّار).
-const CACHE_VERSION = 'atheel-v2';
+const CACHE_VERSION = 'atheel-v3';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
