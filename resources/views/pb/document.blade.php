@@ -14,8 +14,9 @@
     $headerPart = ($page->hide_header || $page->use_site_header) ? null : ($page->header ?: TemplatePart::activeFor('header', $locale));
     $footerPart = ($page->hide_footer || $page->use_site_footer) ? null : ($page->footer ?: TemplatePart::activeFor('footer', $locale));
 
+    // الجمهور يرى **المنشور** (published_blocks) لا المسودّة (blocks) — تحرير الحيّ آمن حتى إعادة النشر.
     $headerBlocks = BlockTree::prepare($headerPart?->blocks ?? []);
-    $bodyBlocks   = BlockTree::prepare($page->blocks ?? []);
+    $bodyBlocks   = BlockTree::prepare($page->published_blocks ?? $page->blocks ?? []);
     $footerBlocks = BlockTree::prepare($footerPart?->blocks ?? []);
 
     $docTitle = $page->meta_title ?: $page->title;

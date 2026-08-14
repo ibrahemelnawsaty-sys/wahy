@@ -16,7 +16,7 @@ class Page extends Model
     protected $table = 'pb_pages';
 
     protected $fillable = [
-        'translation_group', 'locale', 'title', 'slug', 'status', 'blocks',
+        'translation_group', 'locale', 'title', 'slug', 'status', 'blocks', 'published_blocks',
         'header_part_id', 'footer_part_id', 'hide_header', 'hide_footer',
         'use_site_header', 'use_site_footer',
         'meta_title', 'meta_description',
@@ -25,6 +25,7 @@ class Page extends Model
 
     protected $casts = [
         'blocks' => 'array',
+        'published_blocks' => 'array',
         'hide_header' => 'boolean',
         'hide_footer' => 'boolean',
         'use_site_header' => 'boolean',

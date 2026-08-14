@@ -59,6 +59,8 @@ class PageBuilderUiController extends Controller
                 'hide_footer' => (bool) $page->hide_footer,
                 'use_site_header' => (bool) $page->use_site_header,
                 'use_site_footer' => (bool) $page->use_site_footer,
+                'has_unpublished' => $page->status === 'published'
+                    && json_encode($page->blocks ?? []) !== json_encode($page->published_blocks ?? []),
             ] : null,
             'isLive' => $isLive,
             'parts' => ['header' => $partsFor('header'), 'footer' => $partsFor('footer')],

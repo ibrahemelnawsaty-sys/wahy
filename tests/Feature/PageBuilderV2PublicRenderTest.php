@@ -103,6 +103,33 @@ class PageBuilderV2PublicRenderTest extends TestCase
         $this->get('/')->assertOk()->assertSee('فوائد التعلم التعاوني', false);
     }
 
+    public function test_draft_edits_do_not_affect_live_until_republish(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $page = Page::create([
+            'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
+            'title' => 'ص', 'slug' => 'sep', 'status' => 'draft',
+            'blocks' => [['type' => 'hero', 'props' => ['title' => 'الإصدار المنشور']]],
+        ]);
+
+        $this->actingAs($admin)->postJson(route('admin.pb.pages.publish', $page))->assertOk();
+        PageResolver::enable('sep');
+        $this->get('/pages/sep')->assertOk()->assertSee('الإصدار المنشور');
+
+        // تعديل المسودّة (blocks) دون إعادة نشر
+        $this->actingAs($admin)->putJson(route('admin.pb.pages.update', $page), [
+            'title' => 'ص', 'slug' => 'sep',
+            'blocks' => [['type' => 'hero', 'props' => ['title' => 'مسودّة غير منشورة']]],
+        ])->assertOk();
+
+        // الحيّ يبقى على المنشور — لا تتسرّب المسودّة
+        $this->get('/pages/sep')->assertOk()->assertSee('الإصدار المنشور')->assertDontSee('مسودّة غير منشورة');
+
+        // إعادة النشر ⟶ الحيّ يعرض الجديد
+        $this->actingAs($admin)->postJson(route('admin.pb.pages.publish', $page->fresh()))->assertOk();
+        $this->get('/pages/sep')->assertOk()->assertSee('مسودّة غير منشورة');
+    }
+
     public function test_scheduled_future_page_not_served_until_due(): void
     {
         $page = Page::create([

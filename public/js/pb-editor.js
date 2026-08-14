@@ -12,7 +12,7 @@
         id: null, title: '', slug: '', locale: 'ar', status: 'draft',
         meta_title: '', meta_description: '', blocks: [],
         header_part_id: null, footer_part_id: null, hide_header: false, hide_footer: false,
-        use_site_header: false, use_site_footer: false,
+        use_site_header: false, use_site_footer: false, has_unpublished: false,
     };
 
     var state = {
@@ -390,7 +390,9 @@
         renderPartSelect('header'); renderPartSelect('footer');
     }
     function renderStatus() {
-        $('pbStatusPill').textContent = (state.page.status === 'published' ? 'منشورة' : 'مسودّة') + (state.page.id ? '' : ' (غير محفوظة)');
+        var label = state.page.status === 'published' ? 'منشورة' : 'مسودّة';
+        if (state.page.status === 'published' && state.page.has_unpublished) label += ' • ✎ تعديلات غير منشورة';
+        $('pbStatusPill').textContent = label + (state.page.id ? '' : ' (غير محفوظة)');
         var gl = $('pbGoLive');
         gl.textContent = state.isLive ? '● إيقاف البثّ' : '○ بثّ مباشر';
         gl.disabled = !state.page.id || state.page.status !== 'published';
@@ -451,8 +453,9 @@
             if (!res.ok) { toast(res.data.message || 'تعذّر الحفظ.', true); return false; }
             state.page.id = res.data.page.id;
             state.page.status = res.data.page.status;
+            if (state.page.status === 'published') state.page.has_unpublished = true; // حُفِظت مسودّة على صفحة منشورة
             if (isNew) history.replaceState({}, '', B.urls.indexUi.replace(/\/?$/, '/') + 'editor/' + state.page.id);
-            renderStatus(); renderLang(); toast('حُفِظت المسودّة.'); return true;
+            renderStatus(); renderLang(); toast('حُفِظت المسودّة — لن تظهر للجمهور حتى تضغط «نشر».'); return true;
         });
     }
     function savePart() {
@@ -470,7 +473,7 @@
             if (!ok && !state.page.id) return;
             api(B.urls.publish + '/' + state.page.id + '/publish', 'POST').then(function (res) {
                 if (!res.ok) { toast(res.data.message || 'تعذّر النشر.', true); return; }
-                state.page.status = 'published'; renderStatus(); toast('نُشِرت الصفحة.');
+                state.page.status = 'published'; state.page.has_unpublished = false; renderStatus(); toast('نُشِرت الصفحة — صار المحتوى مرئيّاً للجمهور.');
             });
         });
     }

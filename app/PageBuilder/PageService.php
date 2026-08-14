@@ -71,6 +71,7 @@ class PageService
             $page->update([
                 'status' => 'published',
                 'published_at' => now(),
+                'published_blocks' => $page->blocks, // ثبّت المنشور من المسودّة الحاليّة
                 'updated_by' => $userId,
             ]);
 
