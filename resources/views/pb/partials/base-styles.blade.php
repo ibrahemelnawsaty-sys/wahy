@@ -87,12 +87,25 @@
     .pb-video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
     .pb-video-cap{text-align:center;opacity:.6;font-size:.9rem;margin-top:8px}
     @media (max-width:640px){.pb-columns{grid-template-columns:1fr}}
+    /* زرّ تبديل الوضع (ليليّ/نهاريّ) العائم */
+    .pb-theme-toggle{position:fixed;bottom:20px;inset-inline-start:20px;z-index:950;width:46px;height:46px;border-radius:50%;
+        border:1px solid #e5e7eb;background:#fff;color:#334155;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+    /* الوضع الليليّ: تفضيل النظام ما لم يُفرض النهاريّ صراحةً */
     @media (prefers-color-scheme: dark){
-        body{background:#0f172a;color:#e2e8f0}
-        .pb-cta,.pb-quote{background:#1e293b}
-        .pb-feature-card,.pb-testimonial,.pb-price-card{border-color:#334155}
-        .pb-sep-line span{background:#334155}
-        .pb-table th,.pb-table td{border-color:#334155}
-        .pb-table thead th{background:#1e293b}
+        :root:not([data-theme="light"]) body{background:#0f172a;color:#e2e8f0}
+        :root:not([data-theme="light"]) .pb-cta,:root:not([data-theme="light"]) .pb-quote{background:#1e293b}
+        :root:not([data-theme="light"]) .pb-feature-card,:root:not([data-theme="light"]) .pb-testimonial,:root:not([data-theme="light"]) .pb-price-card{border-color:#334155}
+        :root:not([data-theme="light"]) .pb-sep-line span{background:#334155}
+        :root:not([data-theme="light"]) .pb-table th,:root:not([data-theme="light"]) .pb-table td{border-color:#334155}
+        :root:not([data-theme="light"]) .pb-table thead th{background:#1e293b}
+        :root:not([data-theme="light"]) .pb-theme-toggle{background:#1e293b;color:#e2e8f0;border-color:#334155}
     }
+    /* الوضع الليليّ بالتبديل الصريح (يعمل مع مفتاح wahy-theme المشترك مع الموقع) */
+    :root[data-theme="dark"] body{background:#0f172a;color:#e2e8f0}
+    :root[data-theme="dark"] .pb-cta,:root[data-theme="dark"] .pb-quote{background:#1e293b}
+    :root[data-theme="dark"] .pb-feature-card,:root[data-theme="dark"] .pb-testimonial,:root[data-theme="dark"] .pb-price-card{border-color:#334155}
+    :root[data-theme="dark"] .pb-sep-line span{background:#334155}
+    :root[data-theme="dark"] .pb-table th,:root[data-theme="dark"] .pb-table td{border-color:#334155}
+    :root[data-theme="dark"] .pb-table thead th{background:#1e293b}
+    :root[data-theme="dark"] .pb-theme-toggle{background:#1e293b;color:#e2e8f0;border-color:#334155}
 </style>

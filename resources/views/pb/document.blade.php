@@ -25,6 +25,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- الوضع الليليّ/النهاريّ: يُطبَّق مبكّراً من مفتاح wahy-theme المشترك مع الموقع (بلا وميض) --}}
+    <script>(function(){try{var t=localStorage.getItem('wahy-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
     <title>{{ $docTitle }}</title>
     <link rel="canonical" href="{{ url('/pages/' . $page->slug) }}">
     <meta property="og:type" content="website">
@@ -55,6 +57,8 @@
             <footer class="pb-page-footer">@include('pb.renderer', ['blocks' => $footerBlocks])</footer>
         @endif
     </div>
+    <button class="pb-theme-toggle" type="button" title="تبديل الوضع الليليّ/النهاريّ" aria-label="تبديل الوضع"
+        onclick="(function(r){var d=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',d);try{localStorage.setItem('wahy-theme',d);}catch(e){}})(document.documentElement)">🌓</button>
     @if(\App\PageBuilder\BlockRegistry::needsRuntime(array_merge($headerBlocks, $bodyBlocks, $footerBlocks)))
         <script src="{{ asset('js/pb-runtime.js') }}" defer></script>
     @endif
