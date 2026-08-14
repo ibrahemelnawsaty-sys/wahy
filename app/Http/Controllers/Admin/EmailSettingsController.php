@@ -32,6 +32,7 @@ class EmailSettingsController extends Controller
         'teacher_submission_pending' => 'المعلّم — تسليم طالب بانتظار المراجعة',
         'teacher_activity_approved' => 'المعلّم — اعتماد نشاطه',
         'teacher_activity_rejected' => 'المعلّم — رفض نشاطه',
+        'teacher_weekly_digest' => 'المعلّم — الملخّص الأسبوعيّ (تسليمات معلّقة)',
         // الأدمن
         'admin_activity_pending' => 'الأدمن — نشاط بانتظار الاعتماد النهائيّ',
         // الدعم الفنّي + صاحب التذكرة
