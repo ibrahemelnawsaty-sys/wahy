@@ -59,6 +59,8 @@
                 <button class="pb-region-tab" data-pb-region="header">الهيدر</button>
                 <button class="pb-region-tab" data-pb-region="footer">الفوتر</button>
             </div>
+            <button class="pb-back-btn" id="pbRefreshPreview" title="تحديث المعاينة">🔄 تحديث</button>
+            <button class="pb-back-btn" id="pbOpenPreview" title="فتح المعاينة في نافذة">↗ نافذة</button>
             <span class="pb-preview-devices" id="pbPreviewDevices">
                 <button type="button" data-dev="desktop" class="is-active" title="سطح المكتب">🖥</button>
                 <button type="button" data-dev="tablet" title="لوحيّ">◻</button>
@@ -175,9 +177,10 @@
     .pb-preview-devices button{border:0;background:transparent;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.95rem}
     .pb-preview-devices button.is-active{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 
-    .pb-step2-grid{display:grid;grid-template-columns:200px 1fr 320px;gap:12px;align-items:start;height:calc(100vh - 200px);min-height:520px}
+    /* أعمدة بارتفاع صريح (لا نعتمد على تمدّد الشبكة كي لا ينهار ارتفاع الـiframe) */
+    .pb-step2-grid{display:grid;grid-template-columns:200px 1fr 320px;gap:12px;align-items:start}
     .pb-palette,.pb-side-sec{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px}
-    .pb-palette{overflow:auto;height:100%}
+    .pb-palette{overflow:auto;height:calc(100vh - 230px);min-height:460px}
     .pb-panel-label{font-weight:800;font-size:.78rem;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px}
     .pb-palette-list{display:flex;flex-direction:column;gap:5px}
     .pb-pal-cat{font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin:8px 2px 2px}
@@ -188,12 +191,12 @@
     .pb-add-btn .pb-emoji{font-size:1.05rem}
     .pb-add-btn .pb-add-desc{font-size:.72rem;color:#94a3b8;line-height:1.4}
 
-    .pb-preview-col{height:100%;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;display:flex;justify-content:center}
+    .pb-preview-col{height:calc(100vh - 230px);min-height:460px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;display:flex;justify-content:center}
     .pb-preview-frame{width:100%;height:100%;border:0;background:#fff;transition:width .2s;max-width:100%}
     .pb-editor[data-dev="tablet"] .pb-preview-frame{width:768px}
     .pb-editor[data-dev="mobile"] .pb-preview-frame{width:390px}
 
-    .pb-side{display:flex;flex-direction:column;gap:12px;height:100%;overflow:auto}
+    .pb-side{display:flex;flex-direction:column;gap:12px;height:calc(100vh - 230px);min-height:460px;overflow:auto}
     .pb-canvas{display:flex;flex-direction:column;gap:6px;min-height:40px}
     .pb-card{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;cursor:pointer}
     .pb-card.is-selected{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.2)}

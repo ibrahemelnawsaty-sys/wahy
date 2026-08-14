@@ -353,7 +353,10 @@
         state.step = n;
         $('pbEditor').setAttribute('data-step', String(n));
         document.querySelectorAll('.pb-step-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-pb-step') === String(n)); });
-        if (n === 2) { renderAll(); refreshPreview(); }
+        if (n === 2) {
+            $('pbPreviewFrame').srcdoc = '<!doctype html><meta charset="utf-8"><body style="font-family:sans-serif;padding:24px;color:#64748b">جارِ تحميل المعاينة…</body>';
+            renderAll(); refreshPreview();
+        }
     }
 
     /* ============ الشبكة ============ */
@@ -438,13 +441,24 @@
         else if (state.page.footer_part_id) p.footer_part_id = state.page.footer_part_id;
         return p;
     }
-    function refreshPreview() {
-        if (state.step !== 2) return;
-        fetch(B.urls.preview, {
+    function fetchPreview() {
+        return fetch(B.urls.preview, {
             method: 'POST', headers: { 'X-CSRF-TOKEN': B.csrf, 'Content-Type': 'application/json' },
             body: JSON.stringify(buildPreviewPayload()),
-        }).then(function (r) { return r.text(); }).then(function (html) { $('pbPreviewFrame').srcdoc = html; })
-            .catch(function () { /* صامت */ });
+        }).then(function (r) { return r.text(); });
+    }
+    function refreshPreview() {
+        if (state.step !== 2) return;
+        var frame = $('pbPreviewFrame');
+        fetchPreview().then(function (html) { frame.srcdoc = html; })
+            .catch(function () { frame.srcdoc = '<!doctype html><meta charset="utf-8"><body style="font-family:sans-serif;padding:24px;color:#b91c1c">تعذّر تحميل المعاينة — تأكّد من الاتصال ثمّ اضغط «🔄 تحديث».</body>'; });
+    }
+    function openPreviewWindow() {
+        var w = window.open('', '_blank');
+        if (!w) { toast('اسمح بالنوافذ المنبثقة لهذا الموقع.', true); return; }
+        w.document.write('<!doctype html><meta charset="utf-8"><body style="font-family:sans-serif;padding:24px">جارِ تحميل المعاينة…</body>');
+        fetchPreview().then(function (html) { w.document.open(); w.document.write(html); w.document.close(); })
+            .catch(function () { toast('تعذّرت المعاينة.', true); });
     }
     function schedulePreview() {
         if (state.step !== 2) return;
@@ -567,6 +581,8 @@
         $('pbGoLive').onclick = function () { toggleLive(); };
         $('pbDesign').onclick = function () { openDesign(); };
         $('pbTkSave').onclick = function () { saveDesign(); };
+        $('pbRefreshPreview').onclick = function () { refreshPreview(); };
+        $('pbOpenPreview').onclick = function () { openPreviewWindow(); };
         document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) { b.onclick = function () { setPreviewDevice(b.getAttribute('data-dev')); }; });
         $('pbNewHeader').onclick = function () { createNewPart('header'); };
         $('pbNewFooter').onclick = function () { createNewPart('footer'); };
