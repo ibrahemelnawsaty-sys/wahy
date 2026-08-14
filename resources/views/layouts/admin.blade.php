@@ -193,11 +193,6 @@
                             <span class="admin-nav-text">تخصيص الثيم</span>
                         </a>
 
-                        <a href="{{ route('admin.home-content.edit') }}" class="admin-nav-item {{ request()->routeIs('admin.home-content.*') ? 'active' : '' }}">
-                            <span class="admin-nav-icon">📝</span>
-                            <span class="admin-nav-text">محتوى الصفحة الرئيسية</span>
-                        </a>
-
                         <a href="{{ route('admin.email-campaigns.index') }}" class="admin-nav-item {{ request()->routeIs('admin.email-campaigns.*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">📨</span>
                             <span class="admin-nav-text">إرسال بريد جماعيّ</span>
@@ -237,20 +232,20 @@
 
                 <div class="admin-nav-section">
                     <div class="admin-nav-section-title">محرر الصفحة الرئيسية</div>
-                    
+
                     <div class="admin-nav-items">
-                        <a href="/" class="admin-nav-item" target="_blank">
-                            <span class="admin-nav-icon">✏️</span>
-                            <span class="admin-nav-text">افتح المحرر</span>
+                        <a href="{{ route('admin.home-content.edit') }}" class="admin-nav-item {{ request()->routeIs('admin.home-content.*') ? 'active' : '' }}">
+                            <span class="admin-nav-icon">📝</span>
+                            <span class="admin-nav-text">محتوى الصفحة الرئيسية</span>
                         </a>
                     </div>
-                    
+
                     <div style="padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; margin: 10px 15px; border-right: 3px solid #667eea;">
                         <p style="margin: 0 0 8px; font-size: 13px; color: #667eea; font-weight: 600;">💡 كيف تستخدم المحرر؟</p>
                         <ol style="margin: 0; padding-right: 20px; font-size: 12px; color: #666; line-height: 1.6;">
-                            <li>اضغط على "افتح المحرر" أعلاه</li>
-                            <li>اضغط على الزر العائم ✏️ أسفل اليسار</li>
-                            <li>ابدأ التعديل مباشرة!</li>
+                            <li>افتح «محتوى الصفحة الرئيسية» أعلاه</li>
+                            <li>عدّل نصوص أيّ قسم (هيدر/هيرو/فِرَق/فوتر…)</li>
+                            <li>اضغط «حفظ التغييرات» — تظهر فوراً على الصفحة!</li>
                         </ol>
                     </div>
                 </div>

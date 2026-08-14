@@ -122,20 +122,19 @@
                     <div class="admin-nav-title">محرر الصفحة الرئيسية</div>
                     <ul class="admin-nav-list">
                         <li class="admin-nav-item">
-                            <a href="/" 
-                               class="admin-nav-link"
-                               target="_blank">
-                                <span class="admin-nav-icon">✏️</span>
-                                <span class="admin-nav-text">افتح المحرر</span>
+                            <a href="{{ route('admin.home-content.edit') }}"
+                               class="admin-nav-link">
+                                <span class="admin-nav-icon">📝</span>
+                                <span class="admin-nav-text">محتوى الصفحة الرئيسية</span>
                             </a>
                         </li>
                     </ul>
                     <div style="padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; margin: 10px 15px; border-right: 3px solid var(--color-primary, #667eea);">
                         <p style="margin: 0 0 8px; font-size: 13px; color: var(--color-primary, #667eea); font-weight: 600;">💡 كيف تستخدم المحرر؟</p>
                         <ol style="margin: 0; padding-right: 20px; font-size: 12px; color: var(--text-secondary, #cbd5e1); line-height: 1.6;">
-                            <li>اضغط على "افتح المحرر" أعلاه</li>
-                            <li>اضغط على الزر العائم ✏️ أسفل اليسار</li>
-                            <li>ابدأ التعديل مباشرة!</li>
+                            <li>افتح «محتوى الصفحة الرئيسية» أعلاه</li>
+                            <li>عدّل نصوص أيّ قسم (هيدر/هيرو/فِرَق/فوتر…)</li>
+                            <li>اضغط «حفظ التغييرات» — تظهر فوراً على الصفحة!</li>
                         </ol>
                     </div>
                 </div>
