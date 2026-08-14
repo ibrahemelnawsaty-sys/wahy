@@ -38,14 +38,28 @@
             <footer class="pb-page-footer">@include('pb.renderer', ['blocks' => $footerBlocks])</footer>
         @endif
     </div>
-    {{-- انقر أيّ كتلة في المعاينة لتحديدها وتحريرها في المحرّر (postMessage — لا حقن). --}}
+    {{-- تحرير حرفيّ في المكان + انقر لتحديد الكتلة (postMessage للمحرّر — لا حقن). --}}
     <script>
-        document.addEventListener('click', function (e) {
-            var el = e.target.closest('[data-pb-path]');
-            if (!el) return;
-            e.preventDefault();
-            try { parent.postMessage({ pbSelect: el.getAttribute('data-pb-path') }, '*'); } catch (x) {}
-        });
+        (function () {
+            // النصوص القابلة للتحرير: contenteditable + بثّ القيمة عند فقد التركيز
+            document.querySelectorAll('[data-pb-edit]').forEach(function (el) {
+                el.setAttribute('contenteditable', 'true');
+                el.setAttribute('spellcheck', 'false');
+                el.addEventListener('blur', function () {
+                    var w = el.closest('[data-pb-path]'); if (!w) return;
+                    try { parent.postMessage({ pbEdit: { path: w.getAttribute('data-pb-path'), key: el.getAttribute('data-pb-edit'), value: el.innerText } }, '*'); } catch (x) {}
+                });
+                // Enter يُنهي التحرير (عدا الفقرات — تسمح بأسطر)
+                el.addEventListener('keydown', function (e) { if (e.key === 'Enter' && el.tagName !== 'P') { e.preventDefault(); el.blur(); } });
+            });
+            // النقر خارج نصّ قابل للتحرير يُحدّد الكتلة
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('[data-pb-edit]')) return;
+                var el = e.target.closest('[data-pb-path]'); if (!el) return;
+                e.preventDefault();
+                try { parent.postMessage({ pbSelect: el.getAttribute('data-pb-path') }, '*'); } catch (x) {}
+            });
+        })();
     </script>
     <button class="pb-theme-toggle" type="button" title="تبديل الوضع الليليّ/النهاريّ" aria-label="تبديل الوضع"
         onclick="(function(r){var d=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',d);try{localStorage.setItem('wahy-theme',d);}catch(e){}})(document.documentElement)">🌓</button>

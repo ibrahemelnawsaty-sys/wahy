@@ -103,6 +103,30 @@ class PageBuilderV2PublicRenderTest extends TestCase
         $this->get('/')->assertOk()->assertSee('فوائد التعلم التعاوني', false);
     }
 
+    public function test_inline_edit_attributes_only_on_top_level_preview(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $preview = $this->actingAs($admin)->post(route('admin.pb.preview'), ['body' => [
+            ['type' => 'heading', 'props' => ['text' => 'عنوان علويّ', 'level' => 'h2']],
+            ['type' => 'columns', 'props' => ['count' => 2], 'children' => [
+                ['type' => 'heading', 'props' => ['text' => 'داخل عمود', 'level' => 'h3']],
+            ]],
+        ]])->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-pb-edit="text"', $preview);
+        // النصّ المتداخل (داخل الأعمدة) غير قابل للتحرير في المكان (مسار متداخل) — فقط العلويّ
+        $this->assertSame(1, substr_count($preview, 'data-pb-edit='));
+
+        // الصفحة العامّة بلا أيّ سمات تحرير
+        $page = Page::create([
+            'translation_group' => (string) Str::uuid(), 'locale' => 'ar',
+            'title' => 'ص', 'slug' => 'ie', 'status' => 'published', 'published_at' => now(),
+            'blocks' => [['type' => 'heading', 'props' => ['text' => 'عنوان', 'level' => 'h2']]],
+        ]);
+        PageResolver::enable('ie');
+        $this->assertStringNotContainsString('data-pb-edit', $this->get('/pages/ie')->assertOk()->getContent());
+    }
+
     public function test_preview_tags_blocks_for_click_to_edit_but_public_does_not(): void
     {
         $admin = User::factory()->create(['role' => 'super_admin']);

@@ -12,9 +12,9 @@
     @if($__pbView && view()->exists($__pbView))
         @if(!empty($pvTop))<div class="pb-pv-block" data-pb-path="{{ $__i }}">@endif
         @if($__pbStyle !== '')
-            <div class="pb-blockwrap" style="{{ $__pbStyle }}">@include($__pbView, ['block' => $block])</div>
+            <div class="pb-blockwrap" style="{{ $__pbStyle }}">@include($__pbView, ['block' => $block, 'pvEdit' => ! empty($pvTop)])</div>
         @else
-            @include($__pbView, ['block' => $block])
+            @include($__pbView, ['block' => $block, 'pvEdit' => ! empty($pvTop)])
         @endif
         @if(!empty($pvTop))</div>@endif
     @endif

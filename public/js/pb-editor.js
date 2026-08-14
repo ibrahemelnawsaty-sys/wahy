@@ -761,14 +761,25 @@
         ['pbTitle', 'pbSlug', 'pbLocale', 'pbMetaTitle', 'pbMetaDescription'].forEach(function (id) { $(id).addEventListener('change', function () { syncPageFields(); schedulePreview(); }); });
         document.querySelectorAll('[data-pb-close]').forEach(function (x) { x.onclick = function () { x.closest('.pb-modal').hidden = true; }; });
         $('pbMediaFile').addEventListener('change', function (e) { if (e.target.files[0]) uploadMedia(e.target.files[0]); });
-        // «انقر للتحرير»: رسالة من إطار المعاينة تُحدّد الكتلة وتفتح خصائصها
+        // رسائل إطار المعاينة: تحديد الكتلة (نقر) + تحرير النصّ في المكان
         window.addEventListener('message', function (e) {
-            if (!e.data || e.data.pbSelect === undefined) return;
-            var idx = parseInt(e.data.pbSelect, 10); if (isNaN(idx)) return;
-            state.region = 'body';
-            document.querySelectorAll('.pb-region-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-pb-region') === 'body'); });
-            state.selected = [idx]; renderCanvas(); renderInspector();
-            var insp = $('pbInspector'); if (insp && insp.scrollIntoView) insp.scrollIntoView({ block: 'nearest' });
+            if (!e.data) return;
+            if (e.data.pbSelect !== undefined) {
+                var idx = parseInt(e.data.pbSelect, 10); if (isNaN(idx)) return;
+                state.region = 'body';
+                document.querySelectorAll('.pb-region-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-pb-region') === 'body'); });
+                state.selected = [idx]; renderCanvas(); renderInspector();
+                var insp = $('pbInspector'); if (insp && insp.scrollIntoView) insp.scrollIntoView({ block: 'nearest' });
+            } else if (e.data.pbEdit) {
+                var d = e.data.pbEdit; var i = parseInt(d.path, 10);
+                if (isNaN(i) || state.region !== 'body') return;
+                var blk = state.page.blocks[i];
+                if (blk) {
+                    blk.props = blk.props || {}; blk.props[d.key] = d.value;
+                    renderCanvas(); if (samePath(state.selected, [i])) renderInspector();
+                    // لا نُحدّث المعاينة الآن (الإطار يعرض النصّ المكتوب) — يتزامن عند أيّ تغيير لاحق
+                }
+            }
         });
         var mediaTimer;
         $('pbMediaSearch').addEventListener('input', function () { clearTimeout(mediaTimer); mediaTimer = setTimeout(function () { loadMedia($('pbMediaSearch').value.trim()); }, 300); });

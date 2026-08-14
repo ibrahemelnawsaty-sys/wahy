@@ -6,7 +6,8 @@
     $align = $p['align'] ?? 'start';
     $align = in_array($align, ['start', 'center', 'end'], true) ? $align : 'start';
     $text = $p['text'] ?? '';
+    $ed = ! empty($pvEdit) ? ' data-pb-edit="text"' : '';
 @endphp
 @if($text !== '')
-    <{{ $level }} class="pb-block pb-heading" style="text-align:{{ $align }};">{{ $text }}</{{ $level }}>
+    <{{ $level }} class="pb-block pb-heading" style="text-align:{{ $align }};"{!! $ed !!}>{{ $text }}</{{ $level }}>
 @endif
