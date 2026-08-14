@@ -249,9 +249,9 @@
             </div>
             
             <div class="footer-links">
-                <a href="http://127.0.0.2:8000">الرئيسية</a>
-                <a href="http://127.0.0.2:8000/login">تسجيل الدخول</a>
-                <a href="mailto:info@sa-salem.com">الدعم الفني</a>
+                <a href="{{ url('/') }}">الرئيسية</a>
+                <a href="{{ url('/login') }}">تسجيل الدخول</a>
+                <a href="mailto:{{ setting('contact_email', 'info@atheel-makkah.com') }}">الدعم الفني</a>
             </div>
             
             <div class="copyright">

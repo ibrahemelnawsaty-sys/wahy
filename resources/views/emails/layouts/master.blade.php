@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', setting('site_name', 'أثيل مكة'))</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {{-- لا خطوط خارجيّة في البريد (يحجبها كثير من العملاء) — نعتمد خطوط النظام العربيّة --}}
     <style>
         * {
             margin: 0;
@@ -119,10 +119,7 @@
             font-weight: 800;
             margin-bottom: 25px;
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            /* لون صلب — background-clip:text يجعل العنوان شفّافاً (مخفيّاً) في Outlook وغيره */
         }
         
         .greeting {
