@@ -256,6 +256,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/email-logs/{emailLog}', [$el, 'show'])->name('email-logs.show');
         Route::post('/email-logs/{emailLog}/resend', [$el, 'resend'])->name('email-logs.resend');
 
+        // حملات البريد الجماعيّة/المخصّصة (خطّة البريد P5)
+        $ec = \App\Http\Controllers\Admin\EmailCampaignController::class;
+        Route::get('/email-campaigns', [$ec, 'index'])->name('email-campaigns.index');
+        Route::get('/email-campaigns/create', [$ec, 'create'])->name('email-campaigns.create');
+        Route::post('/email-campaigns', [$ec, 'store'])->name('email-campaigns.store');
+        Route::get('/email-campaigns/{emailCampaign}', [$ec, 'show'])->name('email-campaigns.show');
+
         // Theme Customization
         Route::get('/theme', [ThemeController::class, 'index'])->name('theme');
         Route::post('/theme', [ThemeController::class, 'update'])->name('theme.update');

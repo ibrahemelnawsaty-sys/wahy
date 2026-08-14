@@ -198,6 +198,11 @@
                             <span class="admin-nav-text">محتوى الصفحة الرئيسية</span>
                         </a>
 
+                        <a href="{{ route('admin.email-campaigns.index') }}" class="admin-nav-item {{ request()->routeIs('admin.email-campaigns.*') ? 'active' : '' }}">
+                            <span class="admin-nav-icon">📨</span>
+                            <span class="admin-nav-text">إرسال بريد جماعيّ</span>
+                        </a>
+
                         <a href="{{ route('admin.email-logs.index') }}" class="admin-nav-item {{ request()->routeIs('admin.email-logs.*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">📧</span>
                             <span class="admin-nav-text">سجلّ البريد</span>
