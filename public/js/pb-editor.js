@@ -26,6 +26,40 @@
     };
     if (!Array.isArray(state.page.blocks)) state.page.blocks = [];
 
+    /* ============ سجلّ التراجع/الإعادة (Undo/Redo) ============ */
+    var hist = { stack: [], ptr: -1, timer: null };
+    function snap() {
+        return JSON.stringify({
+            b: state.page.blocks,
+            h: state.parts.header ? state.parts.header.blocks : null,
+            f: state.parts.footer ? state.parts.footer.blocks : null,
+        });
+    }
+    function pushHistory() {
+        var s = snap();
+        if (hist.ptr >= 0 && hist.stack[hist.ptr] === s) return; // لا تغيير ⟶ تجاهل (يمنع قيود التحديد)
+        hist.stack = hist.stack.slice(0, hist.ptr + 1);
+        hist.stack.push(s);
+        if (hist.stack.length > 80) hist.stack.shift();
+        hist.ptr = hist.stack.length - 1;
+        updateHistBtns();
+    }
+    function scheduleHistory() { clearTimeout(hist.timer); hist.timer = setTimeout(pushHistory, 500); }
+    function applyHistory(s) {
+        var d = JSON.parse(s);
+        state.page.blocks = d.b || [];
+        if (state.parts.header) state.parts.header.blocks = d.h || [];
+        if (state.parts.footer) state.parts.footer.blocks = d.f || [];
+        state.selected = null; renderAll();
+    }
+    function undo() { clearTimeout(hist.timer); if (hist.ptr > 0) { hist.ptr--; applyHistory(hist.stack[hist.ptr]); updateHistBtns(); toast('↶ تراجع'); } }
+    function redo() { clearTimeout(hist.timer); if (hist.ptr < hist.stack.length - 1) { hist.ptr++; applyHistory(hist.stack[hist.ptr]); updateHistBtns(); toast('↷ إعادة'); } }
+    function updateHistBtns() {
+        var u = $('pbUndo'), r = $('pbRedo');
+        if (u) u.disabled = hist.ptr <= 0;
+        if (r) r.disabled = hist.ptr >= hist.stack.length - 1;
+    }
+
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
     var uid = 0;
@@ -445,7 +479,7 @@
         gl.textContent = state.isLive ? '● إيقاف البثّ' : '○ بثّ مباشر';
         gl.disabled = !state.page.id || state.page.status !== 'published';
     }
-    function renderAll() { renderCanvas(); renderInspector(); renderStatus(); schedulePreview(); }
+    function renderAll() { renderCanvas(); renderInspector(); renderStatus(); schedulePreview(); scheduleHistory(); }
 
     /* ============ الخطوات ============ */
     function showStep(n) {
@@ -785,7 +819,25 @@
         $('pbMediaSearch').addEventListener('input', function () { clearTimeout(mediaTimer); mediaTimer = setTimeout(function () { loadMedia($('pbMediaSearch').value.trim()); }, 300); });
     }
 
+    /* ============ اختصارات لوحة المفاتيح ============ */
+    function onKey(e) {
+        var mod = e.ctrlKey || e.metaKey;
+        var t = (e.target.tagName || '').toLowerCase();
+        var typing = t === 'input' || t === 'textarea' || t === 'select' || e.target.isContentEditable;
+        var k = (e.key || '').toLowerCase();
+        if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+        if (mod && k === 'y') { e.preventDefault(); redo(); return; }
+        if (mod && k === 's') { e.preventDefault(); save(); return; }
+        if (typing) return;
+        if (mod && k === 'd') { e.preventDefault(); if (state.selected) duplicateBlock(state.selected); return; }
+        if ((e.key === 'Delete' || e.key === 'Backspace') && state.selected) { e.preventDefault(); deleteBlock(state.selected); }
+    }
+
     /* ============ الإقلاع ============ */
     renderPalette(); bind(); renderPageSettings(); renderStatus(); renderLang();
+    $('pbUndo').onclick = function () { undo(); };
+    $('pbRedo').onclick = function () { redo(); };
+    document.addEventListener('keydown', onKey);
+    pushHistory(); // لقطة أوليّة
     showStep(1);
 })();

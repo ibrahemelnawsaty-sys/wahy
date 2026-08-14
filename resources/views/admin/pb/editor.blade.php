@@ -16,6 +16,8 @@
 
         <div class="pb-tool-actions">
             <span class="pb-status" id="pbStatusPill"></span>
+            <button class="btn btn-outline-secondary btn-sm" id="pbUndo" title="تراجع (Ctrl+Z)" disabled>↶</button>
+            <button class="btn btn-outline-secondary btn-sm" id="pbRedo" title="إعادة (Ctrl+Shift+Z)" disabled>↷</button>
             <button class="btn btn-primary btn-sm" id="pbSave">💾 حفظ</button>
             <button class="btn btn-success btn-sm" id="pbPublish">🚀 نشر</button>
             <button class="btn btn-outline-primary btn-sm" id="pbGoLive"></button>
