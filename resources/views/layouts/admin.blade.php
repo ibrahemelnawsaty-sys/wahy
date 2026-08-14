@@ -208,14 +208,10 @@
                             <span class="admin-nav-text">إعدادات البريد</span>
                         </a>
 
-                        <a href="{{ route('admin.pages.index') }}" class="admin-nav-item {{ request()->routeIs('admin.pages*') ? 'active' : '' }}">
-                            <span class="admin-nav-icon">📄</span>
-                            <span class="admin-nav-text">الصفحات الثانوية (من نحن…)</span>
-                        </a>
-
+                        {{-- أُخفي محرّر الصفحات v1 (admin.pages) من القائمة — وُحِّد على v2 أدناه؛ كود v1 باقٍ فأيّ صفحة قديمة تظلّ تُعرض على /pages/{slug} --}}
                         <a href="{{ route('admin.pb.ui.index') }}" class="admin-nav-item {{ request()->routeIs('admin.pb.*') ? 'active' : '' }}">
                             <span class="admin-nav-icon">🧱</span>
-                            <span class="admin-nav-text">محرّر الصفحات الثانوية (جديد)</span>
+                            <span class="admin-nav-text">الصفحات الثانوية (من نحن…)</span>
                         </a>
 
                         <a href="{{ route('admin.settings') }}" class="admin-nav-item {{ request()->routeIs('admin.settings*') ? 'active' : '' }}">

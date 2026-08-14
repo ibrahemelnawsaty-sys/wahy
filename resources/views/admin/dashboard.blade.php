@@ -222,7 +222,7 @@
                     <span class="admin-action-icon">🎨</span>
                     <span class="admin-action-text">تخصيص الثيم</span>
                 </a>
-                <a href="{{ route('admin.pages.index') }}" class="admin-action-btn gradient-green">
+                <a href="{{ route('admin.pb.ui.index') }}" class="admin-action-btn gradient-green">
                     <span class="admin-action-icon">📄</span>
                     <span class="admin-action-text">بناء صفحة جديدة</span>
                 </a>
