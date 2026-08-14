@@ -62,6 +62,7 @@ class PageBuilderUiController extends Controller
             ] : null,
             'isLive' => $isLive,
             'parts' => ['header' => $partsFor('header'), 'footer' => $partsFor('footer')],
+            'patterns' => \App\PageBuilder\Patterns::all(),
             'translations' => $page ? $page->translations()->get(['id', 'locale', 'title'])->toArray() : [],
             'urls' => [
                 'store' => route('admin.pb.pages.store'),

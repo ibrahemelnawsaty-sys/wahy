@@ -71,7 +71,8 @@
         <div class="pb-step2-grid">
             {{-- لوحة الكتل --}}
             <aside class="pb-palette">
-                <div class="pb-panel-label">أضف كتلة</div>
+                <button type="button" class="pb-patterns-btn" id="pbPatternsBtn">🧩 أنماط جاهزة</button>
+                <div class="pb-panel-label">أو أضف كتلة مفردة</div>
                 <div id="pbPalette" class="pb-palette-list"></div>
             </aside>
 
@@ -123,6 +124,14 @@
             <div class="pb-field"><label>الاستدارة (بكسل)</label><input type="number" id="pbTkRadius" min="0" max="40"></div>
             <button class="btn btn-primary" id="pbTkSave">حفظ التصميم</button>
         </div>
+    </div>
+</div>
+
+{{-- أنماط/أقسام جاهزة (كالووردبريس) --}}
+<div class="pb-modal" id="pbPatternsModal" hidden>
+    <div class="pb-modal-box pb-modal-wide">
+        <div class="pb-modal-head"><b>🧩 أنماط جاهزة — أدرِج قسماً كاملاً ثمّ عدّل محتواه</b><button class="pb-modal-x" data-pb-close>✕</button></div>
+        <div class="pb-modal-body"><div class="pb-patterns-grid" id="pbPatternsGrid"></div></div>
     </div>
 </div>
 
@@ -190,6 +199,22 @@
     .pb-add-btn .pb-add-top{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.88rem;color:#334155}
     .pb-add-btn .pb-emoji{font-size:1.05rem}
     .pb-add-btn .pb-add-desc{font-size:.72rem;color:#94a3b8;line-height:1.4}
+    .pb-patterns-btn{width:100%;border:1px solid #c7d2fe;background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#4338ca;
+        border-radius:10px;padding:11px;font-weight:800;font-size:.9rem;cursor:pointer;margin-bottom:10px}
+    .pb-patterns-btn:hover{background:#e0e7ff}
+    .pb-modal-wide{width:760px}
+    .pb-patterns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:6px}
+    .pb-pattern-card{border:1px solid #e5e7eb;background:#f8fafc;border-radius:12px;padding:16px 10px;cursor:pointer;text-align:center}
+    .pb-pattern-card:hover{border-color:#a5b4fc;background:#eef2ff;transform:translateY(-2px)}
+    .pb-pattern-icon{font-size:1.8rem;display:block;margin-bottom:6px}
+    .pb-pattern-label{font-weight:700;font-size:.85rem;color:#334155}
+    .pb-pattern-cat{font-size:.68rem;color:#94a3b8;margin-top:2px}
+    /* سحب وإفلات بطاقات البنية */
+    .pb-card[draggable="true"]{cursor:grab}
+    .pb-card.pb-dragging{opacity:.45}
+    .pb-card.pb-drop-before{box-shadow:0 -3px 0 #6366f1}
+    .pb-card.pb-drop-after{box-shadow:0 3px 0 #6366f1}
+    .pb-card-grip{color:#cbd5e1;cursor:grab;font-size:.9rem;padding:0 2px}
 
     .pb-preview-col{height:calc(100vh - 230px);min-height:460px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;display:flex;justify-content:center}
     .pb-preview-frame{width:100%;height:100%;border:0;background:#fff;transition:width .2s;max-width:100%}

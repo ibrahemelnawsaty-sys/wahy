@@ -83,6 +83,21 @@
         if (state.selected && state.selected.join('.').indexOf(path.join('.')) === 0) state.selected = null;
         renderAll();
     }
+    // سحب وإفلات: إعادة ترتيب داخل نفس الحاوية (نفس الأب)
+    var dragState = { path: null };
+    function clearDropIndicators() {
+        document.querySelectorAll('.pb-drop-before,.pb-drop-after').forEach(function (c) { c.classList.remove('pb-drop-before', 'pb-drop-after'); });
+    }
+    function moveBlockTo(srcPath, targetPath, after) {
+        var ci = containerAndIndex(srcPath), arr = ci[0], from = ci[1];
+        var to = targetPath[targetPath.length - 1];
+        var item = arr.splice(from, 1)[0];
+        if (from < to) to--;
+        var at = Math.max(0, Math.min(arr.length, after ? to + 1 : to));
+        arr.splice(at, 0, item);
+        state.selected = srcPath.slice(0, -1).concat([at]);
+        renderAll();
+    }
 
     /* ============ لوحة الكتل (بوصف مختصر) ============ */
     function renderPalette() {
@@ -119,6 +134,7 @@
             var card = document.createElement('div');
             card.className = 'pb-card' + (samePath(state.selected, path) ? ' is-selected' : '');
             card.innerHTML =
+                '<span class="pb-card-grip" title="اسحب لإعادة الترتيب">⋮⋮</span>' +
                 '<span class="pb-emoji">' + esc(s.icon || '▪') + '</span>' +
                 '<div class="pb-card-main"><div class="pb-card-type">' + esc(s.label || block.type) + '</div>' +
                 '<div class="pb-card-sum">' + esc(summaryOf(block)) + '</div></div>' +
@@ -134,6 +150,20 @@
                 else if (op === 'dup') { e.stopPropagation(); duplicateBlock(path); }
                 else if (op === 'del') { e.stopPropagation(); deleteBlock(path); }
                 else { state.selected = path; renderAll(); }
+            });
+            // سحب وإفلات (نفس الحاوية)
+            card.setAttribute('draggable', 'true');
+            card.addEventListener('dragstart', function (e) { dragState.path = path; card.classList.add('pb-dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', 'b'); } catch (_) {} });
+            card.addEventListener('dragend', function () { card.classList.remove('pb-dragging'); clearDropIndicators(); dragState.path = null; });
+            card.addEventListener('dragover', function (e) {
+                if (!dragState.path || dragState.path.slice(0, -1).join('.') !== path.slice(0, -1).join('.')) return;
+                e.preventDefault(); clearDropIndicators();
+                var rect = card.getBoundingClientRect(); card._after = (e.clientY - rect.top) > rect.height / 2;
+                card.classList.add(card._after ? 'pb-drop-after' : 'pb-drop-before');
+            });
+            card.addEventListener('drop', function (e) {
+                if (!dragState.path || dragState.path.slice(0, -1).join('.') !== path.slice(0, -1).join('.')) return;
+                e.preventDefault(); moveBlockTo(dragState.path, path, !!card._after);
             });
             host.appendChild(card);
 
@@ -187,6 +217,29 @@
         draw('');
         $('pbInserterModal').hidden = false;
         setTimeout(function () { search.focus(); }, 30);
+    }
+
+    /* ============ الأنماط الجاهزة ============ */
+    function openPatterns() {
+        var grid = $('pbPatternsGrid'); grid.innerHTML = '';
+        (B.patterns || []).forEach(function (pat) {
+            var card = document.createElement('button'); card.type = 'button'; card.className = 'pb-pattern-card';
+            card.innerHTML = '<span class="pb-pattern-icon">' + esc(pat.icon || '🧩') + '</span>' +
+                '<div class="pb-pattern-label">' + esc(pat.label) + '</div>' +
+                '<div class="pb-pattern-cat">' + esc(pat.category || '') + '</div>';
+            card.onclick = function () { insertPattern(pat); $('pbPatternsModal').hidden = true; };
+            grid.appendChild(card);
+        });
+        $('pbPatternsModal').hidden = false;
+    }
+    function insertPattern(pat) {
+        var arr = rootArray();
+        var blocks = JSON.parse(JSON.stringify(pat.blocks || []));
+        var startLen = arr.length;
+        blocks.forEach(function (b) { arr.push(b); });
+        if (blocks.length) state.selected = [startLen];
+        renderAll();
+        toast('أُدرِج «' + (pat.label || 'النمط') + '» — عدّل محتواه من «بنية الصفحة».');
     }
 
     /* ============ المفتّش ============ */
@@ -583,6 +636,7 @@
         $('pbTkSave').onclick = function () { saveDesign(); };
         $('pbRefreshPreview').onclick = function () { refreshPreview(); };
         $('pbOpenPreview').onclick = function () { openPreviewWindow(); };
+        $('pbPatternsBtn').onclick = function () { openPatterns(); };
         document.querySelectorAll('#pbPreviewDevices button').forEach(function (b) { b.onclick = function () { setPreviewDevice(b.getAttribute('data-dev')); }; });
         $('pbNewHeader').onclick = function () { createNewPart('header'); };
         $('pbNewFooter').onclick = function () { createNewPart('footer'); };
