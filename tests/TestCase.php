@@ -37,6 +37,11 @@ abstract class TestCase extends BaseTestCase
 
         // مسح cache بين الاختبارات — array driver يحتفظ بالقيم عبر الـ tests في نفس الـ process
         \Illuminate\Support\Facades\Cache::flush();
+
+        // ...لكن Cache::flush لا يمسّ الخصائص **الساكنة**: LandingContent::$mapCache تعيش في
+        // الـprocess فتنجو من RefreshDatabase، فيتسرّب محتوى رئيسيّة كتبه اختبارٌ سابق إلى
+        // اختبارٍ لاحق ويُسقطه (أسقطت LandingRebrandTest في الجولة الكاملة دون الجولة المفردة).
+        \App\Models\LandingContent::flushMap();
     }
 
     /**

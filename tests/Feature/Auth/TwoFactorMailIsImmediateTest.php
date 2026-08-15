@@ -81,12 +81,16 @@ class TwoFactorMailIsImmediateTest extends TestCase
         Mail::assertNotQueued(TwoFactorCodeMail::class);
     }
 
-    public function test_no_mail_dispatch_in_the_app_uses_the_queue(): void
+    public function test_no_request_path_dispatches_mail_to_the_queue(): void
     {
-        // حارس شامل: لا يجوز أن يعود أيّ مسار بريد للطابور ما دام لا عامل يُفرغه.
-        // إن شُغِّل عامل طابور موثوق مستقبلاً، احذف هذا الحارس عن قصد لا بالصدفة.
+        // حارس: **مسار الطلب** (app/Http) لا يجوز أن يُصفّف بريداً ما دام لا عامل يُفرغه —
+        // المستخدم واقفٌ ينتظر. النطاق مقصور على app/Http عمداً:
+        //   • app/Jobs يعمل أصلاً داخل سياق طابور، والتصفيف فيه فان-أوت مشروع
+        //     (مثل DispatchCampaignJob لحملات البريد الجماعيّة — دفعيّة بطبيعتها).
+        //   • app/Listeners المُصفَّفة تُدار عبر QUEUE_CONNECTION لا عبر الكود.
+        // إن شُغِّل عامل طابور موثوق مستقبلاً، وسِّع النطاق أو احذف الحارس عن قصد لا بالصدفة.
         $hits = [];
-        $dir = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(app_path()));
+        $dir = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(app_path('Http')));
 
         foreach ($dir as $file) {
             if (! $file->isFile() || $file->getExtension() !== 'php') {
