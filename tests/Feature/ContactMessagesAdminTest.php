@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ContactMessage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -88,5 +89,36 @@ class ContactMessagesAdminTest extends TestCase
 
         $this->actingAs($this->admin())->get(route('admin.contact-messages.index', ['status' => 'unread']))
             ->assertOk()->assertSee('غير مقروءة')->assertDontSee('مقروءة قديمة');
+    }
+
+    /**
+     * الوضع الليلي **يجب** أن يتبع مفتاح التطبيق (`html[data-theme="dark"]`) لا تفضيلَ نظام
+     * التشغيل. كان القالبان يستعملان `@media (prefers-color-scheme: dark)`، فيبقى الجدول
+     * داكناً في الوضع النهاريّ على أيّ جهاز نظامه داكن — وزرّ الثيم بلا أثر عليه.
+     */
+    #[DataProvider('themedContactViews')]
+    public function test_dark_styles_follow_the_app_theme_not_the_os(string $routeName, bool $needsMessage): void
+    {
+        $params = $needsMessage ? [$this->msg()] : [];
+
+        $html = $this->actingAs($this->admin())
+            ->get(route($routeName, $params))
+            ->assertOk()
+            ->getContent();
+
+        // نقتصر على كتلة أنماط الصفحة (.cm-*) — لا نحكم على أنماط اللايوت أو الطرف الثالث.
+        preg_match_all('/@media\s*\(prefers-color-scheme:\s*dark\)\s*\{[^}]*\.cm-/i', (string) $html, $bad);
+
+        $this->assertSame([], $bad[0], "أنماط .cm-* الليليّة مربوطة بنظام التشغيل في {$routeName}");
+        $this->assertStringContainsString('html[data-theme="dark"] .cm-', (string) $html);
+    }
+
+    /** @return array<string, array{0: string, 1: bool}> */
+    public static function themedContactViews(): array
+    {
+        return [
+            'القائمة' => ['admin.contact-messages.index', false],
+            'التفاصيل' => ['admin.contact-messages.show', true],
+        ];
     }
 }

@@ -73,11 +73,11 @@
     .cm-tech code{direction:ltr;background:#f1f5f9;padding:1px 6px;border-radius:5px}
     .cm-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
     .cm-inline{display:inline}
-    @media (prefers-color-scheme: dark){
-        .cm-card{background:#0b1220;border-color:#1f2937}
-        .cm-card-head,.cm-tech{border-color:#1f2937}
-        .cm-body{color:#e2e8f0}
-        .cm-tech code{background:#1f2937}
-    }
+    /* الوضع الليلي عبر مفتاح التطبيق لا عبر نظام التشغيل — انظر التعليق في index.blade.php. */
+    html[data-theme="dark"] .cm-card{background:#0b1220;border-color:#1f2937}
+    html[data-theme="dark"] .cm-card-head,
+    html[data-theme="dark"] .cm-tech{border-color:#1f2937}
+    html[data-theme="dark"] .cm-body{color:#e2e8f0}
+    html[data-theme="dark"] .cm-tech code{background:#1f2937}
 </style>
 @endpush

@@ -89,11 +89,13 @@
     .cm-empty{text-align:center;padding:60px 20px;border:2px dashed #e5e7eb;border-radius:16px;color:#6b7280}
     .cm-empty-emoji{font-size:2.5rem;margin-bottom:8px}
     .cm-pagination{margin-top:16px}
-    @media (prefers-color-scheme: dark){
-        .cm-table-wrap{background:#0b1220;border-color:#1f2937}
-        .cm-table th{background:#111827;color:#94a3b8}
-        .cm-table th,.cm-table td{border-color:#1f2937}
-        .cm-row-unread{background:#1c1917}
-    }
+    /* الوضع الليلي عبر مفتاح التطبيق (data-theme يوسمه layouts/admin خادميّاً من $siteTheme)
+       — **يُمنع** `prefers-color-scheme` هنا: فهو يتبع نظام التشغيل ويتجاهل زرّ الثيم، فيبقى
+       الجدول داكناً في الوضع النهاريّ على أيّ جهاز نظامه داكن (العطل المُبلَّغ عنه). */
+    html[data-theme="dark"] .cm-table-wrap{background:#0b1220;border-color:#1f2937}
+    html[data-theme="dark"] .cm-table th{background:#111827;color:#94a3b8}
+    html[data-theme="dark"] .cm-table th,
+    html[data-theme="dark"] .cm-table td{border-color:#1f2937}
+    html[data-theme="dark"] .cm-row-unread{background:#1c1917}
 </style>
 @endpush
