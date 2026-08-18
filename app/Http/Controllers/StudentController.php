@@ -818,6 +818,46 @@ class StudentController extends Controller
     /**
      * صفحة النشاط الفردي
      */
+    /**
+     * التقييم القبليّ الإجباريّ المعلَّق الذي يمنع الطالب من أنشطة هذا الدرس — أو null إن لا مانع.
+     *
+     * لماذا خادميّاً؟ قفل النافذة في المتصفّح تجربةُ استخدام لا حدّ أمان (يُلتفّ عليه بتعطيل JS
+     * أو نداء المسار مباشرةً)، فبدون هذه البوّابة تبقى «إجباريّ» كلمةً بلا أثر.
+     *
+     * **صمّامات أمان — عند الشكّ يُفتح لا يُقفل:**
+     *  • لا يُحجب إلّا باستبيان **قابل للإجابة فعلاً**: بلا سؤالٍ واحد على الأقلّ يصير القفل أبديّاً
+     *    بلا مخرج (أخطر سيناريو في هذه الميزة).
+     *  • يُحترم خيار الأدمن: ما لا يدخل النافذة (لا is_mandatory ولا is_popup) لا يحجب خادميّاً.
+     *  • **البعديّ لا يحجب إطلاقاً**: استحقاقه مشروطٌ بإنهاء الأنشطة، فحجبُها به قفلٌ دائريّ.
+     *  • النشاط/النافذة الزمنيّة/الاستهداف/عدم-الإجابة كلّها مفروضة داخل pending*SurveyFor.
+     */
+    private function blockingPreAssessment($user, $lesson): ?\App\Models\Survey
+    {
+        if (! $user || $user->role !== 'student' || ! $lesson) {
+            return null;
+        }
+
+        $candidates = [];
+        $candidates[] = \App\Models\Survey::pendingLessonSurveyFor($user, $lesson->id, 'pre');
+
+        $valueId = optional(optional($lesson->concept)->value)->id;
+        if ($valueId) {
+            $candidates[] = \App\Models\Survey::pendingValueSurveyFor($user, $valueId, 'pre');
+        }
+
+        foreach ($candidates as $survey) {
+            if (! $survey || ! ($survey->is_mandatory || $survey->is_popup)) {
+                continue;
+            }
+            // صمّام الأمان: استبيانٌ بلا أسئلة لا يمكن إنهاؤه ⟶ لا يُحجب به أحد.
+            if ($survey->questions()->exists()) {
+                return $survey;
+            }
+        }
+
+        return null;
+    }
+
     public function activity($id)
     {
         $user = Auth::user();
@@ -832,6 +872,12 @@ class StudentController extends Controller
         // ✅ Authorization: تحقق أن النشاط ضمن قيمة مفعّلة لمدرسة الطالب
         if (! $this->isActivityAccessibleByStudent($activity, $user)) {
             abort(403, 'هذا النشاط غير متاح لك');
+        }
+
+        // بوّابة التقييم القبليّ — نُعيده لصفحة الدرس حيث تنتظره النافذة الحاجبة، لا 403 مسدود.
+        if ($this->blockingPreAssessment($user, $lesson)) {
+            return redirect()->route('student.lesson', $lesson->id)
+                ->with('error', 'يجب إكمال التقييم القبليّ قبل بدء أنشطة الدرس');
         }
 
         // Check if already submitted
@@ -886,6 +932,14 @@ class StudentController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'هذا النشاط غير متاح لك',
+                ], 403);
+            }
+
+            // بوّابة التقييم القبليّ — الفتح وحده لا يكفي: نداءُ POST مباشرةً يتجاوز الواجهة كلّها.
+            if ($this->blockingPreAssessment($student, $activity->lesson)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'يجب إكمال التقييم القبليّ قبل تسليم أنشطة الدرس',
                 ], 403);
             }
 
@@ -1102,7 +1156,9 @@ class StudentController extends Controller
                     : optional(\App\Models\Classroom::with('teacher')->find($activity->classroom_id))->teacher;
                 if ($reviewer && $reviewer->email && $reviewer->role === 'teacher' && (int) $reviewer->id !== (int) $student->id) {
                     \App\Services\Mail\MailGate::send(
-                        $reviewer, 'teacher_submission_pending', 'event',
+                        $reviewer,
+                        'teacher_submission_pending',
+                        'event',
                         new \App\Mail\TeacherSubmissionPendingMail($reviewer, $student, (string) $activity->title, route('teacher.review')),
                     );
                 }
@@ -1987,7 +2043,7 @@ class StudentController extends Controller
         $earnedPivot = $user->badges()->get();
         $earnedIds = $earnedPivot->pluck('id')->all();
         $earnedAtById = $earnedPivot->mapWithKeys(
-            fn ($b) => [$b->id => optional($b->pivot)->earned_at]
+            fn ($b) => [$b->id => optional($b->pivot)->earned_at],
         );
 
         // التيجان — مصدر موحّد: جدول crowns (نفس مصدر صفحة التيجان والإحصائيات)
@@ -2714,8 +2770,12 @@ class StudentController extends Controller
 
             // بريد للمنافس بالدعوة (خطّة أدوار البريد — PvP)
             if ($opponent->email) {
-                \App\Services\Mail\MailGate::send($opponent, 'student_pvp_invite', 'event',
-                    new \App\Mail\StudentPvpInviteMail($opponent, $student, (string) $challenge->title, route('student.pvp.lobby')));
+                \App\Services\Mail\MailGate::send(
+                    $opponent,
+                    'student_pvp_invite',
+                    'event',
+                    new \App\Mail\StudentPvpInviteMail($opponent, $student, (string) $challenge->title, route('student.pvp.lobby')),
+                );
             }
         }
 
