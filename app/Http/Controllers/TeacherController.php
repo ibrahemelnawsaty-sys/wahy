@@ -2087,7 +2087,9 @@ class TeacherController extends Controller
             // بريد لمدير المدرسة عبر البوّابة (أعلام + opt-out — خطّة أدوار البريد SA4)
             if ($admin->email) {
                 \App\Services\Mail\MailGate::send(
-                    $admin, 'schooladmin_activity_pending', 'event',
+                    $admin,
+                    'schooladmin_activity_pending',
+                    'event',
                     new \App\Mail\ActivityPendingApprovalMail($admin, $teacher, (string) $activity->title, $approvalUrl),
                 );
             }
@@ -2270,6 +2272,11 @@ class TeacherController extends Controller
      * تمييز **تسليم طالبٍ متميّز** (#22 — على مستوى التسليم لا تعريف النشاط): يميّز المعلّم
      * عملَ أحد طلّابه المتميّز فتستعرضه الإدارة ضمن «الأنشطة المميّزة» للتقارير وتكريم الطلاب.
      */
+    /**
+     * مكافأة الطالب على تسليمٍ ميّزه معلّمه — تُمنح مرّةً واحدةً لكلّ تسليم مهما تكرّر التمييز.
+     */
+    public const FEATURED_SUBMISSION_POINTS = 10;
+
     public function featureSubmission(Request $request, $submissionId)
     {
         $validated = $request->validate([
@@ -2286,14 +2293,36 @@ class TeacherController extends Controller
 
         // is_featured/featured_* ليست ضمن حقول التسليم المحروسة (booted يحرس score/status/…) —
         // فالتحديث العاديّ يمرّ (لا يمسّ حقلاً حسّاسًا).
-        $submission->update([
-            'is_featured' => true,
-            'featured_by' => $user->id,
-            'featured_at' => now(),
-            'featured_reason' => $validated['reason'] ?? null,
-        ]);
+        // التمييز والمكافأة يلتزمان أو يتراجعان معاً (§5): فشلُ المنح يجب ألّا يترك تسليماً
+        // مميَّزاً بلا مكافأة، فيظنّ المعلّم أنّه كافأ ولم يصل الطالبَ شيء.
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($submission, $user, $validated) {
+                $submission->update([
+                    'is_featured' => true,
+                    'featured_by' => $user->id,
+                    'featured_at' => now(),
+                    'featured_reason' => $validated['reason'] ?? null,
+                ]);
 
-        return back()->with('success', 'تم تمييز تسليم الطالب وسيظهر ضمن التسليمات المميّزة لدى الإدارة');
+                // §3: القناة الوحيدة للمنح. مفتاح idempotency = معرّف **التسليم**، فتمييزٌ ثمّ
+                // إلغاءٌ ثمّ تمييزٌ ثانٍ لا يمنح مرّتين — وإلّا صار الزرّ مطبعةَ نقودٍ بيد المعلّم.
+                // بلا distribute عمداً: التوزيع يمنح المعلّمَ نسبةً من منحةٍ هو مَن قرّرها.
+                AwardService::award(
+                    (int) $submission->student_id,
+                    'submission_featured',
+                    (string) $submission->id,
+                    self::FEATURED_SUBMISSION_POINTS,
+                    0,
+                    'مكافأة تمييز تسليم متميّز',
+                );
+            });
+        } catch (\Throwable $e) {
+            \Log::error('featureSubmission failed', ['submission_id' => $submission->id, 'error' => $e->getMessage()]);
+
+            return back()->with('error', 'تعذّر تمييز التسليم. حاول مرّة أخرى.');
+        }
+
+        return back()->with('success', 'تم تمييز تسليم الطالب ومُنِح ' . self::FEATURED_SUBMISSION_POINTS . ' نقاط إضافيّة');
     }
 
     /**
