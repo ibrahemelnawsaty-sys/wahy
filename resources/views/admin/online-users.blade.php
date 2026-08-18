@@ -60,7 +60,8 @@
                         <td style="padding: 14px 20px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 40px; height: 40px; border-radius: 12px; overflow: hidden; border: 2px solid #10b981; flex-shrink: 0;">
-                                    <img src="{{ $user->avatar ? asset('storage/data/' . $user->avatar) : asset('storage/data/avatars/default-avatar.webp') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {{-- avatar_url هو المصدر الوحيد: صورة المستخدم إن وُجدت، وإلّا أڤاتار حرف الاسم الأوّل --}}
+                                    <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                                 <div>
                                     <div style="font-weight: 600; font-size: 14px; color: var(--text-primary, #1e293b);">{{ $user->name }}</div>
@@ -187,9 +188,9 @@
                     const roleIcon = escapeHtml(user.role_icon || '');
                     const roleAttr = escapeHtml(user.role || '');
                     const onlineSince = escapeHtml(user.online_since);
-                    const avatarSrc = escapeHtml(user.avatar
-                        ? '/storage/data/' + user.avatar
-                        : '/storage/data/avatars/default-avatar.webp');
+                    // يأتي جاهزاً من الخادم عبر User::$avatar_url (يشمل أڤاتار حرف الاسم عند
+                    // غياب الصورة) — لا نُعيد بناءه هنا فينحرف عن بقيّة المنصّة.
+                    const avatarSrc = escapeHtml(user.avatar_url || '');
                     const hidden = (currentFilter !== 'all' && user.role !== currentFilter) ? 'display:none;' : '';
                     return `
                     <tr class="user-row" data-role="${roleAttr}" style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s; ${hidden}" onmouseover="this.style.background='rgba(102,126,234,0.03)'" onmouseout="this.style.background='transparent'">

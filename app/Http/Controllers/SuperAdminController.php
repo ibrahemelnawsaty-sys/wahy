@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Exports\ActivitiesExport;
 use App\Exports\StudentsExport;
 use App\Imports\StudentsImport;
-use App\Models\PageBuilder;
 use App\Models\QuestionBank;
 use App\Models\School;
-use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -1140,6 +1138,16 @@ class SuperAdminController extends Controller
                 $user->online_since = $minutesAgo <= 1 ? 'الآن' : "منذ {$minutesAgo} دقيقة";
                 $user->role_ar = User::getRoleNameAr($user->role);
                 $user->role_icon = User::getRoleIcon($user->role);
+
+                // مصدر الحقيقة الوحيد لصورة المستخدم هو User::$avatar_url — وهو الذي يولّد عند
+                // غياب الصورة أڤاتار حرف الاسم الأوّل بلونٍ ثابت. الاستعلام هنا يُرجِع صفوف
+                // query-builder مجرّدة لا نماذج، فنُلبِسها نموذجاً غير محفوظ لنقرأ الـaccessor
+                // بدل إعادة بناء الرابط يدويّاً (وهو ما أسقط الحرف في هذه الصفحة وحدها).
+                $user->avatar_url = (new User)->forceFill([
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar' => $user->avatar,
+                ])->avatar_url;
 
                 return $user;
             });
