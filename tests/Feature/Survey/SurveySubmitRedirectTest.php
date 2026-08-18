@@ -73,4 +73,55 @@ class SurveySubmitRedirectTest extends TestCase
             ->post(route('survey.submit', $current), ['answers' => []])
             ->assertRedirect(route('survey.show', $next->id));
     }
+
+    /** درس تحت قيمة مُفعَّلة حصراً لمدرسة معيّنة. */
+    private function lessonFor(\App\Models\School $school): \App\Models\Lesson
+    {
+        $value = \App\Models\Value::factory()->create(['status' => 'active']);
+        $school->activeValues()->attach($value->id, ['activated_at' => now()]);
+        $concept = \App\Models\Concept::factory()->create(['value_id' => $value->id]);
+
+        return \App\Models\Lesson::factory()->create(['concept_id' => $concept->id, 'status' => 'active']);
+    }
+
+    public function test_lesson_assessment_returns_the_student_to_that_lesson(): void
+    {
+        // المتطلَّب #3: بعد التعبئة يعود الطالب لصفحة الدرس ليُكمل — لا لصفحة التعلّم العامّة.
+        $school = \App\Models\School::factory()->create();
+        $lesson = $this->lessonFor($school);
+        $student = User::factory()->create(['role' => 'student', 'school_id' => $school->id]);
+
+        $survey = $this->activeSurvey([
+            'trigger_type' => 'on_lesson_start',
+            'survey_type' => 'pre_post_assessment',
+            'assessment_phase' => 'pre',
+            'lesson_id' => $lesson->id,
+        ]);
+
+        $this->actingAs($student)
+            ->post(route('survey.submit', $survey), ['answers' => []])
+            ->assertRedirect(route('student.lesson', $lesson->id));
+    }
+
+    public function test_forged_return_lesson_id_is_rejected_not_followed(): void
+    {
+        // §4: معرّف العميل يُعاد حلّه خادميّاً — درسٌ من مدرسة أخرى يسقط للسلوك الافتراضيّ.
+        $mySchool = \App\Models\School::factory()->create();
+        $otherSchool = \App\Models\School::factory()->create();
+        $foreignLesson = $this->lessonFor($otherSchool);
+        $mySchool->activeValues()->attach(
+            \App\Models\Value::factory()->create(['status' => 'active'])->id,
+            ['activated_at' => now()],
+        );
+
+        $student = User::factory()->create(['role' => 'student', 'school_id' => $mySchool->id]);
+        $survey = $this->activeSurvey(['trigger_type' => 'on_lesson_complete']);
+
+        $this->actingAs($student)
+            ->post(route('survey.submit', $survey), [
+                'answers' => [],
+                'return_lesson_id' => $foreignLesson->id,
+            ])
+            ->assertRedirect(route('student.learn'));
+    }
 }

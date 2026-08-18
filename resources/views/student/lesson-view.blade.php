@@ -438,7 +438,8 @@
     {{-- استبيان التقييم القبلي/البعدي المرتبط بالدرس --}}
     @php $__assessSurvey = ($preSurvey ?? null) ?: ($postSurvey ?? null); @endphp
     @if($__assessSurvey)
-    <a href="{{ route('survey.show', $__assessSurvey->id) }}"
+    {{-- ?lesson= يحمل سياق العودة؛ الخادم يُعيد حلّه ولا يثق به (SurveyController::returnUrlAfterSubmit) --}}
+    <a href="{{ route('survey.show', $__assessSurvey->id) }}?lesson={{ $lesson->id }}"
        style="display:flex;align-items:center;gap:16px;text-decoration:none;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:white;border-radius:16px;padding:18px 22px;margin-bottom:20px;box-shadow:0 8px 24px rgba(109,40,217,.35);">
         <span style="font-size:36px;">📊</span>
         <div style="flex:1;">
@@ -456,7 +457,7 @@
     {{-- استبيان التقييم القبلي/البعدي على مستوى القيمة (تلقائي مع تقدّم القيمة) --}}
     @php $__valueAssessSurvey = ($valuePreSurvey ?? null) ?: ($valuePostSurvey ?? null); @endphp
     @if($__valueAssessSurvey)
-    <a href="{{ route('survey.show', $__valueAssessSurvey->id) }}"
+    <a href="{{ route('survey.show', $__valueAssessSurvey->id) }}?lesson={{ $lesson->id }}"
        style="display:flex;align-items:center;gap:16px;text-decoration:none;background:linear-gradient(135deg,#0ea5e9,#0369a1);color:white;border-radius:16px;padding:18px 22px;margin-bottom:20px;box-shadow:0 8px 24px rgba(3,105,161,.35);">
         <span style="font-size:36px;">🌟</span>
         <div style="flex:1;">

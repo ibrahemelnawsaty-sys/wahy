@@ -11,7 +11,8 @@
     <div id="surveyPopupContainer" style="background: white; border-radius: 20px; max-width: 600px; width: 95%; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: popupSlideIn 0.4s ease-out;">
         
         @foreach($pendingSurveys as $index => $survey)
-        <div class="survey-form" data-survey-id="{{ $survey->id }}" style="{{ $index > 0 ? 'display: none;' : '' }}">
+        {{-- data-order: الانتقال للتالي يعتمد الترتيب الصريح، لا استنتاجه من style (انظر nextInQueue) --}}
+        <div class="survey-form" data-survey-id="{{ $survey->id }}" data-order="{{ $index }}" style="{{ $index > 0 ? 'display: none;' : '' }}">
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 25px 30px;">
                 <div style="display: flex; align-items: center; gap: 15px;">
@@ -303,6 +304,11 @@ function submitSurvey(surveyId) {
     }
 
     // إرسال الإجابات
+    // منع الإرسال المزدوج بالنقر السريع (الخادم ذرّيّ أصلاً، وهذا يمنع الوميض)
+    const submitBtn = form.querySelector('button[type="submit"], .survey-submit-btn');
+    if (submitBtn) { submitBtn.disabled = true; }
+    const release = () => { if (submitBtn) { submitBtn.disabled = false; } };
+
     fetch('/survey/' + surveyId + '/submit', {
         method: 'POST',
         headers: {
@@ -312,37 +318,77 @@ function submitSurvey(surveyId) {
         },
         body: JSON.stringify({ answers: answers })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const currentForm = document.querySelector('.survey-form[data-survey-id="' + surveyId + '"]');
-            currentForm.style.display = 'none';
-            
-            if (data.has_more_surveys) {
-                // عرض الاستبيان التالي
-                const nextForm = document.querySelector('.survey-form[style*="display: none"]:not([data-survey-id="' + surveyId + '"])');
-                if (nextForm) {
-                    nextForm.style.display = 'block';
-                }
-            } else {
-                // عرض رسالة النجاح وفك القفل
-                document.getElementById('surveySuccessMessage').style.display = 'block';
-                setTimeout(() => {
-                    // فك قفل الصفحة
-                    document.body.classList.remove('survey-locked');
-                    document.getElementById('surveyPopupOverlay').style.display = 'none';
-                    document.getElementById('surveyBlockingLayer').style.display = 'none';
-                    location.reload();
-                }, 2000);
-            }
-        } else {
-            alert(data.error || 'حدث خطأ أثناء حفظ الإجابات');
+    .then(response => {
+        // لا نبتلع الفشل: استجابة غير JSON (419/500/HTML) كانت تنفجر في .json() فتظهر
+        // «خطأ في الاتصال» المضلّلة. نميّز الحالات صراحةً. (الدستور §5)
+        const ctype = response.headers.get('content-type') || '';
+        if (!ctype.includes('application/json')) {
+            return response.text().then(() => { throw { kind: 'nonjson', status: response.status }; });
         }
+        return response.json().then(data => ({ status: response.status, data: data }));
+    })
+    .then(res => {
+        if (res.status === 200 && res.data.success) { advanceQueue(surveyId, res.data.has_more_surveys); return; }
+
+        // أُجيب مسبقاً: ليس طريقاً مسدوداً — تقدَّم للتالي بدل حبس الطالب داخل القفل.
+        if (res.status === 400) { advanceQueue(surveyId, true); return; }
+
+        release();
+        showSurveyError(surveyId, res.data.error || 'حدث خطأ أثناء حفظ الإجابات');
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.');
+        console.error('Survey submit failed:', error);
+        release();
+        if (error && error.kind === 'nonjson' && error.status === 419) {
+            showSurveyError(surveyId, 'انتهت صلاحية الجلسة — سيُعاد تحميل الصفحة.');
+            setTimeout(() => location.reload(), 1500);
+            return;
+        }
+        showSurveyError(surveyId, 'تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم أعد المحاولة.');
     });
+}
+
+/** إظهار خطأ داخل النافذة نفسها — textContent لا innerHTML (منع XSS عبر رسالة الخادم). */
+function showSurveyError(surveyId, message) {
+    const wrap = document.querySelector('.survey-form[data-survey-id="' + surveyId + '"]');
+    if (!wrap) { alert(message); return; }
+    let box = wrap.querySelector('.survey-error-box');
+    if (!box) {
+        box = document.createElement('p');
+        box.className = 'survey-error-box';
+        box.style.cssText = 'margin:12px 30px;padding:10px 14px;border-radius:10px;background:#fee2e2;color:#b91c1c;font-weight:700;';
+        wrap.appendChild(box);
+    }
+    box.textContent = message;
+}
+
+/**
+ * الانتقال للاستبيان التالي بالترتيب الصريح (data-order).
+ * كان الانتقاء سابقاً يستنتج «التالي» من كون النموذج مخفيّاً (مُحدِّد يفحص خاصيّة style) مع استثناء
+ * الحاليّ: وبعد إخفاء الحاليّ يصير هو نفسه مطابقاً، فمع ثلاثة استبيانات فأكثر يُرجِع querySelector
+ * **الأوّل المُجاب** (الأسبق في ترتيب المستند) فيعلق الطالب على استبيان أجاب عليه ويُردّ بـ400 بلا مخرج.
+ */
+function advanceQueue(surveyId, hasMore) {
+    const current = document.querySelector('.survey-form[data-survey-id="' + surveyId + '"]');
+    if (current) { current.style.display = 'none'; }
+
+    const nextOrder = current ? (parseInt(current.dataset.order, 10) + 1) : 0;
+    const next = document.querySelector('.survey-form[data-order="' + nextOrder + '"]');
+
+    if (hasMore && next) {
+        next.style.display = 'block';
+        next.scrollIntoView({ block: 'start' });
+        return;
+    }
+
+    document.getElementById('surveySuccessMessage').style.display = 'block';
+    setTimeout(() => {
+        document.body.classList.remove('survey-locked');
+        document.getElementById('surveyPopupOverlay').style.display = 'none';
+        document.getElementById('surveyBlockingLayer').style.display = 'none';
+        // إعادة تحميل صفحة الدرس نفسها — الطابور صار فارغاً فلا تظهر النافذة، ويُكمل الطالب درسه.
+        location.reload();
+    }, 2000);
 }
 
 function highlightStars(star, questionId) {

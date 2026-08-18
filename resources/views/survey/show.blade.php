@@ -323,6 +323,10 @@
 
         <form method="POST" action="{{ route('survey.submit', $survey) }}">
             @csrf
+            {{-- سياق العودة للدرس (معرّف فقط — يُعاد حلّه خادميّاً، لا يُوثق به) --}}
+            @if(request()->filled('lesson'))
+                <input type="hidden" name="return_lesson_id" value="{{ (int) request('lesson') }}">
+            @endif
 
             @foreach($survey->questions as $index => $question)
                 <div class="question-item">

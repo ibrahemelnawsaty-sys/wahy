@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Survey;
 use App\Models\SurveyResponse;
+use App\Models\Value;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -78,6 +79,24 @@ class SurveyController extends Controller
             }
         }
 
+        // بوّابة عزل المدارس (§4) — كانت غائبة تماماً: الاستهداف يفحص الدور لا المدرسة، وربط
+        // المسار غير منطوق، فطالبُ مدرسةٍ يلوّث نتائج مدرسةٍ أخرى بنداء المسار مباشرةً. حجبُ
+        // النافذة في المتصفّح لا يحمي شيئاً هنا (يُعطَّل JS أو يُنادى المسار من خارج المتصفّح).
+        if ($user) {
+            if ($survey->school_id && (int) $survey->school_id !== (int) $user->school_id) {
+                return $fail('هذا الاستبيان غير متاح لمدرستك', 403);
+            }
+
+            // تقييمات القيمة/الدرس تُنشأ بـschool_id = NULL (Admin\SurveyController@store)، فعزلها
+            // يمرّ عبر رؤية القيمة للمدرسة — نفس حارس عرض الدرس في StudentController::lesson.
+            if ($survey->isAssessment()) {
+                $valueId = $survey->value_id ?: optional(optional($survey->lesson)->concept)->value_id;
+                if ($valueId && ! Value::visibleForSchool($user->school_id)->whereKey($valueId)->exists()) {
+                    return $fail('هذا الاستبيان غير متاح لمدرستك', 403);
+                }
+            }
+        }
+
         $survey->load('questions');
 
         // التحقق من الإجابات المطلوبة
@@ -145,7 +164,10 @@ class SurveyController extends Controller
             if (! $user) {
                 return redirect()->back()->with('success', 'شكراً لك! تم حفظ إجاباتك بنجاح');
             }
-            $to = $user->role === 'student' ? route('student.learn') : url('/dashboard');
+
+            // المتطلَّب #3: تقييمُ درسٍ يُعيد الطالب لدرسه ليُكمل، لا لصفحة التعلّم العامّة.
+            $to = $this->returnUrlAfterSubmit($survey, $user, $request)
+                ?? ($user->role === 'student' ? route('student.learn') : url('/dashboard'));
 
             return redirect($to)->with('success', 'شكراً لك! تم حفظ إجاباتك بنجاح');
         }
@@ -155,6 +177,42 @@ class SurveyController extends Controller
             'message' => 'شكراً لك! تم حفظ إجاباتك بنجاح',
             'has_more_surveys' => $pendingSurveys->isNotEmpty(),
         ]);
+    }
+
+    /**
+     * رابط العودة بعد تعبئة تقييمٍ من الصفحة المستقلّة — درسُ الطالب ليُكمل من حيث وقف.
+     *
+     * §4: **يُمنع** قبول `return_to` أو أيّ رابط خام من العميل (إعادة توجيه مفتوحة). نقبل معرّفاً
+     * فقط ثمّ نُعيد حلّه خادميّاً بالكامل: الدرس موجود ونشط، وقيمتُه مرئيّة لمدرسة الطالب — نفس
+     * حارس StudentController::lesson. أيّ إخفاق ⟶ null فيسقط النداء للسلوك الافتراضيّ.
+     */
+    private function returnUrlAfterSubmit(Survey $survey, $user, Request $request): ?string
+    {
+        if ($user->role !== 'student') {
+            return null;
+        }
+
+        $lessonId = $survey->lesson_id ?: (int) $request->input('return_lesson_id');
+        if (! $lessonId) {
+            return null;
+        }
+
+        $lesson = \App\Models\Lesson::with('concept')->find($lessonId);
+        if (! $lesson || $lesson->status !== 'active') {
+            return null;
+        }
+
+        $valueId = optional($lesson->concept)->value_id;
+        if (! $valueId || ! Value::visibleForSchool($user->school_id)->whereKey($valueId)->exists()) {
+            return null;
+        }
+
+        // تقييمُ قيمةٍ لا يعود إلى درسٍ من قيمة أخرى.
+        if ($survey->value_id && (int) $survey->value_id !== (int) $valueId) {
+            return null;
+        }
+
+        return route('student.lesson', $lesson->id);
     }
 
     /**
