@@ -85,7 +85,8 @@ class TeacherController extends Controller
         }
 
         // الأنشطة المعلقة (تحتاج مراجعة) - مع تحديد الحقول
-        $pendingSubmissions = ActivitySubmission::whereIn('student_id', $studentIds)
+        // reviewableByTeacher: يشمل التسليمات اليتيمة على أنشطة المعلّم (طالب بلا فصل).
+        $pendingSubmissions = ActivitySubmission::reviewableByTeacher($user)
             ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->parentCleared()
             ->with(['student:id,name,avatar', 'activity:id,title'])
             ->select(['id', 'student_id', 'activity_id', 'submitted_at', 'status'])
@@ -97,7 +98,7 @@ class TeacherController extends Controller
         $stats = [
             'total_classrooms' => $classrooms->count(),
             'total_students' => count($studentIds),
-            'pending_submissions' => ActivitySubmission::whereIn('student_id', $studentIds)
+            'pending_submissions' => ActivitySubmission::reviewableByTeacher($user)
                 ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->parentCleared()->count(),
             'reviewed_today' => ActivitySubmission::whereIn('student_id', $studentIds)
                 ->where('reviewed_by', $user->id)
@@ -129,16 +130,11 @@ class TeacherController extends Controller
     public function reviewSubmissions()
     {
         $user = Auth::user();
-        $classrooms = $user->teachingClassrooms()->pluck('id');
-
-        $studentIds = DB::table('classroom_student')
-            ->whereIn('classroom_id', $classrooms)
-            ->distinct()
-            ->pluck('student_id');
 
         // pending = بانتظار تصحيح يدوي (رفع/مقالي)، needs_review = لم يجتَز التصحيح الآلي
         // (إجابة خاطئة) — كلاهما يظهر للمعلم ليصحّح أو يسمح بإعادة المحاولة.
-        $submissions = ActivitySubmission::whereIn('student_id', $studentIds)
+        // reviewableByTeacher: طلاب فصوله **أو** تسليمات على نشاطٍ أنشأه (شبكة أمان لليتيمة).
+        $submissions = ActivitySubmission::reviewableByTeacher($user)
             ->whereIn('status', ActivitySubmission::PENDING_REVIEW_STATUSES)->parentCleared()
             ->with(['student', 'activity.lesson.concept.value'])
             ->latest('submitted_at')
@@ -157,15 +153,9 @@ class TeacherController extends Controller
             'activity.lesson.concept.value',
         ])->findOrFail($id);
 
-        // التحقق من أن الطالب تابع للمعلم
+        // التحقق من الصلاحية: طالب في فصل المعلّم أو تسليم على نشاطٍ أنشأه (مصدر وحيد)
         $user = Auth::user();
-        $hasAccess = DB::table('classroom_student')
-            ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
-            ->where('classrooms.teacher_id', $user->id)
-            ->where('classroom_student.student_id', $submission->student_id)
-            ->exists();
-
-        if (! $hasAccess) {
+        if (! $submission->isReviewableByTeacher($user)) {
             abort(403, 'ليس لديك صلاحية لمراجعة هذا النشاط');
         }
 
@@ -198,13 +188,7 @@ class TeacherController extends Controller
             $submission = DB::transaction(function () use ($id, $user, $request) {
                 $submission = ActivitySubmission::lockForUpdate()->findOrFail($id);
 
-                $hasAccess = DB::table('classroom_student')
-                    ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
-                    ->where('classrooms.teacher_id', $user->id)
-                    ->where('classroom_student.student_id', $submission->student_id)
-                    ->exists();
-
-                if (! $hasAccess) {
+                if (! $submission->isReviewableByTeacher($user)) {
                     throw new \Illuminate\Auth\Access\AuthorizationException('ليس لديك صلاحية');
                 }
 
@@ -334,13 +318,7 @@ class TeacherController extends Controller
             $submission = DB::transaction(function () use ($id, $user, $request) {
                 $submission = ActivitySubmission::lockForUpdate()->findOrFail($id);
 
-                $hasAccess = DB::table('classroom_student')
-                    ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
-                    ->where('classrooms.teacher_id', $user->id)
-                    ->where('classroom_student.student_id', $submission->student_id)
-                    ->exists();
-
-                if (! $hasAccess) {
+                if (! $submission->isReviewableByTeacher($user)) {
                     throw new \Illuminate\Auth\Access\AuthorizationException('ليس لديك صلاحية');
                 }
 
@@ -2057,6 +2035,15 @@ class TeacherController extends Controller
                     ]);
                 }
             }
+
+            // اختيار متعدّد / صح-خطأ بلا مفتاح إجابة صالح → كان يُحفَظ فيرتدّ التصحيح الآليّ إلى
+            // null (مراجعة يدويّة) ويذهب للمعلّم بلا سبب. نمنع الحفظ (نفس منطق المصحّح: hasAnswerKey).
+            if (in_array($type, ['multiple_choice', 'true_false'], true)
+                && ! \App\Services\ActivityGradingService::hasAnswerKey($q)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'questions' => "السؤال رقم {$n}: حدّد الإجابة الصحيحة لسؤال الاختيار.",
+                ]);
+            }
         }
     }
 
@@ -2318,15 +2305,12 @@ class TeacherController extends Controller
     }
 
     /**
-     * هل يراجع هذا المعلّم هذا التسليم؟ (طالب التسليم عضوٌ في أحد فصول المعلّم).
+     * هل يراجع هذا المعلّم هذا التسليم؟ يفوّض للمصدر الوحيد على الموديل
+     * (طالبٌ في فصل المعلّم **أو** تسليمٌ على نشاطٍ أنشأه المعلّم).
      */
     private function teacherReviewsSubmission(ActivitySubmission $submission, User $user): bool
     {
-        return DB::table('classroom_student')
-            ->join('classrooms', 'classroom_student.classroom_id', '=', 'classrooms.id')
-            ->where('classrooms.teacher_id', $user->id)
-            ->where('classroom_student.student_id', $submission->student_id)
-            ->exists();
+        return $submission->isReviewableByTeacher($user);
     }
 
     // ==================== نظام التمارين ====================

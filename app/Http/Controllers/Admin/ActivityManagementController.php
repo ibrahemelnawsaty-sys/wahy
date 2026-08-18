@@ -250,6 +250,15 @@ class ActivityManagementController extends Controller
                     ]);
                 }
             }
+
+            // اختيار متعدّد / صح-خطأ بلا مفتاح إجابة صالح → كان يُحفَظ فيرتدّ التصحيح الآليّ إلى
+            // null (مراجعة يدويّة) ويذهب للمعلّم بلا سبب. نمنع الحفظ (نفس منطق المصحّح: hasAnswerKey).
+            if (in_array($type, ['multiple_choice', 'true_false'], true)
+                && ! \App\Services\ActivityGradingService::hasAnswerKey($q)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'questions' => "السؤال رقم {$n}: حدّد الإجابة الصحيحة لسؤال الاختيار.",
+                ]);
+            }
         }
     }
 

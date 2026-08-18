@@ -101,6 +101,18 @@ class ActivityGradingService
     }
 
     /**
+     * هل للسؤال مفتاح إجابة صالح (فهرس/نصّ/is_correct)؟ **مصدرٌ وحيد** يشاركه حارس التأليف
+     * (validateActivityQuestions) والمصحّح — كي لا يُحفَظ سؤال اختيار/صح-خطأ بلا إجابة صحيحة
+     * فيرتدّ التصحيح الآليّ إلى null (مراجعة يدويّة) ويذهب للمعلّم بلا سبب ظاهر.
+     *
+     * @param  array<string, mixed>  $question
+     */
+    public static function hasAnswerKey(array $question): bool
+    {
+        return self::resolveKey($question)['has'];
+    }
+
+    /**
      * الإجابة الصحيحة بصيغة نصّية مقروءة، لعرضها للطالب تعليمياً بعد محاولة خاطئة.
      * تُرجع null إن لم توجد إجابة مرجعية واحدة قابلة للعرض
      * (الأنواع اليدوية، أو كويز حقيقي متعدد الأسئلة).

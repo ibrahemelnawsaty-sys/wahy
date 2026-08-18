@@ -164,6 +164,34 @@ class ActivitySubmission extends Model
      *  (ب) بانتظار موافقة الوليّ: parent_approval_status = 'pending'.
      * النطاق عبر الطالب (لا school_id مباشر على activity_submissions).
      */
+    /**
+     * Scope: تسليمات يجوز لهذا المعلّم مراجعتها — **مصدرٌ وحيد** يوحّد القوائم وفحص الصلاحية.
+     * الاتحاد: (أ) طلاب فصول المعلّم، **أو** (ب) تسليمات على نشاطٍ أنشأه المعلّم نفسه.
+     * الفرع (ب) شبكة أمان: طالبٌ بلا فصل (أو فصلٍ بلا معلّم) كان تسليمه على نشاط المعلّم
+     * يبقى بلا مراجِع للأبد — فيظهر «صفراً/معلّقاً» بلا أن يصل أحد.
+     */
+    public function scopeReviewableByTeacher($query, User $teacher)
+    {
+        $classroomIds = $teacher->teachingClassrooms()->pluck('id')->all();
+        $studentIds = \Illuminate\Support\Facades\DB::table('classroom_student')
+            ->whereIn('classroom_id', $classroomIds)
+            ->pluck('student_id')->all();
+
+        return $query->where(function ($q) use ($studentIds, $teacher) {
+            $q->whereIn('student_id', $studentIds)
+                ->orWhereHas('activity', fn ($a) => $a->where('created_by', $teacher->id));
+        });
+    }
+
+    /**
+     * هل يجوز لهذا المعلّم مراجعة هذا التسليم؟ يعيد استخدام scopeReviewableByTeacher
+     * (نفس التعريف تماماً — لا انحراف بين القائمة وفحص الوصول المباشر).
+     */
+    public function isReviewableByTeacher(User $teacher): bool
+    {
+        return static::whereKey($this->getKey())->reviewableByTeacher($teacher)->exists();
+    }
+
     public function scopeAwaitingSchoolResolution($query, int $schoolId)
     {
         return $query

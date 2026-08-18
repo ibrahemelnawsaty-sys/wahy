@@ -373,7 +373,8 @@ class StudentApiController extends Controller
         $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
 
         // تأجيل حتى موافقة الوليّ (#23) كالويب: لا إكمال ولا منح قبل موافقة الوليّ.
-        $deferForParent = (bool) $activity->requires_parent_approval;
+        // حارس (نفس الويب): لا نؤجّل لوليٍّ غير موجود — طالبٌ بلا وليّ يمرّ مباشرةً بلا حبس.
+        $deferForParent = (bool) $activity->requires_parent_approval && $user->parents()->exists();
         if ($deferForParent) {
             $status = 'pending';
         }
@@ -389,7 +390,8 @@ class StudentApiController extends Controller
             'status' => $status,
             'score' => $score,
             // ميزة #23 (كالويب): نشاط يتطلّب موافقة وليّ الأمر لا يدخل طابور المعلّم إلا بموافقته.
-            'parent_approval_status' => $activity->requires_parent_approval ? 'pending' : null,
+            // (يُضبط فقط إن كان للطالب وليٌّ فعليّ — انظر $deferForParent أعلاه.)
+            'parent_approval_status' => $deferForParent ? 'pending' : null,
             'parent_approved_by' => null,
             'parent_approved_at' => null,
             'submitted_at' => now(),

@@ -352,6 +352,11 @@
                     <span>نشاط إبداعي (جماعي للفصل)</span>
                 </label>
 
+                <label class="ab-checkbox-row">
+                    <input type="checkbox" name="manual_review" value="1" {{ old('manual_review') ? 'checked' : '' }}>
+                    <span>مراجعة المعلّم يدويّاً (بلا تصحيح آليّ — يعتمد التسليمَ المعلّمُ بنفسه)</span>
+                </label>
+
                 <div class="ab-field">
                     <label>الحالة *</label>
                     <select name="status" required>

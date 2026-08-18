@@ -592,6 +592,32 @@ class StudentController extends Controller
             }
         }
 
+        // ---- النافذة الحاجبة التسلسليّة (تقييمات إجباريّة) ----
+        // نُغذّي مفتاحَي الجلسة اللذين يقرؤهما components/survey-popup مباشرةً بدل إلغاء استبعاد
+        // «Issue 19» في Survey::getPendingSurveysForUser (الذي يحوّل كلّ تقييم إلى نافذة عامّة).
+        // CheckPendingSurveys ينسى المفتاحين في كلّ طلب قبل وصولنا هنا، فيبقى الحجب **محصوراً
+        // بصفحة الدرس** تلقائيّاً وينحسر بأوّل تنقّل. تنبيه: هذا حجب تجربةِ استخدام لا حدّ أمان —
+        // كلّ ثابتٍ حقيقيّ (الاستهداف/العزل/عدم التكرار) مفروضٌ في SurveyController::submit.
+        $surveyQueue = \App\Services\AssessmentSurveyQueue::build(
+            $user,
+            $lesson->id,
+            $__value->id,
+            $totalActivities > 0 && $completedActivities >= $totalActivities,
+            fn () => in_array($__value->id, $this->masteredValueIds($user), true),
+        );
+
+        if ($surveyQueue->isNotEmpty()) {
+            session(['pending_surveys' => $surveyQueue, 'show_survey_popup' => true]);
+
+            // ما دخل الطابور لا يُعرض بانراً أيضاً — سطحان لنفس الاستبيان يربكان الطالب.
+            $queuedIds = $surveyQueue->pluck('id')->all();
+            $notQueued = fn (?\App\Models\Survey $s) => ($s && in_array($s->id, $queuedIds, true)) ? null : $s;
+            $preSurvey = $notQueued($preSurvey);
+            $postSurvey = $notQueued($postSurvey);
+            $valuePreSurvey = $notQueued($valuePreSurvey);
+            $valuePostSurvey = $notQueued($valuePostSurvey);
+        }
+
         return view('student.lesson-view', compact(
             'lesson',
             'activities',
@@ -922,7 +948,11 @@ class StudentController extends Controller
             $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
 
             // ميزة #23: نشاط يتطلّب موافقة وليّ الأمر — لا يدخل طابور المعلّم إلا بعد موافقته.
-            $parentApprovalStatus = $activity->requires_parent_approval ? 'pending' : null;
+            // حارس: لا نؤجّل لوليٍّ غير موجود — طالبٌ بلا وليّ مرتبط كان يعلق تسليمه للأبد
+            // (لا وليّ يوافق ولا يظهر للمعلّم). في هذه الحالة يمرّ مباشرةً لمساره الطبيعيّ.
+            $parentApprovalStatus = ($activity->requires_parent_approval && $student->parents()->exists())
+                ? 'pending'
+                : null;
 
             // تأجيلٌ حتى موافقة الوليّ: لا يُحتسَب التسليم «مكتمِلاً» ولا يُمنَح الابنُ اقتصاداً قبل
             // موافقة الوليّ — كان يُكافَأ ويُعدّ مكتمِلاً فوراً فتصير موافقة الوليّ تجميليّة. يُنهي

@@ -285,6 +285,12 @@
                     <option value="inactive">غير نشط</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;">
+                    <input type="checkbox" name="manual_review" value="1" style="width:18px;height:18px;">
+                    <span>مراجعة المعلّم يدويّاً (بلا تصحيح آليّ)</span>
+                </label>
+            </div>
             <div style="display:flex;gap:12px;margin-top:8px;">
                 <button type="submit" style="flex:1;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:13px;border-radius:12px;border:none;font-weight:700;font-size:15px;cursor:pointer;">
                     💾 حفظ النشاط

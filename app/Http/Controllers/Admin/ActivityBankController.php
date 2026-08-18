@@ -90,6 +90,7 @@ class ActivityBankController extends Controller
             'coins' => 'nullable|integer|min:0|max:500',
             'lesson_id' => 'nullable|exists:lessons,id',
             'status' => 'required|in:active,draft,inactive',
+            'manual_review' => 'nullable|boolean',
         ]);
 
         $user = Auth::user();
@@ -103,6 +104,8 @@ class ActivityBankController extends Controller
             'coins' => $validated['coins'] ?? 0,
             'lesson_id' => $validated['lesson_id'] ?? null,
             'status' => $validated['status'],
+            // مفتاح «مراجعة المعلّم يدويّاً» (checkbox غير المُرسَل = false)
+            'manual_review' => $request->boolean('manual_review'),
             'is_activity_bank' => true,
             'created_by' => $user->id,
             'approval_status' => 'approved',   // معتمد تلقائياً من الأدمن
