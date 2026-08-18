@@ -31,7 +31,25 @@ class PagesController extends Controller
      */
     public function terms()
     {
-        return view('legal.terms');
+        return $this->builderOr('terms', 'legal.terms');
+    }
+
+    /**
+     * صفحةٌ جانبيّة يحرّرها الأدمن من محرّر الصفحات، وإلّا يُخدَم قالبها الثابت.
+     *
+     * آمنٌ بالتصميم كالرئيسية: ما لم يُنشئ الأدمن صفحةً **منشورة** بهذا الـslug ويرفع علمها،
+     * تبقى الصفحة الثابتة هي المخدومة — فلا شاشة بيضاء ولا فقدان محتوى. ويُشترط أن تحمل
+     * الصفحة كتلةً واحدة على الأقلّ (صفحة فارغة منشورة لا تحجب المحتوى القائم).
+     */
+    private function builderOr(string $slug, string $fallbackView)
+    {
+        $page = PageResolver::resolve($slug, app()->getLocale());
+
+        if ($page && ! empty($page->blocks)) {
+            return view('pb.document', ['page' => $page]);
+        }
+
+        return view($fallbackView);
     }
 
     /**
@@ -39,7 +57,7 @@ class PagesController extends Controller
      */
     public function privacy()
     {
-        return view('legal.privacy');
+        return $this->builderOr('privacy', 'legal.privacy');
     }
 
     /**
@@ -120,5 +138,4 @@ class PagesController extends Controller
     {
         return response()->json(['token' => csrf_token()]);
     }
-
 }

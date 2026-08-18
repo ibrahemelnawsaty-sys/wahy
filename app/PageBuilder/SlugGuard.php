@@ -21,6 +21,16 @@ class SlugGuard
         'users', 'schools', 'media', 'editor', 'up', 'assets', 'css', 'js', 'img', 'fonts',
     ];
 
+    /**
+     * مسارات نظامٍ مسجَّلة **تتنازل عمداً** لمحرّر الصفحات: متحكّمها يستشير PageResolver أوّلاً
+     * ويرتدّ للقالب الثابت إن لم تُنشَر صفحة. بدون هذا الاستثناء يمنعها الفحص الديناميكيّ أدناه
+     * (لأنّها مسارات GET مسجَّلة) فيتعذّر على الأدمن تحريرها إطلاقاً.
+     *
+     * **شرط الإضافة هنا:** أن يكون المتحكّم قد وصَل الاستشارة فعلاً — وإلّا صنع الأدمن صفحةً
+     * لا تظهر أبداً. يحرسه SecondaryPagesEditableTest.
+     */
+    public const TAKEOVER_ALLOWED = ['terms', 'privacy'];
+
     /** هل الـslug محجوز (لا يصلح لصفحة عامّة)؟ */
     public static function isReserved(string $slug): bool
     {
@@ -32,6 +42,10 @@ class SlugGuard
         }
 
         $first = explode('/', $slug)[0];
+
+        if (in_array($slug, self::TAKEOVER_ALLOWED, true)) {
+            return false;
+        }
 
         if (in_array($first, self::RESERVED, true)) {
             return true;
