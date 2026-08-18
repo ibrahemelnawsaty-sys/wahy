@@ -35,7 +35,12 @@ use Tests\TestCase;
  * pins end-to-end. A genuinely different activity is a different submission id => a
  * different key => a legitimate new award, which is what (b) pins.
  *
- * These tests drive the real wired entrypoint SubmitActivityAction::execute().
+ * ملاحظة دقّة (تشخيص الأنشطة، بند #12): هذه الاختبارات تقود SubmitActivityAction::execute()
+ * وهو **ليس** مسار التسليم الحيّ. المسار المُوصَّل فعلاً في routes/web.php هو
+ * StudentController::submitActivity (تنفيذ inline). لذا تحرس هذه الاختبارات منطق التوزيع/
+ * الـ idempotency في الـ Action (المُرشَّح المُميَّز في الدستور لتوحيد المسارين لاحقاً) لا سلوك
+ * الإنتاج الحاليّ. توحيد المسارين (الويب+الجوّال على Action واحد) مهمّة منفصلة مُؤجَّلة تتطلّب
+ * قراراتِ منتج (سياسة الإعادة، توزيع الجوّال) وفحص QA — لا تفترض تطابقهما قبل ذلك.
  */
 class activitySubmissionDistributionAwardTest extends TestCase
 {
