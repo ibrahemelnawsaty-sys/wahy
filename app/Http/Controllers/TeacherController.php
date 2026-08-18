@@ -2293,10 +2293,14 @@ class TeacherController extends Controller
 
         // is_featured/featured_* ليست ضمن حقول التسليم المحروسة (booted يحرس score/status/…) —
         // فالتحديث العاديّ يمرّ (لا يمسّ حقلاً حسّاسًا).
+        // قيمة المكافأة من الإعدادات (تُغيَّر من لوحة الأدمن بلا نشر)؛ الثابت هو الافتراضيّ.
+        $points = (int) setting('featured_submission_points', self::FEATURED_SUBMISSION_POINTS);
+        $points = max(0, $points);
+
         // التمييز والمكافأة يلتزمان أو يتراجعان معاً (§5): فشلُ المنح يجب ألّا يترك تسليماً
         // مميَّزاً بلا مكافأة، فيظنّ المعلّم أنّه كافأ ولم يصل الطالبَ شيء.
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($submission, $user, $validated) {
+            $awarded = \Illuminate\Support\Facades\DB::transaction(function () use ($submission, $user, $validated, $points) {
                 $submission->update([
                     'is_featured' => true,
                     'featured_by' => $user->id,
@@ -2307,11 +2311,12 @@ class TeacherController extends Controller
                 // §3: القناة الوحيدة للمنح. مفتاح idempotency = معرّف **التسليم**، فتمييزٌ ثمّ
                 // إلغاءٌ ثمّ تمييزٌ ثانٍ لا يمنح مرّتين — وإلّا صار الزرّ مطبعةَ نقودٍ بيد المعلّم.
                 // بلا distribute عمداً: التوزيع يمنح المعلّمَ نسبةً من منحةٍ هو مَن قرّرها.
-                AwardService::award(
+                // تُرجِع false عند التكرار (أو عند points=0) — وهي بوّابة الإشعار أدناه.
+                return AwardService::award(
                     (int) $submission->student_id,
                     'submission_featured',
                     (string) $submission->id,
-                    self::FEATURED_SUBMISSION_POINTS,
+                    $points,
                     0,
                     'مكافأة تمييز تسليم متميّز',
                 );
@@ -2322,7 +2327,64 @@ class TeacherController extends Controller
             return back()->with('error', 'تعذّر تمييز التسليم. حاول مرّة أخرى.');
         }
 
-        return back()->with('success', 'تم تمييز تسليم الطالب ومُنِح ' . self::FEATURED_SUBMISSION_POINTS . ' نقاط إضافيّة');
+        // الإشعار والبريد **بعد** الـcommit وبشرط حدوث منحٍ فعليّ:
+        //  • بعد الـcommit — بريدٌ يُرسَل داخل معاملةٍ ثمّ تتراجع = إخبار الطالب بنقاطٍ لا وجود لها.
+        //  • بشرط $awarded — فلا يُزعَج الطالب مرّتين بمنحةٍ لم تتكرّر (تمييز ⟵ إلغاء ⟵ تمييز).
+        //  • خارج المعاملة وبـtry منفصل — تعذّر البريد لا يُلغي تمييزاً ومنحاً صحيحين (§5: يُسجَّل).
+        if ($awarded) {
+            $this->notifyStudentOfFeaturedSubmission($submission, $points, $validated['reason'] ?? null);
+        }
+
+        return back()->with('success', $points > 0
+            ? "تم تمييز تسليم الطالب ومُنِح {$points} نقاط إضافيّة"
+            : 'تم تمييز تسليم الطالب');
+    }
+
+    /**
+     * إبلاغ الطالب بتمييز تسليمه — إشعارٌ داخل المنصّة وبريدٌ إلكترونيّ.
+     * يُستدعى بعد الـcommit فقط؛ أيّ إخفاق هنا يُسجَّل ولا يمسّ المنحة.
+     */
+    private function notifyStudentOfFeaturedSubmission(ActivitySubmission $submission, int $points, ?string $reason): void
+    {
+        $student = User::find($submission->student_id);
+        if (! $student) {
+            return;
+        }
+
+        $activityTitle = optional($submission->activity)->title ?? 'نشاط';
+        $message = $points > 0
+            ? "ميّز معلّمك تسليمك في «{$activityTitle}» — حصلت على {$points} نقاط إضافيّة 🎉"
+            : "ميّز معلّمك تسليمك في «{$activityTitle}» 🎉";
+
+        try {
+            \App\Services\NotificationService::create(
+                $student->id,
+                'submission_featured',
+                '🌟 عملك متميّز!',
+                $message,
+                ['submission_id' => $submission->id, 'points' => $points],
+                route('student.dashboard'),
+            );
+        } catch (\Throwable $e) {
+            \Log::error('featured notification failed', ['submission_id' => $submission->id, 'error' => $e->getMessage()]);
+        }
+
+        try {
+            \App\Services\Mail\MailGate::send(
+                $student,
+                'student_submission_featured',
+                'event',
+                new \App\Mail\StudentSubmissionFeaturedMail(
+                    $student,
+                    $activityTitle,
+                    $points,
+                    $reason,
+                    route('student.dashboard'),
+                ),
+            );
+        } catch (\Throwable $e) {
+            \Log::error('featured mail failed', ['submission_id' => $submission->id, 'error' => $e->getMessage()]);
+        }
     }
 
     /**

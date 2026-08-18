@@ -243,6 +243,15 @@
                     <input type="tel" id="whatsapp_number" name="whatsapp_number" class="settings-form-input" dir="ltr" value="{{ $settings['whatsapp_number'] }}" placeholder="9665XXXXXXXX" pattern="[0-9+\-\s()]{0,30}">
                     <div class="settings-form-help">رقم دوليّ بلا «+» (مثال: 9665XXXXXXXX) — يظهر كزرّ عائم في الركن السفلي</div>
                 </div>
+                <div class="settings-form-group">
+                    <label for="featured_submission_points" class="settings-form-label">نقاط مكافأة «تمييز تسليم الطالب»</label>
+                    <input type="number" id="featured_submission_points" name="featured_submission_points" class="settings-form-input" dir="ltr"
+                           value="{{ $settings['featured_submission_points'] }}" min="0" max="1000" step="1">
+                    <div class="settings-form-help">
+                        تُمنح للطالب مرّةً واحدة لكلّ تسليم يميّزه معلّمه (لا تتكرّر بإعادة التمييز).
+                        <strong>0</strong> يُعطّل المكافأة مع بقاء التمييز. الحدّ الأعلى 1000.
+                    </div>
+                </div>
             </div>
         </div>
 

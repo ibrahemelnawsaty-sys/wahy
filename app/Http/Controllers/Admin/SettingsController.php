@@ -33,6 +33,8 @@ class SettingsController extends Controller
             'hero_video_url' => setting('hero_video_url', 'videos/hero-main.mp4'),
             'hero_video_poster' => setting('hero_video_poster', ''),
             'whatsapp_number' => setting('whatsapp_number', ''),
+            // اقتصاد: مكافأة تمييز المعلّم لتسليم الطالب (0 = تعطيل المكافأة مع بقاء التمييز)
+            'featured_submission_points' => (int) setting('featured_submission_points', \App\Http\Controllers\TeacherController::FEATURED_SUBMISSION_POINTS),
         ];
 
         return view('admin.settings', compact('settings'));
@@ -53,6 +55,8 @@ class SettingsController extends Controller
             'hero_video_url' => 'nullable|string|max:500',
             'hero_video_poster' => 'nullable|string|max:500',
             'whatsapp_number' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+\-\s()]*$/'],
+            // §3: قيمةٌ تمسّ الاقتصاد — تُقيَّد بحدّ أعلى وتُمنع السالبة (لا تُترك لحسن النيّة)
+            'featured_submission_points' => 'nullable|integer|min:0|max:1000',
         ]);
 
         if ($validator->fails()) {
@@ -84,6 +88,14 @@ class SettingsController extends Controller
                 'maintenance_mode', 'show_hero_stats', 'show_coop_benefits', 'show_partners', 'hero_video_enabled',
             ];
 
+            // يُقصّ خادميّاً أيضاً لا بالتحقّق وحده — قيمةٌ تسكّ نقاطاً لا تُترك بلا سقف.
+            Setting::set(
+                'featured_submission_points',
+                max(0, min(1000, (int) $request->input('featured_submission_points', \App\Http\Controllers\TeacherController::FEATURED_SUBMISSION_POINTS))),
+                'integer',
+                $this->getSettingDescription('featured_submission_points'),
+            );
+
             foreach ($stringSettings as $key => $value) {
                 Setting::set($key, $value ?? '', 'string', $this->getSettingDescription($key));
             }
@@ -113,6 +125,7 @@ class SettingsController extends Controller
     {
         $descriptions = [
             'site_name' => 'اسم الموقع',
+            'featured_submission_points' => 'نقاط مكافأة تمييز تسليم الطالب',
             'site_description' => 'وصف الموقع',
             'contact_email' => 'البريد الإلكتروني',
             'contact_phone' => 'رقم الهاتف',

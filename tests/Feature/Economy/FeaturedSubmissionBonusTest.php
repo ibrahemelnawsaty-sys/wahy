@@ -11,6 +11,7 @@ use App\Models\School;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
@@ -134,5 +135,75 @@ class FeaturedSubmissionBonusTest extends TestCase
 
         $this->assertFalse((bool) $this->submission->fresh()->is_featured);
         $this->assertSame(10, $this->studentPoints());
+    }
+
+    // ---------------- الإشعار + البريد + الإعداد ----------------
+
+    public function test_student_gets_an_in_app_notification(): void
+    {
+        $this->feature();
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => 'App\Models\User',
+            'notifiable_id' => $this->student->id,
+            'type' => 'submission_featured',
+        ]);
+    }
+
+    public function test_student_gets_an_email(): void
+    {
+        Mail::fake();
+        $this->feature();
+
+        Mail::assertSent(\App\Mail\StudentSubmissionFeaturedMail::class, function ($mail) {
+            return $mail->hasTo($this->student->email);
+        });
+    }
+
+    public function test_no_duplicate_notification_or_email_on_refeature(): void
+    {
+        // لا يُزعَج الطالب مرّتين بمنحةٍ لم تتكرّر — الإشعار مشروطٌ بنجاح المنح لا بضغط الزرّ.
+        Mail::fake();
+        $this->feature();
+        $this->actingAs($this->teacher)->post(route('teacher.review.unfeature', $this->submission->id));
+        $this->feature();
+
+        Mail::assertSentCount(1);
+        $this->assertSame(1, \App\Models\Notification::where('notifiable_id', $this->student->id)
+            ->where('type', 'submission_featured')->count());
+    }
+
+    public function test_points_amount_follows_the_admin_setting(): void
+    {
+        set_setting('featured_submission_points', 25, 'integer');
+        \App\Models\Setting::clearCache();
+
+        $this->feature();
+
+        $this->assertSame(25, $this->studentPoints());
+    }
+
+    public function test_zero_setting_awards_nothing_but_still_features(): void
+    {
+        // الإدارة قد تُعطّل المكافأة بصفر — التمييز يبقى ميزةً عرضيّة قائمة.
+        set_setting('featured_submission_points', 0, 'integer');
+        \App\Models\Setting::clearCache();
+
+        $this->feature();
+
+        $this->assertSame(0, $this->studentPoints());
+        $this->assertTrue($this->submission->fresh()->is_featured);
+    }
+
+    public function test_email_is_not_sent_when_the_award_did_not_happen(): void
+    {
+        // §5: لا نُبلّغ الطالب بمنحةٍ لم تُسكّ (مثلاً حين تكون القيمة صفراً).
+        Mail::fake();
+        set_setting('featured_submission_points', 0, 'integer');
+        \App\Models\Setting::clearCache();
+
+        $this->feature();
+
+        Mail::assertNothingSent();
     }
 }

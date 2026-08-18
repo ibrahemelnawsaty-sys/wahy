@@ -27,6 +27,7 @@ class EmailSettingsController extends Controller
         // الطالب
         'student_new_activity' => 'الطالب — نشاط جديد أُتيح له',
         'student_pvp_invite' => 'الطالب — دعوة تحدٍّ (PvP)',
+        'student_submission_featured' => 'الطالب — تمييز معلّمه لتسليمه',
         // مدير المدرسة
         'schooladmin_activity_pending' => 'مدير المدرسة — نشاط بانتظار الاعتماد',
         'schooladmin_weekly_digest' => 'مدير المدرسة — الملخّص الأسبوعيّ',
