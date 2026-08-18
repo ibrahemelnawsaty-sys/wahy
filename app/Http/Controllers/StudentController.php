@@ -550,10 +550,18 @@ class StudentController extends Controller
             return $activity;
         });
 
-        // حساب التقدم
+        // حساب التقدم — «أرسلتُ» تقدّمٌ حقيقيّ يراه الطالب، فيُحتسب بـSUBMITTED_STATUSES.
+        // (المصفوفة كانت مُرمَّزة هنا حرفيّاً؛ المصدر الوحيد هو ثوابت ActivitySubmission.)
         $totalActivities = $activities->count();
-        $completedActivities = $activities->whereIn('status', ['completed', 'pending', 'approved', 'needs_review'])->count();
+        $completedActivities = $activities->whereIn('status', ActivitySubmission::SUBMITTED_STATUSES)->count();
         $completionPercent = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
+
+        // «الإتمام النهائيّ» تعريفٌ **مختلف** عن التقدّم: ما اعتُمد فقط (DONE_STATUSES) — وهو نفس
+        // تعريف إتقان القيمة في masteredValueIds. كانت بوّابة التقييم البعديّ تستعمل تعريف التقدّم،
+        // فيُسأل الطالب «كيف وجدت الدرس بعد إتمامه» وعملُه ما زال قيد المراجعة وقد يردّه المعلّم —
+        // وتوثيق SUBMITTED_STATUSES نفسه يمنع استعماله في الإنجاز النهائيّ.
+        $acceptedActivities = $activities->whereIn('status', ActivitySubmission::DONE_STATUSES)->count();
+        $lessonFullyDone = $totalActivities > 0 && $acceptedActivities >= $totalActivities;
 
         // النشاط التالي
         $nextActivity = $activities->whereIn('status', ['available', 'completed', 'pending'])->first();
@@ -571,7 +579,7 @@ class StudentController extends Controller
 
         // استبيانات التقييم (قبلي/بعدي) في سياق الدرس — تُعرض هنا لا كنافذة عامة
         $preSurvey = \App\Models\Survey::pendingLessonSurveyFor($user, $lesson->id, 'pre');
-        $postSurvey = ($totalActivities > 0 && $completedActivities >= $totalActivities)
+        $postSurvey = $lessonFullyDone
             ? \App\Models\Survey::pendingLessonSurveyFor($user, $lesson->id, 'post')
             : null;
 
@@ -602,7 +610,7 @@ class StudentController extends Controller
             $user,
             $lesson->id,
             $__value->id,
-            $totalActivities > 0 && $completedActivities >= $totalActivities,
+            $lessonFullyDone,
             fn () => in_array($__value->id, $this->masteredValueIds($user), true),
         );
 

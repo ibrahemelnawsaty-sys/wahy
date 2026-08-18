@@ -160,6 +160,63 @@ class AssessmentPopupQueueTest extends TestCase
         $this->assertNull(session('show_survey_popup'), 'البعديّ لا يُحجب قبل إنهاء الأنشطة');
     }
 
+    /**
+     * توحيد تعريف «الإتمام»: بوّابة التقييم البعديّ كانت تعدّ SUBMITTED_STATUSES (تشمل pending
+     * و needs_review) إتماماً، بينما إتقان القيمة يعدّ DONE_STATUSES فقط — ووثائق الثابت نفسه
+     * تقول صراحةً إنّه «يُستخدم في عدّ ما أرسله الطالب **وليس** في الإنجاز النهائي».
+     * فطالبٌ تسليمُه قيد المراجعة كان يُحجب بتقييمٍ بعديّ «كأنّه أنهى» — والمعلّم قد يردّه.
+     */
+    public function test_post_assessment_waits_for_accepted_work_not_merely_submitted(): void
+    {
+        $student = $this->student();
+        // all_schools_mode='direct' يجعله مرئيّاً لكلّ المدارس (Activity::scopeVisibleToStudent).
+        $activity = \App\Models\Activity::factory()->create([
+            'lesson_id' => $this->lesson->id,
+            'status' => 'active',
+            'all_schools_mode' => 'direct',
+            'approval_status' => 'approved',
+        ]);
+        \App\Models\ActivitySubmission::create([
+            'activity_id' => $activity->id,
+            'student_id' => $student->id,
+            'answer' => 'إجابة',
+            'status' => 'needs_review', // سُلِّم لكن لم يُعتمد
+            'submitted_at' => now(),
+        ]);
+        $this->assessment('post', ['lesson_id' => $this->lesson->id]);
+
+        $res = $this->openLesson($student)->assertOk();
+
+        $this->assertNull(session('show_survey_popup'), 'تسليمٌ قيد المراجعة ليس إتماماً');
+        // ولا يتغيّر شريط التقدّم: «أرسلتُ» تقدّمٌ فعليّ يراه الطالب.
+        $this->assertEquals(100, $res->viewData('completionPercent'));
+    }
+
+    public function test_post_assessment_is_queued_once_work_is_accepted(): void
+    {
+        $student = $this->student();
+        // all_schools_mode='direct' يجعله مرئيّاً لكلّ المدارس (Activity::scopeVisibleToStudent).
+        $activity = \App\Models\Activity::factory()->create([
+            'lesson_id' => $this->lesson->id,
+            'status' => 'active',
+            'all_schools_mode' => 'direct',
+            'approval_status' => 'approved',
+        ]);
+        \App\Models\ActivitySubmission::create([
+            'activity_id' => $activity->id,
+            'student_id' => $student->id,
+            'answer' => 'إجابة',
+            'status' => 'approved',
+            'submitted_at' => now(),
+        ]);
+        $post = $this->assessment('post', ['lesson_id' => $this->lesson->id]);
+
+        $this->openLesson($student)->assertOk();
+
+        $this->assertTrue(session('show_survey_popup'));
+        $this->assertContains($post->id, collect(session('pending_surveys'))->pluck('id')->all());
+    }
+
     public function test_queue_is_scoped_to_the_lesson_page_only(): void
     {
         // حارس انحدارة «Issue 19»: الحجب سياقيّ لا عالميّ.
