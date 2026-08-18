@@ -862,8 +862,10 @@
                     'completed' => ['color' => '#48bb78', 'bg' => '#f0fff4', 'icon' => '✅', 'text' => 'مكتمل', 'glow' => 'rgba(72, 187, 120, 0.3)'],
                     'approved' => ['color' => '#48bb78', 'bg' => '#f0fff4', 'icon' => '✅', 'text' => 'موافق عليه', 'glow' => 'rgba(72, 187, 120, 0.3)'],
                     'pending' => ['color' => '#ed8936', 'bg' => '#fffaf0', 'icon' => '⏳', 'text' => 'قيد المراجعة', 'glow' => 'rgba(237, 137, 54, 0.3)'],
+                    // needs_review: لم يجتَز التصحيح الآليّ درجة النجاح — كان يُعرَض نصّه الخام الإنجليزيّ.
+                    'needs_review' => ['color' => '#ed8936', 'bg' => '#fffaf0', 'icon' => '🔁', 'text' => 'لم تجتَز — أعد المحاولة', 'glow' => 'rgba(237, 137, 54, 0.3)'],
                     'rejected' => ['color' => '#f56565', 'bg' => '#fff5f5', 'icon' => '❌', 'text' => 'مرفوض', 'glow' => 'rgba(245, 101, 101, 0.3)'],
-                    default => ['color' => '#718096', 'bg' => '#f7fafc', 'icon' => '📝', 'text' => $submission->status, 'glow' => 'rgba(113, 128, 150, 0.3)']
+                    default => ['color' => '#718096', 'bg' => '#f7fafc', 'icon' => '📝', 'text' => 'تم التسليم', 'glow' => 'rgba(113, 128, 150, 0.3)']
                 };
             @endphp
             

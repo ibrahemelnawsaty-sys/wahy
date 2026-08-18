@@ -531,8 +531,10 @@ class ActivityGradingService
             $correct = preg_split('/[,،|]\s*/u', $correct);
         }
 
+        // إجابة/مرجع غير قابلَين للتحليل ⇒ مراجعة يدويّة (null) لا صفرٌ زائف — لا نخلط
+        // «تعذّر تفسير الإدخال» بـ«ترتيب خاطئ». الترتيب الخاطئ الحقيقيّ يُحسَب أدناه (قد يكون 0).
         if (! is_array($answer) || ! is_array($correct) || empty($correct)) {
-            return 0;
+            return null;
         }
 
         $total = count($correct);
@@ -553,8 +555,9 @@ class ActivityGradingService
      */
     private static function gradeQuiz(array $questions, $answers): ?int
     {
+        // إجابات غير قابلة للتحليل ⇒ مراجعة يدويّة (null) لا صفرٌ زائف.
         if (! is_array($answers)) {
-            return 0;
+            return null;
         }
 
         $totalQuestions = 0;
@@ -709,10 +712,11 @@ class ActivityGradingService
         }
 
         // التحقق من صحّة التبديلة: يجب أن تغطّي كل الصور وتكون قيمها {1..n} فريدة بلا تكرار.
-        // يمنع تضخيم الدرجة عند تكرار قيمة (مثل ضبط الكل على 1) أو ترتيب جزئي.
+        // تبديلة ناقصة/مكرّرة = إجابة غير مكتملة ⇒ مراجعة يدويّة (null) لا صفرٌ نهائيّ يُحتفَل به
+        // كإجابة خاطئة (كان يمنع تضخيم الدرجة لكن يخلط «لم يُكمِل» بـ«أخطأ»).
         sort($selectedValues);
         if ($total !== $expectedCount || $selectedValues !== range(1, $expectedCount)) {
-            return 0;
+            return null;
         }
 
         return (int) round(($matched / $expectedCount) * 100);

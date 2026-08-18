@@ -447,6 +447,16 @@ function addOption(index) {
 function removeOption(qIndex, oIndex) {
     if (questions[qIndex].options.length > 2) {
         questions[qIndex].options.splice(oIndex, 1);
+        // مزامنة مفتاح الإجابة بعد الحذف — كان correct_index يتقادم فيُصحَّح الخيار الخطأ صحيحاً.
+        const q = questions[qIndex];
+        if (q.correct_index !== undefined && q.correct_index !== null) {
+            if (oIndex === q.correct_index) {
+                delete q.correct_index; delete q.answer;
+            } else if (oIndex < q.correct_index) {
+                q.correct_index = q.correct_index - 1;
+                q.answer = q.options[q.correct_index];
+            }
+        }
         renderQuestions();
     } else {
         alert('يجب أن يكون هناك خيارين على الأقل');
@@ -475,9 +485,11 @@ function updateQuestion(index, field, value) {
             delete questions[index].correct_index;
             delete questions[index].word;
         } else if (value === 'letter_choice') {
-            questions[index].options = ['أ', 'ب'];
+            // حروف فارغة يملؤها المعلّم — الكلمة الهدف تُشتقّ منها (join) عند الحفظ.
+            questions[index].options = ['', ''];
             questions[index].answer = '';
             delete questions[index].correct_index;
+            delete questions[index].word;
         } else if (value === 'word_order') {
             questions[index].options = ['كلمة', 'ثانية'];
             delete questions[index].answer;
@@ -514,7 +526,8 @@ function renderQuestions() {
         const card = document.createElement('div');
         card.className = 'question-item';
 
-        const isOrderingType = ['word_order', 'sentence_order'].includes(q.type);
+        // اختيار الحروف يُعامَل كترتيب: الحروف بترتيبها تُكوّن الكلمة (لا «إجابة صحيحة» مفردة).
+        const isOrderingType = ['word_order', 'sentence_order', 'letter_choice'].includes(q.type);
         let optionsHtml = '';
 
         if (q.options) {
@@ -568,16 +581,8 @@ function renderQuestions() {
                 </div>
             </div>
 
-            ${q.type === 'letter_choice' ? `
-                <div class="mb-2">
-                    <input type="text" class="form-control" value="${escAttr(q.word || '')}"
-                           onchange="updateQuestion(${index}, 'word', this.value)"
-                           placeholder="الكلمة المستهدفة (مثال: صلاة)">
-                </div>
-            ` : ''}
-
             ${(q.type === 'multiple_choice' || q.type === 'true_false' || q.type === 'letter_choice') ? `
-                <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (اضغط على ○ لتحديد الإجابة الصحيحة)' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}</label>
+                <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (بالترتيب الصحيح لتكوين الكلمة الهدف)' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}</label>
                 <div class="options-list">${optionsHtml}</div>
                 ${(q.type === 'multiple_choice' || q.type === 'letter_choice') ? `
                     <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="addOption(${index})">+ إضافة ${q.type === 'letter_choice' ? 'حرف' : 'خيار'}</button>
@@ -606,6 +611,13 @@ function renderQuestions() {
 
 function updateJson() {
     if (currentActivityType() === 'image_order') return;
+    // اختيار الحروف: اشتقاق الكلمة الهدف من الحروف بترتيبها (مصدر واحد كنموذج الأدمن) —
+    // كان المعلّم يُدخل الكلمة منفصلة عن الحروف فيختلفان ⇒ يتعذّر التكوين ⇒ صفرٌ دائم.
+    questions.forEach(q => {
+        if (q && q.type === 'letter_choice') {
+            q.word = (q.options || []).map(o => String(o || '').trim()).join('');
+        }
+    });
     document.getElementById('questionsData').value = JSON.stringify(questions);
 }
 

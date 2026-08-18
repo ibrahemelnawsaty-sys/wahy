@@ -549,6 +549,17 @@ function addOption(index) {
 function removeOption(qIndex, oIndex) {
     if (questions[qIndex].options.length > 2) {
         questions[qIndex].options.splice(oIndex, 1);
+        // مزامنة مفتاح الإجابة مع الفهارس بعد الحذف — كان correct_index يتقادم فيُصحَّح
+        // الخيار الخطأ صحيحاً (يمنح صفراً لإجابة صحيحة). حذف الصحيح يُلغي المفتاح لإعادة اختياره.
+        const q = questions[qIndex];
+        if (q.correct_index !== undefined && q.correct_index !== null) {
+            if (oIndex === q.correct_index) {
+                delete q.correct_index; delete q.answer;
+            } else if (oIndex < q.correct_index) {
+                q.correct_index = q.correct_index - 1;
+                q.answer = q.options[q.correct_index];
+            }
+        }
         renderQuestions();
     } else {
         alert('يجب أن يكون هناك خيارين على الأقل');
