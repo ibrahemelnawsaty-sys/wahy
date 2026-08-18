@@ -61,6 +61,13 @@ Route::get('/', [PagesController::class, 'landing'])->name('landing');
 Route::get('/terms', [PagesController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PagesController::class, 'privacy'])->name('privacy');
 
+// أدلّة الأدوار — صفحة لكلّ دور. عامّة عمداً (تُرسَل للمستخدم قبل امتلاكه حساباً أو
+// حين يعجز عن الدخول)؛ محتواها ثابت في قوالب guides/content ولا يكشف أيّ بيانات.
+Route::get('/guides', [\App\Http\Controllers\GuideController::class, 'index'])->name('guides.index');
+Route::get('/guides/{role}', [\App\Http\Controllers\GuideController::class, 'show'])
+    ->whereIn('role', ['student', 'teacher', 'parent', 'school-admin', 'super-admin', 'support'])
+    ->name('guides.show');
+
 // تفضيلات البريد وإلغاء الاشتراك — رابط موقَّع بلا تسجيل (خطّة البريد P4)
 Route::get('/email/preferences/{user}', [\App\Http\Controllers\UnsubscribeController::class, 'show'])
     ->name('email.unsubscribe')->middleware('signed');
