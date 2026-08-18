@@ -220,6 +220,20 @@ class ActivityManagementController extends Controller
             return;
         }
 
+        // أسئلة الترتيب/اختيار الحروف تُصحَّح كتسلسل، ولا تدعمها واجهة الاختبار متعدّد الأسئلة
+        // (تُعرَض أزرار راديو فتُمنح صفراً دائماً). تُؤلَّف كنشاطٍ مستقلّ بسؤالٍ واحد (مسار isSingleSpecial).
+        $sequenceTypes = ['word_order', 'word_ordering', 'sentence_order', 'sentence_ordering', 'letter_choice'];
+        if (count($questions) > 1) {
+            foreach ($questions as $i => $q) {
+                $t = is_array($q) ? ($q['type'] ?? $q['question_type'] ?? null) : null;
+                if (in_array($t, $sequenceTypes, true)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'questions' => 'السؤال رقم ' . ($i + 1) . ': أسئلة الترتيب واختيار الحروف يجب أن تكون في نشاطٍ مستقلّ بسؤالٍ واحد (لا تُدمَج في اختبار متعدّد الأسئلة).',
+                    ]);
+                }
+            }
+        }
+
         foreach ($questions as $i => $q) {
             if (! is_array($q)) {
                 continue;
