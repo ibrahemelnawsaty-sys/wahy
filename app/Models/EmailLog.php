@@ -70,6 +70,42 @@ class EmailLog extends Model
      * مصالحة: يحوّل الصفوف العالقة في «sending» إلى «failed» (لا مستمع لفشل SMTP، فبدونها
      * يبقى العالق sending للأبد ويُظهر عدّاد «فشل» صفرًا زائفًا). تُجدوَل دوريًّا.
      */
+    /**
+     * تسجيل فشل إرسالٍ **بسببه الحقيقيّ**.
+     *
+     * لماذا نحتاجها: لا يوجد مستمع لفشل SMTP (RecordEmailActivity يعالج sending وsent فقط)، فحين
+     * يبتلع مُرسِلٌ الاستثناء يبقى الصفّ «sending» حتى تُحوّله markStuckAsFailed برسالةٍ **عامّة**
+     * لا تشخّص شيئًا — فيرى المشرف «فشل» ولا يعرف السبب، والسبب مدفونٌ في laravel.log.
+     *
+     * تُحدِّث آخر محاولة «sending» لهذا المستلِم إن وُجدت (أنشأها المستمع قبل ثوانٍ)، وإلّا
+     * تُنشئ صفًّا فاشلًا — فلا يضيع الخبر حتى لو انفجر الإرسال قبل بناء الرسالة.
+     */
+    public static function recordFailure(string $toEmail, string $error, ?string $subject = null, string $category = 'transactional'): void
+    {
+        $error = mb_substr(trim($error), 0, 1000);
+
+        $recent = static::where('to_email', $toEmail)
+            ->where('status', 'sending')
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->latest('id')
+            ->first();
+
+        if ($recent) {
+            $recent->update(['status' => 'failed', 'error_message' => $error]);
+
+            return;
+        }
+
+        static::create([
+            'to_email' => $toEmail,
+            'subject' => $subject,
+            'category' => $category,
+            'status' => 'failed',
+            'error_message' => $error,
+            'attempts' => 1,
+        ]);
+    }
+
     public static function markStuckAsFailed(int $minutes = 20): int
     {
         return static::where('status', 'sending')

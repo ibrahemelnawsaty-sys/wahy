@@ -77,8 +77,15 @@ class ContactController extends Controller
                 $message->to($adminEmail)
                     ->subject('رسالة تواصل جديدة من ' . $cleanData['full_name']);
             });
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // «أفضل جهد» يبقى — لكن **لا ابتلاع** (§5): السبب الحقيقيّ يُسجَّل في سجلّ البريد
+            // نفسه لا في laravel.log وحده، وإلّا رأى المشرف «فشل» برسالة مهلةٍ عامّة بلا تشخيص.
             \Log::warning('Contact admin-notify failed (message saved): ' . $e->getMessage());
+            \App\Models\EmailLog::recordFailure(
+                $adminEmail,
+                $e->getMessage(),
+                'رسالة تواصل جديدة من ' . $cleanData['full_name'],
+            );
         }
 
         try {
@@ -86,8 +93,13 @@ class ContactController extends Controller
                 $message->to($cleanData['email'])
                     ->subject('تم استلام رسالتك - ' . $siteName);
             });
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::warning('Contact confirmation failed (message saved): ' . $e->getMessage());
+            \App\Models\EmailLog::recordFailure(
+                $cleanData['email'],
+                $e->getMessage(),
+                'تم استلام رسالتك - ' . $siteName,
+            );
         }
 
         return response()->json([
