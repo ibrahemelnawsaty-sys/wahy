@@ -151,4 +151,75 @@ class AssessmentPopupSequentialSubmitTest extends TestCase
         $this->assertStringContainsString('data-order="0"', $html, 'كل نموذج يحمل ترتيبه الصريح');
         $this->assertStringNotContainsString('[style*="display: none"]', $html, 'الانتقاء الهشّ أُزيل');
     }
+
+    // ---------------- الأسئلة الإجباريّة الناقصة ----------------
+
+    public function test_missing_required_question_returns_its_id_not_a_vague_message(): void
+    {
+        // العطل المُبلَّغ عنه: الإرسال يفشل بلا بيان أيّ سؤال ناقص، فيبدو الزرّ معطّلاً.
+        $student = $this->student();
+        $survey = $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+        $q = $survey->questions()->create([
+            'question_text' => 'سؤال إجباريّ',
+            'question_type' => 'text',
+            'is_required' => true,
+            'order' => 9,
+        ]);
+
+        $this->actingAs($student)
+            ->postJson(route('survey.ajax-submit', $survey), ['answers' => []])
+            ->assertStatus(422)
+            ->assertJsonPath('missing_questions', [$q->id]);
+
+        $this->assertDatabaseCount('survey_responses', 0);
+    }
+
+    public function test_whitespace_only_answer_counts_as_missing(): void
+    {
+        $student = $this->student();
+        $survey = $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+        $q = $survey->questions()->create([
+            'question_text' => 'سؤال إجباريّ',
+            'question_type' => 'text',
+            'is_required' => true,
+            'order' => 9,
+        ]);
+
+        $this->actingAs($student)
+            ->postJson(route('survey.ajax-submit', $survey), ['answers' => [$q->id => '   ']])
+            ->assertStatus(422)
+            ->assertJsonPath('missing_questions', [$q->id]);
+    }
+
+    public function test_optional_questions_never_block_submission(): void
+    {
+        // حارس عدم-إفراط: السؤال الاختياريّ الفارغ لا يمنع الإرسال.
+        $student = $this->student();
+        $survey = $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $this->actingAs($student)
+            ->postJson(route('survey.ajax-submit', $survey), ['answers' => []])
+            ->assertOk();
+    }
+
+    public function test_popup_marks_questions_so_the_client_can_highlight_them(): void
+    {
+        $student = $this->student();
+        $survey = $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+        $q = $survey->questions()->create([
+            'question_text' => 'سؤال إجباريّ',
+            'question_type' => 'text',
+            'is_required' => true,
+            'order' => 9,
+        ]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('data-question-id="' . $q->id . '"', $html);
+        $this->assertStringContainsString('data-required="1"', $html);
+        $this->assertStringContainsString('findUnansweredRequired', $html, 'تحقّق العميل مُصيَّر');
+    }
 }

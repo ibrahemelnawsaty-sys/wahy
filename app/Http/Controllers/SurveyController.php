@@ -99,12 +99,27 @@ class SurveyController extends Controller
 
         $survey->load('questions');
 
-        // التحقق من الإجابات المطلوبة
+        // التحقق من الإجابات المطلوبة — نُرجِع **معرّفات** الأسئلة الناقصة لا رسالةً عامّة،
+        // فيستطيع العميل تعليمها بالأحمر والانتقال إليها. رسالةٌ مبهمة تجعل الزرّ يبدو معطّلاً.
         $answers = $request->input('answers', []);
+        $missing = [];
         foreach ($survey->questions as $question) {
-            if ($question->is_required && empty($answers[$question->id])) {
-                return $fail('يرجى الإجابة على جميع الأسئلة المطلوبة', 422);
+            $value = $answers[$question->id] ?? null;
+            $isEmpty = $value === null
+                || (is_array($value) ? count($value) === 0 : trim((string) $value) === '');
+            if ($question->is_required && $isEmpty) {
+                $missing[] = (int) $question->id;
             }
+        }
+
+        if ($missing) {
+            $msg = count($missing) === 1
+                ? 'بقي سؤال واحد بلا إجابة'
+                : 'بقيت ' . count($missing) . ' أسئلة بلا إجابة';
+
+            return $wantsJson
+                ? response()->json(['error' => $msg, 'missing_questions' => $missing], 422)
+                : back()->withInput()->with('error', $msg);
         }
 
         // تنفيذ ذرّي: التحقق من duplicate + إنشاء response في معاملة واحدة

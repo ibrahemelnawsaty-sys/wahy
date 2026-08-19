@@ -34,7 +34,10 @@
                 <form id="surveyForm-{{ $survey->id }}" class="survey-questions-form">
                     @csrf
                     @foreach($survey->questions as $qIndex => $question)
-                    <div class="question-item" style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                    {{-- data-* يجعل التحقّق العميلَ ممكناً: زرّ الإرسال type=button بـonclick فلا
+                         يمرّ عبر تحقّق النموذج، وسمات required على الحقول معطَّلة عمليّاً. --}}
+                    <div class="question-item" data-question-id="{{ $question->id }}" data-required="{{ $question->is_required ? '1' : '0' }}"
+                         style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; border-radius: 10px; padding-inline: 10px; transition: background .2s, box-shadow .2s;">
                         <label style="display: block; font-weight: 600; color: #1f2937; margin-bottom: 12px; font-size: 15px;">
                             <span style="color: #6366f1; margin-left: 5px;">{{ $qIndex + 1 }}.</span>
                             {{ $question->question_text }}
@@ -304,6 +307,16 @@ function submitSurvey(surveyId) {
     }
 
     // إرسال الإجابات
+    // تحقّق قبل الإرسال: أسئلة إجباريّة بلا إجابة تُعلَّم بالأحمر ويُنتقل لأوّلها.
+    // بدون هذا يفشل الإرسال خادميّاً بـ422 برسالة عامّة لا تدلّ على السؤال الناقص،
+    // فيظنّ الطالب أنّ الزرّ لا يعمل. (سمات required معطَّلة: الزرّ type=button بـonclick.)
+    clearMissingMarks(surveyId);
+    const missing = findUnansweredRequired(surveyId, answers);
+    if (missing.length) {
+        markMissing(surveyId, missing);
+        return;
+    }
+
     // منع الإرسال المزدوج بالنقر السريع (الخادم ذرّيّ أصلاً، وهذا يمنع الوميض)
     const submitBtn = form.querySelector('button[type="submit"], .survey-submit-btn');
     if (submitBtn) { submitBtn.disabled = true; }
@@ -334,6 +347,14 @@ function submitSurvey(surveyId) {
         if (res.status === 400) { advanceQueue(surveyId, true); return; }
 
         release();
+
+        // 422 مع قائمة الأسئلة الناقصة: نُعلّمها بنفس الطريقة. يغطّي حالة انحراف تحقّق العميل
+        // عن الخادم (سؤال أُضيف، أو JS قديم مُخزَّن) فلا يعود الطالب أمام رفضٍ بلا تفسير.
+        if (res.status === 422 && Array.isArray(res.data.missing_questions) && res.data.missing_questions.length) {
+            markMissing(surveyId, res.data.missing_questions.map(String));
+            return;
+        }
+
         showSurveyError(surveyId, res.data.error || 'حدث خطأ أثناء حفظ الإجابات');
     })
     .catch(error => {
@@ -346,6 +367,81 @@ function submitSurvey(surveyId) {
         }
         showSurveyError(surveyId, 'تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم أعد المحاولة.');
     });
+}
+
+// إزالة العلامة الحمراء فور إجابة الطالب على السؤال — لا يبقى التحذير بعد تصحيحه.
+document.addEventListener('input', function (e) {
+    const item = e.target.closest ? e.target.closest('.question-item.is-missing') : null;
+    if (!item) { return; }
+    item.classList.remove('is-missing');
+    item.style.background = '';
+    item.style.boxShadow = '';
+    const note = item.querySelector('.missing-note');
+    if (note) { note.remove(); }
+}, true);
+
+/** معرّفات الأسئلة الإجباريّة التي لا إجابة لها (يقبل النصّ والمصفوفة). */
+function findUnansweredRequired(surveyId, answers) {
+    const wrap = document.querySelector('.survey-form[data-survey-id="' + surveyId + '"]');
+    if (!wrap) { return []; }
+    const missing = [];
+    wrap.querySelectorAll('.question-item[data-required="1"]').forEach(function (item) {
+        const qid = item.dataset.questionId;
+        const v = answers[qid];
+        const empty = v === undefined || v === null
+            || (Array.isArray(v) ? v.length === 0 : String(v).trim() === '');
+        if (empty) { missing.push(qid); }
+    });
+    return missing;
+}
+
+/** إزالة كلّ علامات النقص قبل محاولة جديدة. */
+function clearMissingMarks(surveyId) {
+    const wrap = document.querySelector('.survey-form[data-survey-id="' + surveyId + '"]');
+    if (!wrap) { return; }
+    wrap.querySelectorAll('.question-item.is-missing').forEach(function (item) {
+        item.classList.remove('is-missing');
+        item.style.background = '';
+        item.style.boxShadow = '';
+        const note = item.querySelector('.missing-note');
+        if (note) { note.remove(); }
+    });
+    const box = wrap.querySelector('.survey-error-box');
+    if (box) { box.remove(); }
+}
+
+/** تعليم الأسئلة الناقصة بالأحمر والانتقال لأوّلها. */
+function markMissing(surveyId, ids) {
+    const wrap = document.querySelector('.survey-form[data-survey-id="' + surveyId + '"]');
+    if (!wrap) { return; }
+    let first = null;
+
+    ids.forEach(function (qid) {
+        const item = wrap.querySelector('.question-item[data-question-id="' + qid + '"]');
+        if (!item) { return; }
+        item.classList.add('is-missing');
+        item.style.background = '#fef2f2';
+        item.style.boxShadow = 'inset 0 0 0 2px #ef4444';
+
+        if (!item.querySelector('.missing-note')) {
+            const note = document.createElement('div');
+            note.className = 'missing-note';
+            note.style.cssText = 'margin-top:8px;color:#b91c1c;font-weight:700;font-size:13px;';
+            note.textContent = '⬆ هذا السؤال إجباريّ — لم تُجب عليه بعد';
+            item.appendChild(note);
+        }
+        if (!first) { first = item; }
+    });
+
+    showSurveyError(surveyId, ids.length === 1
+        ? 'بقي سؤال واحد بلا إجابة — عُلِّم بالأحمر أدناه.'
+        : ('بقيت ' + ids.length + ' أسئلة بلا إجابة — عُلِّمت بالأحمر أدناه.'));
+
+    if (first) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const field = first.querySelector('input:not([type=hidden]), textarea, select');
+        if (field) { try { field.focus({ preventScroll: true }); } catch (e) { field.focus(); } }
+    }
 }
 
 /** إظهار خطأ داخل النافذة نفسها — textContent لا innerHTML (منع XSS عبر رسالة الخادم). */
