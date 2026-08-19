@@ -667,6 +667,7 @@ class StudentController extends Controller
         $studentsQuery = User::where('role', 'student')
             ->where('school_id', $user->school_id)
             ->where('status', 'active')
+            ->notDemo() // استثناء حسابات الديمو من صدارة الطالب (دفاع عميق داخل المدرسة)
             ->with('school:id,name');
 
         $allStudents = $studentsQuery

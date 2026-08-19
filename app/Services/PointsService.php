@@ -198,6 +198,7 @@ class PointsService
         // النقاط من جدول teacher_points (مجموع نقاط المعلم)
         $query = User::where('users.role', 'teacher')
             ->where('users.status', 'active')
+            ->notDemo() // استثناء حسابات الديمو
             ->leftJoinSub(
                 DB::table('teacher_points')
                     ->select('teacher_id')
@@ -241,6 +242,7 @@ class PointsService
         // النقاط من جدول parent_points
         $query = User::where('users.role', 'parent')
             ->where('users.status', 'active')
+            ->notDemo() // استثناء حسابات الديمو
             ->leftJoinSub(
                 DB::table('parent_points')
                     ->select('parent_id')
@@ -286,6 +288,7 @@ class PointsService
     public static function getSchoolLeaderboard(int $limit = 20): array
     {
         $schools = School::where('status', 'active')
+            ->where('schools.is_demo', false) // استثناء مدرسة الديمو
             ->select('id', 'name', 'logo', 'total_points')
             ->orderByDesc('total_points')
             ->limit($limit)
@@ -298,11 +301,13 @@ class PointsService
             $studentsCount = User::where('school_id', $school->id)
                 ->where('role', UserRole::Student->value)
                 ->where('status', 'active')
+                ->where('is_demo', false)
                 ->count();
 
             $teachersCount = User::where('school_id', $school->id)
                 ->where('role', UserRole::Teacher->value)
                 ->where('status', 'active')
+                ->where('is_demo', false)
                 ->count();
 
             return [
@@ -324,6 +329,7 @@ class PointsService
     {
         $query = User::where('role', 'student')
             ->where('status', 'active')
+            ->notDemo() // استثناء حسابات الديمو
             ->select('id', 'name', 'avatar', 'school_id')
             ->withSum('points', 'points');
 

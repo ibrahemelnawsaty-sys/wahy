@@ -140,6 +140,7 @@ class LeaderboardController extends Controller
             $query = User::query()
                 ->where('users.role', 'student')
                 ->where('users.status', 'active')
+                ->notDemo() // استثناء حسابات الديمو من الصدارة
                 ->select('users.id', 'users.name', 'users.avatar', 'users.school_id')
                 ->withSum('points as total_points', 'points')
                 ->with('school:id,name');
@@ -192,6 +193,7 @@ class LeaderboardController extends Controller
             $query = User::query()
                 ->where('users.role', 'teacher')
                 ->where('users.status', 'active')
+                ->notDemo() // استثناء حسابات الديمو من الصدارة
                 ->with('school:id,name')
                 ->select('users.id', 'users.name', 'users.avatar', 'users.school_id')
                 ->selectSub($pointsSub, 'total_points')
@@ -240,6 +242,7 @@ class LeaderboardController extends Controller
             $query = User::query()
                 ->where('users.role', 'parent')
                 ->where('users.status', 'active')
+                ->notDemo() // استثناء حسابات الديمو من الصدارة
                 ->select('users.id', 'users.name', 'users.avatar', 'users.school_id')
                 ->selectSub($pointsSub, 'total_points')
                 ->selectSub($childrenCountSub, 'children_count');
@@ -279,20 +282,24 @@ class LeaderboardController extends Controller
                 ->join('users', 'users.id', '=', 'points.user_id')
                 ->whereColumn('users.school_id', 'schools.id')
                 ->where('users.role', 'student')
+                ->where('users.is_demo', false) // استثناء طلاب الديمو من مجموع المدرسة
                 ->selectRaw('COALESCE(SUM(points.points), 0)');
 
             $studentsCountSub = DB::table('users')
                 ->whereColumn('users.school_id', 'schools.id')
                 ->where('users.role', 'student')
+                ->where('users.is_demo', false)
                 ->selectRaw('COUNT(*)');
 
             $teachersCountSub = DB::table('users')
                 ->whereColumn('users.school_id', 'schools.id')
                 ->where('users.role', 'teacher')
+                ->where('users.is_demo', false)
                 ->selectRaw('COUNT(*)');
 
             $schools = School::query()
                 ->where('status', 'active')
+                ->where('schools.is_demo', false) // استثناء مدرسة الديمو نفسها من صدارة المدارس
                 ->select('id', 'name', 'logo')
                 ->selectSub($totalPointsSub, 'total_points')
                 ->selectSub($studentsCountSub, 'students_count')
@@ -344,6 +351,7 @@ class LeaderboardController extends Controller
                 ->leftJoin('points', 'points.user_id', '=', 'users.id')
                 ->where('users.role', $role)
                 ->where('users.status', 'active')
+                ->where('users.is_demo', false) // لا تُحتسَب حسابات الديمو في مقام الرتبة
                 ->groupBy('users.id')
                 ->havingRaw('COALESCE(SUM(points.points), 0) > ?', [$userPoints]);
 
@@ -375,11 +383,13 @@ class LeaderboardController extends Controller
                 ->join('users', 'users.id', '=', 'points.user_id')
                 ->where('users.school_id', $schoolId)
                 ->where('users.role', 'student')
+                ->where('users.is_demo', false)
                 ->sum('points.points');
 
             $rank = School::where('status', 'active')
+                ->where('schools.is_demo', false)
                 ->whereRaw(
-                    '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ?) > ?',
+                    '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ? AND u.is_demo = 0) > ?',
                     ['student', $schoolPoints],
                 )
                 ->count() + 1;

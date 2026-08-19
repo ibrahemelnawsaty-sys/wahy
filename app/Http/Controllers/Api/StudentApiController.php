@@ -498,6 +498,7 @@ class StudentApiController extends Controller
         $students = \App\Models\User::where('role', 'student')
             ->where('school_id', $user->school_id)
             ->where('status', 'active') // كالويب: لا يُدرَج الطلاب غير النشطين
+            ->notDemo() // استثناء حسابات الديمو
             ->withSum('points', 'points')
             ->orderBy('points_sum_points', 'desc')
             ->take(50)
@@ -516,6 +517,7 @@ class StudentApiController extends Controller
         $allStudents = \App\Models\User::where('role', 'student')
             ->where('school_id', $user->school_id)
             ->where('status', 'active')
+            ->notDemo() // استثناء حسابات الديمو من مقام الرتبة
             ->withSum('points', 'points')
             ->orderBy('points_sum_points', 'desc')
             ->pluck('id');
