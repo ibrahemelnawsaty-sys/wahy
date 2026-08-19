@@ -40,11 +40,9 @@ class VerifyCsrfToken extends Middleware
      */
     public function handle($request, \Closure $next)
     {
-        // تجديد CSRF Token عند تحميل صفحة التحقق لأول مرة
-        if ($request->is('two-factor/verify') && $request->isMethod('get')) {
-            $request->session()->regenerateToken();
-        }
-
+        // أُزيل تدوير رمز CSRF على GET two-factor/verify: كان يجعل الصفحة أحاديّة الاستعمال فيُنتج
+        // «419 Page Expired» لأيّ مستخدم يفتح الرابط مرّتين. (هذا الصنف غير مسجَّل أصلاً —
+        // bootstrap/app.php يستعمل وسيط الإطار — ويبقى هنا لئلّا يُحيا النمط بالنسخ.)
         return parent::handle($request, $next);
     }
 }

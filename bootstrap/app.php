@@ -53,6 +53,22 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // 419 (رمز CSRF بائت) لا يجوز أن يكون طريقاً مسدوداً. صفحة Laravel القياسيّة تترك
+        // المستخدم عالقاً بلا مخرج — وقد حبست مالك المنصّة خارج تدفّق التحقّق الثنائيّ.
+        // نُعيده للصفحة نفسها فتُصيَّر برمزٍ جديد ويُعيد المحاولة. (App\Exceptions\Handler فيه
+        // فرعٌ مشابه لكنّه **غير مربوط** في Laravel 12 — لا شيء يسجّله، فكان ميّتاً.)
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            $msg = 'انتهت صلاحية الصفحة. حدّثناها لك — يرجى إعادة المحاولة.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['error' => $msg], 419);
+            }
+
+            return redirect()->back()
+                ->withInput($request->except(['_token', 'password', 'password_confirmation', 'code']))
+                ->with('error', $msg);
+        });
+
         // Sentry — يُفعَّل فقط لو ثُبّتت الحزمة (composer require sentry/sentry-laravel)
         $exceptions->report(function (\Throwable $e) {
             if (app()->bound('sentry') && function_exists('\\Sentry\\captureException')) {
