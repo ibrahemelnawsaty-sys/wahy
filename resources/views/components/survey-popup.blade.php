@@ -254,6 +254,8 @@ body.survey-locked #surveyPopupOverlay * {
 
     // تحذير عند محاولة إغلاق أو مغادرة الصفحة
     window.addEventListener('beforeunload', function(e) {
+        // مخرج الطوارئ يُبطِل التحذير صراحةً: طالبٌ بلا جلسة يجب أن يغادر بلا اعتراض.
+        if (window.__surveyEscapeArmed) { return; }
         const overlay = document.getElementById('surveyPopupOverlay');
         if (overlay && overlay.style.display !== 'none') {
             e.preventDefault();
@@ -318,7 +320,8 @@ function submitSurvey(surveyId) {
     }
 
     // منع الإرسال المزدوج بالنقر السريع (الخادم ذرّيّ أصلاً، وهذا يمنع الوميض)
-    const submitBtn = form.querySelector('button[type="submit"], .survey-submit-btn');
+    // الزرّ الحقيقيّ type="button" بـonclick — البحث عن [type=submit] كان يُرجِع null فيموت الحارس.
+    const submitBtn = document.querySelector('.survey-form[data-survey-id="' + surveyId + '"] button[onclick^="submitSurvey"]');
     if (submitBtn) { submitBtn.disabled = true; }
     const release = () => { if (submitBtn) { submitBtn.disabled = false; } };
 
@@ -348,6 +351,11 @@ function submitSurvey(surveyId) {
 
         release();
 
+        // 419/401: الجلسة انتهت بالخمول (SESSION_LIFETIME) فأُعيد سكّ رمز CSRF تحت نفس الكوكي.
+        // تصل كـ**JSON** لأنّنا نُرسِل Accept: application/json — فكان فرع catch القديم كوداً
+        // ميّتاً لا يعمل أبداً، ويرى الطالب رسالةً عامّة لا تخبره أنّ جلسته انتهت.
+        if (res.status === 419 || res.status === 401) { handleDeadSession(surveyId); return; }
+
         // 422 مع قائمة الأسئلة الناقصة: نُعلّمها بنفس الطريقة. يغطّي حالة انحراف تحقّق العميل
         // عن الخادم (سؤال أُضيف، أو JS قديم مُخزَّن) فلا يعود الطالب أمام رفضٍ بلا تفسير.
         if (res.status === 422 && Array.isArray(res.data.missing_questions) && res.data.missing_questions.length) {
@@ -360,7 +368,7 @@ function submitSurvey(surveyId) {
     .catch(error => {
         console.error('Survey submit failed:', error);
         release();
-        if (error && error.kind === 'nonjson' && error.status === 419) {
+        if (error && error.kind === 'nonjson' && (error.status === 419 || error.status === 401)) {
             showSurveyError(surveyId, 'انتهت صلاحية الجلسة — سيُعاد تحميل الصفحة.');
             setTimeout(() => location.reload(), 1500);
             return;
@@ -379,6 +387,60 @@ document.addEventListener('input', function (e) {
     const note = item.querySelector('.missing-note');
     if (note) { note.remove(); }
 }, true);
+
+/**
+ * الجلسة ماتت والطالب داخل نافذة حاجبة.
+ *
+ * السبب الجذريّ (مؤكَّد): SESSION_LIFETIME خمولٌ لا مدّة مطلقة. حين يترك الطالب التبويب،
+ * لا شيء يُبقي الجلسة حيّة — live-updates.js يتوقّف عند document.hidden — فتنتهي، ويُعيد
+ * Laravel سكّ رمز CSRF تحت **نفس الكوكي**. تبقى الصفحة على الشاشة برمزٍ ميّت: كلّ نداء
+ * مصادَق 401 وكلّ إرسال 419. والنافذة تمنع ESC وF5 والرجوع، فالطالب **محبوس**.
+ *
+ * العلاج بمرحلتين:
+ *  1) محاولةٌ صامتة: نجدّد الرمز من /refresh-csrf (مسارٌ موجود ولم يكن يُستدعى قطّ) ونُعيد
+ *     الإرسال مرّة. تكفي حين تكون الجلسة حيّة والرمز وحده بائتاً (صفحة من كاش مثلاً).
+ *  2) إن فشلت: **نفشل مفتوحين** — نرفع القفل ونُبطِل كلّ معترضات الهروب ثمّ نُرسِله لتسجيل
+ *     الدخول عائداً لدرسه. حجبُ مستخدمٍ لا جلسة له عبثٌ: لا يستطيع الإرسال ولا الخروج.
+ */
+let __surveyRetriedAfterRefresh = {};
+window.__surveyEscapeArmed = false;
+
+function handleDeadSession(surveyId) {
+    if (!__surveyRetriedAfterRefresh[surveyId]) {
+        __surveyRetriedAfterRefresh[surveyId] = true;
+        showSurveyError(surveyId, 'جارٍ تجديد الجلسة وإعادة المحاولة…');
+
+        fetch('/refresh-csrf', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+            .then(r => r.ok ? r.json() : Promise.reject(r.status))
+            .then(d => {
+                if (!d || !d.token) { return Promise.reject('no-token'); }
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                if (meta) { meta.content = d.token; }
+                document.querySelectorAll('input[name="_token"]').forEach(i => { i.value = d.token; });
+                submitSurvey(surveyId); // محاولة واحدة بالرمز الجديد
+            })
+            .catch(() => releaseAndSignIn());
+
+        return;
+    }
+
+    releaseAndSignIn();
+}
+
+/** رفع الحجب كاملاً ثمّ التحويل لتسجيل الدخول عائداً لنفس الصفحة. */
+function releaseAndSignIn() {
+    window.__surveyEscapeArmed = true; // يُبطِل beforeunload
+    document.body.classList.remove('survey-locked');
+    document.body.style.pointerEvents = '';
+
+    const overlay = document.getElementById('surveyPopupOverlay');
+    const layer = document.getElementById('surveyBlockingLayer');
+    if (overlay) { overlay.style.display = 'none'; }
+    if (layer) { layer.style.display = 'none'; }
+
+    const back = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = '/login?redirect=' + back;
+}
 
 /** معرّفات الأسئلة الإجباريّة التي لا إجابة لها (يقبل النصّ والمصفوفة). */
 function findUnansweredRequired(surveyId, answers) {

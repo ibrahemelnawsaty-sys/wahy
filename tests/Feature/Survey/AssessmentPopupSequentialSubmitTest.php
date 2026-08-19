@@ -222,4 +222,57 @@ class AssessmentPopupSequentialSubmitTest extends TestCase
         $this->assertStringContainsString('data-required="1"', $html);
         $this->assertStringContainsString('findUnansweredRequired', $html, 'تحقّق العميل مُصيَّر');
     }
+
+    // ---------------- الجلسة الميّتة: لا حبس ----------------
+
+    public function test_popup_handles_419_in_the_live_branch_not_a_dead_catch(): void
+    {
+        // العلّة: الطلب يُرسِل Accept: application/json فيصل 419 **كـJSON**، وكان الفحص عليه
+        // داخل catch الخاصّ بالاستجابات غير-JSON — كوداً ميّتاً لا يعمل أبداً. فيرى الطالب
+        // رسالةً عامّة ولا يعلم أنّ جلسته انتهت.
+        $student = $this->student();
+        $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('res.status === 419', $html, '419 يُفحَص في فرع الحالة');
+        $this->assertStringContainsString('handleDeadSession', $html);
+        $this->assertStringContainsString('releaseAndSignIn', $html, 'مخرج طوارئ موجود');
+    }
+
+    public function test_popup_refreshes_the_csrf_token_before_giving_up(): void
+    {
+        // /refresh-csrf كان موجوداً في المسارات ولا يستدعيه أحد.
+        $student = $this->student();
+        $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))->assertOk()->getContent();
+
+        $this->assertStringContainsString('/refresh-csrf', $html, 'يجدّد الرمز قبل الاستسلام');
+    }
+
+    public function test_double_submit_guard_targets_the_real_button(): void
+    {
+        // الحارس كان يبحث عن button[type=submit] والزرّ الحقيقيّ type=button بـonclick ⟹ null.
+        $student = $this->student();
+        $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))->assertOk()->getContent();
+
+        $this->assertStringContainsString('button[onclick^="submitSurvey"]', $html);
+        $this->assertStringNotContainsString('button[type="submit"], .survey-submit-btn', $html);
+    }
+
+    public function test_refresh_csrf_endpoint_returns_a_token_for_the_student(): void
+    {
+        $this->actingAs($this->student())
+            ->getJson(route('refresh.csrf'))
+            ->assertOk()
+            ->assertJsonStructure(['token']);
+    }
 }

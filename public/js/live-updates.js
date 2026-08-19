@@ -46,7 +46,13 @@
     }
 
     async function poll() {
-        if (document.hidden) return;
+        // استثناء مقصود: نافذة استبيان حاجبة على الشاشة ⟹ نواصل الاستطلاع حتى والتبويب مخفيّ.
+        // السبب: SESSION_LIFETIME خمولٌ لا مدّة مطلقة؛ والنافذة تمنع ESC/F5/الرجوع، فلو تركها
+        // الطالبُ في الخلفيّة ماتت الجلسة وعاد إلى صفحةٍ برمز CSRF ميّت — 401 على كلّ نداء
+        // و419 على الإرسال — وهو محبوس. الاستطلاع يُبقي last_activity حيّاً فلا تنتهي أصلاً.
+        var blocking = document.getElementById('surveyPopupOverlay');
+        var popupOpen = !!(blocking && blocking.style.display !== 'none');
+        if (document.hidden && !popupOpen) return;
         try {
             var res = await fetch(ENDPOINT, {
                 headers: {
@@ -75,11 +81,20 @@
         if (timer) { clearInterval(timer); timer = null; }
     }
 
-    // إيقاف/استئناف حسب رؤية التبويب
+    /** هل توجد نافذة استبيان حاجبة معروضة الآن؟ */
+    function blockingPopupOpen() {
+        var el = document.getElementById('surveyPopupOverlay');
+        return !!(el && el.style.display !== 'none');
+    }
+
+    // إيقاف/استئناف حسب رؤية التبويب — **إلّا** أثناء نافذة حاجبة: إيقاف المؤقّت هناك يترك
+    // الجلسة تموت بالخمول والطالبُ محبوسٌ لا يستطيع الإرسال ولا المغادرة.
     document.addEventListener('visibilitychange', function () {
-        if (document.hidden) stop(); else { start(); poll(); }
+        if (document.hidden && !blockingPopupOpen()) { stop(); return; }
+        start();
+        poll();
     });
-    window.addEventListener('pagehide', stop);
+    window.addEventListener('pagehide', stop); // المغادرة الفعليّة تُوقف دائماً
 
     // تحديث فوري عند عودة التركيز للنافذة
     window.addEventListener('focus', function () { if (!document.hidden) poll(); });
