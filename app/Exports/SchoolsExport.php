@@ -19,18 +19,18 @@ class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithSt
 
     public function collection()
     {
-        return School::withCount([
+        return School::notDemo()->withCount([
             'users as students_count' => function ($q) {
-                $q->where('role', 'student');
+                $q->where('role', 'student')->where('is_demo', false);
             },
             'users as teachers_count' => function ($q) {
-                $q->where('role', 'teacher');
+                $q->where('role', 'teacher')->where('is_demo', false);
             },
             'users as parents_count' => function ($q) {
-                $q->where('role', 'parent');
+                $q->where('role', 'parent')->where('is_demo', false);
             },
             'users as active_students_count' => function ($q) {
-                $q->where('role', 'student')->where('status', 'active');
+                $q->where('role', 'student')->where('status', 'active')->where('is_demo', false);
             },
         ])
             ->get();
@@ -60,6 +60,7 @@ class SchoolsExport implements FromCollection, WithHeadings, WithMapping, WithSt
             ->join('users', 'points.user_id', '=', 'users.id')
             ->where('users.school_id', $school->id)
             ->where('users.role', 'student')
+            ->where('users.is_demo', false)
             ->sum('points.points');
 
         return $this->sanitizeRow([

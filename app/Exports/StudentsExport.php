@@ -26,7 +26,8 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function collection()
     {
         $query = User::with(['school', 'classrooms'])
-            ->where('role', 'student');
+            ->where('role', 'student')
+            ->notDemo(); // تصدير المنصّة يستثني حسابات الديمو
 
         if ($this->schoolId) {
             $query->where('school_id', $this->schoolId);

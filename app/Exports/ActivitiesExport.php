@@ -23,7 +23,9 @@ class ActivitiesExport implements FromCollection, WithHeadings, WithMapping, Wit
 
     public function collection()
     {
-        $query = Activity::with(['lesson.concept.value', 'creator', 'submissions']);
+        // عدّ التقديمات في التصدير يستثني تسليمات حسابات الديمو
+        $query = Activity::with(['lesson.concept.value', 'creator',
+            'submissions' => fn ($q) => $q->whereHas('student', fn ($s) => $s->notDemo())]);
 
         if ($this->schoolId) {
             $query->whereHas('creator', function ($q) {

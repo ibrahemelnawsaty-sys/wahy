@@ -66,9 +66,9 @@ class ReportsController extends Controller
             : now()->endOfDay();
         $schoolId = $this->getSchoolFilter();
 
-        // إحصائيات عامة — تحترم date range
-        $studentsQuery = User::where('role', 'student');
-        $teachersQuery = User::where('role', 'teacher');
+        // إحصائيات عامة — تحترم date range (تقارير المنصّة تستثني حسابات الديمو)
+        $studentsQuery = User::where('role', 'student')->notDemo();
+        $teachersQuery = User::where('role', 'teacher')->notDemo();
 
         if ($schoolId) {
             $studentsQuery->where('school_id', $schoolId);
@@ -79,19 +79,16 @@ class ReportsController extends Controller
             // الأرقام الإجمالية all-time (لا تتقيّد بالفترة) — مقاييس الفترة تبقى أدناه
             'total_students' => (clone $studentsQuery)->count(),
             'total_teachers' => (clone $teachersQuery)->count(),
-            'total_schools' => $schoolId ? 1 : School::count(),
+            'total_schools' => $schoolId ? 1 : School::notDemo()->count(),
             'total_activities' => Activity::query()
                 ->when($schoolId, fn ($q) => $q->whereHas('creator', fn ($cq) => $cq->where('school_id', $schoolId)))
                 ->count(),
             'total_submissions' => ActivitySubmission::whereBetween('created_at', [$startDate, $endDate])
-                ->when($schoolId, function ($q) use ($schoolId) {
-                    $q->whereHas('student', function ($sq) use ($schoolId) {
-                        $sq->where('school_id', $schoolId);
-                    });
-                })
+                ->whereHas('student', fn ($sq) => $sq->notDemo()->when($schoolId, fn ($q) => $q->where('school_id', $schoolId)))
                 ->count(),
             'active_students' => User::where('role', 'student')
                 ->where('status', 'active')
+                ->notDemo()
                 ->when($schoolId, function ($q) use ($schoolId) {
                     $q->where('school_id', $schoolId);
                 })
@@ -101,6 +98,7 @@ class ReportsController extends Controller
 
         // أفضل 10 طلاب — النقاط ضمن الفترة المُختارة + tie-break ثابت
         $topStudents = User::where('role', 'student')
+            ->notDemo()
             ->when($schoolId, function ($q) use ($schoolId) {
                 $q->where('school_id', $schoolId);
             })
@@ -113,8 +111,8 @@ class ReportsController extends Controller
         // أنشط المدارس (فقط للـ Super Admin)
         $activeSchools = collect([]);
         if (! $schoolId) {
-            $activeSchools = School::withCount(['users as active_students' => function ($q) {
-                $q->where('role', 'student')->where('status', 'active');
+            $activeSchools = School::notDemo()->withCount(['users as active_students' => function ($q) {
+                $q->where('role', 'student')->where('status', 'active')->where('is_demo', false);
             }])
                 ->orderByDesc('active_students')
                 ->limit(10)
@@ -166,7 +164,7 @@ class ReportsController extends Controller
      */
     public function students(Request $request)
     {
-        $query = User::where('role', 'student');
+        $query = User::where('role', 'student')->notDemo(); // تقرير المنصّة يستثني الديمو
 
         // فلتر حسب المدرسة
         if ($request->filled('school_id')) {
@@ -256,7 +254,7 @@ class ReportsController extends Controller
      */
     public function schools(Request $request)
     {
-        $query = School::query();
+        $query = School::query()->notDemo(); // تقرير المنصّة يستثني مدارس الديمو
 
         // فلتر حسب المدينة
         if ($request->filled('city')) {
@@ -270,13 +268,13 @@ class ReportsController extends Controller
 
         $schools = $query->withCount([
             'users as students_count' => function ($q) {
-                $q->where('role', 'student');
+                $q->where('role', 'student')->where('is_demo', false);
             },
             'users as teachers_count' => function ($q) {
-                $q->where('role', 'teacher');
+                $q->where('role', 'teacher')->where('is_demo', false);
             },
             'users as active_students_count' => function ($q) {
-                $q->where('role', 'student')->where('status', 'active');
+                $q->where('role', 'student')->where('status', 'active')->where('is_demo', false);
             },
         ])
             ->paginate(20);
@@ -295,36 +293,38 @@ class ReportsController extends Controller
         $school = School::with(['branches', 'users'])
             ->withCount([
                 'users as students_count' => function ($q) {
-                    $q->where('role', 'student');
+                    $q->where('role', 'student')->where('is_demo', false);
                 },
                 'users as teachers_count' => function ($q) {
-                    $q->where('role', 'teacher');
+                    $q->where('role', 'teacher')->where('is_demo', false);
                 },
             ])
             ->findOrFail($id);
 
-        // إحصائيات المدرسة
+        // إحصائيات المدرسة (تقرير منصّة — يستثني الديمو)
         $stats = [
             'total_students' => $school->students_count,
             'total_teachers' => $school->teachers_count,
             'total_branches' => $school->branches->count(),
-            'active_students' => $school->users()->where('role', 'student')->where('status', 'active')->count(),
+            'active_students' => $school->users()->where('role', 'student')->where('status', 'active')->where('is_demo', false)->count(),
             'total_points' => DB::table('points')
                 ->join('users', 'points.user_id', '=', 'users.id')
                 ->where('users.school_id', $id)
+                ->where('users.is_demo', false)
                 ->sum('points.points'),
         ];
 
         // أفضل الطلاب في المدرسة
         $topStudents = User::where('role', 'student')
             ->where('school_id', $id)
+            ->notDemo()
             ->withSum('points as total_points', 'points')
             ->orderByDesc('total_points')
             ->limit(10)
             ->get();
 
         // المعلمون
-        $teachers = $school->users()->where('role', 'teacher')->get();
+        $teachers = $school->users()->where('role', 'teacher')->where('is_demo', false)->get();
 
         return view('admin.reports.school-detail', compact('school', 'stats', 'topStudents', 'teachers'));
     }
@@ -348,10 +348,11 @@ class ReportsController extends Controller
 
         // متوسط الدرجة: يستبعد الـ rejected لمنع جرّ المتوسط نحو 0
         $activities = $query->with('lesson.concept.value')
-            ->withCount('submissions')
+            ->withCount(['submissions' => fn ($q) => $q->whereHas('student', fn ($s) => $s->notDemo())])
             ->withAvg(['submissions as average_score' => function ($q) {
                 $q->whereIn('status', \App\Models\ActivitySubmission::DONE_STATUSES)
-                    ->whereNotNull('score');
+                    ->whereNotNull('score')
+                    ->whereHas('student', fn ($s) => $s->notDemo());
             }], 'score')
             ->paginate(20);
 
@@ -437,7 +438,7 @@ class ReportsController extends Controller
         // البيانات المُمرَّرة لكل نوع تقرير
         $data = match ($type) {
             'students' => [
-                'rows' => User::where('role', 'student')
+                'rows' => User::where('role', 'student')->notDemo()
                     ->when($schoolId, fn ($q) => $q->where('school_id', $schoolId))
                     ->with('school:id,name')
                     ->withSum('points as total_points', 'points')
@@ -447,7 +448,7 @@ class ReportsController extends Controller
                 'title' => 'تقرير الطلاب',
             ],
             'teachers' => [
-                'rows' => User::where('role', 'teacher')
+                'rows' => User::where('role', 'teacher')->notDemo()
                     ->when($schoolId, fn ($q) => $q->where('school_id', $schoolId))
                     ->with('school:id,name')
                     ->limit(500)
@@ -456,10 +457,10 @@ class ReportsController extends Controller
             ],
             'schools' => [
                 // مدير المدرسة يرى مدرسته فقط — منع تسرب بيانات مدارس أخرى
-                'rows' => School::when($schoolId, fn ($q) => $q->where('id', $schoolId))
+                'rows' => School::notDemo()->when($schoolId, fn ($q) => $q->where('id', $schoolId))
                     ->withCount([
-                        'users as students_count' => fn ($q) => $q->where('role', 'student'),
-                        'users as teachers_count' => fn ($q) => $q->where('role', 'teacher'),
+                        'users as students_count' => fn ($q) => $q->where('role', 'student')->where('is_demo', false),
+                        'users as teachers_count' => fn ($q) => $q->where('role', 'teacher')->where('is_demo', false),
                     ])
                     ->limit(500)
                     ->get(),
@@ -469,8 +470,8 @@ class ReportsController extends Controller
                 // فلتر المدرسة: عرض فقط الأنشطة التي أنشأها معلمو نفس المدرسة
                 'rows' => Activity::with('lesson.concept.value:id,name')
                     ->when($schoolId, fn ($q) => $q->whereHas('creator', fn ($cq) => $cq->where('school_id', $schoolId)))
-                    ->withCount('submissions')
-                    ->withAvg(['submissions as average_score' => fn ($q) => $q->whereIn('status', ['completed', 'approved'])->whereNotNull('score')], 'score')
+                    ->withCount(['submissions' => fn ($q) => $q->whereHas('student', fn ($s) => $s->notDemo())])
+                    ->withAvg(['submissions as average_score' => fn ($q) => $q->whereIn('status', ['completed', 'approved'])->whereNotNull('score')->whereHas('student', fn ($s) => $s->notDemo())], 'score')
                     ->limit(500)
                     ->get(),
                 'title' => 'تقرير الأنشطة',

@@ -26,7 +26,8 @@ class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function collection()
     {
         $query = User::with(['school', 'teachingClassrooms'])
-            ->where('role', 'teacher');
+            ->where('role', 'teacher')
+            ->notDemo(); // تصدير المنصّة يستثني حسابات الديمو
 
         if ($this->schoolId) {
             $query->where('school_id', $this->schoolId);
@@ -54,7 +55,7 @@ class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithS
     {
         $classrooms = $teacher->teachingClassrooms;
         $studentsCount = $classrooms->sum(function ($classroom) {
-            return $classroom->students()->count();
+            return $classroom->students()->where('is_demo', false)->count();
         });
 
         return $this->sanitizeRow([

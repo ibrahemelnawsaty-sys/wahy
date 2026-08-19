@@ -26,7 +26,8 @@ class ParentsExport implements FromCollection, WithHeadings, WithMapping, WithSt
     public function collection()
     {
         $query = User::with(['school', 'children'])
-            ->where('role', 'parent');
+            ->where('role', 'parent')
+            ->notDemo(); // تصدير المنصّة يستثني حسابات الديمو
 
         if ($this->schoolId) {
             $query->where('school_id', $this->schoolId);
