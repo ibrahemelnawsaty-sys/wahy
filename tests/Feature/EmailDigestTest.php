@@ -27,8 +27,8 @@ class EmailDigestTest extends TestCase
 
         $this->artisan('emails:digest-weekly')->assertSuccessful();
 
-        Mail::assertSent(WeeklyDigestMail::class, 1);
-        Mail::assertSent(WeeklyDigestMail::class, fn ($m) => $m->hasTo('active@example.com'));
+        Mail::assertQueued(WeeklyDigestMail::class, 1);
+        Mail::assertQueued(WeeklyDigestMail::class, fn ($m) => $m->hasTo('active@example.com'));
     }
 
     public function test_prune_logs_removes_old_only(): void

@@ -71,7 +71,7 @@ class PublicRegistrationController extends Controller
 
         // إرسال إيميل للمتقدم
         try {
-            Mail::to($validated['email'])->send(new RegistrationSubmittedMail($registrationRequest));
+            Mail::to($validated['email'])->queue(new RegistrationSubmittedMail($registrationRequest));
         } catch (\Exception $e) {
             \Log::error('فشل إرسال إيميل تسجيل المعلم: ' . $e->getMessage());
         }
@@ -85,7 +85,7 @@ class PublicRegistrationController extends Controller
             $schoolAdmin->notify(new NewRegistrationNotification($registrationRequest));
             try {
                 if ($schoolAdmin->email) {
-                    Mail::to($schoolAdmin->email)->send(new NewRegistrationNotificationMail($registrationRequest));
+                    Mail::to($schoolAdmin->email)->queue(new NewRegistrationNotificationMail($registrationRequest));
                 }
             } catch (\Exception $e) {
                 \Log::error('فشل إرسال إيميل إشعار مدير المدرسة: ' . $e->getMessage());
@@ -161,7 +161,7 @@ class PublicRegistrationController extends Controller
         // إرسال إيميل للطالب — مع التحقق المزدوج من صيغة الإيميل
         if (! empty($validated['email']) && filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
             try {
-                Mail::to($validated['email'])->send(new RegistrationSubmittedMail($registrationRequest));
+                Mail::to($validated['email'])->queue(new RegistrationSubmittedMail($registrationRequest));
             } catch (\Exception $e) {
                 \Log::error('فشل إرسال إيميل تسجيل الطالب', ['error' => $e->getMessage()]);
             }
@@ -170,7 +170,7 @@ class PublicRegistrationController extends Controller
         // إرسال إيميل لولي الأمر إذا كان موجود
         if (! empty($validated['parent_email']) && filter_var($validated['parent_email'], FILTER_VALIDATE_EMAIL)) {
             try {
-                Mail::to($validated['parent_email'])->send(new RegistrationSubmittedMail($registrationRequest));
+                Mail::to($validated['parent_email'])->queue(new RegistrationSubmittedMail($registrationRequest));
             } catch (\Exception $e) {
                 \Log::error('فشل إرسال إيميل ولي الأمر', ['error' => $e->getMessage()]);
             }
@@ -185,7 +185,7 @@ class PublicRegistrationController extends Controller
             $schoolAdmin->notify(new NewRegistrationNotification($registrationRequest));
             try {
                 if (! empty($schoolAdmin->email) && filter_var($schoolAdmin->email, FILTER_VALIDATE_EMAIL)) {
-                    Mail::to($schoolAdmin->email)->send(new NewRegistrationNotificationMail($registrationRequest));
+                    Mail::to($schoolAdmin->email)->queue(new NewRegistrationNotificationMail($registrationRequest));
                 }
             } catch (\Exception $e) {
                 \Log::error('فشل إرسال إيميل إشعار مدير المدرسة', ['error' => $e->getMessage()]);
@@ -254,7 +254,7 @@ class PublicRegistrationController extends Controller
 
         // إرسال إيميل لولي الأمر
         try {
-            Mail::to($validated['email'])->send(new RegistrationSubmittedMail($registrationRequest));
+            Mail::to($validated['email'])->queue(new RegistrationSubmittedMail($registrationRequest));
         } catch (\Exception $e) {
             \Log::error('فشل إرسال إيميل تسجيل ولي الأمر: ' . $e->getMessage());
         }
@@ -268,7 +268,7 @@ class PublicRegistrationController extends Controller
             $schoolAdmin->notify(new NewRegistrationNotification($registrationRequest));
             try {
                 if ($schoolAdmin->email) {
-                    Mail::to($schoolAdmin->email)->send(new NewRegistrationNotificationMail($registrationRequest));
+                    Mail::to($schoolAdmin->email)->queue(new NewRegistrationNotificationMail($registrationRequest));
                 }
             } catch (\Exception $e) {
                 \Log::error('فشل إرسال إيميل إشعار مدير المدرسة: ' . $e->getMessage());

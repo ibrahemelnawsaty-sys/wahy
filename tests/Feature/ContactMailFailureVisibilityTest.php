@@ -32,7 +32,8 @@ class ContactMailFailureVisibilityTest extends TestCase
     public function test_contact_message_is_saved_even_when_mail_fails(): void
     {
         // «أفضل جهد» يبقى: تعطُّل SMTP لا يُضيّع رسالة الزائر ولا يُظهر له خطأ.
-        Mail::shouldReceive('send')->andThrow(new \RuntimeException('SMTP 535 Authentication failed'));
+        Mail::shouldReceive('to')->andReturnSelf();
+        Mail::shouldReceive('queue')->andThrow(new \RuntimeException('SMTP 535 Authentication failed'));
 
         $this->postJson('/contact', $this->payload())
             ->assertOk()
@@ -43,7 +44,8 @@ class ContactMailFailureVisibilityTest extends TestCase
 
     public function test_the_real_smtp_error_reaches_the_mail_log(): void
     {
-        Mail::shouldReceive('send')->andThrow(new \RuntimeException('SMTP 535 Authentication failed'));
+        Mail::shouldReceive('to')->andReturnSelf();
+        Mail::shouldReceive('queue')->andThrow(new \RuntimeException('SMTP 535 Authentication failed'));
 
         $this->postJson('/contact', $this->payload())->assertOk();
 
@@ -55,7 +57,8 @@ class ContactMailFailureVisibilityTest extends TestCase
 
     public function test_admin_notification_failure_is_recorded_too(): void
     {
-        Mail::shouldReceive('send')->andThrow(new \RuntimeException('Connection could not be established'));
+        Mail::shouldReceive('to')->andReturnSelf();
+        Mail::shouldReceive('queue')->andThrow(new \RuntimeException('Connection could not be established'));
 
         $this->postJson('/contact', $this->payload())->assertOk();
 

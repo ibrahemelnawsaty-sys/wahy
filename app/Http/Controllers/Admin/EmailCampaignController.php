@@ -62,7 +62,7 @@ class EmailCampaignController extends Controller
             }
             $to = auth()->user()->email;
             if ($to) {
-                Mail::to($to)->send(new CampaignMail('[اختبار] ' . $data['subject'], $body, null, 0, auth()->id()));
+                Mail::to($to)->queue(new CampaignMail('[اختبار] ' . $data['subject'], $body, null, 0, auth()->id()));
             }
 
             return back()->with('success', 'أُرسِلت رسالة تجريبيّة إلى ' . ($to ?: 'بريدك') . ' — راجِعها ثمّ أرسِل للحملة.')->withInput();

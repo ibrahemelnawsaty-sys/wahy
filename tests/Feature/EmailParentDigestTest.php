@@ -35,7 +35,7 @@ class EmailParentDigestTest extends TestCase
 
         $this->artisan('emails:digest-parent-weekly')->assertSuccessful();
 
-        Mail::assertSent(ParentWeeklyDigestMail::class, 1);
-        Mail::assertSent(ParentWeeklyDigestMail::class, fn ($m) => $m->hasTo('p@example.com'));
+        Mail::assertQueued(ParentWeeklyDigestMail::class, 1);
+        Mail::assertQueued(ParentWeeklyDigestMail::class, fn ($m) => $m->hasTo('p@example.com'));
     }
 }

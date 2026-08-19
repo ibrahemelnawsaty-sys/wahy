@@ -11,15 +11,17 @@ use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
- * كود التحقّق الثنائيّ **يجب** أن يُرسَل فوراً (`Mail::send`) لا عبر الطابور (`Mail::queue`).
+ * كل بريدٍ يُطلَق من **طلب ويب** يجب أن يُصفَّف، لا أن يُرسَل متزامنًا.
  *
- * الحادثة: `QUEUE_CONNECTION=database` بلا عامل طابور يعمل على الاستضافة المشتركة
- * (المرجع الوحيد لـ`queue:work` وحدةُ systemd مكتوبة لخادم ليس هو الإنتاج) ⟶ كود الدخول
- * يستقرّ في جدول `jobs` للأبد فلا يصل، بينما «إعادة الإرسال» تستخدم `send()` فتصل فوراً —
- * فيظهر السلوك المُربِك: «الكود لا يأتي، وبالضغط على إعادة الإرسال يأتي».
+ * انقلاب مقصود لفرضيّة سابقة: كان هذا الملفّ يفرض العكس (`assertSent`) بناءً على استنتاج أنّ
+ * لا عامل طابور يعمل. الدليل الحاسم من الإنتاج نقض ذلك:
  *
- * 2FA تدفّقٌ **متزامن بطبيعته**: المستخدم واقفٌ ينتظر الكود، فلا معنى لتأجيله.
- * الاختبار يشمل الويب والـAPI معاً لأنّهما مسارَان مستقلّان (تطابُق مطلوب).
+ *   Connection could not be established with host "smtp.office365.com:587":
+ *   Unable to connect ... (Connection timed out)
+ *
+ * ظهر في سجلّ البريد لبريد نموذج التواصل (متزامن من الويب)، بينما **حملات البريد تصل** وهي
+ * مُصفَّفة يُرسلها العامل من CLI. أي أنّ عمليّة الويب على هذه الاستضافة محجوبة عن المنفذ 587،
+ * والعامل هو المسار الوحيد الذي يُوصِل بريدًا. فالإرسال المتزامن = بريدٌ لا يصل أبدًا.
  */
 class TwoFactorMailIsImmediateTest extends TestCase
 {
@@ -38,70 +40,63 @@ class TwoFactorMailIsImmediateTest extends TestCase
         ]);
     }
 
-    public function test_web_login_sends_the_code_immediately_not_queued(): void
+    public function test_web_login_queues_the_code(): void
     {
-        Mail::fake();
-        $user = $this->twoFactorUser();
-
-        $this->post('/login', [
-            'email' => $user->email,
-            'password' => self::PASSWORD,
-        ]);
-
-        Mail::assertSent(TwoFactorCodeMail::class);
-        Mail::assertNotQueued(TwoFactorCodeMail::class); // الطابور = لا يصل بلا عامل
-    }
-
-    public function test_api_login_sends_the_code_immediately_not_queued(): void
-    {
-        Mail::fake();
-        $user = $this->twoFactorUser();
-
-        $this->postJson('/api/v1/login', [
-            'email' => $user->email,
-            'password' => self::PASSWORD,
-        ])->assertStatus(200)->assertJson(['code' => '2fa_required']);
-
-        Mail::assertSent(TwoFactorCodeMail::class);
-        Mail::assertNotQueued(TwoFactorCodeMail::class);
-    }
-
-    public function test_resend_still_sends_immediately(): void
-    {
-        // حارس تراجع: مسار إعادة الإرسال كان سليماً أصلاً ويجب أن يبقى كذلك.
         Mail::fake();
         $user = $this->twoFactorUser();
 
         $this->post('/login', ['email' => $user->email, 'password' => self::PASSWORD]);
-        Mail::fake(); // تصفير بعد رسالة الدخول
+
+        Mail::assertQueued(TwoFactorCodeMail::class);
+        Mail::assertNotSent(TwoFactorCodeMail::class); // المتزامن محجوب على الخادم
+    }
+
+    public function test_api_login_queues_the_code(): void
+    {
+        Mail::fake();
+        $user = $this->twoFactorUser();
+
+        $this->postJson('/api/v1/login', ['email' => $user->email, 'password' => self::PASSWORD])
+            ->assertStatus(200)->assertJson(['code' => '2fa_required']);
+
+        Mail::assertQueued(TwoFactorCodeMail::class);
+        Mail::assertNotSent(TwoFactorCodeMail::class);
+    }
+
+    public function test_resend_queues_too(): void
+    {
+        Mail::fake();
+        $user = $this->twoFactorUser();
+
+        $this->post('/login', ['email' => $user->email, 'password' => self::PASSWORD]);
+        Mail::fake();
 
         $this->post('/two-factor/resend');
 
-        Mail::assertSent(TwoFactorCodeMail::class);
-        Mail::assertNotQueued(TwoFactorCodeMail::class);
+        Mail::assertQueued(TwoFactorCodeMail::class);
     }
 
-    public function test_no_request_path_dispatches_mail_to_the_queue(): void
+    public function test_no_web_request_path_sends_mail_synchronously(): void
     {
-        // حارس: **مسار الطلب** (app/Http) لا يجوز أن يُصفّف بريداً ما دام لا عامل يُفرغه —
-        // المستخدم واقفٌ ينتظر. النطاق مقصور على app/Http عمداً:
-        //   • app/Jobs يعمل أصلاً داخل سياق طابور، والتصفيف فيه فان-أوت مشروع
-        //     (مثل DispatchCampaignJob لحملات البريد الجماعيّة — دفعيّة بطبيعتها).
-        //   • app/Listeners المُصفَّفة تُدار عبر QUEUE_CONNECTION لا عبر الكود.
-        // إن شُغِّل عامل طابور موثوق مستقبلاً، وسِّع النطاق أو احذف الحارس عن قصد لا بالصدفة.
+        // الحارس الجوهريّ: أيّ `->send(` أو `Mail::send(` في مسار طلب = بريدٌ لا يصل على هذا
+        // الخادم. إن زال الحجب مستقبلًا، وسِّع هذا عن قصد لا بالصدفة.
         $hits = [];
-        $dir = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(app_path('Http')));
-
-        foreach ($dir as $file) {
-            if (! $file->isFile() || $file->getExtension() !== 'php') {
+        foreach ([app_path('Http'), app_path('Services'), app_path('Listeners')] as $dir) {
+            if (! is_dir($dir)) {
                 continue;
             }
-            $src = file_get_contents($file->getPathname());
-            if ($src !== false && preg_match('/->(queue|later)\s*\(\s*new\s+\\\\?[A-Za-z_]/', $src)) {
-                $hits[] = str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
+            foreach ($it as $file) {
+                if (! $file->isFile() || $file->getExtension() !== 'php') {
+                    continue;
+                }
+                $src = (string) file_get_contents($file->getPathname());
+                if (preg_match('/Mail::send\s*\(|->send\s*\(\s*new\s+\\?[A-Za-z_]/', $src)) {
+                    $hits[] = str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                }
             }
         }
 
-        $this->assertSame([], $hits, 'إرسال بريد عبر الطابور في: ' . implode(', ', $hits));
+        $this->assertSame([], $hits, 'إرسال بريد متزامن في: ' . implode(', ', $hits));
     }
 }

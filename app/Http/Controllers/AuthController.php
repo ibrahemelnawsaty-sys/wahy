@@ -115,11 +115,12 @@ class AuthController extends Controller
             $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
             $user->save();
 
-            // إرسال الكود فوراً (متزامن) — **يُمنع** `queue()` هنا: المستخدم واقفٌ ينتظر الكود،
-            // ولا عامل طابور يعمل على الاستضافة، فالرسالة المُصفَّفة تبقى في جدول jobs بلا إرسال
-            // (وكان `catch` لا يلتقط ذلك لأنّ الإضافة للطابور تنجح — فشلٌ صامت). يُطابق resend.
+            // **مُصفَّف** — تصحيحٌ لقرارٍ سابق مبنيّ على معلومة خاطئة. الدليل الحاسم:
+            // «Connection timed out» على 587 من عمليّة الويب، بينما الحملات (مُصفَّفة، يُرسلها
+            // العامل من CLI) تصل. أي أنّ الويب محجوب عن SMTP وليس العكس — فالإرسال المتزامن
+            // هنا كان يعني كوداً لا يصل أبداً. الطابور هو المسار الوحيد العامل على هذا الخادم.
             try {
-                Mail::to($user->email)->send(new TwoFactorCodeMail($code, $user->name));
+                Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
             } catch (\Exception $e) {
                 Log::error('فشل إرسال 2FA code', ['user_id' => $user->id, 'error' => $e->getMessage()]);
 
@@ -307,7 +308,7 @@ class AuthController extends Controller
         }
 
         try {
-            Mail::to($user->email)->send(new TwoFactorCodeMail($code, $user->name));
+            Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
 
             return back()->with('success', 'تم إرسال كود جديد إلى بريدك الإلكتروني');
         } catch (\Exception $e) {
@@ -387,7 +388,7 @@ class AuthController extends Controller
 
             // إرسال إيميل تأكيد استلام الطلب
             try {
-                Mail::to($user->email)->send(new \App\Mail\RegistrationPendingMail($user));
+                Mail::to($user->email)->queue(new \App\Mail\RegistrationPendingMail($user));
             } catch (\Exception $e) {
                 Log::warning('Failed to send registration email: ' . $e->getMessage());
             }
@@ -568,7 +569,7 @@ class AuthController extends Controller
                 ['token' => $hashedToken, 'created_at' => now()],
             );
             try {
-                Mail::to($request->email)->send(new \App\Mail\ResetPasswordMail($token, $request->email));
+                Mail::to($request->email)->queue(new \App\Mail\ResetPasswordMail($token, $request->email));
             } catch (\Exception $e) {
                 Log::error('فشل إرسال رابط إعادة التعيين: ' . $e->getMessage());
             }

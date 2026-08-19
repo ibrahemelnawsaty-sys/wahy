@@ -25,18 +25,18 @@ class MailGateTest extends TestCase
 
         // مُفعَّل افتراضيًّا ⟶ يُرسَل
         $this->assertTrue(MailGate::send($u, 'level_up', 'event', new LevelUpMail($u, 5)));
-        Mail::assertSent(LevelUpMail::class, 1);
+        Mail::assertQueued(LevelUpMail::class, 1);
 
         // تعطيل النوع ⟶ يُحجب
         Setting::set('email_type_level_up', false, 'boolean');
         $this->assertFalse(MailGate::send($u, 'level_up', 'event', new LevelUpMail($u, 6)));
-        Mail::assertSent(LevelUpMail::class, 1);
+        Mail::assertQueued(LevelUpMail::class, 1);
 
         // إعادة تفعيل النوع لكن المستخدم ألغى الاشتراك ⟶ يُحجب
         Setting::set('email_type_level_up', true, 'boolean');
         EmailPreference::create(['user_id' => $u->id, 'unsubscribed_all' => true]);
         $this->assertFalse(MailGate::send($u->fresh(), 'level_up', 'event', new LevelUpMail($u, 7)));
-        Mail::assertSent(LevelUpMail::class, 1);
+        Mail::assertQueued(LevelUpMail::class, 1);
     }
 
     public function test_master_switch_blocks_all_event_mail(): void
@@ -46,6 +46,6 @@ class MailGateTest extends TestCase
 
         Setting::set('email_master_enabled', false, 'boolean');
         $this->assertFalse(MailGate::send($u, 'badge_earned', 'event', new LevelUpMail($u, 3)));
-        Mail::assertNothingSent();
+        Mail::assertNothingQueued();
     }
 }

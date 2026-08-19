@@ -50,7 +50,7 @@ class PasswordChangeFlowTest extends TestCase
         $this->assertTrue(Hash::check('ChosenPass123', $user->password), 'يجب الدخول بكلمة المرور المختارة');
 
         // البريد لا يرسل كلمة مرور مؤقتة (المستخدم يعرف كلمته)
-        Mail::assertSent(RegistrationApprovedMail::class, fn ($m) => $m->temporaryPassword === null);
+        Mail::assertQueued(RegistrationApprovedMail::class, fn ($m) => $m->temporaryPassword === null);
     }
 
     public function test_approval_without_chosen_password_falls_back_to_temp_and_forces_change(): void
@@ -67,7 +67,7 @@ class PasswordChangeFlowTest extends TestCase
 
         $user = User::where('email', 'nopw@test.sa')->firstOrFail();
         $this->assertTrue((bool) $user->password_change_required, 'بلا كلمة مختارة ⇒ إجبار التغيير');
-        Mail::assertSent(RegistrationApprovedMail::class, fn ($m) => ! empty($m->temporaryPassword));
+        Mail::assertQueued(RegistrationApprovedMail::class, fn ($m) => ! empty($m->temporaryPassword));
     }
 
     public function test_forced_user_can_change_password_and_flag_clears(): void

@@ -155,7 +155,7 @@ class FeaturedSubmissionBonusTest extends TestCase
         Mail::fake();
         $this->feature();
 
-        Mail::assertSent(\App\Mail\StudentSubmissionFeaturedMail::class, function ($mail) {
+        Mail::assertQueued(\App\Mail\StudentSubmissionFeaturedMail::class, function ($mail) {
             return $mail->hasTo($this->student->email);
         });
     }
@@ -168,7 +168,7 @@ class FeaturedSubmissionBonusTest extends TestCase
         $this->actingAs($this->teacher)->post(route('teacher.review.unfeature', $this->submission->id));
         $this->feature();
 
-        Mail::assertSentCount(1);
+        Mail::assertQueuedCount(1);
         $this->assertSame(1, \App\Models\Notification::where('notifiable_id', $this->student->id)
             ->where('type', 'submission_featured')->count());
     }
@@ -204,6 +204,6 @@ class FeaturedSubmissionBonusTest extends TestCase
 
         $this->feature();
 
-        Mail::assertNothingSent();
+        Mail::assertNothingQueued();
     }
 }

@@ -101,10 +101,10 @@ class AuthApiController extends Controller
             $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
             $user->save();
 
-            // فوريّ لا مُصفَّف — مطابقةً لمسار الويب: لا عامل طابور يُفرغ jobs على الاستضافة،
-            // فالتصفيف يعني كوداً لا يصل أبداً وفشلاً صامتاً لا يلتقطه catch.
+            // مُصفَّف — مطابقةً لمسار الويب. عمليّة الويب محجوبة عن SMTP على هذه الاستضافة
+            // (Connection timed out على 587)، فالعامل (CLI) هو المسار الوحيد الذي يُوصِل بريداً.
             try {
-                Mail::to($user->email)->send(new TwoFactorCodeMail($code, $user->name));
+                Mail::to($user->email)->queue(new TwoFactorCodeMail($code, $user->name));
             } catch (\Exception $e) {
                 Log::error('فشل إرسال 2FA code (API)', ['user_id' => $user->id, 'error' => $e->getMessage()]);
 

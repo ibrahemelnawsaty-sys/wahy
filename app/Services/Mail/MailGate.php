@@ -43,9 +43,10 @@ class MailGate
                 $h->addTextHeader('X-Wahy-Mailable', class_basename($mailable));
             });
 
-            // Mail::send يُصفّف تلقائيًّا لو كان الـMailable ShouldQueue، وإلّا يرسل تزامنيًّا
-            // (المستمعون هنا مُصفَّفون أصلًا فيجري ذلك داخل العامل).
-            Mail::to($email)->send($mailable);
+            // **queue صراحةً لا send**: على هذه الاستضافة لا تستطيع عمليّة الويب فتح اتّصال صادر
+            // على 587 (Connection timed out) — فأيّ Mailable غير ShouldQueue كان يُرسَل متزامنًا
+            // من الطلب ويفشل دائمًا. التصفيف يضمن أن يُرسله العامل (CLI) وهو الوحيد الذي يصل SMTP.
+            Mail::to($email)->queue($mailable);
 
             return true;
         } catch (\Throwable $e) {

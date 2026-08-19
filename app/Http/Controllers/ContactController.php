@@ -73,10 +73,10 @@ class ContactController extends Controller
         $siteName = setting('site_name', 'أثيل مكة');
 
         try {
-            Mail::send('emails.contact', ['data' => $cleanData], function ($message) use ($cleanData, $adminEmail) {
-                $message->to($adminEmail)
-                    ->subject('رسالة تواصل جديدة من ' . $cleanData['full_name']);
-            });
+            // **مُصفَّف لا متزامن**: عمليّة الويب على الاستضافة لا تفتح اتّصالًا صادرًا على 587
+            // (Connection timed out) — فكلّ إرسال داخل الطلب يفشل. العامل (CLI) وحده يصل SMTP،
+            // وهو ما يفسّر وصول الحملات (مُصفَّفة) وفشل هذا النموذج (كان متزامنًا).
+            Mail::to($adminEmail)->queue(new \App\Mail\ContactMessageReceivedMail($cleanData));
         } catch (\Throwable $e) {
             // «أفضل جهد» يبقى — لكن **لا ابتلاع** (§5): السبب الحقيقيّ يُسجَّل في سجلّ البريد
             // نفسه لا في laravel.log وحده، وإلّا رأى المشرف «فشل» برسالة مهلةٍ عامّة بلا تشخيص.
@@ -89,10 +89,7 @@ class ContactController extends Controller
         }
 
         try {
-            Mail::send('emails.contact-confirmation', ['data' => $cleanData], function ($message) use ($cleanData, $siteName) {
-                $message->to($cleanData['email'])
-                    ->subject('تم استلام رسالتك - ' . $siteName);
-            });
+            Mail::to($cleanData['email'])->queue(new \App\Mail\ContactConfirmationMail($cleanData));
         } catch (\Throwable $e) {
             \Log::warning('Contact confirmation failed (message saved): ' . $e->getMessage());
             \App\Models\EmailLog::recordFailure(

@@ -53,7 +53,7 @@ class EmailParentTest extends TestCase
 
         $this->artisan('emails:parent-inactive-children --days=2')->assertSuccessful();
 
-        Mail::assertSent(ParentChildInactiveMail::class, 1);
-        Mail::assertSent(ParentChildInactiveMail::class, fn ($m) => $m->hasTo('p@example.com'));
+        Mail::assertQueued(ParentChildInactiveMail::class, 1);
+        Mail::assertQueued(ParentChildInactiveMail::class, fn ($m) => $m->hasTo('p@example.com'));
     }
 }

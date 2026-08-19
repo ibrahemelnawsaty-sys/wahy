@@ -832,7 +832,7 @@ class SchoolAdminController extends Controller
         $emailSent = false;
         if (! empty($request->email) && filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
             try {
-                Mail::to($request->email)->send(new RegistrationApprovedMail($request, $temporaryPassword));
+                Mail::to($request->email)->queue(new RegistrationApprovedMail($request, $temporaryPassword));
                 $emailSent = true;
             } catch (\Exception $e) {
                 \Log::error('فشل إرسال إيميل الموافقة', ['user_id' => $user->id, 'error' => $e->getMessage()]);
@@ -878,7 +878,7 @@ class SchoolAdminController extends Controller
 
         // إرسال إيميل الرفض
         try {
-            Mail::to($registrationRequest->email)->send(new RegistrationRejectedMail($registrationRequest));
+            Mail::to($registrationRequest->email)->queue(new RegistrationRejectedMail($registrationRequest));
         } catch (\Exception $e) {
             \Log::error('Failed to send rejection email: ' . $e->getMessage());
         }
@@ -978,8 +978,12 @@ class SchoolAdminController extends Controller
 
             // بريد للأدمن عبر البوّابة (خطّة أدوار البريد A1) — إعادة استخدام رسالة «بانتظار الاعتماد»
             if ($admin->email && $activityCreator) {
-                \App\Services\Mail\MailGate::send($admin, 'admin_activity_pending', 'event',
-                    new \App\Mail\ActivityPendingApprovalMail($admin, $activityCreator, (string) $activity->title, $adminApprovalUrl));
+                \App\Services\Mail\MailGate::send(
+                    $admin,
+                    'admin_activity_pending',
+                    'event',
+                    new \App\Mail\ActivityPendingApprovalMail($admin, $activityCreator, (string) $activity->title, $adminApprovalUrl),
+                );
             }
         }
 
@@ -1245,7 +1249,7 @@ class SchoolAdminController extends Controller
 
         return back()->with(
             ($result['code'] ?? null) === 'done' ? 'success' : 'info',
-            ($result['code'] ?? null) === 'done' ? 'تم رفض التسليم.' : 'التسليم محسومٌ سابقاً.'
+            ($result['code'] ?? null) === 'done' ? 'تم رفض التسليم.' : 'التسليم محسومٌ سابقاً.',
         );
     }
 
