@@ -218,6 +218,26 @@ class SchoolManagementController extends Controller
     }
 
     /**
+     * تبديل «مدرسة ديمو» — مقصور على السوبر أدمن. يقلب علم المدرسة ويُطبّقه على **كل** حساباتها
+     * دفعةً واحدة (تبديل جماعيّ). المستخدمون الجدد تحتها يرثونه تلقائياً (User::creating).
+     */
+    public function toggleDemo(School $school)
+    {
+        abort_unless(auth()->user()?->hasSuperAdminRole(), 403, 'مقصور على السوبر أدمن');
+
+        $newValue = ! $school->is_demo;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($school, $newValue) {
+            $school->update(['is_demo' => $newValue]);
+            // تحديث جماعيّ عبر query builder (لا يمرّ بحارس model events — آمن لأنّ الراوت سوبر أدمن).
+            $school->users()->update(['is_demo' => $newValue]);
+        });
+
+        return back()->with('success', $newValue
+            ? "صارت «{$school->name}» وكل حساباتها ديمو — خارج إحصاءات المنصّة."
+            : "أُلغي وسم الديمو عن «{$school->name}» وحساباتها.");
+    }
+
+    /**
      * توليد QR Code فريد للمدرسة
      */
     private function generateSchoolQRCode()

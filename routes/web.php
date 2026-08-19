@@ -309,10 +309,12 @@ Route::middleware('auth')->group(function () {
         // User Management
         Route::resource('users', UserManagementController::class);
         Route::post('/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('/users/{user}/toggle-demo', [UserManagementController::class, 'toggleDemo'])->name('users.toggle-demo');
 
         // School Management
         Route::resource('schools', SchoolManagementController::class);
         Route::post('/schools/{school}/toggle-status', [SchoolManagementController::class, 'toggleStatus'])->name('schools.toggle-status');
+        Route::post('/schools/{school}/toggle-demo', [SchoolManagementController::class, 'toggleDemo'])->name('schools.toggle-demo');
         Route::get('/schools/{school}/active-values', [SchoolManagementController::class, 'activeValues'])->name('schools.active-values');
         Route::put('/schools/{school}/active-values', [SchoolManagementController::class, 'updateActiveValues'])->name('schools.active-values.update');
 

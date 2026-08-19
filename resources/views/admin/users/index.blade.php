@@ -473,6 +473,9 @@
                             @default {{ $user->status }}
                         @endswitch
                     </span>
+                    @if($user->is_demo)
+                    <span style="display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:8px;background:#f3e8ff;color:#7c3aed;font-size:11px;font-weight:700;" title="حساب ديمو — خارج إحصاءات المنصّة">🎭 ديمو</span>
+                    @endif
                 </td>
 
                 <!-- Created At -->
@@ -495,6 +498,15 @@
                                 {{ $user->status === 'active' ? '🔴 تعطيل' : '✅ تفعيل' }}
                             </button>
                         </form>
+
+                        @if(auth()->user()->hasSuperAdminRole())
+                        <form method="POST" action="{{ route('admin.users.toggle-demo', $user) }}" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="btn-action btn-toggle" title="حسابات الديمو تُستثنى من إحصاءات المنصّة">
+                                {{ $user->is_demo ? '🎭 إلغاء ديمو' : '🎭 ديمو' }}
+                            </button>
+                        </form>
+                        @endif
 
                         @if($user->id !== auth()->id())
                         <form method="POST" action="{{ route('admin.users.destroy', $user) }}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا المستخدم؟')">

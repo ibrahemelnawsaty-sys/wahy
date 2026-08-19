@@ -238,6 +238,21 @@ class UserManagementController extends Controller
     }
 
     /**
+     * تبديل «حساب ديمو» — مقصور على السوبر أدمن. حساب الديمو يعمل بكامل وظائفه لكنّه
+     * يُستثنى من كل إحصاءات/صدارة/تقارير المنصّة. (User::booted يفرض القيد أيضاً كدفاع عميق.)
+     */
+    public function toggleDemo(User $user)
+    {
+        abort_unless(auth()->user()?->hasSuperAdminRole(), 403, 'مقصور على السوبر أدمن');
+
+        $user->update(['is_demo' => ! $user->is_demo]);
+
+        return back()->with('success', $user->is_demo
+            ? "صار «{$user->name}» حساب ديمو — خارج إحصاءات المنصّة."
+            : "أُلغي وسم الديمو عن «{$user->name}».");
+    }
+
+    /**
      * تطبيع الأدوار الثانوية: استبعاد الدور الأساسيّ + إزالة التكرار + إعادة الفهرسة.
      *
      * @param  array<int, string>  $secondaryRoles
