@@ -2107,7 +2107,7 @@ class TeacherController extends Controller
 
         $query = TeacherPoint::with('teacher.school')
             ->whereHas('teacher', function ($q) {
-                $q->where('role', 'teacher');
+                $q->where('role', 'teacher')->where('is_demo', false); // استثناء معلّمي الديمو
             });
 
         if ($scope === 'local') {
@@ -2140,7 +2140,8 @@ class TeacherController extends Controller
         } elseif ($scope === 'global') {
             $currentTeacher = TeacherPoint::where('teacher_id', Auth::id())->first();
             if ($currentTeacher) {
-                $currentTeacherRank = TeacherPoint::where('points', '>', $currentTeacher->points)
+                $currentTeacherRank = TeacherPoint::whereHas('teacher', fn ($q) => $q->where('is_demo', false))
+                    ->where('points', '>', $currentTeacher->points)
                     ->count() + 1;
             }
         }
@@ -2160,6 +2161,7 @@ class TeacherController extends Controller
         // لكل scope نبدأ من قاعدة منفصلة بدلًا من تقاطع فصول المعلم فقط
         $query = User::where('role', 'student')
             ->where('status', 'active')
+            ->notDemo() // استثناء طلاب الديمو من صدارة المعلّم بكل نطاقاتها
             ->withSum('points as total_points', 'points')
             ->with(['school', 'classrooms']);
 

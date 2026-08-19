@@ -63,12 +63,14 @@ class ParentDashboardController extends Controller
                 // (المفتاح السابق كان يحتوي على totalPoints suffix → ما يُلغى أبدًا بواسطة forget)
                 $rankCacheKey = "parent_dashboard:ranks:{$child->id}";
                 $ranks = Cache::remember($rankCacheKey, 1800, function () use ($child, $classroom, $totalPoints) {
+                    // حسابات الرتب لا تحتسب طلاب الديمو في المقام (لا يزيحون الابن الحقيقيّ)
                     $classRank = null;
                     if ($classroom) {
                         $classRank = DB::table('users')
                             ->join('classroom_student', 'users.id', '=', 'classroom_student.student_id')
                             ->where('classroom_student.classroom_id', $classroom->id)
                             ->where('classroom_student.status', 'active')
+                            ->where('users.is_demo', false)
                             ->whereRaw('(SELECT COALESCE(SUM(points), 0) FROM points WHERE user_id = users.id) > ?', [$totalPoints])
                             ->count() + 1;
                     }
@@ -78,6 +80,7 @@ class ParentDashboardController extends Controller
                         $schoolRank = DB::table('users')
                             ->where('role', UserRole::Student->value)
                             ->where('school_id', $child->school_id)
+                            ->where('is_demo', false)
                             ->whereRaw('(SELECT COALESCE(SUM(points), 0) FROM points WHERE user_id = users.id) > ?', [$totalPoints])
                             ->count() + 1;
                     }
@@ -87,6 +90,7 @@ class ParentDashboardController extends Controller
                         $cityRank = DB::table('users')
                             ->join('schools', 'users.school_id', '=', 'schools.id')
                             ->where('users.role', 'student')
+                            ->where('users.is_demo', false)
                             ->where('schools.city', $child->school->city)
                             ->whereRaw('(SELECT COALESCE(SUM(points), 0) FROM points WHERE user_id = users.id) > ?', [$totalPoints])
                             ->count() + 1;
@@ -94,6 +98,7 @@ class ParentDashboardController extends Controller
 
                     $countryRank = DB::table('users')
                         ->where('role', UserRole::Student->value)
+                        ->where('is_demo', false)
                         ->whereRaw('(SELECT COALESCE(SUM(points), 0) FROM points WHERE user_id = users.id) > ?', [$totalPoints])
                         ->count() + 1;
 

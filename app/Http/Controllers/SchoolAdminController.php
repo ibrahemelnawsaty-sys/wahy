@@ -1559,21 +1559,25 @@ class SchoolAdminController extends Controller
         ];
 
         // ======== إحصائيات الطلاب ========
+        // مدرسة المدير: تُستثنى تلقائياً إلّا إن كانت ديمو (واقعيّة العرض). الترتيب عبر المدن/الدول/
+        // المنصّة يستثني طلاب الديمو دائماً (مقام الرتبة النقيّ).
         $schoolStudentsRanked = User::where('school_id', $school->id)
             ->where('role', 'student')
             ->where('status', 'active')
+            ->when($excludeDemo, fn ($q) => $q->notDemo())
             ->select('id', 'name', 'school_id')
             ->withSum('points as total_points', 'points')
             ->orderByDesc('total_points')
             ->get();
 
-        // Platform-level student ranking
-        $allStudentsCount = User::where('role', 'student')->where('status', 'active')->count();
+        // Platform-level student ranking (مقام الرتبة — يستثني الديمو دائماً)
+        $allStudentsCount = User::where('role', 'student')->where('status', 'active')->where('is_demo', false)->count();
 
         // City students
         $cityStudents = User::whereIn('school_id', $schoolCityIds)
             ->where('role', 'student')
             ->where('status', 'active')
+            ->where('is_demo', false)
             ->select('id', 'name', 'school_id')
             ->withSum('points as total_points', 'points')
             ->orderByDesc('total_points')
@@ -1584,6 +1588,7 @@ class SchoolAdminController extends Controller
         $countryStudents = User::whereIn('school_id', $schoolCountryIds)
             ->where('role', 'student')
             ->where('status', 'active')
+            ->where('is_demo', false)
             ->select('id', 'name', 'school_id')
             ->withSum('points as total_points', 'points')
             ->orderByDesc('total_points')
@@ -1593,6 +1598,7 @@ class SchoolAdminController extends Controller
         // Platform students
         $platformStudents = User::where('role', 'student')
             ->where('status', 'active')
+            ->where('is_demo', false)
             ->select('id', 'name', 'school_id')
             ->withSum('points as total_points', 'points')
             ->orderByDesc('total_points')
@@ -1619,6 +1625,7 @@ class SchoolAdminController extends Controller
             $gradeStudents = User::whereIn('id', $studentIds)
                 ->where('role', 'student')
                 ->where('status', 'active')
+                ->where('is_demo', false) // ترتيب الصفّ عابر للمدارس → يستثني الديمو
                 ->select('id', 'name', 'school_id')
                 ->withSum('points as total_points', 'points')
                 ->orderByDesc('total_points')
