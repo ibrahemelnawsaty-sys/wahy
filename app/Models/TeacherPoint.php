@@ -51,11 +51,18 @@ class TeacherPoint extends Model
             ->where('teacher_id', $teacherId)
             ->pluck('id');
 
-        $studentIds = DB::table('classroom_student')
-            ->whereIn('classroom_id', $classroomIds)
-            ->where('status', 'active')
-            ->distinct()
-            ->pluck('student_id');
+        // معلّمٌ حقيقيّ: لا تُحتسَب نقاط طلاب الديمو في نقاطه (دفاع عميق ضدّ ديمو مدسوس في فصله).
+        // معلّم الديمو: يرى نقاط طلابه كاملةً (واقعيّة العرض) — وهو مستبعَدٌ أصلاً من صدارة المعلّمين.
+        $studentQuery = DB::table('classroom_student')
+            ->join('users', 'users.id', '=', 'classroom_student.student_id')
+            ->whereIn('classroom_student.classroom_id', $classroomIds)
+            ->where('classroom_student.status', 'active');
+
+        if (! $teacher->is_demo) {
+            $studentQuery->where('users.is_demo', false);
+        }
+
+        $studentIds = $studentQuery->distinct()->pluck('classroom_student.student_id');
 
         // حساب إجمالي نقاط الطلاب
         $studentsTotalPoints = DB::table('points')

@@ -1372,22 +1372,29 @@ class SchoolAdminController extends Controller
         $school = Auth::user()->activeSchool;
         $now = now();
 
+        // مدرسة حقيقيّة تستثني طلاب الديمو من أرقامها (دفاع عميق ضدّ ديمو مدسوس)؛ مدرسة الديمو
+        // تعرض أرقامها كاملةً (واقعيّة العرض للعميل). الترتيب عبر المدارس (أدناه) يستثني الديمو دائماً.
+        $excludeDemo = ! (bool) ($school->is_demo ?? false);
+
         // ======== حساب إحصائيات المدرسة ========
         $schoolPoints = DB::table('points')
             ->join('users', 'points.user_id', '=', 'users.id')
             ->where('users.school_id', $school->id)
+            ->when($excludeDemo, fn ($q) => $q->where('users.is_demo', false))
             ->sum('points.points');
 
         $monthlySchoolPoints = DB::table('points')
             ->join('users', 'points.user_id', '=', 'users.id')
             ->where('users.school_id', $school->id)
+            ->when($excludeDemo, fn ($q) => $q->where('users.is_demo', false))
             ->where('points.created_at', '>=', $now->copy()->startOfMonth())
             ->sum('points.points');
 
-        // تصنيف جميع المدارس بالنقاط
+        // تصنيف جميع المدارس بالنقاط — يستثني مدارس الديمو وطلاب الديمو دائماً (ترتيب منصّة)
         $allSchoolsRanked = DB::table('schools')
+            ->where('schools.is_demo', false)
             ->select('schools.id', 'schools.name', 'schools.country', 'schools.city')
-            ->selectRaw('COALESCE((SELECT SUM(p.points) FROM points p JOIN users u ON p.user_id = u.id WHERE u.school_id = schools.id), 0) as total_points')
+            ->selectRaw('COALESCE((SELECT SUM(p.points) FROM points p JOIN users u ON p.user_id = u.id WHERE u.school_id = schools.id AND u.is_demo = 0), 0) as total_points')
             ->orderByDesc('total_points')
             ->get();
 
@@ -1485,16 +1492,19 @@ class SchoolAdminController extends Controller
         ];
 
         // ======== إحصائيات المعلمين ========
+        // مدرسة حقيقيّة: استثنِ معلّمي الديمو وطلاب الديمو من الترتيب. مدرسة الديمو: اعرض كاملاً.
+        $demoSql = $excludeDemo ? ' AND s.is_demo = 0 ' : '';
         $allTeachersRanked = DB::table('users')
             ->where('users.role', 'teacher')
             ->where('users.status', 'active')
+            ->when($excludeDemo, fn ($q) => $q->where('users.is_demo', false))
             ->select('users.id', 'users.name', 'users.school_id')
             ->selectRaw('COALESCE((
-                SELECT SUM(p.points) FROM points p 
-                JOIN users s ON p.user_id = s.id 
-                JOIN classroom_student cs ON s.id = cs.student_id 
-                JOIN classrooms c ON cs.classroom_id = c.id 
-                WHERE c.teacher_id = users.id
+                SELECT SUM(p.points) FROM points p
+                JOIN users s ON p.user_id = s.id
+                JOIN classroom_student cs ON s.id = cs.student_id
+                JOIN classrooms c ON cs.classroom_id = c.id
+                WHERE c.teacher_id = users.id' . $demoSql . '
             ), 0) as total_points')
             ->orderByDesc('total_points')
             ->get();
@@ -1503,13 +1513,14 @@ class SchoolAdminController extends Controller
         $monthlyTeachersRanked = DB::table('users')
             ->where('users.role', 'teacher')
             ->where('users.status', 'active')
+            ->when($excludeDemo, fn ($q) => $q->where('users.is_demo', false))
             ->select('users.id', 'users.name', 'users.school_id')
             ->selectRaw('COALESCE((
-                SELECT SUM(p.points) FROM points p 
-                JOIN users s ON p.user_id = s.id 
-                JOIN classroom_student cs ON s.id = cs.student_id 
-                JOIN classrooms c ON cs.classroom_id = c.id 
-                WHERE c.teacher_id = users.id AND p.created_at >= ?
+                SELECT SUM(p.points) FROM points p
+                JOIN users s ON p.user_id = s.id
+                JOIN classroom_student cs ON s.id = cs.student_id
+                JOIN classrooms c ON cs.classroom_id = c.id
+                WHERE c.teacher_id = users.id' . $demoSql . ' AND p.created_at >= ?
             ), 0) as monthly_points', [$now->copy()->startOfMonth()])
             ->orderByDesc('monthly_points')
             ->get();

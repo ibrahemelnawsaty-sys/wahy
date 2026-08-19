@@ -49,42 +49,47 @@ class RefreshSchoolStatistics extends Command
      */
     private function refreshSchool(School $school): void
     {
+        // كل التجميعات تستثني طلاب الديمو (users.is_demo=0) والمدارس الديمو (schools.is_demo=0)
         $totalPoints = (int) DB::table('points')
             ->join('users', 'users.id', '=', 'points.user_id')
             ->where('users.school_id', $school->id)
             ->where('users.role', 'student')
+            ->where('users.is_demo', false)
             ->sum('points.points');
 
         $monthlyPoints = (int) DB::table('points')
             ->join('users', 'users.id', '=', 'points.user_id')
             ->where('users.school_id', $school->id)
             ->where('users.role', 'student')
+            ->where('users.is_demo', false)
             ->where('points.created_at', '>=', now()->startOfMonth())
             ->sum('points.points');
 
         // platform rank
         $platformRank = School::where('status', 'active')
+            ->where('schools.is_demo', false)
             ->whereRaw(
-                '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ?) > ?',
+                '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ? AND u.is_demo = 0) > ?',
                 ['student', $totalPoints],
             )
             ->count() + 1;
 
-        $platformTotal = School::where('status', 'active')->count();
+        $platformTotal = School::where('status', 'active')->where('schools.is_demo', false)->count();
 
         // city rank (قد يكون city فارغ)
         $cityRank = null;
         $cityTotal = null;
         if (! empty($school->city)) {
             $cityRank = School::where('status', 'active')
+                ->where('schools.is_demo', false)
                 ->where('city', $school->city)
                 ->whereRaw(
-                    '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ?) > ?',
+                    '(SELECT COALESCE(SUM(p.points), 0) FROM points p JOIN users u ON u.id = p.user_id WHERE u.school_id = schools.id AND u.role = ? AND u.is_demo = 0) > ?',
                     ['student', $totalPoints],
                 )
                 ->count() + 1;
 
-            $cityTotal = School::where('status', 'active')->where('city', $school->city)->count();
+            $cityTotal = School::where('status', 'active')->where('schools.is_demo', false)->where('city', $school->city)->count();
         }
 
         // الفرق مع المخزون السابق لحساب trend
