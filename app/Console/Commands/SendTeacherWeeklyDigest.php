@@ -36,7 +36,12 @@ class SendTeacherWeeklyDigest extends Command
                         if ($classroomIds->isEmpty()) {
                             continue;
                         }
-                        $studentIds = DB::table('classroom_student')->whereIn('classroom_id', $classroomIds)->pluck('student_id')->unique();
+                        // أرقام الملخّص لا تحتسب طلاب الديمو
+                        $studentIds = DB::table('classroom_student')
+                            ->join('users', 'users.id', '=', 'classroom_student.student_id')
+                            ->whereIn('classroom_student.classroom_id', $classroomIds)
+                            ->where('users.is_demo', false)
+                            ->pluck('classroom_student.student_id')->unique();
                         if ($studentIds->isEmpty()) {
                             continue;
                         }

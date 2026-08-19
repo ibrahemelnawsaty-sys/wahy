@@ -28,7 +28,9 @@ class SendSchoolWeeklyDigest extends Command
             ->whereNotNull('school_id')->chunkById(200, function ($admins) use (&$sent, $weekAgo) {
                 foreach ($admins as $admin) {
                     try {
-                        $studentIds = User::where('role', 'student')->where('school_id', $admin->school_id)->pluck('id');
+                        // أرقام الملخّص لا تحتسب طلاب الديمو (المدير قد يتلقّى الملخّص عاديّاً)
+                        $studentIds = User::where('role', 'student')->where('school_id', $admin->school_id)
+                            ->where('is_demo', false)->pluck('id');
                         if ($studentIds->isEmpty()) {
                             continue;
                         }

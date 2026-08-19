@@ -48,7 +48,8 @@ class BadgeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Badge::withCount('users');
+        // عدّ حائزي الشارة يستثني حسابات الديمو
+        $query = Badge::withCount(['users' => fn ($q) => $q->where('users.is_demo', false)]);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -118,7 +119,7 @@ class BadgeController extends Controller
      */
     public function show(Badge $badge)
     {
-        $badge->loadCount('users');
+        $badge->loadCount(['users' => fn ($q) => $q->where('users.is_demo', false)]);
 
         return view('admin.badges.show', compact('badge'));
     }

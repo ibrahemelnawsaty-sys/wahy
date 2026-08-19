@@ -17,7 +17,9 @@ class ShopManagementController extends Controller
             'total_items' => ShopItem::count(),
             'active_items' => ShopItem::where('status', 'active')->count(),
             'sold_out' => ShopItem::where('status', 'sold_out')->count(),
-            'total_purchases' => DB::table('user_purchases')->count(),
+            'total_purchases' => DB::table('user_purchases')
+                ->join('users', 'users.id', '=', 'user_purchases.user_id')
+                ->where('users.is_demo', false)->count(),
         ];
 
         return view('admin.shop.index', compact('items', 'stats'));
