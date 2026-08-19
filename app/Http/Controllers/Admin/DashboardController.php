@@ -18,17 +18,18 @@ class DashboardController extends Controller
     public function index()
     {
         // إحصائيات عامة
+        // إحصاءات مستخدمين على مستوى المنصّة → تستثني حسابات الديمو (التسليمات عبر صاحبها الطالب)
         $stats = [
-            'total_users' => User::count(),
-            'total_schools' => School::count(),
-            'total_teachers' => User::where('role', 'teacher')->count(),
-            'total_students' => User::where('role', 'student')->count(),
-            'total_parents' => User::where('role', 'parent')->count(),
+            'total_users' => User::notDemo()->count(),
+            'total_schools' => School::notDemo()->count(),
+            'total_teachers' => User::where('role', 'teacher')->notDemo()->count(),
+            'total_students' => User::where('role', 'student')->notDemo()->count(),
+            'total_parents' => User::where('role', 'parent')->notDemo()->count(),
             'total_lessons' => Lesson::count(),
             'total_activities' => Activity::count(),
-            'total_submissions' => ActivitySubmission::count(),
-            'pending_submissions' => ActivitySubmission::where('status', 'pending')->count(),
-            'active_students' => User::where('role', 'student')->where('status', 'active')->count(),
+            'total_submissions' => ActivitySubmission::whereHas('student', fn ($q) => $q->notDemo())->count(),
+            'pending_submissions' => ActivitySubmission::where('status', 'pending')->whereHas('student', fn ($q) => $q->notDemo())->count(),
+            'active_students' => User::where('role', 'student')->where('status', 'active')->notDemo()->count(),
             'total_values' => Value::count(),
         ];
 
@@ -44,19 +45,20 @@ class DashboardController extends Controller
 
         // إحصائيات اليوم
         $today_stats = [
-            'new_users' => User::whereDate('created_at', Carbon::today())->count(),
-            'new_submissions' => ActivitySubmission::whereDate('created_at', Carbon::today())->count(),
+            'new_users' => User::notDemo()->whereDate('created_at', Carbon::today())->count(),
+            'new_submissions' => ActivitySubmission::whereHas('student', fn ($q) => $q->notDemo())->whereDate('created_at', Carbon::today())->count(),
         ];
 
-        // آخر المستخدمين
-        $recent_users = User::latest()->take(5)->get();
+        // آخر المستخدمين (تُستثنى حسابات الديمو من قائمة العرض)
+        $recent_users = User::notDemo()->latest()->take(5)->get();
 
         // آخر المدارس
-        $recent_schools = School::latest()->take(5)->get();
+        $recent_schools = School::notDemo()->latest()->take(5)->get();
 
         // آخر التقديمات المعلقة
         $pending_reviews = ActivitySubmission::with(['student', 'activity'])
             ->where('status', 'pending')
+            ->whereHas('student', fn ($q) => $q->notDemo())
             ->latest()
             ->take(5)
             ->get();
@@ -65,17 +67,17 @@ class DashboardController extends Controller
         $unread_messages_count = Message::where('is_read', false)->count();
 
         // إحصائيات الشهر الحالي vs الشهر السابق
-        $current_month_users = User::whereMonth('created_at', Carbon::now()->month)
+        $current_month_users = User::notDemo()->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->count();
-        $last_month_users = User::whereMonth('created_at', Carbon::now()->subMonth()->month)
+        $last_month_users = User::notDemo()->whereMonth('created_at', Carbon::now()->subMonth()->month)
             ->whereYear('created_at', Carbon::now()->subMonth()->year)
             ->count();
 
-        $current_month_submissions = ActivitySubmission::whereMonth('created_at', Carbon::now()->month)
+        $current_month_submissions = ActivitySubmission::whereHas('student', fn ($q) => $q->notDemo())->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->count();
-        $last_month_submissions = ActivitySubmission::whereMonth('created_at', Carbon::now()->subMonth()->month)
+        $last_month_submissions = ActivitySubmission::whereHas('student', fn ($q) => $q->notDemo())->whereMonth('created_at', Carbon::now()->subMonth()->month)
             ->whereYear('created_at', Carbon::now()->subMonth()->year)
             ->count();
 
@@ -94,7 +96,7 @@ class DashboardController extends Controller
             $date = Carbon::today()->subDays($i);
             $users_chart_data[] = [
                 'date' => $date->format('m/d'),
-                'count' => User::whereDate('created_at', $date)->count(),
+                'count' => User::notDemo()->whereDate('created_at', $date)->count(),
             ];
         }
 
@@ -104,20 +106,21 @@ class DashboardController extends Controller
             $date = Carbon::today()->subDays($i);
             $submissions_chart_data[] = [
                 'date' => $date->format('m/d'),
-                'count' => ActivitySubmission::whereDate('created_at', $date)->count(),
+                'count' => ActivitySubmission::whereHas('student', fn ($q) => $q->notDemo())->whereDate('created_at', $date)->count(),
             ];
         }
 
         // لوحة الصدارة - أفضل 5 طلاب
         $top_students = User::where('role', 'student')
+            ->notDemo()
             ->withSum('points', 'points')
             ->orderByDesc('points_sum_points')
             ->take(5)
             ->get();
 
         // أكثر المدارس نشاطاً
-        $top_schools = School::withCount(['users' => function ($query) {
-            $query->where('role', 'student');
+        $top_schools = School::notDemo()->withCount(['users' => function ($query) {
+            $query->where('role', 'student')->where('is_demo', false);
         }])
             ->orderByDesc('users_count')
             ->take(5)
@@ -147,15 +150,16 @@ class DashboardController extends Controller
     {
         $submissions = ActivitySubmission::with(['student.school', 'activity.lesson.concept.value'])
             ->where('status', 'pending')
+            ->whereHas('student', fn ($q) => $q->notDemo())
             ->latest('submitted_at')
             ->paginate(20);
 
-        // إحصائيات
+        // إحصائيات (تستثني تسليمات حسابات الديمو)
         $stats = [
-            'total_pending' => ActivitySubmission::where('status', 'pending')->count(),
-            'today_pending' => ActivitySubmission::where('status', 'pending')
+            'total_pending' => ActivitySubmission::where('status', 'pending')->whereHas('student', fn ($q) => $q->notDemo())->count(),
+            'today_pending' => ActivitySubmission::where('status', 'pending')->whereHas('student', fn ($q) => $q->notDemo())
                 ->whereDate('submitted_at', Carbon::today())->count(),
-            'week_pending' => ActivitySubmission::where('status', 'pending')
+            'week_pending' => ActivitySubmission::where('status', 'pending')->whereHas('student', fn ($q) => $q->notDemo())
                 ->where('submitted_at', '>=', Carbon::now()->subWeek())->count(),
         ];
 

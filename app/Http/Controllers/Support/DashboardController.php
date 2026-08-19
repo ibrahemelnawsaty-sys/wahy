@@ -21,7 +21,7 @@ class DashboardController extends Controller
             'resolved_tickets' => SupportTicket::where('status', SupportTicket::STATUS_RESOLVED)->count(),
             'closed_tickets' => SupportTicket::where('status', SupportTicket::STATUS_CLOSED)->count(),
             'escalated_tickets' => SupportTicket::where('escalated', true)->count(),
-            'total_users' => User::count(),
+            'total_users' => User::notDemo()->count(),
             'my_resolved' => SupportTicket::where('resolved_by', Auth::id())
                 ->where('status', SupportTicket::STATUS_RESOLVED)
                 ->count(),

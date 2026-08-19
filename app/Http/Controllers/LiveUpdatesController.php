@@ -36,7 +36,9 @@ class LiveUpdatesController extends Controller
 
         // ── admin / super-admin (عدّادات عالمية) ──
         if ($role === 'admin' || $role === 'super_admin') {
-            $pendingSubs = $safe(fn () => \App\Models\ActivitySubmission::where('status', 'pending')->count());
+            // تستثني تسليمات حسابات الديمو — تطابق شارة الرأس (HeaderDataComposer)
+            $pendingSubs = $safe(fn () => \App\Models\ActivitySubmission::where('status', 'pending')
+                ->whereHas('student', fn ($q) => $q->notDemo())->count());
             $counts['admin_pending_submissions'] = $pendingSubs;
             $counts['header_new_submissions'] = $pendingSubs;
             $counts['activity_submissions_pending'] = $pendingSubs;
@@ -49,7 +51,7 @@ class LiveUpdatesController extends Controller
             $adminPendingActivities = fn () => \App\Models\Activity::whereNotNull('created_by')
                 ->where('approval_status', 'pending')
                 ->where('school_approval_status', 'approved')
-                ->whereHas('creator', fn ($q) => $q->where('role', 'teacher'))
+                ->whereHas('creator', fn ($q) => $q->where('role', 'teacher')->where('is_demo', false))
                 ->count();
             $counts['activity_approval_pending'] = $safe($adminPendingActivities);
             $counts['activity_bank_pending'] = $safe(fn () => (

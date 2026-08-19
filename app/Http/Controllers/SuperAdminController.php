@@ -1054,11 +1054,13 @@ class SuperAdminController extends Controller
     public function featuredActivities()
     {
         $submissions = \App\Models\ActivitySubmission::where('is_featured', true)
+            ->whereHas('student', fn ($q) => $q->notDemo()) // استثناء تسليمات حسابات الديمو
             ->with(['student', 'featuredBy', 'activity.lesson.concept.value'])
             ->latest('featured_at')
             ->paginate(15);
 
-        $base = fn () => \App\Models\ActivitySubmission::where('is_featured', true);
+        $base = fn () => \App\Models\ActivitySubmission::where('is_featured', true)
+            ->whereHas('student', fn ($q) => $q->notDemo());
         $stats = [
             'total_featured' => $base()->count(),
             'this_month' => $base()->whereMonth('featured_at', now()->month)->whereYear('featured_at', now()->year)->count(),
@@ -1119,6 +1121,7 @@ class SuperAdminController extends Controller
             ->whereNotNull('user_id')
             ->where('last_activity', '>=', $onlineThreshold)
             ->join('users', 'sessions.user_id', '=', 'users.id')
+            ->where('users.is_demo', false) // استثناء حسابات الديمو من لوحة المتصلين
             ->leftJoin('schools', 'users.school_id', '=', 'schools.id')
             ->select([
                 'users.id',

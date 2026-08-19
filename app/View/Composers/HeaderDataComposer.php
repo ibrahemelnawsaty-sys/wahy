@@ -27,6 +27,7 @@ class HeaderDataComposer
         try {
             $newUsersCount = RegistrationRequest::where('status', 'pending')->count()
                 + User::where('id', '!=', auth()->id()) // لا يَعدّ المسؤول الحاليّ نفسه
+                    ->where('is_demo', false)           // استثناء حسابات الديمو
                     ->where(function ($q) {
                         $q->where('status', 'inactive')
                             ->orWhere('created_at', '>=', now()->subDays(7));
@@ -35,8 +36,9 @@ class HeaderDataComposer
             $newUsersCount = 0;
         }
 
-        // عدد التقديمات المعلقة
-        $newSubmissionsCount = ActivitySubmission::where('status', 'pending')->count();
+        // عدد التقديمات المعلقة (تستثني تسليمات حسابات الديمو — طابِق LiveUpdatesController)
+        $newSubmissionsCount = ActivitySubmission::where('status', 'pending')
+            ->whereHas('student', fn ($q) => $q->notDemo())->count();
 
         // تذاكر الدعم المُصعّدة العالقة (مفتوحة/تم الرد) — تظهر كتنبيه للسوبر أدمن.
         // مغلّفة بـtry/catch لأنّ الجدول قد لا يكون مُرحّلاً بعد على الإنتاج (وإلا ينكسر كل لوحات الأدمن).
@@ -54,7 +56,7 @@ class HeaderDataComposer
             $pendingActivitiesCount = Activity::whereNotNull('created_by')
                 ->where('school_approval_status', 'approved')
                 ->where('approval_status', 'pending')
-                ->whereHas('creator', fn ($q) => $q->where('role', 'teacher'))
+                ->whereHas('creator', fn ($q) => $q->where('role', 'teacher')->where('is_demo', false))
                 ->count();
         } catch (\Throwable $e) {
             $pendingActivitiesCount = 0;
