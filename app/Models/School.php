@@ -35,6 +35,7 @@ class School extends Model
         'qr_code',
         'created_by',
         'status',
+        'is_demo',
         'teacher_token',
         'student_token',
         'parent_token',
@@ -50,7 +51,16 @@ class School extends Model
         'enable_teacher_registration' => 'boolean',
         'enable_student_registration' => 'boolean',
         'enable_parent_registration' => 'boolean',
+        'is_demo' => 'boolean',
     ];
+
+    /**
+     * Scope: استبعاد مدرسة الديمو نفسها من صدارة/عدّ/مقامات المدارس على مستوى المنصّة.
+     */
+    public function scopeNotDemo($query)
+    {
+        return $query->where('schools.is_demo', false);
+    }
 
     /**
      * العلاقة مع الفروع

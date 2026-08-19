@@ -61,6 +61,12 @@ class User extends Authenticatable
                 }
             }
 
+            // علم الديمو للسوبر أدمن حصراً — أضيق من $sensitive (التي تعتبر school_admin مصرّحاً)،
+            // لأنّ استثناء إحصاءات المنصّة قرارٌ على مستوى المنصّة لا المدرسة.
+            if ($user->isDirty('is_demo') && ! $actor?->hasSuperAdminRole()) {
+                abort(403, 'تعديل علم الديمو مقصور على السوبر أدمن');
+            }
+
             // The privilege-GRANTING fields stay strictly admin-only.
             $sensitive = ['role', 'school_id', 'status', 'secondary_roles', 'password_change_required'];
             if (collect($sensitive)->filter(fn ($field) => $user->isDirty($field))->isEmpty()) {
@@ -72,6 +78,16 @@ class User extends Authenticatable
             }
 
             abort(403, 'غير مصرح بتعديل حقول حساسة في حساب المستخدم');
+        });
+
+        // وراثة علم الديمو من المدرسة عند الإنشاء — مصدرٌ واحد يغطّي كلّ مواقع إنشاء المستخدم
+        // (متحكّمات الأدمن/مدير المدرسة، الاستيراد الجماعيّ) دفعةً واحدة. لا يُرقّي حساباً موجوداً،
+        // ولا يُنزل علماً مضبوطاً صراحةً (يحترم is_demo=true المُمرَّر).
+        static::creating(function (self $user) {
+            if (empty($user->is_demo) && $user->school_id
+                && School::whereKey($user->school_id)->value('is_demo')) {
+                $user->is_demo = true;
+            }
         });
     }
 
@@ -95,6 +111,7 @@ class User extends Authenticatable
         'notifications_enabled',
         'birth_date',
         'status',
+        'is_demo',
         'two_factor_enabled',
         'two_factor_code',
         'two_factor_expires_at',
@@ -127,6 +144,7 @@ class User extends Authenticatable
             'two_factor_expires_at' => 'datetime',
             'secondary_roles' => 'array',
             'notifications_enabled' => 'boolean',
+            'is_demo' => 'boolean',
         ];
     }
 
@@ -138,6 +156,16 @@ class User extends Authenticatable
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope: استبعاد حسابات الديمو من التجميعات/الصدارة/التقارير على مستوى المنصّة.
+     * الاسمُ مؤهَّلٌ بالجدول (users.is_demo) لينجو داخل الـ join (تفادي عمود مبهم على MySQL).
+     * ملاحظة: لا global scope — الديمو حسابٌ كامل الوظيفة؛ الاستثناء صريحٌ في مواقع التجميع فقط.
+     */
+    public function scopeNotDemo(Builder $query): Builder
+    {
+        return $query->where($query->getModel()->getTable() . '.is_demo', false);
     }
 
     /**
