@@ -88,15 +88,17 @@ class PreviewActivityVisibilityTest extends TestCase
     }
 
     /** السوبر أدمن يتجاوز role:teacher فيصل هنا — يُحوَّل لصفحته لا لطبقة المعلّم (تسريب واجهة). */
-    public function test_super_admin_is_redirected_to_admin_view(): void
+    public function test_super_admin_cannot_reach_teacher_preview_route(): void
     {
         $school = School::factory()->create();
         $teacher = User::factory()->teacher($school)->create();
         $activity = Activity::factory()->create(['created_by' => $teacher->id]);
 
+        // عزل الأدوار (docs/ROLE_ISOLATION_AUDIT.md): السوبر أدمن لم يعد يخترق مسارات المعلّم —
+        // يعاين النشاط من لوحته مباشرةً (admin.activities.show)، ومسار المعلّم يُصدّه بـ403.
         $admin = User::factory()->create(['role' => 'super_admin']);
         $this->actingAs($admin)
             ->get(route('teacher.activities.preview', $activity->id))
-            ->assertRedirect(route('admin.activities.show', $activity->id));
+            ->assertForbidden();
     }
 }

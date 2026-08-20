@@ -37,10 +37,10 @@ class CheckRole
 
         $hasPermission = in_array($activeRole, $roles) || ! empty(array_intersect($userRoles, $roles));
 
-        // السوبر آدمن لديه صلاحية الوصول لكل المسارات (يستطيع إنشاء/مراجعة محتوى المعلم)
-        if (! $hasPermission && in_array('super_admin', $userRoles, true)) {
-            $hasPermission = true;
-        }
+        // ملاحظة: لا تجاوز شامل للسوبر أدمن هنا — كان يُدخِله تجارب الأدوار (طالب/معلّم/وليّ) بحسابه
+        // فتُعرَض لوحة الطالب لمدير النظام عبر تغيير الرابط، ويستطيع الفعل كطالب (تسريب عزل الأدوار).
+        // مراجعة محتوى المعلّم/الاعتماد تعيش أصلاً تحت /admin (بوّابة can:access-admin). إن لزم لاحقاً
+        // وصولٌ صريح لمجموعةٍ بعينها، يُضاف super_admin لقائمة role: لتلك المجموعة في routes/web.php.
 
         if (! $hasPermission) {
             abort(403, 'ليس لديك صلاحية للوصول لهذه الصفحة');

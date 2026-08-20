@@ -207,19 +207,6 @@
                 </div>
                 
                 <div class="admin-nav-section">
-                    <div class="admin-nav-title">الاختبارات</div>
-                    <ul class="admin-nav-list">
-                        <li class="admin-nav-item">
-                            <a href="{{ route('school-admin.test-notifications') }}" 
-                               class="admin-nav-link {{ request()->routeIs('school-admin.test-notifications') ? 'active' : '' }}">
-                                <span class="admin-nav-icon">🔔</span>
-                                <span class="admin-nav-text">اختبار الإشعارات</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="admin-nav-section">
                     <div class="admin-nav-title">الإشعارات</div>
                     <ul class="admin-nav-list">
                         <li class="admin-nav-item">

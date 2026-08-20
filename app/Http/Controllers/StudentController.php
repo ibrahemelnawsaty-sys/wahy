@@ -926,6 +926,13 @@ class StudentController extends Controller
     {
         try {
             $student = Auth::user();
+
+            // دفاع في العمق: التسليم حصريّ لمن يملك دور الطالب — يمنع أيّ حسابٍ آخر (مثل مدير النظام
+            // لو تجاوز الحرّاس) من الفعل كطالب وسكّ نقاط/عملات لحسابه (عزل الأدوار).
+            if (! in_array('student', $student->getAllRoles(), true)) {
+                return response()->json(['success' => false, 'message' => 'هذا الإجراء متاح للطلاب فقط'], 403);
+            }
+
             $activity = Activity::findOrFail($id);
 
             // ✅ Authorization: تحقق أن النشاط ضمن قيمة مفعّلة لمدرسة الطالب

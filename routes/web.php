@@ -762,7 +762,9 @@ Route::middleware('auth')->group(function () {
 
     // ==================== لوحة الدعم الفنيّ ====================
     // محروسة role:technical_support (والسوبر أدمن يمرّ تلقائياً عبر CheckRole). بلا school.access.
-    Route::prefix('support')->name('support.')->middleware(['role:technical_support'])->group(function () {
+    // السوبر أدمن يُدار تذاكر الدعم من هنا (تُعرَض بقشرة الأدمن) ويستقبل المُصعَّدة — منحٌ صريح
+    // مقصور على هذه المجموعة (بديل تجاوز CheckRole الشامل المُزال؛ لا يفتح تجارب الأدوار الأخرى).
+    Route::prefix('support')->name('support.')->middleware(['role:technical_support,super_admin'])->group(function () {
         Route::get('/dashboard', [SupportDashboardController::class, 'index'])->name('dashboard');
 
         // إدارة التذاكر
