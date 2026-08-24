@@ -7,17 +7,19 @@
 {{-- كتلة حماية: تخفي كل المحتوى أسفل الاستبيان --}}
 <div id="surveyBlockingLayer" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f172a; z-index: 99998;"></div>
 
-<div id="surveyPopupOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.95); z-index: 99999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-    <div id="surveyPopupContainer" style="background: white; border-radius: 20px; max-width: 600px; width: 95%; max-height: 90vh; max-height: 90dvh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: popupSlideIn 0.4s ease-out;">
+{{-- overflow-y:auto + margin:auto بدل align-items:center وحدها: التوسيط بالفلكس يقصّ
+         أعلى المحتوى إن تجاوز الشاشة ولا يمكن التمرير إليه — فخّ معروف. --}}
+    <div id="surveyPopupOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.95); z-index: 99999; display: flex; justify-content: center; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; backdrop-filter: blur(10px);">
+    <div id="surveyPopupContainer" style="background: white; border-radius: 20px; margin: auto; max-width: 600px; width: 95%; max-height: 90vh; max-height: 90dvh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: popupSlideIn 0.4s ease-out;">
         
         @foreach($pendingSurveys as $index => $survey)
         {{-- data-order: الانتقال للتالي يعتمد الترتيب الصريح، لا استنتاجه من style (انظر nextInQueue) --}}
         <div class="survey-form" data-survey-id="{{ $survey->id }}" data-order="{{ $index }}"
              style="{{ $index > 0 ? 'display: none;' : 'display: flex;' }} flex-direction: column; min-height: 0; max-height: 100%;">
             <!-- Header -->
-            <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 25px 30px; flex-shrink: 0;">
+            <div class="survey-popup-header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 25px 30px; flex-shrink: 0;">
                 <div style="display: flex; align-items: center; gap: 15px;">
-                    <div style="font-size: 40px;">📋</div>
+                    <div class="survey-popup-emoji" style="font-size: 40px;">📋</div>
                     <div>
                         <h2 style="margin: 0; font-size: 22px;">{{ $survey->title }}</h2>
                         @if($survey->description)
@@ -25,7 +27,7 @@
                         @endif
                     </div>
                 </div>
-                <div style="margin-top: 15px; background: rgba(255,255,255,0.2); padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+                <div class="survey-popup-note" style="margin-top: 15px; background: rgba(255,255,255,0.2); padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 600;">
                     🔒 هذا الاستبيان إجباري ولا يمكن تخطيه. يرجى الإجابة على جميع الأسئلة للمتابعة في استخدام المنصة.
                 </div>
             </div>
@@ -51,7 +53,7 @@
                             @case('text')
                                 <input type="text" name="answers[{{ $question->id }}]" 
                                        {{ $question->is_required ? 'required' : '' }}
-                                       style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; transition: border-color 0.2s;"
+                                       style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; transition: border-color 0.2s;"
                                        onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"
                                        placeholder="اكتب إجابتك هنا...">
                                 @break
@@ -59,7 +61,7 @@
                             @case('textarea')
                                 <textarea name="answers[{{ $question->id }}]" rows="3"
                                           {{ $question->is_required ? 'required' : '' }}
-                                          style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: vertical; transition: border-color 0.2s;"
+                                          style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; resize: vertical; transition: border-color 0.2s;"
                                           onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"
                                           placeholder="اكتب إجابتك هنا..."></textarea>
                                 @break
@@ -94,7 +96,7 @@
                             @case('select')
                                 <select name="answers[{{ $question->id }}]" 
                                         {{ $question->is_required ? 'required' : '' }}
-                                        style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                        style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; background: white;">
                                     <option value="">اختر إجابة...</option>
                                     @foreach($question->options ?? [] as $option)
                                     <option value="{{ $option }}">{{ $option }}</option>
@@ -198,6 +200,27 @@
 }
 
 /* إخفاء scrollbar لمنع التفاعل مع الصفحة */
+/* ===== الجوّال =====
+   القالب كلّه مقاسات سطح مكتب مثبَّتة inline، فنُصغّرها هنا بـ!important (الـinline يغلب
+   الورقة). الهدف: تقليص الترويسة والحشوات ليتّسع مكان الأسئلة ويبقى الزرّ في المرئيّ بلا
+   أيّ حاجة لتصغير الصفحة يدويّاً. */
+@media (max-width: 480px) {
+    #surveyPopupContainer { width: 100% !important; max-height: 96dvh !important; border-radius: 16px !important; }
+    .survey-popup-header { padding: 16px 18px !important; }
+    .survey-popup-header h2 { font-size: 18px !important; }
+    .survey-popup-emoji { font-size: 28px !important; }
+    .survey-popup-note { font-size: 12px !important; padding: 9px 12px !important; margin-top: 10px !important; }
+    .survey-body { padding: 16px 18px !important; }
+    .survey-footer { padding: 14px 18px !important; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
+    .survey-footer button { flex: 1 1 auto; padding: 14px 20px !important; }
+}
+
+/* الأجهزة القصيرة جدّاً (أو بعد دوران الشاشة): الترويسة تنكمش أكثر لصالح الأسئلة والزرّ. */
+@media (max-height: 620px) {
+    .survey-popup-note { display: none !important; }
+    .survey-popup-header { padding: 12px 18px !important; }
+}
+
 body.survey-locked {
     overflow: hidden !important;
     pointer-events: none !important;

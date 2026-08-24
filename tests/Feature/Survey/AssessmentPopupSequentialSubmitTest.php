@@ -313,4 +313,66 @@ class AssessmentPopupSequentialSubmitTest extends TestCase
         $this->assertStringContainsString("next.style.display = 'flex'", $html);
         $this->assertStringNotContainsString("next.style.display = 'block'", $html, 'block يكسر عمود الفلكس');
     }
+
+    // ---------------- تجربة الجوّال ----------------
+
+    public function test_form_controls_never_trigger_ios_auto_zoom(): void
+    {
+        // العطل المُبلَّغ عنه: «تظهر كبيرة ويضطرّ للتصغير ليرى الزرّ».
+        // السبب: iOS Safari يُكبّر الصفحة تلقائيّاً عند التركيز على حقلٍ خطُّه < 16px،
+        // فيخرج الزرّ خارج المنطقة المرئيّة. الحدّ 16px هو العتبة التي يتوقّف عندها التكبير.
+        $student = $this->student();
+        $survey = $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+        foreach (['textarea', 'select'] as $i => $type) {
+            $survey->questions()->create([
+                'question_text' => 'سؤال ' . $type,
+                'question_type' => $type,
+                'options' => ['أ', 'ب'],
+                'is_required' => false,
+                'order' => 10 + $i,
+            ]);
+        }
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))->assertOk()->getContent();
+
+        // نقتصر على وسوم الإدخال داخل النافذة (هي وحدها ما يُكبّره iOS).
+        preg_match_all('/<(input|textarea|select)\b[^>]*style="([^"]*)"/i', $html, $m, PREG_SET_ORDER);
+        $small = [];
+        foreach ($m as $tag) {
+            if (preg_match('/font-size:\s*(\d+)px/i', $tag[2], $f) && (int) $f[1] < 16) {
+                $small[] = $tag[1] . ' @ ' . $f[1] . 'px';
+            }
+        }
+
+        $this->assertSame([], $small, 'حقول تحت 16px تُسبّب تكبير iOS: ' . implode(', ', $small));
+    }
+
+    public function test_popup_is_reachable_by_scrolling_if_it_ever_overflows(): void
+    {
+        // شبكة أمان: لو تجاوز المحتوى الشاشة لأيّ سبب (تكبير، سؤال طويل، خطّ أكبر)
+        // يجب أن يستطيع الطالب التمرير للوصول للزرّ لا أن يُحبس.
+        $student = $this->student();
+        $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression(
+            '/id="surveyPopupOverlay"[^>]*overflow-y:\s*auto/',
+            $html,
+            'الطبقة الحاجبة يجب أن تكون قابلة للتمرير',
+        );
+    }
+
+    public function test_popup_has_responsive_rules_for_small_screens(): void
+    {
+        $student = $this->student();
+        $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))->assertOk()->getContent();
+
+        $this->assertStringContainsString('@media (max-width: 480px)', $html, 'لا قواعد استجابة للجوّال');
+    }
 }
