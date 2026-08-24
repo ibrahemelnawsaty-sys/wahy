@@ -275,4 +275,42 @@ class AssessmentPopupSequentialSubmitTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['token']);
     }
+
+    // ---------------- تخطيط الجوّال: زرّ الإرسال يجب ألّا يُقصّ ----------------
+
+    public function test_submit_button_is_never_clipped_on_small_screens(): void
+    {
+        // العطل المُبلَّغ عنه: على بعض الجوّالات لا يظهر زرّ «إرسال الإجابات» إطلاقاً.
+        // السبب: الحاويّة `max-height:90vh; overflow:hidden` ومنطقة الأسئلة مثبَّتة على
+        // `max-height:50vh` لا تتقلّص — فترويسة طويلة + 50vh + تذييل تتجاوز 90vh فيُقصّ التذييل.
+        $student = $this->student();
+        $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))->assertOk()->getContent();
+
+        $this->assertStringNotContainsString(
+            'max-height: 50vh',
+            $html,
+            'ارتفاع الأسئلة الثابت يدفع التذييل خارج الحاويّة',
+        );
+        $this->assertStringContainsString('survey-body', $html, 'منطقة الأسئلة تتمدّد وتتقلّص');
+        $this->assertStringContainsString('survey-footer', $html, 'التذييل ثابت لا يُقصّ');
+        $this->assertStringContainsString('dvh', $html, 'ارتفاع يراعي شريط عنوان الجوّال');
+    }
+
+    public function test_advancing_keeps_the_flex_layout(): void
+    {
+        // إظهار التالي بـdisplay:block يكسر عمود الفلكس فيعود القصّ — يجب أن يكون flex.
+        $student = $this->student();
+        $this->assessment('pre', ['value_id' => $this->value->id]);
+        $this->assessment('pre', ['lesson_id' => $this->lesson->id]);
+
+        $html = (string) $this->actingAs($student)
+            ->get(route('student.lesson', $this->lesson->id))->assertOk()->getContent();
+
+        // يخصّ نموذج الاستبيان التالي وحده — رسالة النجاح block بحقّ (ليست عمود فلكس).
+        $this->assertStringContainsString("next.style.display = 'flex'", $html);
+        $this->assertStringNotContainsString("next.style.display = 'block'", $html, 'block يكسر عمود الفلكس');
+    }
 }

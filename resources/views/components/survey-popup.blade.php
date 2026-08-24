@@ -8,13 +8,14 @@
 <div id="surveyBlockingLayer" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f172a; z-index: 99998;"></div>
 
 <div id="surveyPopupOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.95); z-index: 99999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-    <div id="surveyPopupContainer" style="background: white; border-radius: 20px; max-width: 600px; width: 95%; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: popupSlideIn 0.4s ease-out;">
+    <div id="surveyPopupContainer" style="background: white; border-radius: 20px; max-width: 600px; width: 95%; max-height: 90vh; max-height: 90dvh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: popupSlideIn 0.4s ease-out;">
         
         @foreach($pendingSurveys as $index => $survey)
         {{-- data-order: الانتقال للتالي يعتمد الترتيب الصريح، لا استنتاجه من style (انظر nextInQueue) --}}
-        <div class="survey-form" data-survey-id="{{ $survey->id }}" data-order="{{ $index }}" style="{{ $index > 0 ? 'display: none;' : '' }}">
+        <div class="survey-form" data-survey-id="{{ $survey->id }}" data-order="{{ $index }}"
+             style="{{ $index > 0 ? 'display: none;' : 'display: flex;' }} flex-direction: column; min-height: 0; max-height: 100%;">
             <!-- Header -->
-            <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 25px 30px;">
+            <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 25px 30px; flex-shrink: 0;">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <div style="font-size: 40px;">📋</div>
                     <div>
@@ -30,7 +31,7 @@
             </div>
 
             <!-- Questions -->
-            <div style="padding: 25px 30px; max-height: 50vh; overflow-y: auto;">
+            <div class="survey-body" style="padding: 25px 30px; flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <form id="surveyForm-{{ $survey->id }}" class="survey-questions-form">
                     @csrf
                     @foreach($survey->questions as $qIndex => $question)
@@ -143,7 +144,7 @@
             </div>
 
             <!-- Footer -->
-            <div style="padding: 20px 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+            <div class="survey-footer" style="padding: 20px 30px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0;">
                 <div style="font-size: 13px; color: #6b7280;">
                     الاستبيان {{ $index + 1 }} من {{ $pendingSurveys->count() }}
                 </div>
@@ -534,7 +535,7 @@ function advanceQueue(surveyId, hasMore) {
     const next = document.querySelector('.survey-form[data-order="' + nextOrder + '"]');
 
     if (hasMore && next) {
-        next.style.display = 'block';
+        next.style.display = 'flex';
         next.scrollIntoView({ block: 'start' });
         return;
     }
