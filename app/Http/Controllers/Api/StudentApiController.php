@@ -234,6 +234,17 @@ class StudentApiController extends Controller
             ], 403);
         }
 
+        // ختمُ بدءِ المؤقّت للاختبار الموقوت (L9): الجوّال عديم الحالة (sanctum) فلا session كالويب —
+        // نُسجّل وقت البدء في الكاش عند «فتح» الاختبار (أوّل جلب) ليُفرَض الحدّ الزمنيّ خادميّاً عند
+        // الإرسال. Cache::add يضبطه مرّةً واحدة فقط (لا يُعاد ضبطه بإعادة الجلب — كنظير session->has).
+        if (($activity->quiz_duration ?? null) && $activity->type === 'quiz') {
+            \Illuminate\Support\Facades\Cache::add(
+                "quiz_start:{$user->id}:{$activity->id}",
+                now()->timestamp,
+                now()->addSeconds((int) $activity->quiz_duration * 60 + 3600),
+            );
+        }
+
         $submission = $activity->submissions()
             ->where('student_id', $user->id)
             ->first();
@@ -346,6 +357,20 @@ class StudentApiController extends Controller
                 'success' => false,
                 'message' => 'يجب إكمال التقييم القبليّ قبل تسليم أنشطة الدرس',
             ], 403);
+        }
+
+        // الحدّ الزمنيّ للاختبار الموقوت (L9، توحيد مع الويب): يُفرَض بختم البدء المخزَّن في الكاش
+        // (لا يتحكّم به العميل). بلا ختمٍ = لم يُفتَح الاختبار → رفض؛ وتجاوز المدّة → رفض.
+        if (($activity->quiz_duration ?? null) && $activity->type === 'quiz') {
+            $startedAt = \Illuminate\Support\Facades\Cache::get("quiz_start:{$user->id}:{$id}");
+            if (! $startedAt) {
+                return response()->json(['success' => false, 'message' => 'يجب فتح الاختبار لبدء المؤقّت قبل الإرسال.'], 422);
+            }
+            if ((now()->timestamp - (int) $startedAt) > (((int) $activity->quiz_duration) * 60 + 10)) {
+                \Illuminate\Support\Facades\Cache::forget("quiz_start:{$user->id}:{$id}");
+
+                return response()->json(['success' => false, 'message' => 'انتهى الوقت المحدد لهذا الاختبار.'], 422);
+            }
         }
 
         // #13 توحيد مع الويب: احترام حدّ المحاولات ومنع إعادة فتح تسليمٍ نهائيّ. الجوّال لا يُصحّح

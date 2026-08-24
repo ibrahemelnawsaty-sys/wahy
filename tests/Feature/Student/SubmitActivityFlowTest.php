@@ -103,6 +103,16 @@ class SubmitActivityFlowTest extends TestCase
      */
     public function test_points_distribution_creates_records_for_teacher_parent_school(): void
     {
+        // المسار الحقيقيّ: نقاط الطالب مكتوبةٌ في الدفتر قبل التوزيع. بعد توحيد نقاط المعلّم على
+        // TeacherPoint::updateTeacherPoints (L4) صار يُحسب 10% من دفتر الطالب — فالاستدعاء المعزول
+        // بلا دفترٍ يعطي 0. نُغذّي الدفتر بـ100 ليطابق تدفّق الإنتاج (المعلّم لم يُنشئ أنشطة → بلا مكافأة).
+        \App\Models\Point::create([
+            'user_id' => $this->student->id,
+            'points' => 100,
+            'reason' => 'seed',
+            'activity_id' => $this->activity->id,
+        ]);
+
         $service = app(PointsDistributionService::class);
 
         $service->distribute(

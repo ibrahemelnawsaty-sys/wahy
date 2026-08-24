@@ -83,22 +83,11 @@ class PointsDistributionService
             return;
         }
 
-        $teacherPoints = max(1, (int) floor($points * self::TEACHER_PERCENTAGE));
-
-        // teacher_points فيه قيد unique(teacher_id) — صف واحد مجمّع لكل معلم.
-        $tp = TeacherPoint::firstOrCreate(
-            ['teacher_id' => $teacher->id],
-            [
-                'points' => 0,
-                'students_total_points' => 0,
-                'students_count' => 0,
-                'activities_created' => 0,
-                'questions_approved' => 0,
-            ],
-        );
-        $tp->increment('points', $teacherPoints);
-        $tp->increment('students_total_points', $points);
-        $tp->increment('students_count', 1);
+        // مصدرٌ واحد لنقاط المعلّم (L4): إعادة حسابٍ موثوقة عبر TeacherPoint::updateTeacherPoints
+        // (10% من مجموع نقاط طلابه الحقيقيّين + مكافآت الأنشطة/الأسئلة، مع استثناء الديمو). كانت
+        // الزيادة التدريجيّة هنا بصيغةٍ مختلفة (بلا مكافآت) تُذبذِب القيمة كلّما أعاد updateTeacherPoints
+        // الحسابَ من مسارٍ آخر (اعتماد سؤال/نشاط) — كاتبان متضاربان على نفس العمود.
+        TeacherPoint::updateTeacherPoints($teacher->id);
     }
 
     private function awardParent(User $student, int $points, string $source, string $description): void
