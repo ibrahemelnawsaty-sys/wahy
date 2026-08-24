@@ -71,6 +71,39 @@ class Survey extends Model
     }
 
     /**
+     * بوّابة التقييم القبليّ الحاجبة — مصدرٌ واحد يشاركه مسار الويب والجوّال (كان محصوراً في
+     * StudentController فيتجاوزه POST الجوّال). يُرجع الاستبيان الحاجب أو null.
+     *  • لا يحجب إلّا استبيانٌ إلزاميّ/نافذة **ذو سؤالٍ واحد على الأقلّ** (وإلّا قفلٌ أبديّ).
+     *  • البعديّ لا يحجب (قفل دائريّ). التطبيق يفرض النافذة/الاستهداف داخل pending*SurveyFor.
+     *
+     * @param  \App\Models\User|null  $user
+     * @param  \App\Models\Lesson|null  $lesson
+     */
+    public static function blockingPreAssessmentFor($user, $lesson): ?self
+    {
+        if (! $user || $user->role !== 'student' || ! $lesson) {
+            return null;
+        }
+
+        $candidates = [self::pendingLessonSurveyFor($user, $lesson->id, 'pre')];
+        $valueId = optional(optional($lesson->concept)->value)->id;
+        if ($valueId) {
+            $candidates[] = self::pendingValueSurveyFor($user, $valueId, 'pre');
+        }
+
+        foreach ($candidates as $survey) {
+            if (! $survey || ! ($survey->is_mandatory || $survey->is_popup)) {
+                continue;
+            }
+            if ($survey->questions()->exists()) { // صمّام الأمان: بلا أسئلة لا يُحجب به أحد
+                return $survey;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * هل هو استبيان بعدي؟
      */
     public function isPostAssessment(): bool

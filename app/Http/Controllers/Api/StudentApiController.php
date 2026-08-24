@@ -339,83 +339,105 @@ class StudentApiController extends Controller
             'file' => 'sometimes|' . $activity->submissionFileRule(),
         ]);
 
+        // بوّابة التقييم القبليّ الإجباريّ (توحيد مع الويب M6): كان الجوّال يتجاوزها فيسلّم أنشطة
+        // درسٍ عليه تقييمٌ قبليّ إجباريّ دون إكماله ويكسب النقاط. المصدر الواحد على موديل Survey.
+        if (\App\Models\Survey::blockingPreAssessmentFor($user, $activity->lesson)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يجب إكمال التقييم القبليّ قبل تسليم أنشطة الدرس',
+            ], 403);
+        }
+
         // #13 توحيد مع الويب: احترام حدّ المحاولات ومنع إعادة فتح تسليمٍ نهائيّ. الجوّال لا يُصحّح
         // آليًّا (يضبط pending دائمًا)، فنقصر الإعادة على الحالات غير المُصحَّحة/غير النهائيّة
         // (pending/needs_review/rejected) — لا نُعيد فتح completed (ناجح، سنُنزله بلا تصحيح) ولا
         // approved (معتمَد نهائيًّا). كان يحجب completed فقط ويتجاهل max_attempts (التفاف على الميزة).
         $maxAttempts = max(1, (int) ($activity->max_attempts ?? 1));
 
-        $existing = ActivitySubmission::where('activity_id', $id)
-            ->where('student_id', $user->id)
-            ->first();
-
-        if ($existing) {
-            $resubmittable = in_array($existing->status, ['needs_review', 'rejected', 'pending'], true);
-            if (! $resubmittable) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'لا يمكن إعادة تسليم هذا النشاط',
-                ], 400);
-            }
-            if ((int) ($existing->attempts ?? 1) >= $maxAttempts) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'استنفدت عدد محاولاتك لهذا النشاط (' . $maxAttempts . ').',
-                ], 400);
-            }
-        }
-
-        // التصحيح الآليّ + الحالة (توحيد مع الويب) — كان الجوّال يضبط pending دائماً بلا تصحيح ولا
-        // نقاط، فتُترك تسليمات الجوّال معلّقةً أبداً. grade يقبل مصفوفة answers عبر normalizeAnswer.
-        $score = \App\Services\ActivityGradingService::grade($activity, $request->answers);
-        $passing = \App\Services\ActivityGradingService::passingScoreFor($activity);
-        $passed = ($score !== null && $score >= $passing);
-        $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
-
-        // تأجيل حتى موافقة الوليّ (#23) كالويب: لا إكمال ولا منح قبل موافقة الوليّ.
-        // حارس (نفس الويب): لا نؤجّل لوليٍّ غير موجود — طالبٌ بلا وليّ يمرّ مباشرةً بلا حبس.
-        $deferForParent = (bool) $activity->requires_parent_approval && $user->parents()->exists();
-        if ($deferForParent) {
-            $status = 'pending';
-        }
-
-        // #13 عدم تدهور: إن كانت للمحاولة السابقة درجةٌ أفضل، لا نُنزل الدرجة/الحالة/الإجابة (نُزيد المحاولة فقط).
-        $keepsBest = $existing && $score !== null && $existing->score !== null && $score < (int) $existing->score;
-
-        $data = [
-            'activity_id' => $id,
-            'student_id' => $user->id,
-            // العمود الفعلي 'answer' (مفرد، نصّي) — نُرمّزه JSON بنفس اصطلاح الويب
-            'answer' => json_encode($request->answers, JSON_UNESCAPED_UNICODE),
-            'status' => $status,
-            'score' => $score,
-            // ميزة #23 (كالويب): نشاط يتطلّب موافقة وليّ الأمر لا يدخل طابور المعلّم إلا بموافقته.
-            // (يُضبط فقط إن كان للطالب وليٌّ فعليّ — انظر $deferForParent أعلاه.)
-            'parent_approval_status' => $deferForParent ? 'pending' : null,
-            'parent_approved_by' => null,
-            'parent_approved_at' => null,
-            'submitted_at' => now(),
-        ];
-
+        // رفع الملفّ (I/O) خارج المعاملة
+        $filePath = null;
         if ($request->hasFile('file')) {
-            $path = $request->file('file')->store('submissions', 'public');
-            $data['file_path'] = $path;
+            $filePath = $request->file('file')->store('submissions', 'public');
+        }
+        $answers = $request->answers;
+
+        // تنفيذ ذرّي (توحيد مع الويب + سدّ سباق التسليم المزدوج H2): كان الفحص بـ->first() والإنشاء
+        // خارج أيّ معاملة، فطلبان متزامنان (نقرة مزدوجة/إعادة محاولة شبكيّة) يقرآن existing=null معاً
+        // فيُنشئان صفّين ويُضاعفان المنح. الآن نقفل صفّ النشاط الأمّ (موجود دائماً) كنقطة تسلسل، ثمّ
+        // نفحص التسليم السابق تحت قفل صفّيّ وننشئه داخل المعاملة نفسها.
+        $outcome = \Illuminate\Support\Facades\DB::transaction(function () use ($id, $user, $activity, $answers, $maxAttempts, $filePath) {
+            \App\Models\Activity::whereKey($id)->lockForUpdate()->first(); // نقطة تسلسل لكلّ تسليمات النشاط
+
+            $existing = ActivitySubmission::where('activity_id', $id)
+                ->where('student_id', $user->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                $resubmittable = in_array($existing->status, ['needs_review', 'rejected', 'pending'], true);
+                if (! $resubmittable) {
+                    return ['error' => ['لا يمكن إعادة تسليم هذا النشاط', 400]];
+                }
+                if ((int) ($existing->attempts ?? 1) >= $maxAttempts) {
+                    return ['error' => ['استنفدت عدد محاولاتك لهذا النشاط (' . $maxAttempts . ').', 400]];
+                }
+            }
+
+            // التصحيح الآليّ + الحالة (توحيد مع الويب). grade يقبل مصفوفة answers عبر normalizeAnswer.
+            $score = \App\Services\ActivityGradingService::grade($activity, $answers);
+            $passing = \App\Services\ActivityGradingService::passingScoreFor($activity);
+            $passed = ($score !== null && $score >= $passing);
+            $status = $score === null ? 'pending' : ($passed ? 'completed' : 'needs_review');
+
+            // تأجيل حتى موافقة الوليّ (#23) كالويب — ولا تأجيل لوليٍّ غير موجود.
+            $deferForParent = (bool) $activity->requires_parent_approval && $user->parents()->exists();
+            if ($deferForParent) {
+                $status = 'pending';
+            }
+
+            // #13 عدم تدهور: إن كانت للمحاولة السابقة درجةٌ أفضل، لا نُنزلها (نُزيد المحاولة فقط).
+            $keepsBest = $existing && $score !== null && $existing->score !== null && $score < (int) $existing->score;
+
+            $data = [
+                'activity_id' => $id,
+                'student_id' => $user->id,
+                'answer' => json_encode($answers, JSON_UNESCAPED_UNICODE),
+                'status' => $status,
+                'score' => $score,
+                'parent_approval_status' => $deferForParent ? 'pending' : null,
+                'parent_approved_by' => null,
+                'parent_approved_at' => null,
+                'submitted_at' => now(),
+            ];
+            if ($filePath) {
+                $data['file_path'] = $filePath;
+            }
+
+            if ($existing) {
+                $attempts = (int) ($existing->attempts ?? 1) + 1;
+                if ($keepsBest) {
+                    $existing->update(['attempts' => $attempts, 'submitted_at' => now()]);
+                } else {
+                    $data['attempts'] = $attempts;
+                    $existing->update($data);
+                }
+                $submission = $existing;
+            } else {
+                $data['attempts'] = 1;
+                $submission = ActivitySubmission::create($data);
+            }
+
+            return ['submission' => $submission, 'score' => $score, 'deferForParent' => $deferForParent];
+        }, 3);
+
+        // حالات الرفض (لا إعادة/استنفاد المحاولات) — تُرجَع بعد المعاملة
+        if (isset($outcome['error'])) {
+            return response()->json(['success' => false, 'message' => $outcome['error'][0]], $outcome['error'][1]);
         }
 
-        if ($existing) {
-            $attempts = (int) ($existing->attempts ?? 1) + 1;
-            if ($keepsBest) {
-                // أبقِ الأفضل (الدرجة/الحالة/الإجابة)، زِد المحاولة فقط
-                $existing->update(['attempts' => $attempts, 'submitted_at' => now()]);
-            } else {
-                $data['attempts'] = $attempts;
-                $existing->update($data);
-            }
-            $submission = $existing;
-        } else {
-            $data['attempts'] = 1;
-            $submission = ActivitySubmission::create($data);
-        }
+        $submission = $outcome['submission'];
+        $score = $outcome['score'];
+        $deferForParent = $outcome['deferForParent'];
 
         // منح «أفضل محاولة» (كالويب): الفرق التصاعديّ فوق awarded_points فقط — لا تراكم ولا مضاعفة،
         // ومحاولةٌ أسوأ تُعطي فرقاً = 0. تسليمُ المراجعة اليدويّة (score=null) يمنحه المعلّم لاحقاً.

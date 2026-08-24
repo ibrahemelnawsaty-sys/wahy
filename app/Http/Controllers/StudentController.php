@@ -834,29 +834,8 @@ class StudentController extends Controller
      */
     private function blockingPreAssessment($user, $lesson): ?\App\Models\Survey
     {
-        if (! $user || $user->role !== 'student' || ! $lesson) {
-            return null;
-        }
-
-        $candidates = [];
-        $candidates[] = \App\Models\Survey::pendingLessonSurveyFor($user, $lesson->id, 'pre');
-
-        $valueId = optional(optional($lesson->concept)->value)->id;
-        if ($valueId) {
-            $candidates[] = \App\Models\Survey::pendingValueSurveyFor($user, $valueId, 'pre');
-        }
-
-        foreach ($candidates as $survey) {
-            if (! $survey || ! ($survey->is_mandatory || $survey->is_popup)) {
-                continue;
-            }
-            // صمّام الأمان: استبيانٌ بلا أسئلة لا يمكن إنهاؤه ⟶ لا يُحجب به أحد.
-            if ($survey->questions()->exists()) {
-                return $survey;
-            }
-        }
-
-        return null;
+        // مصدرٌ واحد يشاركه الجوّال (Survey::blockingPreAssessmentFor)
+        return \App\Models\Survey::blockingPreAssessmentFor($user, $lesson);
     }
 
     public function activity($id)
