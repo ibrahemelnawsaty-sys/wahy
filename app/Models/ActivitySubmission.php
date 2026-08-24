@@ -179,7 +179,13 @@ class ActivitySubmission extends Model
 
         return $query->where(function ($q) use ($studentIds, $teacher) {
             $q->whereIn('student_id', $studentIds)
-                ->orWhereHas('activity', fn ($a) => $a->where('created_by', $teacher->id));
+                // فرع «نشاطٌ أنشأه المعلّم»: مُقيَّدٌ بطلاب مدرسة المعلّم (M4). بلا هذا القيد كان
+                // تسليمُ طالبٍ من مدرسةٍ أخرى على نشاطِ بنكٍ للمعلّم يظهر في طابوره فيكشف PII عابراً
+                // للمدارس ويكتب على اقتصاد طالب مدرسة أخرى (النشر عبر المدارس يُبقي created_by).
+                ->orWhere(function ($q2) use ($teacher) {
+                    $q2->whereHas('activity', fn ($a) => $a->where('created_by', $teacher->id))
+                        ->whereHas('student', fn ($s) => $s->where('school_id', $teacher->school_id));
+                });
         });
     }
 

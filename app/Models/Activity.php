@@ -238,6 +238,15 @@ class Activity extends Model
 
                     return $opt;
                 }, $q['options']);
+
+                // أنواع الترتيب/الحروف: ترتيب الـoptions المخزَّن **هو** الإجابة الصحيحة. الويب
+                // يخلطها خادميّاً عند العرض، لكنّ هذا المصدر يغذّي الجوّال/API — فبلا خلطٍ هنا
+                // يقرأ العميل الترتيب الصحيح ويُعيد إرساله (100% + سكّ اقتصاد). نخلطها للعميل
+                // (التصحيح يقارن بالترتيب المخزَّن لا بالمعروض، فالخلط لا يمسّ الدرجة).
+                $qType = $q['type'] ?? $q['question_type'] ?? null;
+                if (in_array($qType, ['word_order', 'word_ordering', 'sentence_order', 'sentence_ordering', 'letter_choice'], true)) {
+                    shuffle($q['options']);
+                }
             }
             // ترتيب الصور (تنسيق الأدمن): احذف الترتيب المرجعيّ الصحيح من كل صورة
             if (isset($q['images']) && is_array($q['images'])) {
