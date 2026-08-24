@@ -690,8 +690,8 @@
         </h2>
 
         @foreach($activities as $index => $activity)
-        <div class="activity-card {{ $activity->status ?? 'available' }}" 
-             onclick="{{ in_array($activity->status ?? '', ['completed', 'available', 'pending', 'approved', 'needs_review']) ? "window.location.href='" . route('student.activity', $activity->id) . "'" : '' }}">
+        <div class="activity-card {{ $activity->status ?? 'available' }}"
+             onclick="{{ in_array($activity->status ?? '', ['completed', 'available', 'pending', 'approved', 'needs_review', 'rejected']) ? "window.location.href='" . route('student.activity', $activity->id) . "'" : '' }}">
             <div class="activity-info">
                 <div class="activity-title">
                     {{ $index + 1 }}. {{ $activity->title }}
@@ -714,6 +714,10 @@
                 @elseif(($activity->status ?? '') === 'pending')
                     <span>⏳</span>
                     <span>قيد المراجعة</span>
+                @elseif(($activity->status ?? '') === 'rejected')
+                    {{-- مرفوض = يحتاج تعديلاً وقابلٌ لإعادة الإرسال (كان يقع على «ابدأ» وغير قابل للنقر) --}}
+                    <span>✏️</span>
+                    <span>أعِد الإرسال</span>
                 @elseif(($activity->status ?? '') == 'locked')
                     <span>🔒</span>
                     <span>مقفل</span>

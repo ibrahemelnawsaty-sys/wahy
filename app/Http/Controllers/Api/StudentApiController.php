@@ -396,7 +396,8 @@ class StudentApiController extends Controller
             }
 
             // #13 عدم تدهور: إن كانت للمحاولة السابقة درجةٌ أفضل، لا نُنزلها (نُزيد المحاولة فقط).
-            $keepsBest = $existing && $score !== null && $existing->score !== null && $score < (int) $existing->score;
+            // L8: أبقِ الأفضل أيضاً حين تُصحَّح المحاولة الجديدة يدويّاً (score=null) — لا تدهور completed→pending.
+            $keepsBest = $existing && $existing->score !== null && ($score === null || $score < (int) $existing->score);
 
             $data = [
                 'activity_id' => $id,
@@ -470,6 +471,14 @@ class StudentApiController extends Controller
                     'user_id' => $user->id, 'coins' => $coinDelta,
                     'reason' => 'إكمال نشاط: ' . $activity->title, 'transaction_type' => 'earn',
                 ]);
+            }
+
+            // توزيع نقاط المعلّم/الوليّ/المدرسة (L5): كان مسار الجوّال يمنح الطالب فقط بلا توزيع
+            // (بخلاف الويب) فلا يتلقّى المعلّم/الوليّ/المدرسة حصّتهم من تسليمات الجوّال. يُوزَّع على
+            // الفرق التصاعديّ فقط (بعد commit، والخدمة تبتلع أخطاء الأطراف ولا تُوزّع لحساب ديمو).
+            if ($xpDelta > 0) {
+                app(\App\Services\Activity\PointsDistributionService::class)
+                    ->distribute($user, $xpDelta, 'activity_submission', $activity->title);
             }
         }
 

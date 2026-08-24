@@ -1045,7 +1045,9 @@ class StudentController extends Controller
                             // مُصحَّحة آليًّا وأقلّ من الدرجة المحفوظة، نُبقي الإجابة/الحالة/الدرجة
                             // الأفضل ونزيد المحاولات فقط — موافقةً لوعد الواجهة «تحتفظ بأفضل درجة»
                             // (وإلا هبطت completed→needs_review وتدهورت الدرجة المرئية وعدّاد الإنجاز).
-                            $keepsBest = $score !== null && $existing->score !== null && $score < $existing->score;
+                            // L8: أبقِ الأفضل أيضاً حين تُصحَّح المحاولة الجديدة يدويّاً (score=null) —
+                            // وإلّا هبطت completed(90)→pending وطُمِست الإجابة الجيّدة بمحاولةٍ بلا درجة.
+                            $keepsBest = $existing->score !== null && ($score === null || $score < $existing->score);
 
                             $payload = [
                                 'attempts' => $attemptsUsed + 1,

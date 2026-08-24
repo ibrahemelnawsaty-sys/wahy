@@ -663,7 +663,9 @@
                 </div>
                 <span style="color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600;">يمكنك إعادة الإرسال بإجابة محسّنة من خلال إعادة فتح النشاط</span>
             </div>
-            @elseif($hasScore)
+            @elseif($hasScore && ! $isPending)
+            {{-- L7: لا نعرض الدرجة/النقاط ما دام التسليم معلّقاً (مؤجَّل لموافقة الوليّ أو needs_review) —
+                 المنح مؤجَّل، فعرض «الدرجة/النقاط» يوهم الطالب بأنّه كسبها. المعلّق يقع على فرع الانتظار أدناه. --}}
             <div style="display: inline-flex; align-items: center; gap: 10px; background: {{ $scoreBg }}; border: 2px solid {{ $scoreColor }}; padding: 12px 26px; border-radius: 50px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
                 <span style="font-size: 22px;" aria-hidden="true">⭐</span>
                 <span style="color: {{ $scoreColor }}; font-weight: 800; font-size: 19px; text-shadow: 0 1px 3px rgba(0,0,0,0.4);">الدرجة: {{ $submission->score }}%</span>
@@ -923,7 +925,7 @@
                         <label class="quiz-option" onclick="selectOption(this, {{ $qIndex }})">
                             <input type="radio" name="question_{{ $qIndex }}" value="{{ $oIndex }}">
                             <span class="quiz-option-circle"></span>
-                            <span>{{ $option }}</span>
+                            <span>{{ is_array($option) ? ($option['text'] ?? $option['label'] ?? '') : $option }}</span>
                         </label>
                         @endforeach
                     </div>
@@ -1444,6 +1446,9 @@
             if (remaining <= 0) {
                 clearInterval(iv);
                 showToast('⏱ انتهى وقت الاختبار — يتم إرسال إجابتك', 'warning');
+                // علمٌ «قسريّ»: يتجاوز فحوص اكتمال الإجابة في معالج الإرسال — وإلّا رجع بـ«الرجاء
+                // الإجابة» بعد إلغاء المؤقّت فضاعت المحاولة (M7). غير المُجاب يُصحَّح خطأً.
+                window.__quizTimeExpired = true;
                 const f = document.getElementById('activityForm');
                 if (f) f.requestSubmit(document.getElementById('submitBtn'));
             }
@@ -1516,7 +1521,7 @@
                     }
                 });
                 
-                if (!allAnswered) {
+                if (!allAnswered && !window.__quizTimeExpired) {
                     showToast('⚠️ الرجاء الإجابة على جميع الأسئلة', 'warning');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'إرسال الإجابة ✓';
@@ -1545,11 +1550,15 @@
             answer = textarea ? textarea.value : '';
         }
         
-        if (!answer || !answer.trim()) {
+        if ((!answer || !answer.trim()) && !window.__quizTimeExpired) {
             showToast('⚠️ الرجاء كتابة إجابة', 'warning');
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال الإجابة ✓';
             return;
+        }
+        // عند انتهاء الوقت بلا أيّ إجابة: أرسِل حمولةً فارغة صريحة (تُصحَّح خطأً) بدل حجب المحاولة.
+        if ((!answer || !answer.trim()) && window.__quizTimeExpired) {
+            answer = (activityType === 'quiz' || activityType === 'exercise') ? '{}' : '';
         }
         
         try {
