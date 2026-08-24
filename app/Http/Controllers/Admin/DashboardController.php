@@ -190,11 +190,6 @@ class DashboardController extends Controller
             'feedback' => 'nullable|string|max:1000',
         ]);
 
-        // حفظ سجل قبل التحديث: إن كان النشاط مُقيَّماً تلقائياً سابقاً،
-        // فقد مُنحت النقاط له وقت التسليم. لا نمنحها مرة ثانية (Issue #49).
-        $wasAlreadyAutoGraded = $submission->score !== null && $submission->score > 0;
-        $previouslyEarnedPoints = (int) round(($submission->score ?? 0) / 100 * (optional($submission->activity)->points ?? 10));
-
         try {
             $submission->update([
                 'status' => $validated['status'],
@@ -204,34 +199,42 @@ class DashboardController extends Controller
                 'reviewed_at' => now(),
             ]);
 
-            // إضافة نقاط للطالب فقط إذا:
-            //  1) تمت الموافقة بدرجة > 0
-            //  2) لم تكن مُمنحة سابقاً (يعني لم يُصحَّح تلقائياً)
-            // فإن كان مُقيَّماً سابقاً، نمنح الفرق فقط (إن كان موجباً) لتفادي المضاعفة.
-            if ($validated['status'] === 'approved'
-                && ($validated['score'] ?? 0) > 0
-                && $submission->student
-            ) {
-                $newPoints = (int) round(($validated['score'] / 100) * (optional($submission->activity)->points ?? 10));
-                $delta = $wasAlreadyAutoGraded
-                    ? max(0, $newPoints - $previouslyEarnedPoints)
-                    : $newPoints;
+            // منح موحّد مع مسار المعلّم (M1): الفرق التصاعديّ فوق awarded_points عبر AwardService
+            // بمفتاحٍ يتضمّن الدرجة النهائيّة + تحديث awarded_points. كان الأدمن يمنح عبر PointsService
+            // بلا دفتر ولا تحديث awarded_points، فإن راجع المعلّم التسليم نفسه لاحقاً رآه = 0 فمَنح ثانيةً
+            // (ازدواج). التوحيد يجعل أيّ مسار مراجعةٍ يمنح الفرق مرّةً واحدة فقط.
+            if ($validated['status'] === 'approved' && ($validated['score'] ?? 0) > 0 && $submission->student) {
+                $activityPoints = (int) (optional($submission->activity)->points ?? 10);
+                $finalXp = (int) round(($validated['score'] / 100) * $activityPoints);
+                $autoXp = (int) ($submission->awarded_points ?? 0);
+                $xpAward = max(0, $finalXp - $autoXp);
+                $finalCoins = $finalXp > 0 ? max(1, (int) floor($finalXp / 2)) : 0;
+                $autoCoins = $autoXp > 0 ? max(1, (int) floor($autoXp / 2)) : 0;
+                $coinsAward = max(0, $finalCoins - $autoCoins);
+                $activityTitle = optional($submission->activity)->title ?? 'نشاط';
 
-                if ($delta > 0) {
-                    $activityTitle = optional($submission->activity)->title ?? 'نشاط';
-
+                if ($xpAward > 0) {
                     try {
-                        \App\Services\PointsService::awardStudentPoints(
+                        \App\Services\AwardService::award(
                             $submission->student->id,
-                            $delta,
-                            'activity_review',
-                            "مراجعة نشاط: {$activityTitle}",
+                            'activity_submission',
+                            $submission->id . ':' . $finalXp,
+                            $xpAward,
+                            $coinsAward,
+                            'إكمال نشاط: ' . $activityTitle,
+                            distribute: true,
                         );
                     } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning('saveReview: awardStudentPoints failed', [
+                        \Illuminate\Support\Facades\Log::warning('saveReview: award failed', [
                             'submission_id' => $submission->id,
                             'error' => $e->getMessage(),
                         ]);
+                    }
+                }
+                if ($finalXp > $autoXp) {
+                    try {
+                        $submission->update(['awarded_points' => $finalXp]);
+                    } catch (\Throwable $e) {
                     }
                 }
             }

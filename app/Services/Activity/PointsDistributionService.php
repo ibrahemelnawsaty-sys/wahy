@@ -32,7 +32,7 @@ class PointsDistributionService
      */
     public function distribute(User $student, int $points, string $source, string $description): void
     {
-        if ($points <= 0) {
+        if ($points <= 0 || $this->skipDemo($student)) {
             return;
         }
 
@@ -55,13 +55,23 @@ class PointsDistributionService
      */
     public function distributeWithin(User $student, int $points, string $source, string $description): void
     {
-        if ($points <= 0) {
+        if ($points <= 0 || $this->skipDemo($student)) {
             return;
         }
 
         $this->awardTeacher($student, $points, $source, $description);
         $this->awardParent($student, $points, $source, $description);
         $this->awardSchool($student, $points, $source, $description);
+    }
+
+    /**
+     * حسابات الديمو لا تُوزَّع نقاطها على المعلّم/الوليّ/المدرسة (تُستثنى من كلّ تجميع منصّة —
+     * مطابقةً لحارس SchoolPoint::addPoints وTeacherPoint::updateTeacherPoints). الطالب يظلّ
+     * يكسب نقاطه الخاصّة؛ الاستثناء للتوزيع/التجميع فقط.
+     */
+    private function skipDemo(User $student): bool
+    {
+        return (bool) ($student->is_demo ?? false);
     }
 
     private function awardTeacher(User $student, int $points, string $source, string $description): void

@@ -242,10 +242,13 @@ class TeacherController extends Controller
             // re-distribution. Student XP+coins and the teacher/parent/school fan-out
             // commit (or roll back) together inside AwardService.
             try {
+                // المفتاح يتضمّن الدرجة النهائيّة (M2): مفتاحٌ ثابت على معرّف التسليم كان يُطالَب
+                // في المراجعة الأولى فيبتلع فرق أيّ مراجعةٍ لاحقة (رفع 50→90 لا يصل الطالب) مع رفع
+                // awarded_points كذباً. المفتاح المتضمّن للدرجة يسمح بمنح الفرق التصاعديّ مرّة لكلّ درجة.
                 \App\Services\AwardService::award(
                     $submission->student_id,
                     'activity_submission',
-                    (string) $submission->id,
+                    $submission->id . ':' . $finalXp,
                     $xpAward,
                     $coinsAward,
                     'إكمال نشاط: ' . $activityTitle,
