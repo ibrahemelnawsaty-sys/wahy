@@ -259,9 +259,15 @@ class ActivityGradingService
         }
 
         if (is_string($rawAnswer)) {
-            $decoded = json_decode($rawAnswer, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                return $decoded;
+            // فكّ JSON **فقط** لبنية مصفوفة/كائن (إجابات الترتيب/الكويز/ترتيب الصور). لا نفكّ
+            // القيم القياسيّة: إجابة قصيرة مثل «true»/«null»/«007»/«1.0» يجب أن تبقى نصّاً كما هي
+            // (كان json_decode يحوّلها bool/null/int/float فتكسر المطابقة النصّيّة).
+            $trimmed = ltrim($rawAnswer);
+            if ($trimmed !== '' && ($trimmed[0] === '[' || $trimmed[0] === '{')) {
+                $decoded = json_decode($rawAnswer, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
             }
         }
 
@@ -377,8 +383,10 @@ class ActivityGradingService
             return false;
         }
 
-        // 1) لو لدينا correct_index صريح، نقارن دليل الطالب به مباشرة
-        if ($correctIndex !== null && is_numeric($correctIndex)) {
+        // 1) لو لدينا correct_index صريح ودليل الطالب رقميّ، نقارن الدليلين مباشرة.
+        //    شرط is_numeric على إجابة الطالب ضروريّ: نصّ غير رقميّ يُصبح (int)=0 فيطابق كذباً
+        //    correctIndex=0 (يمنح 100 لإجابة خاطئة). النصّ غير الرقميّ يسقط للمقارنة النصّيّة أدناه.
+        if ($correctIndex !== null && is_numeric($correctIndex) && is_numeric($studentAnswer)) {
             return (int) $studentAnswer === (int) $correctIndex;
         }
 

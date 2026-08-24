@@ -839,6 +839,7 @@ function updateQuestion(index, field, value) {
             if (!questions[index].options || questions[index].options.length < 2) {
                 questions[index].options = ['', ''];
             }
+            delete questions[index].correct_index; // امسح مفتاحاً متقادماً من نوعٍ سابق (يُختار من جديد)
             questions[index].answer = '';
         } else if (value === 'short_answer') {
             delete questions[index].options;

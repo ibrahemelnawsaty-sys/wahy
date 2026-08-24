@@ -586,6 +586,17 @@ function addOption(index) {
 function removeOption(qIndex, oIndex) {
     if (questions[qIndex].options.length > 2) {
         questions[qIndex].options.splice(oIndex, 1);
+        // مزامنة مفتاح الإجابة مع الفهارس بعد الحذف — كان correct_index يتقادم فيُصحَّح
+        // الخيار الخطأ صحيحاً (كلّ تسليمات الطلاب على السؤال تُصحَّح خطأً). حذف الصحيح يُلغي المفتاح.
+        const q = questions[qIndex];
+        if (q.correct_index !== undefined && q.correct_index !== null) {
+            if (oIndex === q.correct_index) {
+                delete q.correct_index; delete q.answer;
+            } else if (oIndex < q.correct_index) {
+                q.correct_index = q.correct_index - 1;
+                q.answer = q.options[q.correct_index];
+            }
+        }
         renderQuestions();
     } else {
         alert('يجب أن يكون هناك خيارين على الأقل');
@@ -850,6 +861,7 @@ function updateQuestion(index, field, value) {
             if (!questions[index].options || questions[index].options.length < 2) {
                 questions[index].options = ['', ''];
             }
+            delete questions[index].correct_index; // امسح مفتاحاً متقادماً من نوعٍ سابق (يُختار من جديد)
             questions[index].answer = '';
         } else if (value === 'short_answer') {
             delete questions[index].options;
