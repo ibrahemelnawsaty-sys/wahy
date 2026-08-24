@@ -163,15 +163,20 @@ class ActivityGradingService
      */
     private static function orderingCorrectText(Activity $activity, array $first): ?string
     {
-        $seq = self::correctAnswerOf($activity);
-        if ($seq === null && ! empty($first['options']) && is_array($first['options'])) {
+        // نفس أولويّة gradeOrdering كي يطابق «الترتيب الصحيح» المعروض ما يُصحَّح به فعلاً:
+        // مصفوفة صريحة ثمّ الـ options ثمّ نصّ مفصول — لا تقسيم نصٍّ على فواصل قبل الـ options
+        // (الجُمل تحوي فواصل)، ولا اعتبار answer='' مرجعاً.
+        $ref = self::correctAnswerOf($activity);
+        $seq = null;
+        if (is_array($ref) && ! empty($ref)) {
+            $seq = $ref;
+        } elseif (! empty($first['options']) && is_array($first['options'])) {
             $seq = array_map(
                 fn ($o) => is_array($o) ? ($o['text'] ?? $o['label'] ?? '') : (string) $o,
                 $first['options'],
             );
-        }
-        if (is_string($seq)) {
-            $seq = preg_split('/[,،|]\s*/u', $seq);
+        } elseif (is_string($ref) && trim($ref) !== '') {
+            $seq = preg_split('/[,،|]\s*/u', $ref);
         }
         if (! is_array($seq) || empty($seq)) {
             return null;
@@ -512,23 +517,25 @@ class ActivityGradingService
     private static function gradeOrdering(Activity $activity, $answer): ?int
     {
         $firstQ = self::firstQuestion($activity);
-        $correct = self::correctAnswerOf($activity);
 
-        // الترتيب الصحيح هو ترتيب الـ options كما حفظها الأدمن (الافتراضي)
-        if ($correct === null && ! empty($firstQ['options']) && is_array($firstQ['options'])) {
+        // أولويّة مرجع الترتيب الصحيح:
+        //   1) correct_answer/answer إن كان **مصفوفةً** غير فارغة (مرجع صريح).
+        //   2) **ترتيب الـ options** كما حفظها المؤلّف — وهو «الترتيب الصحيح» بحسب واجهة التأليف.
+        //   3) نصّ correct_answer المفصول بفواصل (آخر ملاذ فقط).
+        // مهمّ: لا نُقدّم النصّ المفصول على الـ options — فالجُمل تحوي فواصل («ذهبت، ثمّ رجعت»)
+        // فيُقسّمها preg_split لعناصر زائدة ويختلّ التطابق (كلّه خطأ)؛ كما نتجاهل answer='' المتبقّي
+        // من نموذج التأليف الذي كان يُنتِج صفراً زائفاً بدل السقوط للـ options.
+        $ref = self::correctAnswerOf($activity);
+        $correct = null;
+        if (is_array($ref) && ! empty($ref)) {
+            $correct = $ref;
+        } elseif (! empty($firstQ['options']) && is_array($firstQ['options'])) {
             $correct = array_map(
                 fn ($opt) => is_array($opt) ? ($opt['text'] ?? $opt['label'] ?? '') : (string) $opt,
                 $firstQ['options'],
             );
-        }
-
-        if ($correct === null) {
-            // لا ترتيب مرجعي → مراجعة يدوية
-            return null;
-        }
-
-        if (is_string($correct)) {
-            $correct = preg_split('/[,،|]\s*/u', $correct);
+        } elseif (is_string($ref) && trim($ref) !== '') {
+            $correct = preg_split('/[,،|]\s*/u', $ref);
         }
 
         // إجابة/مرجع غير قابلَين للتحليل ⇒ مراجعة يدويّة (null) لا صفرٌ زائف — لا نخلط
@@ -589,12 +596,19 @@ class ActivityGradingService
             ], true);
 
             if ($isOrdering) {
-                $correctSeq = $question['correct_answer'] ?? $question['answer'] ?? null;
-                if ($correctSeq === null && ! empty($options)) {
+                // نفس أولويّة gradeOrdering: مصفوفة صريحة ثمّ الـ options ثمّ نصّ مفصول (آخر ملاذ)،
+                // مع تجاهل answer='' المتبقّي — كي لا تُفسِد فواصلُ الجُمل ترتيبَ سؤال ترتيبٍ داخل كويز.
+                $ref = $question['correct_answer'] ?? $question['answer'] ?? null;
+                $correctSeq = null;
+                if (is_array($ref) && ! empty($ref)) {
+                    $correctSeq = $ref;
+                } elseif (! empty($options)) {
                     $correctSeq = array_map(
                         fn ($o) => is_array($o) ? ($o['text'] ?? $o['label'] ?? '') : (string) $o,
                         $options,
                     );
+                } elseif (is_string($ref) && trim($ref) !== '') {
+                    $correctSeq = $ref; // orderingMatches تقسّمها عند الحاجة
                 }
                 if ($correctSeq === null) {
                     $needsManualReview = true;
