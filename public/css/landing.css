@@ -2280,6 +2280,150 @@ svg.icon,
     border: 1px solid #F5C6CB;
 }
 
+/* ==================== تحقّق البريد برمز OTP ==================== */
+/* صفّ: حقل البريد + زرّ «إرسال الرمز» بجانبه (منفصل عن زرّ إرسال الرسالة). */
+.email-verify-row {
+    display: flex;
+    gap: var(--space-2);
+    align-items: stretch;
+}
+
+.email-verify-row .form-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    transform: none;
+}
+
+/* الحقل داخل الصفّ لا يرتفع عند التركيز (كي لا يختلّ محاذاته مع الزرّ). */
+.email-verify-row .form-input:focus {
+    transform: none;
+}
+
+/* مؤشّر تركيز لوحة المفاتيح: .form-input:focus يُلغي outline (حلقة خفيفة للفأرة)، فنُعيد حدّاً صلباً
+   واضحاً لـ:focus-visible فقط (يأتي لاحقاً بالمصدر فيفوز على outline:none بالتساوي في الأولويّة).
+   offset يُبرزه فوق صندوق الرمز الأخضر في الوضعين. WCAG 2.4.7. */
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+.send-code-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-code-btn .scb-loader {
+    display: flex;
+    gap: 4px;
+}
+
+/* نقاط التحميل بيضاء افتراضيّاً؛ زرّ الإرسال فاتح فتُلوّن بالأخضر لتظهر. */
+.send-code-btn .loading-dot {
+    background: #059669;
+}
+
+/* «تم الإرسال ✓»: الثيم الافتراضيّ داكن (الزرّ حينها بخلفيّةٍ داكنة) فاللون الأساسيّ أخضر فاتح
+   ليُقرأ عليه؛ وفي الثيم الفاتح (الزرّ أبيض) نُغمّقه ليحقّق تباين WCAG AA. */
+.send-code-btn.is-sent {
+    color: #6EE7B7;
+    border-color: rgba(16, 185, 129, 0.55);
+}
+
+[data-theme="light"] .send-code-btn.is-sent {
+    color: #047857;
+}
+
+/* صندوق رمز التحقّق تحت البريد (يظهر بعد الإرسال). */
+.code-box {
+    margin-top: var(--space-3);
+    padding: var(--space-4);
+    border: 2px dashed rgba(16, 185, 129, 0.45);
+    border-radius: 14px;
+    background: rgba(16, 185, 129, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    animation: codeBoxIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes codeBoxIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.code-box-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.code-box-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.code-status { font-size: 13px; font-weight: 700; }
+/* ألوان الثيم الداكن (الافتراضيّ) على الصندوق الداكن؛ وتُغمَّق في الفاتح لتباين AA على الصندوق الفاتح. */
+.code-status.ok { color: #34D399; }
+.code-status.err { color: #F87171; }
+[data-theme="light"] .code-status.ok { color: #047857; }
+[data-theme="light"] .code-status.err { color: #DC2626; }
+
+.code-input {
+    letter-spacing: 10px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'Courier New', monospace);
+}
+
+.code-box-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.code-hint { font-size: 13px; color: var(--text-muted); }
+
+.code-resend {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #34D399; /* أخضر فاتح للثيم الداكن الافتراضيّ (رابط تفاعليّ — تباين AA مهمّ) */
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+[data-theme="light"] .code-resend { color: #047857; }
+
+.code-resend:disabled {
+    color: var(--text-muted);
+    text-decoration: none;
+    cursor: default;
+    opacity: 0.75;
+}
+
+@media (max-width: 480px) {
+    .email-verify-row { flex-direction: column; }
+}
+
 /* ==================== CTA Section ==================== */
 .cta {
     background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);

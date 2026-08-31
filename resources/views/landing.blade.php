@@ -730,14 +730,54 @@
 
                             <div class="form-group">
                                 <label for="email" class="form-label">البريد الإلكتروني</label>
-                                <input 
-                                    type="email" 
-                                    id="email" 
-                                    name="email" 
-                                    class="form-input" 
-                                    required
-                                    placeholder="example@domain.com"
-                                >
+                                {{-- صفّ: حقل البريد + زرّ إرسال رمز التحقّق بجانبه (منفصل عن زرّ إرسال الرسالة). --}}
+                                <div class="email-verify-row">
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        class="form-input"
+                                        required
+                                        placeholder="example@domain.com"
+                                        autocomplete="email"
+                                    >
+                                    <button type="button" id="sendCodeBtn" class="btn btn-secondary send-code-btn">
+                                        <span class="scb-text">إرسال الرمز</span>
+                                        <span class="scb-loader" style="display:none;">
+                                            <span class="loading-dot"></span>
+                                            <span class="loading-dot"></span>
+                                            <span class="loading-dot"></span>
+                                        </span>
+                                    </button>
+                                </div>
+
+                                {{-- صندوق رمز التحقّق: يظهر تحت البريد بعد إرسال الرمز (يديره landing.js). --}}
+                                <div id="contactCodeGroup" class="code-box" style="display:none;">
+                                    <div class="code-box-head">
+                                        <span class="code-box-title">🔒 أدخِل رمز التحقّق المُرسَل إلى بريدك</span>
+                                        <span id="codeStatus" class="code-status" role="status" aria-live="polite"></span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        id="contactCode"
+                                        name="code"
+                                        class="form-input code-input"
+                                        inputmode="numeric"
+                                        autocomplete="one-time-code"
+                                        maxlength="6"
+                                        pattern="[0-9]*"
+                                        placeholder="------"
+                                        aria-label="رمز التحقّق المكوّن من ستّة أرقام"
+                                        aria-describedby="codeStatus codeHint"
+                                    >
+                                    <div class="code-box-foot">
+                                        {{-- بلا aria-live: عدّاد الثواني كان يُغرق قارئ الشاشة بإعلانٍ كلّ ثانية. --}}
+                                        <span id="codeHint" class="code-hint"></span>
+                                        <button type="button" id="contactResend" class="code-resend" disabled>
+                                            إعادة إرسال الرمز
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -764,27 +804,8 @@
                                 ></textarea>
                             </div>
 
-                            {{-- خطوة التحقّق: تظهر بعد إرسال الرمز إلى البريد (يديرها landing.js). --}}
-                            <div class="form-group" id="contactCodeGroup" style="display: none;">
-                                <label for="contactCode" class="form-label">رمز التحقّق (وصلك على بريدك)</label>
-                                <input
-                                    type="text"
-                                    id="contactCode"
-                                    name="code"
-                                    class="form-input"
-                                    inputmode="numeric"
-                                    autocomplete="one-time-code"
-                                    maxlength="6"
-                                    placeholder="######"
-                                    style="letter-spacing:6px;text-align:center;font-size:20px;"
-                                >
-                                <button type="button" id="contactResend" style="margin-top:8px;background:none;border:0;color:var(--primary,#2BA55D);text-decoration:underline;cursor:pointer;font-size:13px;padding:0;">
-                                    لم يصلك الرمز؟ إعادة الإرسال
-                                </button>
-                            </div>
-
                             <button type="submit" class="btn btn-primary btn-lg btn-full">
-                                <span class="btn-text">إرسال رمز التحقّق</span>
+                                <span class="btn-text">إرسال الرسالة</span>
                                 <span class="btn-loader" style="display: none;">
                                     <span class="loading-dot"></span>
                                     <span class="loading-dot"></span>
@@ -792,7 +813,9 @@
                                 </span>
                             </button>
 
-                            <div class="form-message" id="formMessage" style="display: none;"></div>
+                            {{-- منطقة حيّة: كلّ رسائل التدفّق (إرسال الرمز/النجاح/الخطأ) تُعلَن لقارئ الشاشة.
+                                 landing.js يبدّل role/aria-live ديناميّاً (status/polite للنجاح، alert/assertive للخطأ). --}}
+                            <div class="form-message" id="formMessage" role="status" aria-live="polite" aria-atomic="true" style="display: none;"></div>
                         </form>
                         {{-- ملء cc_token عند التحميل (إثبات تنفيذ JS). خارج <form> ليعمل ولو تأخّر تحميل landing.js. --}}
                         <script>

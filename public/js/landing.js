@@ -231,99 +231,224 @@ function initContactForm() {
     const form = document.getElementById('contactForm');
     if (!form) return;
 
-    // تدفّق من خطوتين لإثبات ملكيّة البريد: (1) إرسال رمز إلى البريد، ثمّ (2) إدخال الرمز والإرسال.
+    // تدفّق إثبات ملكيّة البريد: زرّ «إرسال الرمز» بجانب البريد (مستقلّ عن زرّ إرسال الرسالة)
+    // يُرسل رمزاً، ثمّ يُدخِله المستخدم في الصندوق أسفل البريد، ثمّ يُرسل الرسالة بالزرّ الرئيسيّ.
     const submitBtn = form.querySelector('button[type="submit"]');
     const btnText = submitBtn.querySelector('.btn-text');
     const btnLoader = submitBtn.querySelector('.btn-loader');
     const formMessage = document.getElementById('formMessage');
+
+    const emailInput = document.getElementById('email');
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    const scbText = sendCodeBtn ? sendCodeBtn.querySelector('.scb-text') : null;
+    const scbLoader = sendCodeBtn ? sendCodeBtn.querySelector('.scb-loader') : null;
     const codeGroup = document.getElementById('contactCodeGroup');
     const codeInput = document.getElementById('contactCode');
+    const codeStatus = document.getElementById('codeStatus');
+    const codeHint = document.getElementById('codeHint');
     const resendBtn = document.getElementById('contactResend');
 
-    function setLoading(loading) {
-        submitBtn.disabled = loading;
-        if (btnText) btnText.style.display = loading ? 'none' : 'inline';
-        if (btnLoader) btnLoader.style.display = loading ? 'flex' : 'none';
+    let codeSent = false;     // هل أُرسل رمزٌ للبريد الحاليّ؟
+    let sentToEmail = '';     // البريد الذي أُرسل إليه الرمز (لكشف تغييره)
+    let resendTimer = null;   // مؤقّت العدّ التنازليّ لإعادة الإرسال
+    let sending = false;      // قفل «طلبٌ جارٍ» يمنع إرسال رمزين متزامنين (أساسيّ + إعادة)
+
+    // form.reset() يُعيد cc_token إلى قيمته الافتراضيّة الفارغة، والسكربت المضمَّن يملؤه مرّة واحدة
+    // عند التحميل فقط — فنعيد ملأه من ccGate بعد أيّ reset كي تنجح رسالةٌ ثانيةٌ من الصفحة نفسها.
+    function refillCcToken() {
+        const g = document.getElementById('ccGate');
+        const f = document.getElementById('cc_token');
+        if (g && f) f.value = g.getAttribute('data-g') || '';
     }
-    function setLabel(txt) { if (btnText) btnText.textContent = txt; }
+
     function showMsg(txt, ok) {
         formMessage.textContent = txt;
         formMessage.className = 'form-message ' + (ok ? 'success' : 'error');
+        // إعلان لقارئ الشاشة: النجاح مهذّب (polite)، والخطأ يقاطع (assertive) — WCAG 4.1.3.
+        formMessage.setAttribute('role', ok ? 'status' : 'alert');
+        formMessage.setAttribute('aria-live', ok ? 'polite' : 'assertive');
         formMessage.style.display = 'block';
     }
+    function setStatus(txt, ok) {
+        if (!codeStatus) return;
+        codeStatus.textContent = txt || '';
+        codeStatus.className = 'code-status ' + (txt ? (ok ? 'ok' : 'err') : '');
+    }
+    function setHint(txt) { if (codeHint) codeHint.textContent = txt || ''; }
 
-    // الخطوة 1: طلب رمز التحقّق للبريد المُدخَل.
+    function clearResendTimer() {
+        if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+    }
+    function startResendCountdown(seconds) {
+        clearResendTimer();
+        let remaining = seconds;
+        if (resendBtn) resendBtn.disabled = true;
+        setHint('يمكنك إعادة الإرسال خلال ' + remaining + ' ثانية');
+        resendTimer = setInterval(() => {
+            remaining -= 1;
+            if (remaining <= 0) {
+                clearResendTimer();
+                setHint('');
+                if (resendBtn) resendBtn.disabled = false;
+            } else {
+                setHint('يمكنك إعادة الإرسال خلال ' + remaining + ' ثانية');
+            }
+        }, 1000);
+    }
+
+    // تغيير البريد بعد إرسال الرمز يُبطل التحقّق (الرمز مرتبط بالبريد تحديداً).
+    function resetVerification() {
+        codeSent = false;
+        sentToEmail = '';
+        clearResendTimer();
+        if (codeGroup) codeGroup.style.display = 'none';
+        if (codeInput) {
+            codeInput.value = '';
+            codeInput.removeAttribute('aria-invalid');
+        }
+        setStatus('', true);
+        setHint('');
+        // لا نُبقي لافتة نجاحٍ متناقضة («أرسلنا رمزاً…») بعد اختفاء الصندوق.
+        if (formMessage) formMessage.style.display = 'none';
+        if (sendCodeBtn) { sendCodeBtn.classList.remove('is-sent'); sendCodeBtn.disabled = false; }
+        if (scbText) scbText.textContent = 'إرسال الرمز';
+    }
+
+    // الخطوة 1: إرسال رمز التحقّق إلى البريد (يتحقّق من صحّة البريد فقط، لا كامل النموذج).
     async function requestCode() {
-        if (!form.checkValidity()) { form.reportValidity(); return; }
-        setLoading(true);
+        if (sending) return; // قفل: يمنع طلبين متزامنين (نقر مزدوج على الإرسال أو الإعادة)
+        if (!emailInput || !emailInput.value.trim() || !emailInput.checkValidity()) {
+            if (emailInput) { emailInput.classList.add('error'); emailInput.reportValidity(); emailInput.focus(); }
+            return;
+        }
+        // نلتقط البريد قبل الطلب: الرمز يُبنى على هذه اللقطة، فنربط sentToEmail بها لا بالحقل الحيّ
+        // (كي لا يختلّ التطابق لو عُدِّل الحقل أثناء الطلب على شبكةٍ بطيئة).
+        const emailAtSend = emailInput.value.trim().toLowerCase();
+
+        sending = true;
+        // حالة تحميل الزرّ المجاور للبريد + تعطيل الإعادة أثناء الطلب
+        if (sendCodeBtn) sendCodeBtn.disabled = true;
+        if (resendBtn) resendBtn.disabled = true;
+        if (scbText) scbText.style.display = 'none';
+        if (scbLoader) scbLoader.style.display = 'flex';
         formMessage.style.display = 'none';
+
+        let revealed = false;
         try {
             const response = await fetch('/contact/send-code', {
                 method: 'POST',
-                body: new FormData(form),
+                body: new FormData(form), // يحمل email + cc_token + _token + honeypot تلقائيّاً
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });
-            const result = await response.json();
-            if (response.ok && result.success) {
-                if (codeGroup) codeGroup.style.display = 'block';
-                if (codeInput) codeInput.focus();
+            const result = await response.json().catch(() => ({}));
+            // نكشف الصندوق فقط عند إرسالٍ حقيقيّ (need_code=true). النجاح الكاذب من guardBots (رمز JS
+            // فارغ/منتهٍ) يعيد success=true بلا need_code وبلا بريد — فلا نُوهم المستخدم بأنّ الرمز أُرسل.
+            if (response.ok && result.success && result.need_code) {
+                revealed = true;
+                codeSent = true;
+                sentToEmail = emailAtSend;
+                if (codeGroup) codeGroup.style.display = 'flex';
+                if (codeInput) { codeInput.removeAttribute('aria-invalid'); codeInput.focus(); }
+                if (sendCodeBtn) sendCodeBtn.classList.add('is-sent');
+                if (scbText) scbText.textContent = 'تم الإرسال ✓';
+                setStatus('تمّ إرسال الرمز', true);
                 showMsg(result.message || 'أرسلنا رمز تحقّق إلى بريدك. أدخِله لإتمام الإرسال.', true);
-                setLabel('تأكيد وإرسال');
-                submitBtn.dataset.step = 'verify';
+                startResendCountdown(60);
+            } else if (response.ok && result.success) {
+                // نجاحٌ كاذب (غالباً صفحة مفتوحة منذ مدّة طويلة) — أرشِد لتحديث الصفحة بدل انتظارٍ بلا طائل.
+                showMsg('يبدو أنّ الصفحة مفتوحة منذ مدّة. يرجى تحديثها ثمّ إعادة إرسال الرمز.', false);
             } else {
-                showMsg(result.message || 'تعذّر إرسال الرمز. حاول لاحقاً.', false);
+                showMsg(result.message || result.error || 'تعذّر إرسال الرمز. حاول لاحقاً.', false);
             }
         } catch (error) {
             showMsg('حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.', false);
         } finally {
-            setLoading(false);
+            sending = false;
+            // إعادة إظهار نصّ الزرّ؛ يبقى معطّلاً عند النجاح (الإعادة عبر الرابط المؤقَّت)، ويُفعَّل عند الفشل.
+            if (scbText) scbText.style.display = 'inline';
+            if (scbLoader) scbLoader.style.display = 'none';
+            if (sendCodeBtn) sendCodeBtn.disabled = revealed;
+            // عند الفشل نُعيد تفعيل الإعادة فوراً؛ عند النجاح يتكفّل العدّاد بها.
+            if (resendBtn && !revealed && codeSent) resendBtn.disabled = false;
         }
     }
 
-    // الخطوة 2: إرسال الرسالة مع الرمز.
+    // الخطوة 2: إرسال الرسالة مع الرمز (الزرّ الرئيسيّ).
     async function submitMessage() {
-        if (codeInput && !codeInput.value.trim()) {
-            showMsg('أدخِل رمز التحقّق الذي وصلك على بريدك.', false);
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        if (!codeSent) {
+            showMsg('يرجى إرسال رمز التحقّق إلى بريدك أوّلاً (زرّ «إرسال الرمز» بجانب البريد) ثمّ إدخاله.', false);
+            if (sendCodeBtn) sendCodeBtn.focus();
             return;
         }
-        setLoading(true);
+        if (codeInput && codeInput.value.trim().length !== 6) {
+            // فحص طولٍ محليّ: يمنع إحراق محاولةٍ من الخادم برسالةٍ عامّة على رمزٍ ناقص.
+            showMsg('رمز التحقّق مكوّن من 6 أرقام.', false);
+            codeInput.focus();
+            return;
+        }
+
+        submitBtn.disabled = true;
+        if (btnText) btnText.style.display = 'none';
+        if (btnLoader) btnLoader.style.display = 'flex';
         formMessage.style.display = 'none';
+
         try {
             const response = await fetch('/contact', {
                 method: 'POST',
                 body: new FormData(form),
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });
-            const result = await response.json();
+            const result = await response.json().catch(() => ({}));
             if (response.ok && result.success) {
                 showMsg(result.message || 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.', true);
                 form.reset();
-                if (codeGroup) codeGroup.style.display = 'none';
-                setLabel('إرسال رمز التحقّق');
-                submitBtn.dataset.step = 'send';
+                refillCcToken(); // reset مسح cc_token — نُعيد ملأه لرسالةٍ ثانيةٍ محتملة
+                resetVerification();
             } else {
-                // رمز خاطئ/منتهٍ → أبقِ حقل الرمز ظاهراً ليعيد المحاولة أو يطلب رمزاً جديداً.
-                showMsg(result.message || 'الرمز غير صحيح أو انتهت صلاحيته.', false);
-                if (result.need_code && codeGroup) codeGroup.style.display = 'block';
+                // رمز خاطئ/منتهٍ → أبقِ الصندوق ظاهراً ليعيد المحاولة أو يطلب رمزاً جديداً.
+                // result.error يغطّي استجابة 419 (انتهاء صلاحية الصفحة) التي لا تحمل مفتاح message.
+                showMsg(result.message || result.error || 'الرمز غير صحيح أو انتهت صلاحيته.', false);
+                if (result.need_code) {
+                    setStatus('رمز غير صحيح', false);
+                    if (codeGroup) codeGroup.style.display = 'flex';
+                    if (codeInput) {
+                        codeInput.setAttribute('aria-invalid', 'true');
+                        codeInput.focus();
+                        codeInput.select();
+                    }
+                }
             }
         } catch (error) {
             showMsg('حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.', false);
         } finally {
-            setLoading(false);
+            submitBtn.disabled = false;
+            if (btnText) btnText.style.display = 'inline';
+            if (btnLoader) btnLoader.style.display = 'none';
         }
     }
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (submitBtn.dataset.step === 'verify') {
-            await submitMessage();
-        } else {
-            await requestCode();
-        }
-    });
+    if (sendCodeBtn) sendCodeBtn.addEventListener('click', requestCode);
+    if (resendBtn) resendBtn.addEventListener('click', () => { if (!resendBtn.disabled) requestCode(); });
 
-    if (resendBtn) {
-        resendBtn.addEventListener('click', () => { requestCode(); });
+    form.addEventListener('submit', (e) => { e.preventDefault(); submitMessage(); });
+
+    // تغيير البريد بعد إرسال الرمز يُبطل الحالة.
+    if (emailInput) {
+        emailInput.addEventListener('input', () => {
+            if (codeSent && emailInput.value.trim().toLowerCase() !== sentToEmail) {
+                resetVerification();
+            }
+        });
+    }
+
+    // حصر إدخال الرمز في الأرقام (حتّى 6) + إزالة علامة الخطأ عند التعديل.
+    if (codeInput) {
+        codeInput.addEventListener('input', () => {
+            const digits = codeInput.value.replace(/\D/g, '').slice(0, 6);
+            if (digits !== codeInput.value) codeInput.value = digits;
+            codeInput.removeAttribute('aria-invalid');
+        });
     }
 
     // Real-time validation
