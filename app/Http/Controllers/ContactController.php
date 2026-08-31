@@ -14,8 +14,23 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        // Honeypot — إن مُلئ الحقل المخفي فهذا bot
+        // Honeypot — إن مُلئ الحقل المخفي فهذا bot (نجاح كاذب صامت حتّى لا يعرف البوت أنّه كُشِف)
         if ($request->filled('website')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إرسال رسالتك بنجاح',
+            ]);
+        }
+
+        // فخّ زمنيّ: النموذج البشريّ يُملأ في ثوانٍ؛ البوت يُرسل فوراً. الطابع مُشفَّر فلا يُزوَّر.
+        // متساهل مع غيابه (صفحة مُخزَّنة قديمة) — لا يُعاقَب إلّا التسليم السريع المؤكَّد.
+        $openedAt = null;
+        try {
+            $openedAt = (int) decrypt((string) $request->input('form_ts', ''));
+        } catch (\Throwable $e) {
+            $openedAt = null;
+        }
+        if ($openedAt && (now()->timestamp - $openedAt) < 3) {
             return response()->json([
                 'success' => true,
                 'message' => 'تم إرسال رسالتك بنجاح',
@@ -55,6 +70,19 @@ class ContactController extends Controller
             'user_agent' => $request->userAgent(),
         ];
 
+        // كشف تكرار المحتوى: نفس (البريد + الرسالة) خلال 10 دقائق = فيضان آليّ → نجاح كاذب صامت،
+        // لا صفٌّ جديد ولا بريد (يوقف تكرار نفس الرسالة دون إزعاج المستخدم الشرعيّ).
+        $isDuplicate = ContactMessage::where('email', $cleanData['email'])
+            ->where('message', $cleanData['message'])
+            ->where('created_at', '>=', now()->subMinutes(10))
+            ->exists();
+        if ($isDuplicate) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إرسال رسالتك بنجاح',
+            ], 200);
+        }
+
         // الحفظ في قاعدة البيانات هو مصدر الحقيقة: تُحفَظ الرسالة أوّلاً، وتبقى مستردَّةً من
         // لوحة الإدارة حتى لو تعطّل البريد. فشل الحفظ وحده يُرجِع خطأً للزائر.
         try {
@@ -70,34 +98,31 @@ class ContactController extends Controller
 
         // الإشعارات البريديّة «أفضل جهد»: تعطُّل SMTP يجب ألّا يُضيّع الرسالة أو يُظهر خطأً للزائر.
         $adminEmail = setting('contact_email', 'info@atheel-makkah.com'); // كان مرمَّزاً خطأً لنطاق مهجور
-        $siteName = setting('site_name', 'أثيل مكة');
 
-        try {
-            // **مُصفَّف لا متزامن**: عمليّة الويب على الاستضافة لا تفتح اتّصالًا صادرًا على 587
-            // (Connection timed out) — فكلّ إرسال داخل الطلب يفشل. العامل (CLI) وحده يصل SMTP،
-            // وهو ما يفسّر وصول الحملات (مُصفَّفة) وفشل هذا النموذج (كان متزامنًا).
-            Mail::to($adminEmail)->queue(new \App\Mail\ContactMessageReceivedMail($cleanData));
-        } catch (\Throwable $e) {
-            // «أفضل جهد» يبقى — لكن **لا ابتلاع** (§5): السبب الحقيقيّ يُسجَّل في سجلّ البريد
-            // نفسه لا في laravel.log وحده، وإلّا رأى المشرف «فشل» برسالة مهلةٍ عامّة بلا تشخيص.
-            \Log::warning('Contact admin-notify failed (message saved): ' . $e->getMessage());
-            \App\Models\EmailLog::recordFailure(
-                $adminEmail,
-                $e->getMessage(),
-                'رسالة تواصل جديدة من ' . $cleanData['full_name'],
-            );
+        // إشعار الأدمن «أفضل جهد» — خلف **دائرة قطعٍ يوميّة** تحمي صندوق O365 من الحرق مهما كثُر
+        // الوارد (شبكة أمان فوق محدِّد المسار). وجهته ثابتة (setting) فلا تضخيم لعنوان مهاجم.
+        // مُصفَّف لا متزامن: عمليّة الويب محجوبة عن المنفذ 587، والعامل (CLI) وحده يوصِل SMTP.
+        $mailCap = (int) setting('contact_admin_mail_daily_cap', 200);
+        $mailKey = 'contact_admin_mail:' . now()->format('Y-m-d');
+        $sentToday = (int) \Cache::get($mailKey, 0);
+        if ($sentToday < $mailCap) {
+            \Cache::put($mailKey, $sentToday + 1, now()->endOfDay());
+            try {
+                Mail::to($adminEmail)->queue(new \App\Mail\ContactMessageReceivedMail($cleanData));
+            } catch (\Throwable $e) {
+                \Log::warning('Contact admin-notify failed (message saved): ' . $e->getMessage());
+                \App\Models\EmailLog::recordFailure(
+                    $adminEmail,
+                    $e->getMessage(),
+                    'رسالة تواصل جديدة من ' . $cleanData['full_name'],
+                );
+            }
         }
 
-        try {
-            Mail::to($cleanData['email'])->queue(new \App\Mail\ContactConfirmationMail($cleanData));
-        } catch (\Throwable $e) {
-            \Log::warning('Contact confirmation failed (message saved): ' . $e->getMessage());
-            \App\Models\EmailLog::recordFailure(
-                $cleanData['email'],
-                $e->getMessage(),
-                'تم استلام رسالتك - ' . $siteName,
-            );
-        }
+        // **حُذف بريد التأكيد للمُرسِل**: كان يُرسَل إلى عنوانٍ يتحكّم به المهاجم وغير مُتحقَّق
+        // (Mail::to($cleanData['email'])) — ناقلُ backscatter/قصف بريد وحرقِ صندوق O365 (حظرُه يوقف
+        // كلّ بريد المنصّة بما فيه رمز 2FA واستعادة كلمة المرور). لا قيمة أمنيّة له: الأدمن يُشعَر
+        // أعلاه، والرسالة محفوظة (مصدر الحقيقة)، ورسالة الشكر تظهر للزائر في استجابة JSON أدناه.
 
         return response()->json([
             'success' => true,

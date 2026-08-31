@@ -707,7 +707,13 @@
                     <div class="contact-form-panel">
                         <form action="/contact" method="POST" class="contact-form" id="contactForm">
                             @csrf
-                            
+                            {{-- فخّ honeypot: مخفيّ بصريّاً (لا type=hidden — يراه البوت فيملؤه فيُكشَف). --}}
+                            <div style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden" aria-hidden="true">
+                                <label>اترك هذا الحقل فارغاً <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+                            </div>
+                            {{-- فخّ زمنيّ مُوقَّع (مُشفَّر): يرفض الإرسال الأسرع من ثوانٍ (البوت يُرسل فوراً). --}}
+                            <input type="hidden" name="form_ts" value="{{ encrypt(now()->timestamp) }}">
+
                             <div class="form-group">
                                 <label for="full_name" class="form-label">الاسم الكامل</label>
                                 <input 

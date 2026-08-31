@@ -94,10 +94,10 @@ Route::post('/register', [AuthController::class, 'register'])
     ->name('register.post')
     ->middleware('throttle:5,1');
 
-// نموذج التواصل — مع throttle لمنع spam
+// نموذج التواصل — محدِّد مركّب بسقف عالميّ (contact) بدل throttle:5,1 القابل للتجاوز بتزوير XFF
 Route::post('/contact', [ContactController::class, 'store'])
     ->name('contact.store')
-    ->middleware('throttle:5,1');
+    ->middleware('throttle:contact');
 
 // مسارات التسجيل العام للمدارس
 Route::prefix('register')->name('public.register.')->group(function () {

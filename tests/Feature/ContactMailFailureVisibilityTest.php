@@ -44,12 +44,15 @@ class ContactMailFailureVisibilityTest extends TestCase
 
     public function test_the_real_smtp_error_reaches_the_mail_log(): void
     {
+        // ملاحظة: بريد التأكيد للمُرسِل حُذِف (مكافحة backscatter/قصف بريد)، فالبريد الوحيد المتبقّي
+        // هو إشعار الأدمن (ثابت الوجهة). سببه الحقيقيّ يجب أن يصل سجلّ البريد لا رسالةً عامّة.
         Mail::shouldReceive('to')->andReturnSelf();
         Mail::shouldReceive('queue')->andThrow(new \RuntimeException('SMTP 535 Authentication failed'));
 
         $this->postJson('/contact', $this->payload())->assertOk();
 
-        $log = EmailLog::where('to_email', 'visitor@example.com')->latest('id')->first();
+        $log = EmailLog::where('to_email', setting('contact_email', 'info@atheel-makkah.com'))
+            ->latest('id')->first();
         $this->assertNotNull($log, 'يجب تسجيل محاولة فاشلة');
         $this->assertSame('failed', $log->status);
         $this->assertStringContainsString('535', (string) $log->error_message, 'السبب الحقيقيّ لا رسالة عامّة');

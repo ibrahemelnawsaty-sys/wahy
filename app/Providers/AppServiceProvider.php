@@ -80,6 +80,21 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // نموذج التواصل العامّ: حدّ لكلّ IP + لكلّ بريد/يوم + **سقف عالميّ بمفتاح ثابت**. السقف
+        // العالميّ هو الحماية الحقيقيّة: الحدّ لكلّ IP يُبطله تزوير X-Forwarded-For (trustProxies('*'))،
+        // أمّا مفتاحٌ ثابت (contact-global) فمناعةٌ ضدّ تدوير العناوين — دائرةُ قطعٍ توقف الفيضان
+        // (حادثة 1377 رسالة/5 دقائق) وتحمي صندوق O365 من الحظر. القيم فوق أيّ استخدامٍ بشريّ طبيعيّ.
+        RateLimiter::for('contact', function (Request $request) {
+            $email = strtolower(trim((string) $request->input('email', '')));
+
+            return [
+                Limit::perMinute(3)->by($request->ip()),
+                Limit::perDay(3)->by($email !== '' ? 'contact-email:' . $email : 'contact-ipday:' . $request->ip()),
+                Limit::perMinute(15)->by('contact-global'),      // سقف عالميّ لحظيّ (مفتاح ثابت)
+                Limit::perDay(300)->by('contact-global-daily'),  // سقف عالميّ يوميّ
+            ];
+        });
+
         // منح السوبر أدمن جميع الصلاحيات
         Gate::before(function ($user, $ability) {
             return $user->role === 'super_admin' ? true : null;
