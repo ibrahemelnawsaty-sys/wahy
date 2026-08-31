@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\ContactMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -16,18 +18,30 @@ class ContactFormResilienceTest extends TestCase
 {
     use RefreshDatabase;
 
-    private array $payload = [
-        'full_name' => 'أحمد التجريبيّ',
-        'email' => 'visitor@example.com',
-        'user_type' => 'teacher',
-        'message' => 'رسالة اختبار للتواصل.',
-    ];
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // إثبات ملكيّة البريد صار مطلوباً: نزرع رمزاً صالحاً (كما لو أُرسِل في الخطوة 1).
+        Cache::put('contact_code:' . sha1('visitor@example.com'), hash('sha256', '123456'), now()->addMinutes(10));
+    }
+
+    private function payload(array $o = []): array
+    {
+        return array_merge([
+            'full_name' => 'أحمد التجريبيّ',
+            'email' => 'visitor@example.com',
+            'user_type' => 'teacher',
+            'message' => 'رسالة اختبار للتواصل.',
+            'cc_token' => Crypt::encrypt(now()->timestamp - 5), // إثبات تنفيذ JS
+            'code' => '123456',                                 // رمز التحقّق المزروع
+        ], $o);
+    }
 
     public function test_contact_saves_and_returns_success(): void
     {
         Mail::fake();
 
-        $this->postJson('/contact', $this->payload)
+        $this->postJson('/contact', $this->payload())
             ->assertOk()->assertJsonPath('success', true);
 
         $this->assertDatabaseHas('contact_messages', ['email' => 'visitor@example.com']);
@@ -38,7 +52,7 @@ class ContactFormResilienceTest extends TestCase
         // محاكاة تعطّل SMTP: كلّ إرسال يرمي — يجب ألّا يُضيّع الرسالة ولا يُظهر خطأً للزائر.
         Mail::shouldReceive('send')->andThrow(new \RuntimeException('SMTP down'));
 
-        $this->postJson('/contact', $this->payload)
+        $this->postJson('/contact', $this->payload())
             ->assertOk()->assertJsonPath('success', true);
 
         $this->assertSame(1, ContactMessage::where('email', 'visitor@example.com')->count());

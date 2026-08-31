@@ -10,31 +10,117 @@ use Illuminate\Support\Facades\Validator;
 class ContactController extends Controller
 {
     /**
+     * حاجز مكافحة البوتات المشترك بين إرسال الرمز وحفظ الرسالة:
+     *   1) Honeypot — حقل مخفيّ إن مُلئ فهو bot (نجاح كاذب صامت حتّى لا يعرف أنّه كُشِف).
+     *   2) مفتاح إيقافٍ فوريّ (setting) يُمكّن المالك من تعطيل النموذج كلّياً لحظة تفاقم الهجوم.
+     *   3) 🔒 «إثبات تنفيذ JavaScript» (جذريّ ريثما يُربَط Cloudflare/Turnstile): الرمز يُوضَع في
+     *      data-attribute لا حقل نموذج، وJS ينقله لحقل cc_token عند التحميل. البوت يجلب HTML ويُعيد
+     *      إرسال الحقول القياسيّة فقط دون تنفيذ JS — فيبقى cc_token فارغاً فيُرفَض بنجاحٍ كاذب صامت.
+     *
+     * يُرجِع استجابةً لإيقاف الطلب فوراً، أو null للمتابعة.
+     */
+    private function guardBots(Request $request, string $fakeSuccessMessage): ?\Illuminate\Http\JsonResponse
+    {
+        if ($request->filled('website')) {
+            return response()->json(['success' => true, 'message' => $fakeSuccessMessage]);
+        }
+
+        if (! setting('contact_form_enabled', true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'نموذج التواصل معطّل مؤقّتاً. راسلنا مباشرةً على ' . setting('contact_email', 'info@atheel-makkah.com'),
+            ], 503);
+        }
+
+        $ccOpenedAt = null;
+        try {
+            $ccOpenedAt = (int) decrypt((string) $request->input('cc_token', ''));
+        } catch (\Throwable $e) {
+            $ccOpenedAt = null;
+        }
+        $ccAge = $ccOpenedAt ? (now()->timestamp - $ccOpenedAt) : null;
+        if (! $ccOpenedAt || $ccAge < 1 || $ccAge > 7200) {
+            return response()->json(['success' => true, 'message' => $fakeSuccessMessage]);
+        }
+
+        return null;
+    }
+
+    /**
+     * الخطوة الأولى: إرسال رمز تحقّق (OTP) إلى البريد الذي أدخله الزائر ليُثبت ملكيّته قبل قبول
+     * الرسالة. الجذر الحاسم للحماية: البوت يقصف بعناوين عشوائيّة/ضحايا لا يملك صناديقها، فلا يستطيع
+     * قراءة الرمز أبداً — ومن ثمّ لا يعبر store(). محميّ بذاته من قصف الرموز (guardBots + سقف لكلّ
+     * بريد + دائرة قطعٍ يوميّة عالميّة + محدِّد مسار). البريد مُصفَّف (العامل CLI وحده يصل SMTP).
+     */
+    public function sendCode(Request $request)
+    {
+        if ($resp = $this->guardBots($request, 'إن كان البريد صحيحاً فستصلك رسالة برمز التحقّق.')) {
+            return $resp;
+        }
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255',
+        ], [
+            'email.required' => 'البريد الإلكتروني مطلوب',
+            'email.email' => 'يرجى إدخال بريد إلكتروني صحيح',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يرجى إدخال بريد إلكتروني صحيح',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $email = strtolower(trim((string) $request->input('email')));
+
+        // سقفٌ لكلّ بريد: 5 طلبات رمز/10د كحدّ أقصى — يمنع قصف صندوق ضحيّة برموز متكرّرة.
+        $reqKey = 'contact_code_req:' . sha1($email);
+        $reqCount = (int) \Cache::get($reqKey, 0);
+        if ($reqCount >= 5) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لقد طلبتَ الرمز عدّة مرّات. انتظر قليلاً ثمّ حاول مجدّداً.',
+            ], 429);
+        }
+
+        // دائرة قطعٍ يوميّة عالميّة لبريد الرموز — تحمي صندوق O365 من الحرق مهما كثُر الطلب (شبكة
+        // أمان فوق محدِّد المسار ذي المفتاح الثابت). فشل الإرسال لا يُكشَف للزائر (يمنع الاستنزاف).
+        $capKey = 'contact_code_mail:' . now()->format('Y-m-d');
+        $sentToday = (int) \Cache::get($capKey, 0);
+        if ($sentToday >= (int) setting('contact_code_mail_daily_cap', 300)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذّر إرسال الرمز حالياً بسبب الضغط. حاول لاحقاً أو راسلنا مباشرةً على ' . setting('contact_email', 'info@atheel-makkah.com'),
+            ], 429);
+        }
+
+        // توليد رمز 6-أرقام، وتخزينه **مُجزّأً** (لا نصّاً صريحاً) بمفتاح البريد، صالحاً 10د، يُستهلَك مرّة.
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        \Cache::put('contact_code:' . sha1($email), hash('sha256', $code), now()->addMinutes(10));
+        \Cache::put($reqKey, $reqCount + 1, now()->addMinutes(10));
+        \Cache::put($capKey, $sentToday + 1, now()->endOfDay());
+
+        try {
+            Mail::to($email)->queue(new \App\Mail\ContactVerificationCodeMail($code));
+        } catch (\Throwable $e) {
+            \Log::warning('Contact verification code mail failed: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'need_code' => true,
+            'message' => 'أرسلنا رمز تحقّق إلى بريدك (قد يستغرق وصوله دقيقة). أدخِله أدناه لإتمام الإرسال.',
+        ]);
+    }
+
+    /**
      * Store a newly created contact message.
      */
     public function store(Request $request)
     {
-        // Honeypot — إن مُلئ الحقل المخفي فهذا bot (نجاح كاذب صامت حتّى لا يعرف البوت أنّه كُشِف)
-        if ($request->filled('website')) {
-            return response()->json([
-                'success' => true,
-                'message' => 'تم إرسال رسالتك بنجاح',
-            ]);
-        }
-
-        // فخّ زمنيّ: النموذج البشريّ يُملأ في ثوانٍ؛ البوت يُرسل فوراً. الطابع مُشفَّر فلا يُزوَّر.
-        // متساهل مع غيابه (صفحة مُخزَّنة قديمة) — لا يُعاقَب إلّا التسليم السريع المؤكَّد.
-        $openedAt = null;
-        try {
-            $openedAt = (int) decrypt((string) $request->input('form_ts', ''));
-        } catch (\Throwable $e) {
-            $openedAt = null;
-        }
-        if ($openedAt && (now()->timestamp - $openedAt) < 3) {
-            return response()->json([
-                'success' => true,
-                'message' => 'تم إرسال رسالتك بنجاح',
-            ]);
+        if ($resp = $this->guardBots($request, 'تم إرسال رسالتك بنجاح')) {
+            return $resp;
         }
 
         // Validation
@@ -59,6 +145,34 @@ class ContactController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
+
+        // 🔑 إثبات ملكيّة البريد: يجب أن يطابق الرمز المُرسَل إلى هذا البريد (يُستهلَك مرّة واحدة).
+        // بلا رمزٍ صحيح لا تُخزَّن الرسالة — هذا هو الحاجز الحاسم: المهاجم لا يملك صندوق العنوان الذي
+        // يقصف به فلا يقرأ الرمز أبداً. تُطابَق البصمة المُجزّأة عبر hash_equals (زمن ثابت).
+        $emailNorm = strtolower(trim((string) $request->input('email')));
+        $emailKey = 'contact_code:' . sha1($emailNorm);
+        $triesKey = 'contact_code_tries:' . sha1($emailNorm);
+        $expected = \Cache::get($emailKey);
+        $provided = (string) $request->input('code', '');
+        if (! $expected || ! hash_equals((string) $expected, hash('sha256', $provided))) {
+            // عدّاد محاولات: بعد 5 محاولاتٍ خاطئة يُبطَل الرمز (يسدّ أيّ تخمينٍ تدريجيّ لفضاء 10⁶).
+            if ($expected) {
+                $tries = (int) \Cache::get($triesKey, 0) + 1;
+                \Cache::put($triesKey, $tries, now()->addMinutes(10));
+                if ($tries >= 5) {
+                    \Cache::forget($emailKey);
+                    \Cache::forget($triesKey);
+                }
+            }
+
+            return response()->json([
+                'success' => false,
+                'need_code' => true,
+                'message' => 'رمز التحقّق غير صحيح أو انتهت صلاحيته. اطلب رمزاً جديداً وأعد المحاولة.',
+            ], 422);
+        }
+        \Cache::forget($emailKey);   // استهلاك مرّة واحدة
+        \Cache::forget($triesKey);
 
         // XSS Protection - Strip tags
         $cleanData = [

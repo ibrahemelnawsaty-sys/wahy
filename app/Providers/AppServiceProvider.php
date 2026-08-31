@@ -95,6 +95,17 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // إرسال رمز التحقّق (الخطوة 1): محدِّد **أشدّ** من نموذج التواصل — كلّ طلبٍ هنا يُطلق بريداً،
+        // فيجب أن يبقى نادراً. سقفٌ عالميّ بمفتاح ثابت (مناعة ضدّ تزوير XFF/تدوير العناوين) يحمي
+        // صندوق O365 من قصف الرموز؛ الحدّ لكلّ بريد يُطبَّق داخل المتحكّم أيضاً (5/10د).
+        RateLimiter::for('contact-code', function (Request $request) {
+            return [
+                Limit::perMinute(2)->by($request->ip()),
+                Limit::perMinute(10)->by('contact-code-global'),      // سقف عالميّ لحظيّ (مفتاح ثابت)
+                Limit::perDay(300)->by('contact-code-global-daily'),  // سقف عالميّ يوميّ
+            ];
+        });
+
         // منح السوبر أدمن جميع الصلاحيات
         Gate::before(function ($user, $ability) {
             return $user->role === 'super_admin' ? true : null;

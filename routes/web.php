@@ -95,6 +95,11 @@ Route::post('/register', [AuthController::class, 'register'])
     ->middleware('throttle:5,1');
 
 // نموذج التواصل — محدِّد مركّب بسقف عالميّ (contact) بدل throttle:5,1 القابل للتجاوز بتزوير XFF
+// الخطوة 1: إرسال رمز تحقّق للبريد (محدِّد أشدّ contact-code — يحمي صندوق البريد من قصف الرموز)
+Route::post('/contact/send-code', [ContactController::class, 'sendCode'])
+    ->name('contact.send-code')
+    ->middleware('throttle:contact-code');
+// الخطوة 2: حفظ الرسالة (يتطلّب رمزاً صحيحاً أُرسِل للبريد)
 Route::post('/contact', [ContactController::class, 'store'])
     ->name('contact.store')
     ->middleware('throttle:contact');

@@ -711,8 +711,10 @@
                             <div style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden" aria-hidden="true">
                                 <label>اترك هذا الحقل فارغاً <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
                             </div>
-                            {{-- فخّ زمنيّ مُوقَّع (مُشفَّر): يرفض الإرسال الأسرع من ثوانٍ (البوت يُرسل فوراً). --}}
-                            <input type="hidden" name="form_ts" value="{{ encrypt(now()->timestamp) }}">
+                            {{-- 🔒 إثبات تنفيذ JS: الرمز الموقَّع في data-attribute (لا حقل)، وJS ينقله إلى
+                                 cc_token عند التحميل. البوت يُعيد الحقول القياسيّة دون تنفيذ JS فيبقى فارغاً فيُرفَض. --}}
+                            <input type="hidden" name="cc_token" id="cc_token" value="">
+                            <span id="ccGate" data-g="{{ encrypt(now()->timestamp) }}" hidden></span>
 
                             <div class="form-group">
                                 <label for="full_name" class="form-label">الاسم الكامل</label>
@@ -762,8 +764,27 @@
                                 ></textarea>
                             </div>
 
+                            {{-- خطوة التحقّق: تظهر بعد إرسال الرمز إلى البريد (يديرها landing.js). --}}
+                            <div class="form-group" id="contactCodeGroup" style="display: none;">
+                                <label for="contactCode" class="form-label">رمز التحقّق (وصلك على بريدك)</label>
+                                <input
+                                    type="text"
+                                    id="contactCode"
+                                    name="code"
+                                    class="form-input"
+                                    inputmode="numeric"
+                                    autocomplete="one-time-code"
+                                    maxlength="6"
+                                    placeholder="######"
+                                    style="letter-spacing:6px;text-align:center;font-size:20px;"
+                                >
+                                <button type="button" id="contactResend" style="margin-top:8px;background:none;border:0;color:var(--primary,#2BA55D);text-decoration:underline;cursor:pointer;font-size:13px;padding:0;">
+                                    لم يصلك الرمز؟ إعادة الإرسال
+                                </button>
+                            </div>
+
                             <button type="submit" class="btn btn-primary btn-lg btn-full">
-                                <span class="btn-text">إرسال الرسالة</span>
+                                <span class="btn-text">إرسال رمز التحقّق</span>
                                 <span class="btn-loader" style="display: none;">
                                     <span class="loading-dot"></span>
                                     <span class="loading-dot"></span>
@@ -773,6 +794,14 @@
 
                             <div class="form-message" id="formMessage" style="display: none;"></div>
                         </form>
+                        {{-- ملء cc_token عند التحميل (إثبات تنفيذ JS). خارج <form> ليعمل ولو تأخّر تحميل landing.js. --}}
+                        <script>
+                            (function () {
+                                var g = document.getElementById('ccGate'),
+                                    f = document.getElementById('cc_token');
+                                if (g && f) { f.value = g.getAttribute('data-g'); }
+                            })();
+                        </script>
                     </div>
                 </div>
             </div>

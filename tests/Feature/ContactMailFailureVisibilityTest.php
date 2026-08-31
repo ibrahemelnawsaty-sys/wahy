@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\EmailLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -19,6 +21,13 @@ class ContactMailFailureVisibilityTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // إثبات ملكيّة البريد صار مطلوباً: نزرع رمزاً صالحاً (كما لو أُرسِل في الخطوة 1).
+        Cache::put('contact_code:' . sha1('visitor@example.com'), hash('sha256', '123456'), now()->addMinutes(10));
+    }
+
     private function payload(): array
     {
         return [
@@ -26,6 +35,8 @@ class ContactMailFailureVisibilityTest extends TestCase
             'email' => 'visitor@example.com',
             'user_type' => 'teacher',
             'message' => 'رسالة تجريبيّة',
+            'cc_token' => Crypt::encrypt(now()->timestamp - 5), // إثبات تنفيذ JS
+            'code' => '123456',                                 // رمز التحقّق المزروع
         ];
     }
 

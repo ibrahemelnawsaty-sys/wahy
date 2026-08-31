@@ -231,59 +231,100 @@ function initContactForm() {
     const form = document.getElementById('contactForm');
     if (!form) return;
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // تدفّق من خطوتين لإثبات ملكيّة البريد: (1) إرسال رمز إلى البريد، ثمّ (2) إدخال الرمز والإرسال.
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoader = submitBtn.querySelector('.btn-loader');
+    const formMessage = document.getElementById('formMessage');
+    const codeGroup = document.getElementById('contactCodeGroup');
+    const codeInput = document.getElementById('contactCode');
+    const resendBtn = document.getElementById('contactResend');
 
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const btnText = submitBtn.querySelector('.btn-text');
-        const btnLoader = submitBtn.querySelector('.btn-loader');
-        const formMessage = document.getElementById('formMessage');
+    function setLoading(loading) {
+        submitBtn.disabled = loading;
+        if (btnText) btnText.style.display = loading ? 'none' : 'inline';
+        if (btnLoader) btnLoader.style.display = loading ? 'flex' : 'none';
+    }
+    function setLabel(txt) { if (btnText) btnText.textContent = txt; }
+    function showMsg(txt, ok) {
+        formMessage.textContent = txt;
+        formMessage.className = 'form-message ' + (ok ? 'success' : 'error');
+        formMessage.style.display = 'block';
+    }
 
-        // Disable button and show loader
-        submitBtn.disabled = true;
-        btnText.style.display = 'none';
-        btnLoader.style.display = 'flex';
+    // الخطوة 1: طلب رمز التحقّق للبريد المُدخَل.
+    async function requestCode() {
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        setLoading(true);
         formMessage.style.display = 'none';
+        try {
+            const response = await fetch('/contact/send-code', {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                if (codeGroup) codeGroup.style.display = 'block';
+                if (codeInput) codeInput.focus();
+                showMsg(result.message || 'أرسلنا رمز تحقّق إلى بريدك. أدخِله لإتمام الإرسال.', true);
+                setLabel('تأكيد وإرسال');
+                submitBtn.dataset.step = 'verify';
+            } else {
+                showMsg(result.message || 'تعذّر إرسال الرمز. حاول لاحقاً.', false);
+            }
+        } catch (error) {
+            showMsg('حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.', false);
+        } finally {
+            setLoading(false);
+        }
+    }
 
-        // Get form data
-        const formData = new FormData(form);
-
+    // الخطوة 2: إرسال الرسالة مع الرمز.
+    async function submitMessage() {
+        if (codeInput && !codeInput.value.trim()) {
+            showMsg('أدخِل رمز التحقّق الذي وصلك على بريدك.', false);
+            return;
+        }
+        setLoading(true);
+        formMessage.style.display = 'none';
         try {
             const response = await fetch('/contact', {
                 method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });
-
             const result = await response.json();
-
-            if (response.ok) {
-                // Success
-                formMessage.textContent = result.message || 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.';
-                formMessage.className = 'form-message success';
-                formMessage.style.display = 'block';
+            if (response.ok && result.success) {
+                showMsg(result.message || 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.', true);
                 form.reset();
+                if (codeGroup) codeGroup.style.display = 'none';
+                setLabel('إرسال رمز التحقّق');
+                submitBtn.dataset.step = 'send';
             } else {
-                // Error
-                formMessage.textContent = result.message || 'حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.';
-                formMessage.className = 'form-message error';
-                formMessage.style.display = 'block';
+                // رمز خاطئ/منتهٍ → أبقِ حقل الرمز ظاهراً ليعيد المحاولة أو يطلب رمزاً جديداً.
+                showMsg(result.message || 'الرمز غير صحيح أو انتهت صلاحيته.', false);
+                if (result.need_code && codeGroup) codeGroup.style.display = 'block';
             }
         } catch (error) {
-            // Error caught silently
-            formMessage.textContent = 'حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.';
-            formMessage.className = 'form-message error';
-            formMessage.style.display = 'block';
+            showMsg('حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.', false);
         } finally {
-            // Re-enable button and hide loader
-            submitBtn.disabled = false;
-            btnText.style.display = 'inline';
-            btnLoader.style.display = 'none';
+            setLoading(false);
+        }
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (submitBtn.dataset.step === 'verify') {
+            await submitMessage();
+        } else {
+            await requestCode();
         }
     });
+
+    if (resendBtn) {
+        resendBtn.addEventListener('click', () => { requestCode(); });
+    }
 
     // Real-time validation
     const inputs = form.querySelectorAll('.form-input, .form-select, .form-textarea');
