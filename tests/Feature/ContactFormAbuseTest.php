@@ -73,6 +73,23 @@ class ContactFormAbuseTest extends TestCase
         Mail::assertNothingQueued();
     }
 
+    public function test_throttle_429_is_localized_to_arabic(): void
+    {
+        Mail::fake();
+        // بيئة الاختبار تُعطّل ThrottleRequests عالميّاً (TestCase::setUp) — نُعيده لهذا الاختبار فقط.
+        $this->withMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $token = $this->ccToken();
+
+        // الحدّ لكلّ IP على contact-code هو 4/دقيقة؛ الخامس يُحجب برسالةٍ عربيّة (لا «Too Many Attempts»).
+        for ($i = 0; $i < 4; $i++) {
+            $this->postJson('/contact/send-code', ['email' => "u{$i}@example.com", 'cc_token' => $token])->assertOk();
+        }
+        $res = $this->postJson('/contact/send-code', ['email' => 'u5@example.com', 'cc_token' => $token]);
+
+        $res->assertStatus(429)->assertJson(['success' => false]);
+        $this->assertStringContainsString('كثير', (string) $res->json('message'), 'رسالة الحظر مُعرَّبة');
+    }
+
     public function test_send_code_honeypot_sends_no_mail(): void
     {
         Mail::fake();

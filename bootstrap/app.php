@@ -69,6 +69,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->with('error', $msg);
         });
 
+        // 429 عبر AJAX/JSON (كنماذج fetch) كان يصل المستخدم بنصّ «Too Many Attempts.» الإنجليزيّ
+        // الخام لأنّ مسار JSON يتجاوز صفحة errors/429.blade.php العربيّة. نُعرّب **مسار JSON فقط**
+        // بالشكل المتوقَّع (success/message)؛ ونُبقي طلبات الويب العاديّة على صفحة 429 القياسيّة
+        // (بحالة 429 الصحيحة — تعتمدها اختبارات أمن الحدّ) بإرجاع null (تفويضٌ للمُعالِج الافتراضيّ).
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, $request) {
+            if (! $request->expectsJson()) {
+                return null;
+            }
+            $headers = method_exists($e, 'getHeaders') ? $e->getHeaders() : [];
+
+            return response()->json([
+                'success' => false,
+                'message' => 'محاولاتٌ كثيرة جداً. يرجى الانتظار دقيقةً ثمّ إعادة المحاولة.',
+            ], 429, $headers);
+        });
+
         // Sentry — يُفعَّل فقط لو ثُبّتت الحزمة (composer require sentry/sentry-laravel)
         $exceptions->report(function (\Throwable $e) {
             if (app()->bound('sentry') && function_exists('\\Sentry\\captureException')) {

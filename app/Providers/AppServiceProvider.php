@@ -88,8 +88,8 @@ class AppServiceProvider extends ServiceProvider
             $email = strtolower(trim((string) $request->input('email', '')));
 
             return [
-                Limit::perMinute(3)->by($request->ip()),
-                Limit::perDay(3)->by($email !== '' ? 'contact-email:' . $email : 'contact-ipday:' . $request->ip()),
+                Limit::perMinute(6)->by($request->ip()),         // كان 3 — ضيّقٌ مع إعادة إدخال رمزٍ خاطئ
+                Limit::perDay(5)->by($email !== '' ? 'contact-email:' . $email : 'contact-ipday:' . $request->ip()),
                 Limit::perMinute(15)->by('contact-global'),      // سقف عالميّ لحظيّ (مفتاح ثابت)
                 Limit::perDay(300)->by('contact-global-daily'),  // سقف عالميّ يوميّ
             ];
@@ -100,8 +100,8 @@ class AppServiceProvider extends ServiceProvider
         // صندوق O365 من قصف الرموز؛ الحدّ لكلّ بريد يُطبَّق داخل المتحكّم أيضاً (5/10د).
         RateLimiter::for('contact-code', function (Request $request) {
             return [
-                Limit::perMinute(2)->by($request->ip()),
-                Limit::perMinute(10)->by('contact-code-global'),      // سقف عالميّ لحظيّ (مفتاح ثابت)
+                Limit::perMinute(4)->by($request->ip()),              // كان 2 — يصطدم مع «إعادة الإرسال»
+                Limit::perMinute(12)->by('contact-code-global'),      // سقف عالميّ لحظيّ (مفتاح ثابت)
                 Limit::perDay(300)->by('contact-code-global-daily'),  // سقف عالميّ يوميّ
             ];
         });

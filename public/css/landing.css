@@ -3555,3 +3555,42 @@ svg.icon,
     display: list-item;
     margin-bottom: 14px;
 }
+
+/* ==================== أداء الجوّال: تنعيم التمرير ==================== */
+/* الأعراض: التمرير على الجوّال «يعلّق ثمّ يقفز» قسماً بعد قسم. السبب: ‏backdrop-filter (زجاجيّة)
+   على عشرات العناصر يُعيد رسم الخلفيّة الضبابيّة كلّ إطار، ‏+ will-change يُنشئ طبقات GPU زائدة،
+   ‏+ حركاتٌ لانهائيّة على الهيدر (دائم الظهور) والهيرو تُعيد الرسم باستمرار — كلّها تُنافس التمرير
+   على معالج الجوّال المحدود. النطاق (pointer: coarse) يشمل كلّ أجهزة اللمس بأيّ اتجاه/عرض. */
+@media (max-width: 768px), (pointer: coarse) {
+    *,
+    *::before,
+    *::after {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        will-change: auto !important;
+    }
+
+    /* إيقاف الحركات الزخرفيّة اللانهائيّة على العناصر الأثقل (تبقى مؤشّرات التحميل تعمل). */
+    .header,
+    .header::before,
+    .header::after,
+    .hero,
+    .hero::before,
+    .hero-title,
+    .logo-icon,
+    .logo-text {
+        animation: none !important;
+    }
+}
+
+/* احترام تفضيل «تقليل الحركة» (وصوليّة + أداء): يُلغي كلّ الحركات والانتقالات والتمرير الناعم. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
