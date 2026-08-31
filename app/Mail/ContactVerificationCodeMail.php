@@ -21,7 +21,9 @@ class ContactVerificationCodeMail extends Mailable implements ShouldQueue
 
     public function build()
     {
+        // متعدّد الأجزاء (HTML + نصّ): يُحسّن وضع البريد في صندوق الوارد بدل السبام.
         return $this->subject('رمز تأكيد رسالتك — ' . setting('site_name', 'أثيل مكة'))
-            ->view('emails.contact-verification-code', ['code' => $this->code]);
+            ->view('emails.contact-verification-code', ['code' => $this->code])
+            ->text('emails.contact-verification-code-text', ['code' => $this->code]);
     }
 }
