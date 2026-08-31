@@ -105,7 +105,7 @@ class ContactFormAbuseTest extends TestCase
 
     // ---------- الخطوة 2: حفظ الرسالة ----------
 
-    public function test_valid_submission_with_code_saves_and_notifies_admin_but_never_confirms_submitter(): void
+    public function test_valid_submission_with_code_saves_notifies_admin_and_confirms_verified_submitter(): void
     {
         Mail::fake();
         $this->seedCode();
@@ -115,7 +115,8 @@ class ContactFormAbuseTest extends TestCase
 
         $this->assertDatabaseHas('contact_messages', ['email' => 'visitor@example.com']);
         Mail::assertQueued(ContactMessageReceivedMail::class);   // الأدمن يُشعَر
-        Mail::assertNotQueued(ContactConfirmationMail::class);   // ← لا backscatter لعنوان المُرسِل
+        // التأكيد للمُرسِل عاد بأمان: البريد مُتحقَّق ملكيّته عبر OTP قبل بلوغ store() — فلا backscatter.
+        Mail::assertQueued(ContactConfirmationMail::class, fn ($m) => $m->hasTo('visitor@example.com'));
     }
 
     public function test_submission_without_a_code_is_rejected_and_not_stored(): void

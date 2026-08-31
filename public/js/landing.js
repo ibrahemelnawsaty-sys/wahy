@@ -268,6 +268,8 @@ function initContactForm() {
         formMessage.setAttribute('role', ok ? 'status' : 'alert');
         formMessage.setAttribute('aria-live', ok ? 'polite' : 'assertive');
         formMessage.style.display = 'block';
+        // على الجوّال قد تكون الرسالة أسفل الطيّة — نجلبها للعرض إن لزم (block:'nearest' لا يُزعج لو ظاهرة).
+        try { formMessage.scrollIntoView({ block: 'nearest' }); } catch (e) { /* noop */ }
     }
     function setStatus(txt, ok) {
         if (!codeStatus) return;
@@ -308,8 +310,8 @@ function initContactForm() {
         }
         setStatus('', true);
         setHint('');
-        // لا نُبقي لافتة نجاحٍ متناقضة («أرسلنا رمزاً…») بعد اختفاء الصندوق.
-        if (formMessage) formMessage.style.display = 'none';
+        // ملاحظة: لا نُخفي #formMessage هنا — فهذه الدالّة تُستدعى أيضاً بعد النجاح حيث نُريد بقاء
+        // لافتة «تم إرسال رسالتك». إخفاء اللافتة البائتة يقع في معالج تغيير البريد فقط (أدناه).
         if (sendCodeBtn) { sendCodeBtn.classList.remove('is-sent'); sendCodeBtn.disabled = false; }
         if (scbText) scbText.textContent = 'إرسال الرمز';
     }
@@ -438,6 +440,8 @@ function initContactForm() {
         emailInput.addEventListener('input', () => {
             if (codeSent && emailInput.value.trim().toLowerCase() !== sentToEmail) {
                 resetVerification();
+                // امسح لافتة «أرسلنا رمزاً…» البائتة كي لا تتناقض مع اختفاء الصندوق.
+                if (formMessage) formMessage.style.display = 'none';
             }
         });
     }

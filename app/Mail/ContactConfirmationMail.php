@@ -24,6 +24,11 @@ class ContactConfirmationMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
-        return new Content(view: 'emails.contact-confirmation', with: ['data' => $this->data]);
+        // متعدّد الأجزاء (HTML + نصّ) لتحسين وضع البريد في صندوق الوارد بدل السبام.
+        return new Content(
+            view: 'emails.contact-confirmation',
+            text: 'emails.contact-confirmation-text',
+            with: ['data' => $this->data],
+        );
     }
 }

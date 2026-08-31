@@ -233,10 +233,21 @@ class ContactController extends Controller
             }
         }
 
-        // **حُذف بريد التأكيد للمُرسِل**: كان يُرسَل إلى عنوانٍ يتحكّم به المهاجم وغير مُتحقَّق
-        // (Mail::to($cleanData['email'])) — ناقلُ backscatter/قصف بريد وحرقِ صندوق O365 (حظرُه يوقف
-        // كلّ بريد المنصّة بما فيه رمز 2FA واستعادة كلمة المرور). لا قيمة أمنيّة له: الأدمن يُشعَر
-        // أعلاه، والرسالة محفوظة (مصدر الحقيقة)، ورسالة الشكر تظهر للزائر في استجابة JSON أدناه.
+        // تأكيدٌ للمُرسِل بأنّ رسالته وصلت: **أُعيد بأمان**. سابقاً كان backscatter (يُرسَل لعنوانٍ
+        // غير مُتحقَّق يتحكّم به المهاجم). الآن store() لا يُبلَغ إلّا بعد **إثبات ملكيّة البريد برمز
+        // OTP** — فالعنوان مِلكُ صاحبه وقد بدأ الطلب بنفسه، فلا تضخيم ولا قصف طرفٍ ثالث. خلف دائرة
+        // قطعٍ يوميّة تحمي صندوق O365، ومُصفَّف، وأفضل جهد (فشله لا يمسّ حفظ الرسالة).
+        $confirmCap = (int) setting('contact_confirm_mail_daily_cap', 200);
+        $confirmKey = 'contact_confirm_mail:' . now()->format('Y-m-d');
+        $confirmSent = (int) \Cache::get($confirmKey, 0);
+        if ($confirmSent < $confirmCap) {
+            \Cache::put($confirmKey, $confirmSent + 1, now()->endOfDay());
+            try {
+                Mail::to($cleanData['email'])->queue(new \App\Mail\ContactConfirmationMail($cleanData));
+            } catch (\Throwable $e) {
+                \Log::warning('Contact confirmation mail failed (message saved): ' . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'success' => true,
