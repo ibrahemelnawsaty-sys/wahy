@@ -164,7 +164,14 @@ class AuthController extends Controller
         // الصحيح بعد **نجاح** التحقّق (regenerate() أدناه في verifyTwoFactor).
         $request->session()->put('two_factor_last_activity', now()->timestamp);
 
-        return view('auth.two-factor-verify');
+        // منع bfcache لصفحة التحقّق: SecurityHeaders يمنع الكاش فقط لِـauth()->check()، والمستخدم هنا
+        // **غير مُصادَق بعد** (المصادقة تقع بعد نجاح الرمز). بدونه قد يُقدِّم المتصفّح نسخةً مُخبَّأة
+        // برمز CSRF بائت عند الرجوع من تطبيق البريد ⟶ 419. (دفاعٌ ثانٍ فوق منع regenerateToken أعلاه.)
+        return response()
+            ->view('auth.two-factor-verify')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     /**
