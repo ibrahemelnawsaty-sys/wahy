@@ -80,29 +80,29 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
-        // نموذج التواصل العامّ: حدّ لكلّ IP + لكلّ بريد/يوم + **سقف عالميّ بمفتاح ثابت**. السقف
-        // العالميّ هو الحماية الحقيقيّة: الحدّ لكلّ IP يُبطله تزوير X-Forwarded-For (trustProxies('*'))،
-        // أمّا مفتاحٌ ثابت (contact-global) فمناعةٌ ضدّ تدوير العناوين — دائرةُ قطعٍ توقف الفيضان
-        // (حادثة 1377 رسالة/5 دقائق) وتحمي صندوق O365 من الحظر. القيم فوق أيّ استخدامٍ بشريّ طبيعيّ.
+        // نموذج التواصل: **أُزيل السقف العالميّ المشترك** (contact-global). كان يُغلَق للجميع حين
+        // يستهلكه فيضانُ بوت أو اختبارٌ متكرّر — حجبٌ ذاتيّ يمنع مستخدماً شرعيّاً من أوّل محاولة. لم
+        // يعد لازماً: الحماية الحقيقيّة صارت cc_token (إثبات JS) + رمز OTP (لا تخزين/إرسال دون بريدٍ
+        // مُتحقَّق) + سقوف البريد اليوميّة (تحمي O365 وتحسب الإرسال الفعليّ فقط) + Cloudflare للحجم.
+        // يبقى حدٌّ لكلّ عميل — مفتاحه CF-Connecting-IP (يضبطه Cloudflare فلا يُزوَّر) وإلّا IP الطلب.
         RateLimiter::for('contact', function (Request $request) {
+            $ip = $request->header('CF-Connecting-IP') ?: $request->ip();
             $email = strtolower(trim((string) $request->input('email', '')));
 
             return [
-                Limit::perMinute(6)->by($request->ip()),         // كان 3 — ضيّقٌ مع إعادة إدخال رمزٍ خاطئ
-                Limit::perDay(5)->by($email !== '' ? 'contact-email:' . $email : 'contact-ipday:' . $request->ip()),
-                Limit::perMinute(15)->by('contact-global'),      // سقف عالميّ لحظيّ (مفتاح ثابت)
-                Limit::perDay(300)->by('contact-global-daily'),  // سقف عالميّ يوميّ
+                Limit::perMinute(12)->by('contact-ip:' . $ip),
+                Limit::perDay(8)->by($email !== '' ? 'contact-email:' . $email : 'contact-ipday:' . $ip),
             ];
         });
 
-        // إرسال رمز التحقّق (الخطوة 1): محدِّد **أشدّ** من نموذج التواصل — كلّ طلبٍ هنا يُطلق بريداً،
-        // فيجب أن يبقى نادراً. سقفٌ عالميّ بمفتاح ثابت (مناعة ضدّ تزوير XFF/تدوير العناوين) يحمي
-        // صندوق O365 من قصف الرموز؛ الحدّ لكلّ بريد يُطبَّق داخل المتحكّم أيضاً (5/10د).
+        // إرسال رمز التحقّق (الخطوة 1): حدٌّ لكلّ عميل فقط (بلا سقفٍ عالميّ مشترك — يُبطِله الحجب
+        // الذاتيّ نفسه). قصفُ البريد محكومٌ داخل المتحكّم: سقفٌ لكلّ بريد (5/10د) + دائرة قطعٍ يوميّة
+        // عالميّة لبريد الرموز (contact_code_mail) تحسب الإرسال الفعليّ لا مجرّد الطلب.
         RateLimiter::for('contact-code', function (Request $request) {
+            $ip = $request->header('CF-Connecting-IP') ?: $request->ip();
+
             return [
-                Limit::perMinute(4)->by($request->ip()),              // كان 2 — يصطدم مع «إعادة الإرسال»
-                Limit::perMinute(12)->by('contact-code-global'),      // سقف عالميّ لحظيّ (مفتاح ثابت)
-                Limit::perDay(300)->by('contact-code-global-daily'),  // سقف عالميّ يوميّ
+                Limit::perMinute(8)->by('contact-code-ip:' . $ip),
             ];
         });
 

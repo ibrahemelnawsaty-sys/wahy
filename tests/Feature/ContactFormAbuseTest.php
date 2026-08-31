@@ -80,11 +80,11 @@ class ContactFormAbuseTest extends TestCase
         $this->withMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
         $token = $this->ccToken();
 
-        // الحدّ لكلّ IP على contact-code هو 4/دقيقة؛ الخامس يُحجب برسالةٍ عربيّة (لا «Too Many Attempts»).
-        for ($i = 0; $i < 4; $i++) {
+        // الحدّ لكلّ IP على contact-code هو 8/دقيقة؛ التاسع يُحجب برسالةٍ عربيّة (لا «Too Many Attempts»).
+        for ($i = 0; $i < 8; $i++) {
             $this->postJson('/contact/send-code', ['email' => "u{$i}@example.com", 'cc_token' => $token])->assertOk();
         }
-        $res = $this->postJson('/contact/send-code', ['email' => 'u5@example.com', 'cc_token' => $token]);
+        $res = $this->postJson('/contact/send-code', ['email' => 'u9@example.com', 'cc_token' => $token]);
 
         $res->assertStatus(429)->assertJson(['success' => false]);
         $this->assertStringContainsString('كثير', (string) $res->json('message'), 'رسالة الحظر مُعرَّبة');
