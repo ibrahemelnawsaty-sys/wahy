@@ -349,3 +349,23 @@ if (! function_exists('safe_url')) {
         return $url;
     }
 }
+
+if (! function_exists('g')) {
+    /**
+     * يختار صيغة الخطاب العربيّ حسب جنس المستخدم: يُعيد $female إن كان أنثى، وإلّا $male.
+     * الافتراض مذكّر (زائر/غير محدَّد الجنس) — يحافظ على السلوك الحاليّ ولا يكسر شيئاً.
+     *
+     * أمثلة:  {{ g('مرحباً بك', 'مرحباً بكِ') }}   {{ g('أدخل اسمك', 'أدخلي اسمكِ') }}
+     *
+     * في البريد/الإشعارات المُصفَّفة لا يوجد auth()، فمرِّر المُستقبِل صراحةً:
+     *   {{ g('عزيزنا', 'عزيزتنا', $user) }}
+     *
+     * @param  \App\Models\User|null  $user  لتجاوز مستخدم auth الافتراضيّ (لازمٌ في البريد).
+     */
+    function g(string $male, string $female, $user = null): string
+    {
+        $user = $user ?? auth()->user();
+
+        return ($user && method_exists($user, 'isFemale') && $user->isFemale()) ? $female : $male;
+    }
+}

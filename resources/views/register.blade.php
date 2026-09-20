@@ -131,6 +131,24 @@
                 @enderror
             </div>
 
+            {{-- الجنس: يكيّف صيغة الخطاب العربيّ (مذكّر/مؤنّث) في كامل المنصّة. --}}
+            <div class="form-group">
+                <label class="form-label form-label-required">الجنس</label>
+                <div class="gender-options" style="display:flex; gap:12px;">
+                    <label class="gender-option" style="flex:1; display:flex; align-items:center; gap:8px; padding:12px 16px; border:2px solid var(--glass-border,#e2e8f0); border-radius:12px; cursor:pointer;">
+                        <input type="radio" name="gender" value="male" {{ old('gender') === 'male' ? 'checked' : '' }} required>
+                        <span>ذكر</span>
+                    </label>
+                    <label class="gender-option" style="flex:1; display:flex; align-items:center; gap:8px; padding:12px 16px; border:2px solid var(--glass-border,#e2e8f0); border-radius:12px; cursor:pointer;">
+                        <input type="radio" name="gender" value="female" {{ old('gender') === 'female' ? 'checked' : '' }} required>
+                        <span>أنثى</span>
+                    </label>
+                </div>
+                @error('gender')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
             <div class="form-group">
                 <label for="email" class="form-label form-label-required">البريد الإلكتروني</label>
                 <input id="email" type="email" name="email" class="form-input @error('email') error @enderror" value="{{ old('email') }}" required autocomplete="email" placeholder="example@domain.com">

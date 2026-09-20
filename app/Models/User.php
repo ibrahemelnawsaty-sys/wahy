@@ -98,6 +98,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'gender',
         'email',
         'password',
         'role',
@@ -537,6 +538,15 @@ class User extends Authenticatable
     public function isTechnicalSupport(): bool
     {
         return $this->role === \App\Enums\UserRole::TechnicalSupport->value;
+    }
+
+    /**
+     * أنثى؟ — لتكييف صيغة الخطاب العربيّ. غير المحدَّد يُعامَل مذكّراً (السلوك الافتراضيّ الحاليّ).
+     * تُستعمَل عبر الدالّة العامّة g() لا مباشرةً في القوالب غالباً.
+     */
+    public function isFemale(): bool
+    {
+        return $this->gender === 'female';
     }
 
     /**

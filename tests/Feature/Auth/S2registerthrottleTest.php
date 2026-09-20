@@ -63,6 +63,7 @@ class S2registerthrottleTest extends TestCase
 
         return [
             'name' => 'مستخدم شرعي',
+            'gender' => 'male',
             'email' => $email,
             'phone' => '0501234567',
             'role' => UserRole::Student->value,

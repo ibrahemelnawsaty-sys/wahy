@@ -342,6 +342,7 @@ class AuthController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'gender' => 'required|in:male,female',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
             'role' => 'required|in:teacher,student,parent,school_admin',
@@ -350,6 +351,8 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ], [
             'name.required' => 'الاسم مطلوب',
+            'gender.required' => 'الجنس مطلوب',
+            'gender.in' => 'يرجى اختيار الجنس',
             'email.required' => 'البريد الإلكتروني مطلوب',
             'email.email' => 'البريد الإلكتروني غير صحيح',
             'email.unique' => 'البريد الإلكتروني مستخدم مسبقاً',
@@ -368,6 +371,7 @@ class AuthController extends Controller
             $user = DB::transaction(function () use ($request, $role) {
                 $user = User::create([
                     'name' => $request->name,
+                    'gender' => $request->gender,
                     'email' => $request->email,
                     'phone' => $request->phone,
                     'password' => Hash::make($request->password),

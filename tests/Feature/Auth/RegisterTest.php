@@ -40,6 +40,7 @@ class RegisterTest extends TestCase
     {
         $response = $this->post('/register', [
             'name' => 'طالب جديد',
+            'gender' => 'male',
             'email' => 'newstudent@example.com',
             'phone' => '0501234567',
             'role' => UserRole::Student->value,
@@ -108,6 +109,7 @@ class RegisterTest extends TestCase
 
         $response = $this->from('/register')->post('/register', [
             'name' => 'مستخدم',
+            'gender' => 'male',
             'email' => 'taken@example.com',
             'role' => UserRole::Student->value,
             'password' => 'password123',
@@ -122,6 +124,7 @@ class RegisterTest extends TestCase
     {
         $response = $this->from('/register')->post('/register', [
             'name' => 'مستخدم',
+            'gender' => 'male',
             'email' => 'unique@example.com',
             'role' => UserRole::Student->value,
             'password' => 'password123',
