@@ -37,7 +37,7 @@
         <div class="result-emoji">{{ $attempt->score >= 80 ? '🏆' : ($attempt->score >= 60 ? '👍' : '💪') }}</div>
         <div class="result-score">{{ $attempt->score }}%</div>
         <div class="result-label">
-            {{ $attempt->score >= 90 ? 'ممتاز! أداء رائع' : ($attempt->score >= 80 ? 'جيد جداً!' : ($attempt->score >= 60 ? 'جيد، واصل المحاولة' : 'حاول مرة أخرى')) }}
+            {{ $attempt->score >= 90 ? 'ممتاز! أداء رائع' : ($attempt->score >= 80 ? 'جيد جداً!' : ($attempt->score >= 60 ? g('جيد، واصل المحاولة', 'جيد، واصلي المحاولة') : g('حاول مرة أخرى', 'حاولي مرة أخرى'))) }}
         </div>
     </div>
 
@@ -64,7 +64,7 @@
             <div class="answer-q">{{ $question->question_text }}</div>
             <div class="answer-detail">
                 @if($graded)
-                    {{ $graded['correct'] ? '✅ إجابتك صحيحة' : '❌ إجابتك خاطئة' }}
+                    {{ $graded['correct'] ? g('✅ إجابتك صحيحة', '✅ إجابتكِ صحيحة') : g('❌ إجابتك خاطئة', '❌ إجابتكِ خاطئة') }}
                     @if(!$graded['correct'] && $question->correct_answer)
                         — الإجابة الصحيحة: <strong>{{ $question->correct_answer }}</strong>
                     @endif

@@ -104,7 +104,7 @@
                                         <p style="color: #718096; font-size: 13px;">{{ $lesson->lessons_count ?? 0 }} درس</p>
                                     </div>
                                     <a href="{{ route('student.lesson', $lesson->id) }}" style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                                        @if($lesson->is_completed) مراجعة @else ابدأ @endif
+                                        @if($lesson->is_completed) مراجعة @else {{ g('ابدأ', 'ابدئي') }} @endif
                                     </a>
                                 </div>
                             </div>

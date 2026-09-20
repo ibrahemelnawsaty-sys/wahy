@@ -71,7 +71,7 @@
     <div class="pvp-hero">
         <div class="pvp-hero-icon">⚔️</div>
         <h1 class="pvp-hero-title">تحدي طالب ضد طالب</h1>
-        <p class="pvp-hero-sub">اختر تحدي وتنافس مع طالب آخر بالسرعة والدقة!</p>
+        <p class="pvp-hero-sub">{{ g('اختر تحدي وتنافس مع طالب آخر بالسرعة والدقة!', 'اختاري تحدياً وتنافسي مع طالب آخر بالسرعة والدقة!') }}</p>
     </div>
 
     <div class="pvp-stats">
@@ -87,7 +87,7 @@
 
     @if($pendingInvites->count() > 0)
     <div class="pvp-section">
-        <h3 class="pvp-h3">📨 تحديات موجّهة إليك</h3>
+        <h3 class="pvp-h3">📨 {{ g('تحديات موجّهة إليك', 'تحديات موجّهة إليكِ') }}</h3>
         @foreach($pendingInvites as $inv)
         <div class="invite-card" id="invite-{{ $inv->id }}">
             <div class="invite-info">
@@ -126,7 +126,7 @@
         </div>
         <div style="text-align: center; position: relative; z-index: 1; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
             <button class="challenge-btn" onclick="joinChallenge({{ $challenge->id }})">⚔️ منافس عشوائي</button>
-            <button class="challenge-btn challenge-btn-alt" onclick="openOpponentPicker({{ $challenge->id }}, @js($challenge->title))">🎯 اختر منافساً</button>
+            <button class="challenge-btn challenge-btn-alt" onclick="openOpponentPicker({{ $challenge->id }}, @js($challenge->title))">🎯 {{ g('اختر منافساً', 'اختاري منافساً') }}</button>
         </div>
     </div>
     @empty
@@ -171,7 +171,7 @@
 {{-- Opponent Picker Modal --}}
 <div class="picker-overlay" id="pickerOverlay">
     <div class="picker-box">
-        <div class="picker-title" id="pickerTitle">🎯 اختر منافساً</div>
+        <div class="picker-title" id="pickerTitle">🎯 {{ g('اختر منافساً', 'اختاري منافساً') }}</div>
         <div class="picker-sub">ابحث عن أي طالب في المنصة وتحدَّه مباشرة</div>
         <input type="text" class="picker-search" id="pickerSearch" placeholder="ابحث بالاسم…" oninput="onOpponentSearch(this.value)">
         <div class="picker-list" id="pickerList"></div>
@@ -283,7 +283,7 @@ function startPolling(matchId) {
             if (data.status === 'playing') {
                 clearInterval(pollingInterval);
                 document.getElementById('waitingText').textContent = '🎮 المباراة جاهزة!';
-                document.getElementById('waitingStatus').textContent = 'جارٍ نقلك للّعب…';
+                document.getElementById('waitingStatus').textContent = '{{ g('جارٍ نقلك للّعب…', 'جارٍ نقلكِ للّعب…') }}';
                 setTimeout(() => { window.location.href = `/student/pvp/${matchId}/play`; }, 1200);
             } else if (data.status === 'declined') {
                 clearInterval(pollingInterval);

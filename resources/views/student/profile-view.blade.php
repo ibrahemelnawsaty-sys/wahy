@@ -329,7 +329,7 @@
                     <span style="font-size: 40px;">🛒</span>
                     <div>
                         <div style="font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px;">المتجر</div>
-                        <div style="font-size: 14px; color: rgba(255,255,255,0.6);">استبدل عملاتك بمكافآت رائعة! - رصيدك: <strong style="color: #FFD700;">{{ $stats['total_coins'] ?? 0 }}</strong> عملة</div>
+                        <div style="font-size: 14px; color: rgba(255,255,255,0.6);">{{ g('استبدل عملاتك بمكافآت رائعة! - رصيدك:', 'استبدلي عملاتكِ بمكافآت رائعة! - رصيدكِ:') }} <strong style="color: #FFD700;">{{ $stats['total_coins'] ?? 0 }}</strong> عملة</div>
                     </div>
                 </div>
                 <span style="font-size: 24px; color: rgba(255,255,255,0.5);">←</span>
@@ -345,7 +345,7 @@
                     <span style="font-size: 40px;">🏆</span>
                     <div>
                         <div style="font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px;">المراتب</div>
-                        <div style="font-size: 14px; color: rgba(255,255,255,0.6);">شاهد ترتيبك بين الطلاب</div>
+                        <div style="font-size: 14px; color: rgba(255,255,255,0.6);">{{ g('شاهد ترتيبك بين الطلاب', 'شاهدي ترتيبكِ بين الطلاب') }}</div>
                     </div>
                 </div>
                 <span style="font-size: 24px; color: rgba(255,255,255,0.5);">←</span>

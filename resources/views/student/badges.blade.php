@@ -6,11 +6,11 @@
         function wahyBadgeConditionLabel($type, $value) {
             $n = (int) $value;
             switch ($type) {
-                case 'activities_completed': return 'أكمل ' . $n . ' نشاطاً';
+                case 'activities_completed': return g('أكمل ', 'أكملي ') . $n . ' نشاطاً';
                 case 'level':                return 'بلوغ المستوى ' . $n;
                 case 'streak':               return 'حافظ على سلسلة ' . $n . ' يوماً';
                 case 'points':               return 'اجمع ' . $n . ' نقطة خبرة';
-                case 'lessons_completed':    return 'أكمل ' . $n . ' درساً';
+                case 'lessons_completed':    return g('أكمل ', 'أكملي ') . $n . ' درساً';
                 case 'values_mastered':      return 'أتقِن ' . $n . ' قيمة';
                 default:                     return 'شارة خاصة';
             }
@@ -60,7 +60,7 @@
     <!-- Page Header -->
     <div style="margin-bottom: 35px; text-align: center;">
         <h1 style="font-size: 36px; font-weight: 700; color: #1a202c; margin-bottom: 15px;">مجموعة الشارات 🏅</h1>
-        <p style="color: #718096; font-size: 18px;">اجمع كل الشارات وأكمل رحلتك التعليمية — المكتسبة ملوّنة، والباقي بانتظارك</p>
+        <p style="color: #718096; font-size: 18px;">{{ g('اجمع كل الشارات وأكمل رحلتك التعليمية — المكتسبة ملوّنة، والباقي بانتظارك', 'اجمعي كل الشارات وأكملي رحلتكِ التعليمية — المكتسبة ملوّنة، والباقي بانتظاركِ') }}</p>
     </div>
 
     <!-- Stats -->
@@ -185,7 +185,7 @@
             <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
                 <div style="font-size: 64px; margin-bottom: 20px;">🏅</div>
                 <h3 style="font-size: 22px; font-weight: 600; color: #2d3748; margin-bottom: 10px;">لا توجد شارات متاحة بعد</h3>
-                <p style="color: #718096;">سيقوم المشرف بإضافة شارات قريباً — تابع رحلتك التعليمية!</p>
+                <p style="color: #718096;">سيقوم المشرف بإضافة شارات قريباً — {{ g('تابع رحلتك التعليمية!', 'تابعي رحلتكِ التعليمية!') }}</p>
             </div>
             @endforelse
         </div>

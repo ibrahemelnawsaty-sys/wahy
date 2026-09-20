@@ -271,7 +271,7 @@
             `;
         } else if (q.type === 'fill_blank') {
             optionsHtml = `
-                <input type="text" id="fillBlankInput" placeholder="اكتب الكلمة المناسبة..." 
+                <input type="text" id="fillBlankInput" placeholder="{{ g('اكتب الكلمة المناسبة...', 'اكتبي الكلمة المناسبة...') }}" 
                        style="width: 100%; padding: 18px; font-size: 18px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.3); 
                               background: rgba(255,255,255,0.1); color: white; text-align: center; font-weight: 600; margin-bottom: 12px;">
                 <div style="font-size: 14px; color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 20px;">${q.hint}</div>
@@ -473,13 +473,13 @@
         card.style.cssText = 'background:linear-gradient(135deg,#fff 0%,#f8fafc 100%);border-radius:24px;padding:36px 32px;max-width:420px;width:90%;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.3);';
         const h = document.createElement('h2');
         h.id = 'qz-result-title';
-        h.textContent = '🎉 أحسنت!';
+        h.textContent = '🎉 {{ g('أحسنت!', 'أحسنتِ!') }}';
         h.style.cssText = 'margin:0 0 16px;font-size:28px;color:#1e293b;font-weight:700;';
         const score_p = document.createElement('p');
         score_p.textContent = 'النتيجة: ' + score + ' من ' + questions.length + ' (' + percentage + '%)';
         score_p.style.cssText = 'font-size:18px;color:#475569;margin:8px 0;';
         const xp_p = document.createElement('p');
-        xp_p.textContent = 'حصلت على: +' + xp + ' XP و +' + coins + ' عملات';
+        xp_p.textContent = '{{ g('حصلت على:', 'حصلتِ على:') }} +' + xp + ' XP و +' + coins + ' عملات';
         xp_p.style.cssText = 'font-size:16px;color:#10b981;font-weight:600;margin:8px 0 24px;';
         const btn = document.createElement('button');
         btn.type = 'button';

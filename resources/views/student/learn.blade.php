@@ -116,7 +116,7 @@
                 <div class="hero-lesson-subject">{{ $currentLesson->concept->value->name ?? 'القيم' }}</div>
                 <div class="hero-lesson-title">{{ $currentLesson->title }}</div>
                 <div style="font-size: 14px; color: var(--color-text-muted); margin-bottom: var(--spacing-md); line-height: 1.6;">
-                    {{ $currentLesson->description ?? 'ابدأ رحلتك في تعلم هذا الدرس' }}
+                    {{ $currentLesson->description ?? g('ابدأ رحلتك في تعلم هذا الدرس', 'ابدئي رحلتكِ في تعلم هذا الدرس') }}
                 </div>
 
                 {{-- مؤشّر مضغوط لمكافأة الالتزام اليومي (كهرماني ذاتي التباين) --}}
@@ -131,10 +131,10 @@
                     @if($__clsClaimed)
                         <span class="cls-badge-line"><span class="cls-badge-emoji">🏆</span> مكافأة الالتزام محقّقة!</span>
                     @elseif($__clsDone > 0)
-                        <span class="cls-badge-line"><span class="cls-badge-emoji">🔥</span> التزام: يوم {{ $__clsDone }} من {{ $__clsMin }} — استمرّ! 🚀</span>
+                        <span class="cls-badge-line"><span class="cls-badge-emoji">🔥</span> التزام: يوم {{ $__clsDone }} من {{ $__clsMin }} — {{ g('استمرّ!', 'استمرّي!') }} 🚀</span>
                         <span class="cls-badge-bar"><span style="width:{{ $__clsPct }}%;"></span></span>
                     @else
-                        <span class="cls-badge-line"><span class="cls-badge-emoji">🔥</span> مكافأة التزام — ابدأ اليوم بأوّل نشاط!</span>
+                        <span class="cls-badge-line"><span class="cls-badge-emoji">🔥</span> {{ g('مكافأة التزام — ابدأ اليوم بأوّل نشاط!', 'مكافأة التزام — ابدئي اليوم بأوّل نشاط!') }}</span>
                     @endif
                 </div>
                 @endif
@@ -151,7 +151,7 @@
                     </div>
                     
                     <button class="hero-lesson-cta">
-                        <span>{{ $currentLesson->progress > 0 ? 'تابع التعلم' : 'ابدأ الآن' }}</span>
+                        <span>{{ $currentLesson->progress > 0 ? g('تابع التعلم', 'تابعي التعلم') : g('ابدأ الآن', 'ابدئي الآن') }}</span>
                         <span style="font-size: 20px;">🚀</span>
                     </button>
                 </div>
@@ -162,8 +162,8 @@
     <!-- Empty State -->
     <div class="hero-lesson-card hero-lesson-card--static" style="text-align: center; padding: 60px 40px;">
         <div style="font-size: 80px; margin-bottom: 20px;">🎯</div>
-        <h2 style="font-size: 28px; font-weight: 700; color: var(--color-text); margin-bottom: 12px;">ابدأ رحلتك التعليمية</h2>
-        <p style="font-size: 16px; color: var(--color-text-muted); margin-bottom: 24px;">اختر أول درس من خريطة التعلم</p>
+        <h2 style="font-size: 28px; font-weight: 700; color: var(--color-text); margin-bottom: 12px;">{{ g('ابدأ رحلتك التعليمية', 'ابدئي رحلتكِ التعليمية') }}</h2>
+        <p style="font-size: 16px; color: var(--color-text-muted); margin-bottom: 24px;">{{ g('اختر أول درس من خريطة التعلم', 'اختاري أول درس من خريطة التعلم') }}</p>
         <button class="hero-lesson-cta" onclick="window.location.href='{{ route('student.path') }}'">
             <span>استكشف الدروس</span>
             <span style="font-size: 20px;">🗺️</span>
@@ -197,7 +197,7 @@
                 </div>
                 <div class="daily-goal-text">
                     @if($isCompleted)
-                        🎉 رائع! لقد أكملت هدف اليوم
+                        🎉 {{ g('رائع! لقد أكملت هدف اليوم', 'رائع! لقد أكملتِ هدف اليوم') }}
                     @else
                         {{ $dailyGoal - $completedToday }} {{ $dailyGoal - $completedToday == 1 ? 'درس' : 'دروس' }} متبقية لإكمال هدف اليوم
                     @endif

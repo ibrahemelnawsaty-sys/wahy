@@ -863,7 +863,7 @@
 
                     @if(isset($question['type']) && $question['type'] === 'image_order' && !empty($question['images']))
                         {{-- سؤال ترتيب صور داخل الاختبار --}}
-                        <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:12px;">اختر الرقم المناسب لكل صورة</p>
+                        <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:12px;">{{ g('اختر الرقم المناسب لكل صورة', 'اختاري الرقم المناسب لكل صورة') }}</p>
                         <div class="quiz-image-order-container" data-question-index="{{ $qIndex }}" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;">
                             @php $shuffledImgs = collect($question['images'])->shuffle()->values(); @endphp
                             @foreach($shuffledImgs as $imgIdx => $img)
@@ -895,7 +895,7 @@
                     @elseif(($question['type'] ?? null) === 'short_answer')
                         {{-- إجابة قصيرة داخل الاختبار --}}
                         <textarea class="text-input-field exercise-answer" data-index="{{ $qIndex }}"
-                                  rows="2" placeholder="اكتب إجابتك هنا..."
+                                  rows="2" placeholder="{{ g('اكتب إجابتك هنا...', 'اكتبي إجابتكِ هنا...') }}"
                                   style="width:100%;padding:12px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:white;"></textarea>
                     @else
                         <div class="quiz-options">
@@ -931,7 +931,7 @@
                     </div>
                     @else
                     <textarea class="text-input-field exercise-answer" data-index="{{ $qIndex }}"
-                              rows="2" placeholder="اكتب إجابتك هنا..."></textarea>
+                              rows="2" placeholder="{{ g('اكتب إجابتك هنا...', 'اكتبي إجابتكِ هنا...') }}"></textarea>
                     @endif
                 </div>
                 @endforeach
@@ -964,7 +964,7 @@
                 @if($totalImages > 0)
                 <div class="question-section">
                     <div class="question-text">🖼️ رتّب هذه الصور بالترتيب الصحيح</div>
-                    <p style="color:rgba(255,255,255,0.5);font-size:14px;text-align:center;margin-bottom:20px;">اختر الرقم المناسب لكل صورة أو اسحبها للترتيب</p>
+                    <p style="color:rgba(255,255,255,0.5);font-size:14px;text-align:center;margin-bottom:20px;">{{ g('اختر الرقم المناسب لكل صورة أو اسحبها للترتيب', 'اختاري الرقم المناسب لكل صورة أو اسحبيها للترتيب') }}</p>
                     <div id="imageOrderContainer" style="display:flex;flex-wrap:wrap;gap:15px;justify-content:center;">
                         @foreach($shuffledImages as $idx => $img)
                         {{-- لا data-original-order: كان يسرّب الترتيب الصحيح للـDOM (غشّ). الإجابة تُبنى من data-url + الاختيار --}}
@@ -1155,7 +1155,7 @@
                     <div class="question-text">✍️ {{ $promptText ?: 'أكمل الفراغ بالإجابة الصحيحة' }}</div>
                     <input type="text" name="answer" id="shortAnswerInput"
                            class="text-input-field"
-                           placeholder="اكتب إجابتك هنا..."
+                           placeholder="{{ g('اكتب إجابتك هنا...', 'اكتبي إجابتكِ هنا...') }}"
                            autocomplete="off"
                            required
                            style="width:100%;padding:14px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-size:18px;text-align:center;font-weight:700;">
@@ -1173,10 +1173,10 @@
                 @endphp
                 <div class="question-section">
                     <div class="question-text">
-                        @if($activity->type === 'practical') 🎯 ارفع مقطعاً أو صورة تُوثّق نشاطك العملي
-                        @elseif($activity->type === 'creative') ✨ ارفع عملك الإبداعي
-                        @elseif($activity->type === 'project') 🏗️ ارفع ملفات مشروعك
-                        @else 📤 ارفع ملف إجابتك
+                        @if($activity->type === 'practical') 🎯 {{ g('ارفع مقطعاً أو صورة تُوثّق نشاطك العملي', 'ارفعي مقطعاً أو صورة تُوثّق نشاطكِ العملي') }}
+                        @elseif($activity->type === 'creative') ✨ {{ g('ارفع عملك الإبداعي', 'ارفعي عملكِ الإبداعي') }}
+                        @elseif($activity->type === 'project') 🏗️ {{ g('ارفع ملفات مشروعك', 'ارفعي ملفات مشروعكِ') }}
+                        @else 📤 {{ g('ارفع ملف إجابتك', 'ارفعي ملف إجابتكِ') }}
                         @endif
                     </div>
                     <p style="color:rgba(255,255,255,0.55);font-size:13px;text-align:center;margin-bottom:14px;">
@@ -1185,7 +1185,7 @@
                     <label for="activityFile"
                            style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,0.3);border-radius:14px;padding:30px;cursor:pointer;background:rgba(255,255,255,0.04);transition:.2s;">
                         <span style="font-size:42px;margin-bottom:10px;">📎</span>
-                        <span style="color:white;font-weight:700;font-size:16px;">اضغط لاختيار ملف</span>
+                        <span style="color:white;font-weight:700;font-size:16px;">{{ g('اضغط لاختيار ملف', 'اضغطي لاختيار ملف') }}</span>
                         <span id="activityFileName" style="color:rgba(255,255,255,.6);font-size:13px;margin-top:6px;">لم يتم اختيار ملف</span>
                     </label>
                     {{-- لا نضع required على input مخفيّ (display:none) — المتصفّح يُلغي الإرسال
@@ -1197,7 +1197,7 @@
                            style="display:none;">
                     <textarea name="answer" id="uploadDescription" rows="3"
                               class="text-input-field"
-                              placeholder="@if($isFileRequired)ملاحظة اختيارية مع الملف...@else اشرح ما قمت به (نص أو ملف يكفي أحدهما)...@endif"
+                              placeholder="@if($isFileRequired)ملاحظة اختيارية مع الملف...@else{{ g(' اشرح ما قمت به (نص أو ملف يكفي أحدهما)...', ' اشرحي ما قمتِ به (نص أو ملف يكفي أحدهما)...') }}@endif"
                               style="margin-top:14px;width:100%;padding:12px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:white;"></textarea>
                 </div>
 
@@ -1205,15 +1205,15 @@
                 {{-- إجابة نصية افتراضية (discussion, quiz بدون أسئلة) --}}
                 <div class="question-section">
                     <div class="question-text">
-                        @if($activity->type === 'discussion') 💬 شارك رأيك في النقاش
-                        @else أجب على السؤال التالي
+                        @if($activity->type === 'discussion') 💬 {{ g('شارك رأيك في النقاش', 'شاركي رأيكِ في النقاش') }}
+                        @else {{ g('أجب على السؤال التالي', 'أجيبي على السؤال التالي') }}
                         @endif
                     </div>
                     <textarea
                         class="text-input-field"
                         name="answer"
                         rows="4"
-                        placeholder="اكتب إجابتك هنا..."
+                        placeholder="{{ g('اكتب إجابتك هنا...', 'اكتبي إجابتكِ هنا...') }}"
                         required
                     ></textarea>
                 </div>
@@ -1445,7 +1445,7 @@
             render();
             if (remaining <= 0) {
                 clearInterval(iv);
-                showToast('⏱ انتهى وقت الاختبار — يتم إرسال إجابتك', 'warning');
+                showToast('⏱ انتهى وقت الاختبار — {{ g('يتم إرسال إجابتك', 'يتم إرسال إجابتكِ') }}', 'warning');
                 // علمٌ «قسريّ»: يتجاوز فحوص اكتمال الإجابة في معالج الإرسال — وإلّا رجع بـ«الرجاء
                 // الإجابة» بعد إلغاء المؤقّت فضاعت المحاولة (M7). غير المُجاب يُصحَّح خطأً.
                 window.__quizTimeExpired = true;
@@ -1603,7 +1603,7 @@
             if (data.success) {
                 // تحديد الرسالة والأيقونة بناءً على الدرجة الفعلية
                 const score = (data.score === null || data.score === undefined) ? null : Number(data.score);
-                let title = 'تم استلام إجابتك ✓';
+                let title = '{{ g('تم استلام إجابتك', 'تم استلام إجابتكِ') }} ✓';
                 let icon = '📨';
                 let titleColor = '#3b82f6';
 
@@ -1616,7 +1616,7 @@
                         icon = '🎉';
                         titleColor = '#10B981';
                     } else if (passed) {
-                        title = 'أحسنت — اجتزت النشاط';
+                        title = '{{ g('أحسنت — اجتزت النشاط', 'أحسنتِ — اجتزتِ النشاط') }}';
                         icon = '✅';
                         titleColor = '#10B981';
                     } else {
@@ -1625,7 +1625,7 @@
                         titleColor = '#EF4444';
                     }
                 } else {
-                    title = 'تم تسليم إجابتك للمراجعة';
+                    title = '{{ g('تم تسليم إجابتك للمراجعة', 'تم تسليم إجابتكِ للمراجعة') }}';
                     icon = '⏳';
                     titleColor = '#6366f1';
                 }
@@ -1645,7 +1645,7 @@
                     msgHtml += `<span style="font-size: 22px; font-weight: 800; color: ${titleColor};">الدرجة: ${score}%</span>`;
                     msgHtml += `<br><span style="font-size: 14px; opacity: .8;">${xpEarned} من ${data.activity_points} نقطة</span>`;
                 } else {
-                    msgHtml = 'سيتم احتساب نقاطك بعد مراجعة المعلم.';
+                    msgHtml = '{{ g('سيتم احتساب نقاطك بعد مراجعة المعلم.', 'سيتم احتساب نقاطكِ بعد مراجعة المعلم.') }}';
                 }
 
                 // عرض الإجابة الصحيحة تعليمياً بعد محاولة خاطئة/جزئية (يرسلها الخادم فقط عند score < 100)

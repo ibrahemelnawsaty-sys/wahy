@@ -85,7 +85,7 @@
                     </label>
                 </div>
             @else
-                <input type="text" name="answers[{{ $question->id }}]" class="short-input" placeholder="اكتب إجابتك هنا..." onkeyup="updateProgress()">
+                <input type="text" name="answers[{{ $question->id }}]" class="short-input" placeholder="{{ g('اكتب إجابتك هنا...', 'اكتبي إجابتكِ هنا...') }}" onkeyup="updateProgress()">
             @endif
         </div>
         @endforeach

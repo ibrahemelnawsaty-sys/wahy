@@ -329,7 +329,7 @@
         const card = document.createElement('div');
         card.style.cssText='background:#fff;border-radius:24px;padding:32px;max-width:440px;width:90%;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.3);';
         const h = document.createElement('h2'); h.textContent='📖 القصة انتهت!'; h.style.cssText='margin:0 0 12px;font-size:26px;color:#1e293b;font-weight:700;';
-        const p0 = document.createElement('p'); p0.textContent='✨ لقد أكملت قصة تفاعلية'; p0.style.cssText='font-size:15px;color:#64748b;margin:6px 0;';
+        const p0 = document.createElement('p'); p0.textContent='✨ {{ g('لقد أكملت قصة تفاعلية', 'لقد أكملتِ قصة تفاعلية') }}'; p0.style.cssText='font-size:15px;color:#64748b;margin:6px 0;';
         const p1 = document.createElement('p'); p1.textContent='الإجابات الصحيحة: '+score+'/2 ('+percentage+'%)'; p1.style.cssText='font-size:17px;color:#475569;margin:6px 0;';
         const p2 = document.createElement('p'); p2.textContent='🎁 المكافآت: +'+xp+' XP و +'+coins+' عملة'; p2.style.cssText='font-size:15px;color:#10b981;font-weight:600;margin:6px 0;';
         const p3 = document.createElement('p'); p3.textContent='💡 الأمانة والصدق هما أساس العلاقات القوية'; p3.style.cssText='font-size:13px;color:#94a3b8;margin:12px 0 20px;font-style:italic;';

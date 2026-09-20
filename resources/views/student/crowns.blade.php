@@ -44,7 +44,7 @@
     <div style="text-align: center; margin-bottom: 40px;">
         <div style="font-size: 80px; margin-bottom: 15px; animation: crownFloat 3s ease-in-out infinite;">👑</div>
         <h1 style="font-size: 36px; font-weight: 700; color: #1a202c; margin-bottom: 10px;">تيجان القيم</h1>
-        <p style="color: #718096; font-size: 18px;">احصل على تاج عند إتقان قيمة كاملة!</p>
+        <p style="color: #718096; font-size: 18px;">{{ g('احصل على تاج عند إتقان قيمة كاملة!', 'احصلي على تاج عند إتقان قيمة كاملة!') }}</p>
     </div>
 
     <!-- Stats Cards -->
@@ -98,7 +98,7 @@
             <span style="font-size: 36px;">🎯</span>
             <span>تيجان تنتظرك!</span>
         </h2>
-        <p style="color: #718096; margin-bottom: 25px;">أكمل جميع دروس هذه القيم للحصول على تاجها!</p>
+        <p style="color: #718096; margin-bottom: 25px;">{{ g('أكمل جميع دروس هذه القيم للحصول على تاجها!', 'أكملي جميع دروس هذه القيم للحصول على تاجها!') }}</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
             @foreach($availableCrowns as $value)
@@ -118,7 +118,7 @@
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <div style="font-size: 48px; opacity: 0.3;">👑</div>
                     <div style="background: #667eea; color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">
-                        ابدأ الرحلة →
+                        {{ g('ابدأ الرحلة →', 'ابدئي الرحلة →') }}
                     </div>
                 </div>
             </div>
@@ -132,7 +132,7 @@
     <div style="text-align: center; padding: 60px; background: white; border-radius: 25px;">
         <div style="font-size: 80px; margin-bottom: 20px; opacity: 0.5;">👑</div>
         <h3 style="font-size: 24px; color: #2d3748; margin-bottom: 10px;">لا توجد تيجان حالياً</h3>
-        <p style="color: #718096;">ابدأ رحلتك التعليمية لتكتسب التيجان!</p>
+        <p style="color: #718096;">{{ g('ابدأ رحلتك التعليمية لتكتسب التيجان!', 'ابدئي رحلتكِ التعليمية لتكتسبي التيجان!') }}</p>
     </div>
     @endif
 

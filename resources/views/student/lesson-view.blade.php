@@ -444,13 +444,13 @@
         <span style="font-size:36px;">📊</span>
         <div style="flex:1;">
             <div style="font-weight:800;font-size:17px;margin-bottom:4px;">
-                @if($preSurvey ?? null) التقييم القبلي — أجب عليه قبل بدء الدرس
-                @else 🎉 أكملت الدرس! أجب على التقييم البعدي
+                @if($preSurvey ?? null) {{ g('التقييم القبلي — أجب عليه قبل بدء الدرس', 'التقييم القبلي — أجيبي عليه قبل بدء الدرس') }}
+                @else 🎉 {{ g('أكملت الدرس! أجب على التقييم البعدي', 'أكملتِ الدرس! أجيبي على التقييم البعدي') }}
                 @endif
             </div>
             <div style="font-size:13px;opacity:.9;">{{ $__assessSurvey->title }}</div>
         </div>
-        <span style="background:rgba(255,255,255,.2);padding:10px 18px;border-radius:10px;font-weight:700;white-space:nowrap;">ابدأ الآن ←</span>
+        <span style="background:rgba(255,255,255,.2);padding:10px 18px;border-radius:10px;font-weight:700;white-space:nowrap;">{{ g('ابدأ الآن ←', 'ابدئي الآن ←') }}</span>
     </a>
     @endif
 
@@ -462,13 +462,13 @@
         <span style="font-size:36px;">🌟</span>
         <div style="flex:1;">
             <div style="font-weight:800;font-size:17px;margin-bottom:4px;">
-                @if($valuePreSurvey ?? null) تقييم القيمة: قبلي — أجب عليه قبل بدء دروس القيمة
-                @else 🏆 أتقنت القيمة! أجب على تقييم القيمة: بعدي
+                @if($valuePreSurvey ?? null) {{ g('تقييم القيمة: قبلي — أجب عليه قبل بدء دروس القيمة', 'تقييم القيمة: قبلي — أجيبي عليه قبل بدء دروس القيمة') }}
+                @else 🏆 {{ g('أتقنت القيمة! أجب على تقييم القيمة: بعدي', 'أتقنتِ القيمة! أجيبي على تقييم القيمة: بعدي') }}
                 @endif
             </div>
             <div style="font-size:13px;opacity:.9;">{{ $__valueAssessSurvey->title }}</div>
         </div>
-        <span style="background:rgba(255,255,255,.2);padding:10px 18px;border-radius:10px;font-weight:700;white-space:nowrap;">ابدأ الآن ←</span>
+        <span style="background:rgba(255,255,255,.2);padding:10px 18px;border-radius:10px;font-weight:700;white-space:nowrap;">{{ g('ابدأ الآن ←', 'ابدئي الآن ←') }}</span>
     </a>
     @endif
 
@@ -488,19 +488,19 @@
                 <span style="font-size: 36px;">🔥</span>
                 <div>
                     @if($__sClaimed)
-                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🏆 حصلت على مكافأة الالتزام!</h3>
+                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🏆 {{ g('حصلت على مكافأة الالتزام!', 'حصلتِ على مكافأة الالتزام!') }}</h3>
                         <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
-                            🎉 أُضيفت لك <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> — تُمنح مرّة واحدة فقط. أحسنت الالتزام!
+                            🎉 {{ g('أُضيفت لك', 'أُضيفت لكِ') }} <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> — {{ g('تُمنح مرّة واحدة فقط. أحسنت الالتزام!', 'تُمنح مرّة واحدة فقط. أحسنتِ الالتزام!') }}
                         </p>
                     @elseif($__sDone >= 1)
-                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🔥 بدأت رحلة الالتزام! يوم {{ $__sDone }} من {{ $__sMin }}</h3>
+                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🔥 {{ g('بدأت رحلة الالتزام!', 'بدأتِ رحلة الالتزام!') }} يوم {{ $__sDone }} من {{ $__sMin }}</h3>
                         <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
-                            باقٍ <strong>{{ $__sRemaining }}</strong> {{ $__sRemaining == 1 ? 'يوم' : 'أيام' }} لتنال <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة). أنجز نشاطاً كل يوم واستمرّ!
+                            باقٍ <strong>{{ $__sRemaining }}</strong> {{ $__sRemaining == 1 ? 'يوم' : 'أيام' }} لتنال <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة). {{ g('أنجز نشاطاً كل يوم واستمرّ!', 'أنجزي نشاطاً كل يوم واستمرّي!') }}
                         </p>
                     @else
-                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🌱 ابدأ رحلة الالتزام اليوم!</h3>
+                        <h3 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">🌱 {{ g('ابدأ رحلة الالتزام اليوم!', 'ابدئي رحلة الالتزام اليوم!') }}</h3>
                         <p style="font-size: 12.5px; color: #b45309; margin: 4px 0 0 0; line-height: 1.7;">
-                            أنجز نشاطاً في <strong>{{ $__sMin }}</strong> أيام مختلفة لتنال <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة). أوّل نشاط اليوم يبدأ رحلتك!
+                            {{ g('أنجز نشاطاً في', 'أنجزي نشاطاً في') }} <strong>{{ $__sMin }}</strong> أيام مختلفة لتنال <strong>{{ $lesson->streak_bonus_points }}</strong> نقطة <strong>نهائية</strong> (تُمنح مرّة واحدة). {{ g('أوّل نشاط اليوم يبدأ رحلتك!', 'أوّل نشاط اليوم يبدأ رحلتكِ!') }}
                         </p>
                     @endif
                 </div>
@@ -511,7 +511,7 @@
                 </div>
                 <div style="font-size: 12px; color: #b45309; margin-top: 2px;">يوم مكتمل</div>
                 @if(!$__sClaimed && $__sDone > 0)
-                <div style="display:inline-block; margin-top:8px; background:#f59e0b; color:#fff7ed; font-size:11px; font-weight:800; padding:4px 12px; border-radius:999px;">🚀 لقد بدأت! استمرّ</div>
+                <div style="display:inline-block; margin-top:8px; background:#f59e0b; color:#fff7ed; font-size:11px; font-weight:800; padding:4px 12px; border-radius:999px;">🚀 {{ g('لقد بدأت! استمرّ', 'لقد بدأتِ! استمرّي') }}</div>
                 @endif
             </div>
         </div>
@@ -534,7 +534,7 @@
                 @elseif($__sReached)
                     <span>✨ أتممت الأيام المطلوبة! مكافأتك النهائية في طريقها</span>
                 @else
-                    <span>{{ $__sDone > 0 ? '🔥 استمرّ — أنت على الطريق' : '🌱 ابدأ اليوم بأوّل نشاط' }}</span>
+                    <span>{{ $__sDone > 0 ? g('🔥 استمرّ — أنت على الطريق', '🔥 استمرّي — أنتِ على الطريق') : g('🌱 ابدأ اليوم بأوّل نشاط', '🌱 ابدئي اليوم بأوّل نشاط') }}</span>
                     <span>باقٍ {{ $__sRemaining }} {{ $__sRemaining == 1 ? 'يوم' : 'أيام' }}</span>
                 @endif
             </div>
@@ -723,7 +723,7 @@
                     <span>مقفل</span>
                 @else
                     <span>▶</span>
-                    <span>ابدأ</span>
+                    <span>{{ g('ابدأ', 'ابدئي') }}</span>
                 @endif
             </div>
         </div>
@@ -743,7 +743,7 @@
 <!-- Floating CTA -->
 @if($nextActivity)
 <button class="floating-cta" onclick="window.location.href='{{ route('student.activity', $nextActivity->id) }}'">
-    <span>{{ $nextActivity->status == 'completed' ? 'مراجعة النشاط' : 'ابدأ النشاط' }}</span>
+    <span>{{ $nextActivity->status == 'completed' ? 'مراجعة النشاط' : g('ابدأ النشاط', 'ابدئي النشاط') }}</span>
     <span style="font-size: 20px;">→</span>
 </button>
 @endif

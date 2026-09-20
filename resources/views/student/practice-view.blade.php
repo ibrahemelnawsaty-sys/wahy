@@ -98,7 +98,7 @@
                 <div class="pvp-desc">ادخل التحدي وتنافس مع طالب آخر — الأسرع والأدق يفوز!</div>
                 <button type="button" class="pvp-btn" onclick="joinChallenge({{ $challenge->id }})">⚔️ ادخل التحدي الآن</button>
                 <div style="margin-top:12px;position:relative;z-index:1;">
-                    <a href="{{ route('student.pvp.lobby') }}" class="pvp-alt-link">🎯 اختر منافساً محدّداً أو تابع مبارياتك</a>
+                    <a href="{{ route('student.pvp.lobby') }}" class="pvp-alt-link">🎯 {{ g('اختر منافساً محدّداً أو تابع مبارياتك', 'اختاري منافساً محدّداً أو تابعي مبارياتكِ') }}</a>
                 </div>
                 <div class="pvp-info">
                     <span>📋 {{ $challenge->question_count }} سؤال</span>
@@ -159,7 +159,7 @@ function startPolling(matchId) {
             if (data.status === 'playing') {
                 clearInterval(pollingInterval);
                 document.getElementById('waitingText').textContent = '🎮 المباراة جاهزة!';
-                document.getElementById('waitingStatus').textContent = 'جارٍ نقلك للّعب…';
+                document.getElementById('waitingStatus').textContent = '{{ g('جارٍ نقلك للّعب…', 'جارٍ نقلكِ للّعب…') }}';
                 setTimeout(() => { window.location.href = `/student/pvp/${matchId}/play`; }, 1200);
             } else if (data.status === 'declined') {
                 clearInterval(pollingInterval);

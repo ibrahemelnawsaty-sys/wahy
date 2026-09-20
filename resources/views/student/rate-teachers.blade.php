@@ -105,7 +105,7 @@
             
             <div>
                 <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #4a5568;">تعليق (اختياري)</label>
-                <textarea id="ratingComment" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; resize: none; font-family: 'Cairo', sans-serif;" rows="4" placeholder="شارك رأيك عن المعلم..."></textarea>
+                <textarea id="ratingComment" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; resize: none; font-family: 'Cairo', sans-serif;" rows="4" placeholder="{{ g('شارك رأيك عن المعلم...', 'شاركي رأيكِ عن المعلم...') }}"></textarea>
             </div>
             
             <div style="display: flex; gap: 10px;">

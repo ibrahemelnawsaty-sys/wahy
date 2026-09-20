@@ -30,7 +30,7 @@
     <div style="text-align: center; margin-bottom: 40px;">
         <div style="font-size: 80px; margin-bottom: 15px;">💝</div>
         <h1 style="font-size: 36px; font-weight: 700; color: #1a202c; margin-bottom: 10px;">هدايا ومدح ولي الأمر</h1>
-        <p style="color: #718096; font-size: 18px;">كل الحب والتشجيع من والديك!</p>
+        <p style="color: #718096; font-size: 18px;">{{ g('كل الحب والتشجيع من والديك!', 'كل الحب والتشجيع من والديكِ!') }}</p>
     </div>
 
     <!-- Stats Cards -->
@@ -85,8 +85,8 @@
                             $praiseMsg = trim($praise->praise_message ?? $praise->message ?? '');
                             $praiseTypeFallback = match($praise->praise_type ?? '') {
                                 'celebration' => '🎉 تهنئة على إنجازك الرائع!',
-                                'motivation'  => '💪 استمر، أنت على الطريق الصحيح!',
-                                'encouragement' => '🌟 أحسنت! نحن فخورون بك',
+                                'motivation'  => g('💪 استمر، أنت على الطريق الصحيح!', '💪 استمري، أنتِ على الطريق الصحيح!'),
+                                'encouragement' => g('🌟 أحسنت! نحن فخورون بك', '🌟 أحسنتِ! نحن فخورون بكِ'),
                                 default       => '❤️ كلمة تشجيع من والدك',
                             };
                         @endphp
@@ -178,7 +178,7 @@
         <div style="font-size: 100px; margin-bottom: 25px; opacity: 0.6;">💝</div>
         <h3 style="font-size: 28px; color: #2d3748; margin-bottom: 15px;">لا توجد هدايا أو مدح حالياً</h3>
         <p style="color: #718096; font-size: 18px; max-width: 400px; margin: 0 auto;">
-            واصل تقدمك الرائع! ولي أمرك سيرسل لك التشجيعات قريباً 💪
+            {{ g('واصل تقدمك الرائع! ولي أمرك سيرسل لك التشجيعات قريباً', 'واصلي تقدمكِ الرائع! ولي أمركِ سيرسل لكِ التشجيعات قريباً') }} 💪
         </p>
     </div>
     @endif

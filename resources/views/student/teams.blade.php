@@ -145,7 +145,7 @@
             
             <!-- Join Date -->
             <div style="position: absolute; bottom: 20px; left: 20px; font-size: 12px; color: #a0aec0;">
-                انضممت في {{ $team->pivot->joined_at ? \Carbon\Carbon::parse($team->pivot->joined_at)->format('Y/m/d') : 'غير محدد' }}
+                {{ g('انضممت في', 'انضممتِ في') }} {{ $team->pivot->joined_at ? \Carbon\Carbon::parse($team->pivot->joined_at)->format('Y/m/d') : 'غير محدد' }}
             </div>
         </div>
         @endforeach

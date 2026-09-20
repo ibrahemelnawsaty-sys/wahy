@@ -262,7 +262,7 @@
     <div class="glass-card" style="text-align: center; padding: 60px 40px;">
         <div style="font-size: 80px; margin-bottom: 20px;">🏆</div>
         <h3 style="font-size: 24px; font-weight: 700; color: white; margin-bottom: 12px;">كن أول المتصدرين!</h3>
-        <p style="font-size: 16px; color: rgba(255,255,255,0.7);">ابدأ رحلتك التعليمية واكسب النقاط</p>
+        <p style="font-size: 16px; color: rgba(255,255,255,0.7);">{{ g('ابدأ رحلتك التعليمية واكسب النقاط', 'ابدئي رحلتكِ التعليمية واكسبي النقاط') }}</p>
     </div>
     @endif
 </div>

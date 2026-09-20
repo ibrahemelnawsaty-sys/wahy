@@ -315,7 +315,7 @@
         <div class="coins-balance-card">
             <div class="coins-icon-large">💰</div>
             <div class="coins-info">
-                <div class="coins-label">رصيدك</div>
+                <div class="coins-label">{{ g('رصيدك', 'رصيدكِ') }}</div>
                 <div class="coins-value" id="coinsBalance">{{ $stats['total_coins'] }}</div>
             </div>
         </div>
@@ -419,7 +419,7 @@
     <div class="modal-content">
         <div class="modal-icon success-animation">🎉</div>
         <h3 class="modal-title">تم الاستبدال بنجاح!</h3>
-        <p class="modal-text" id="successText">تم إضافة المكافأة إلى حسابك</p>
+        <p class="modal-text" id="successText">{{ g('تم إضافة المكافأة إلى حسابك', 'تم إضافة المكافأة إلى حسابكِ') }}</p>
         <button class="modal-btn modal-btn-confirm" onclick="closeSuccessModal()" style="width: 100%;">رائع!</button>
     </div>
 </div>

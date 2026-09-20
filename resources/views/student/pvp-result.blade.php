@@ -58,7 +58,7 @@
             {{ $isDraw ? 'تعادل!' : ($isWinner ? 'فوز! مبروك! 🎉' : 'خسارة — حظ أوفر!') }}
         </div>
         @if($isWinner)
-            <div class="result-sub">حصلت على 20 نقطة إضافية! ✨</div>
+            <div class="result-sub">{{ g('حصلت على 20 نقطة إضافية!', 'حصلتِ على 20 نقطة إضافية!') }} ✨</div>
         @endif
     </div>
 

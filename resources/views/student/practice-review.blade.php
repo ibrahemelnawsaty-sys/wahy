@@ -260,8 +260,8 @@
         <!-- Question 5: Fill in the Blank -->
         <div class="question-card scale-in" style="animation-delay: 0.4s;">
             <div class="question-number">السؤال 5 من 8</div>
-            <div class="question-text">أكمل الفراغ: المثابرة تعني الاستمرار في العمل حتى نحقق ______</div>
-            <input type="text" name="q5" class="text-input-field" placeholder="اكتب الكلمة المناسبة..." 
+            <div class="question-text">{{ g('أكمل الفراغ:', 'أكملي الفراغ:') }} المثابرة تعني الاستمرار في العمل حتى نحقق ______</div>
+            <input type="text" name="q5" class="text-input-field" placeholder="{{ g('اكتب الكلمة المناسبة...', 'اكتبي الكلمة المناسبة...') }}" 
                    style="width: 100%; padding: 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); 
                           background: rgba(255,255,255,0.05); color: white; font-size: 16px; margin-bottom: 10px;">
             <div style="font-size: 13px; color: rgba(255,255,255,0.6); text-align: right;">💡 تلميح: ما الذي نسعى لتحقيقه؟</div>
@@ -270,7 +270,7 @@
         <!-- Question 6: Video Question -->
         <div class="question-card scale-in" style="animation-delay: 0.5s;">
             <div class="question-number">السؤال 6 من 8</div>
-            <div class="question-text">شاهد الفيديو ثم أجب:</div>
+            <div class="question-text">{{ g('شاهد الفيديو ثم أجب:', 'شاهدي الفيديو ثم أجيبي:') }}</div>
             
             <!-- Video Player -->
             <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
@@ -306,7 +306,7 @@
         <!-- Question 7: Audio Question -->
         <div class="question-card scale-in" style="animation-delay: 0.6s;">
             <div class="question-number">السؤال 7 من 8</div>
-            <div class="question-text">استمع للمقطع الصوتي ثم أجب:</div>
+            <div class="question-text">{{ g('استمع للمقطع الصوتي ثم أجب:', 'استمعي للمقطع الصوتي ثم أجيبي:') }}</div>
             
             <!-- Audio Player -->
             <div style="background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 20px;">
@@ -404,7 +404,7 @@
     document.querySelectorAll('.match-target').forEach(target => {
         target.addEventListener('click', function() {
             if (!selectedMatch) {
-                alert('اختر قيمة أولاً');
+                alert('{{ g('اختر قيمة أولاً', 'اختاري قيمة أولاً') }}');
                 return;
             }
             
