@@ -1517,6 +1517,7 @@ class StudentController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
+            'gender' => 'nullable|in:male,female',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
@@ -1526,6 +1527,9 @@ class StudentController extends Controller
             // Update name and email
             $user->name = $request->name;
             $user->email = $request->email;
+            if ($request->filled('gender')) {
+                $user->gender = $request->gender; // يكيّف صيغة الخطاب العربيّ (مذكّر/مؤنّث)
+            }
 
             // Handle avatar upload
             if ($request->hasFile('avatar')) {

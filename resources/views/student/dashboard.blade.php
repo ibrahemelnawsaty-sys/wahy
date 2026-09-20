@@ -529,8 +529,8 @@
          onmouseout="this.style.transform='translateY(0) scale(1)'"
          onclick="document.querySelector('#values-tree').scrollIntoView({behavior: 'smooth'})">
         <div style="font-size: 48px; margin-bottom: 10px;">🚀</div>
-        <div style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 5px;">ابدأ التحدي التالي</div>
-        <div style="color: rgba(255,255,255,0.9); font-size: 12px;">اكتشف قيمة جديدة</div>
+        <div style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 5px;">{{ g('ابدأ التحدي التالي', 'ابدئي التحدي التالي') }}</div>
+        <div style="color: rgba(255,255,255,0.9); font-size: 12px;">{{ g('اكتشف قيمة جديدة', 'اكتشفي قيمة جديدة') }}</div>
     </div>
     
     <!-- Rate Teachers Button -->
@@ -539,8 +539,8 @@
          onmouseout="this.style.transform='translateY(0) scale(1)'"
          onclick="window.location.href='{{ route('student.rate.teachers') }}'">
         <div style="font-size: 48px; margin-bottom: 10px;">⭐</div>
-        <div style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 5px;">قيّم معلميك</div>
-        <div style="color: rgba(255,255,255,0.9); font-size: 12px;">شارك رأيك وتقديرك</div>
+        <div style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 5px;">{{ g('قيّم معلميك', 'قيّمي معلميكِ') }}</div>
+        <div style="color: rgba(255,255,255,0.9); font-size: 12px;">{{ g('شارك رأيك وتقديرك', 'شاركي رأيكِ وتقديركِ') }}</div>
     </div>
 </div>
 
@@ -769,7 +769,7 @@
                                         @elseif($__lsDone > 0)
                                             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12.5px; font-weight:800; color:#92400e;">
                                                 <span style="display:flex; align-items:center; gap:6px;"><span style="font-size:15px;">🔥</span> التزام: يوم {{ $__lsDone }} من {{ $__lsMin }}</span>
-                                                <span style="font-size:11px; font-weight:700; color:#b45309;">🚀 استمرّ!</span>
+                                                <span style="font-size:11px; font-weight:700; color:#b45309;">🚀 {{ g('استمرّ!', 'استمرّي!') }}</span>
                                             </div>
                                             <div style="margin-top:7px; background:rgba(255,255,255,0.55); border-radius:8px; height:7px; overflow:hidden;">
                                                 <div style="height:100%; border-radius:8px; background:linear-gradient(90deg,#f59e0b,#d97706); width:{{ $__lsPct }}%;"></div>
@@ -777,7 +777,7 @@
                                         @else
                                             <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800; color:#92400e;">
                                                 <span style="font-size:16px;">🔥</span>
-                                                <span>مكافأة التزام — ابدأ اليوم بأوّل نشاط!</span>
+                                                <span>{{ g('مكافأة التزام — ابدأ اليوم بأوّل نشاط!', 'مكافأة التزام — ابدئي اليوم بأوّل نشاط!') }}</span>
                                             </div>
                                         @endif
                                     </div>
@@ -831,9 +831,9 @@
         {{-- F5: حالة فارغة أنيقة (طالب جديد/لا قيَم مُسندة) تُقرأ في الوضعين عبر متغيّرات الثيم. --}}
         <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: var(--color-card); border: 1.5px dashed var(--color-border); border-radius: 20px;">
             <div style="font-size: 56px; margin-bottom: 14px;">🌱</div>
-            <div style="font-size: 20px; font-weight: 800; color: var(--color-text); margin-bottom: 8px;">ستبدأ رحلتك قريباً…</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--color-text); margin-bottom: 8px;">{{ g('ستبدأ رحلتك قريباً…', 'ستبدأ رحلتكِ قريباً…') }}</div>
             <div style="font-size: 15px; color: var(--color-text-muted); line-height: 1.7; max-width: 460px; margin: 0 auto;">
-                لم تُسنَد إليك قيمٌ بعد. حالما يُفعّل معلّمك أوّل قيمة ستظهر هنا شجرة رحلتك في بناء القيم.
+                {{ g('لم تُسنَد إليك قيمٌ بعد. حالما يُفعّل معلّمك أوّل قيمة ستظهر هنا شجرة رحلتك في بناء القيم.', 'لم تُسنَد إليكِ قيمٌ بعد. حالما يُفعّل معلّمكِ أوّل قيمة ستظهر هنا شجرة رحلتكِ في بناء القيم.') }}
             </div>
         </div>
         @endforelse

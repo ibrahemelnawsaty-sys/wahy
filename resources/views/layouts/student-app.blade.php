@@ -702,6 +702,13 @@
                         <label>البريد الإلكتروني</label>
                         <input type="email" name="email" value="{{ auth()->user()->email }}" required class="form-input">
                     </div>
+                    <div class="form-group">
+                        <label>الجنس</label>
+                        <select name="gender" class="form-input">
+                            <option value="male" {{ auth()->user()->gender === 'male' ? 'selected' : '' }}>ذكر</option>
+                            <option value="female" {{ auth()->user()->gender === 'female' ? 'selected' : '' }}>أنثى</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Password Section — مطويّة خلف زرّ، تظهر عند الضغط -->

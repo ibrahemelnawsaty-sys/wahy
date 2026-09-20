@@ -89,4 +89,25 @@ class GenderTextTest extends TestCase
         $this->post('/register', $this->payload(['gender' => 'other']))
             ->assertSessionHasErrors('gender');
     }
+
+    public function test_student_can_update_gender_from_profile(): void
+    {
+        Role::findOrCreate('student', 'web');
+        $school = \App\Models\School::factory()->create(['status' => 'active']);
+        $student = User::factory()->create([
+            'role' => UserRole::Student->value,
+            'gender' => 'male',
+            'status' => 'active',
+            'school_id' => $school->id,
+        ]);
+        $student->assignRole('student');
+
+        $this->actingAs($student)->post(route('student.profile.update'), [
+            'name' => $student->name,
+            'email' => $student->email,
+            'gender' => 'female',
+        ]);
+
+        $this->assertSame('female', $student->fresh()->gender);
+    }
 }
