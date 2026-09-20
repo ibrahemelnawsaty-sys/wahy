@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تم تقييم نشاطك</title>
+    <title>{{ g('تم تقييم نشاطك', 'تم تقييم نشاطكِ', $submission->student) }}</title>
     <style>
         * {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -113,7 +113,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>✅ تم تقييم نشاطك</h1>
+            <h1>✅ {{ g('تم تقييم نشاطك', 'تم تقييم نشاطكِ', $submission->student) }}</h1>
         </div>
         
         <div class="content">
@@ -122,7 +122,7 @@
             </p>
 
             <p style="text-align: center; color: #4b5563;">
-                تم تقييم نشاطك من قبل المعلم
+                {{ g('تم تقييم نشاطك', 'تم تقييم نشاطكِ', $submission->student) }} من قبل المعلم
             </p>
 
             <div class="score-circle">
@@ -178,11 +178,11 @@
 
             <p style="margin-top: 30px; text-align: center; color: #4b5563;">
                 @if($submission->score >= 90)
-                    🎉 <strong>ممتاز!</strong> أداء رائع، استمر في التقدم!
+                    🎉 <strong>ممتاز!</strong> {{ g('أداء رائع، استمر في التقدم!', 'أداء رائع، استمري في التقدم!', $submission->student) }}
                 @elseif($submission->score >= 75)
-                    👏 <strong>جيد جداً!</strong> أنت على الطريق الصحيح!
+                    👏 <strong>جيد جداً!</strong> {{ g('أنت على الطريق الصحيح!', 'أنتِ على الطريق الصحيح!', $submission->student) }}
                 @elseif($submission->score >= 60)
-                    💪 <strong>جيد!</strong> يمكنك تحسين أدائك أكثر!
+                    💪 <strong>جيد!</strong> {{ g('يمكنك تحسين أدائك أكثر!', 'يمكنكِ تحسين أدائكِ أكثر!', $submission->student) }}
                 @else
                     📚 <strong>حاول مرة أخرى!</strong> لا تستسلم، التعلم رحلة!
                 @endif
@@ -191,7 +191,7 @@
 
         <div class="footer">
             <p><strong>منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية</strong></p>
-            <p>استمر في التعلم والتطور 🚀</p>
+            <p>{{ g('استمر في التعلم والتطور', 'استمري في التعلم والتطور', $submission->student) }} 🚀</p>
         </div>
     </div>
 </body>

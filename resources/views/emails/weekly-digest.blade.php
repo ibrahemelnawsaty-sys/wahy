@@ -9,8 +9,8 @@
         <div style="font-size:34px;font-weight:800;color:{{ setting('primary_color', '#3CCB8A') }};">{{ $points }}</div>
         <div class="muted">نقطة جمعتها هذا الأسبوع 🎯</div>
     </div>
-    <p>واصل تقدّمك الرائع — رحلتك في بناء القيم تزداد قوّةً كل أسبوع!</p>
+    <p>{{ g('واصل تقدّمك الرائع — رحلتك في بناء القيم تزداد قوّةً كل أسبوع!', 'واصلي تقدّمكِ الرائع — رحلتكِ في بناء القيم تزداد قوّةً كل أسبوع!', $student) }}</p>
     <div class="btn-wrap">
-        <a class="email-btn" href="{{ url('/student/dashboard') }}">تابع رحلتك</a>
+        <a class="email-btn" href="{{ url('/student/dashboard') }}">{{ g('تابع رحلتك', 'تابعي رحلتكِ', $student) }}</a>
     </div>
 @endsection

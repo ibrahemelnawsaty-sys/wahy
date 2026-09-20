@@ -97,7 +97,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎓 مرحباً بك في منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية</h1>
+            <h1>🎓 {{ g('مرحباً بك', 'مرحباً بكِ', $user) }} في منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية</h1>
         </div>
         
         <div class="content">
@@ -106,7 +106,7 @@
             </p>
             
             <p class="welcome-text">
-                يسعدنا انضمامك إلى منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية! نحن متحمسون لبدء رحلتك التعليمية معنا.
+                {{ g('يسعدنا انضمامك', 'يسعدنا انضمامكِ', $user) }} إلى منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية! نحن متحمسون {{ g('لبدء رحلتك التعليمية معنا.', 'لبدء رحلتكِ التعليمية معنا.', $user) }}
             </p>
 
             <div class="info-box">
@@ -125,7 +125,7 @@
 
             <div style="text-align: center;">
                 <a href="{{ rtrim(config('app.url'), '/') }}/login" class="button">
-                    🚀 ابدأ الآن
+                    🚀 {{ g('ابدأ الآن', 'ابدئي الآن', $user) }}
                 </a>
             </div>
 
@@ -133,7 +133,7 @@
                 <div class="feature">
                     <div class="feature-icon">📚</div>
                     <strong>أنشطة تفاعلية</strong>
-                    <p style="font-size: 13px; color: #6b7280; margin: 5px 0;">اكتشف مئات الأنشطة التعليمية</p>
+                    <p style="font-size: 13px; color: #6b7280; margin: 5px 0;">{{ g('اكتشف مئات الأنشطة التعليمية', 'اكتشفي مئات الأنشطة التعليمية', $user) }}</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon">🏆</div>
@@ -157,7 +157,7 @@
             </p>
 
             <p class="welcome-text">
-                <strong>مع تمنياتنا لك بتجربة تعليمية ممتعة! 🌟</strong>
+                <strong>{{ g('مع تمنياتنا لك بتجربة تعليمية ممتعة!', 'مع تمنياتنا لكِ بتجربة تعليمية ممتعة!', $user) }} 🌟</strong>
             </p>
         </div>
 

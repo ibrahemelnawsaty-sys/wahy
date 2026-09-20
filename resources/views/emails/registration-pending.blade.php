@@ -26,7 +26,7 @@
                             </p>
                             
                             <p style="margin: 0 0 25px; color: #4a5568; font-size: 16px; line-height: 1.8;">
-                                شكراً لتسجيلك في منصة <strong>{{ setting('site_name', 'أثيل مكة') }}</strong> التعليمية! 🎉
+                                {{ g('شكراً لتسجيلك', 'شكراً لتسجيلكِ', $user) }} في منصة <strong>{{ setting('site_name', 'أثيل مكة') }}</strong> التعليمية! 🎉
                             </p>
 
                             <!-- Info Box -->
@@ -52,10 +52,10 @@
                             <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin: 25px 0; text-align: center;">
                                 <div style="font-size: 32px; margin-bottom: 10px;">⏳</div>
                                 <p style="margin: 0; color: #92400e; font-size: 16px; font-weight: 600;">
-                                    طلبك قيد المراجعة
+                                    {{ g('طلبك قيد المراجعة', 'طلبكِ قيد المراجعة', $user) }}
                                 </p>
                                 <p style="margin: 10px 0 0; color: #a16207; font-size: 14px;">
-                                    سيتم مراجعة طلبك من قبل فريق الإدارة وسنرسل لك إشعاراً عبر البريد الإلكتروني فور اتخاذ القرار.
+                                    {{ g('سيتم مراجعة طلبك من قبل فريق الإدارة وسنرسل لك إشعاراً عبر البريد الإلكتروني فور اتخاذ القرار.', 'سيتم مراجعة طلبكِ من قبل فريق الإدارة وسنرسل لكِ إشعاراً عبر البريد الإلكتروني فور اتخاذ القرار.', $user) }}
                                 </p>
                             </div>
 
