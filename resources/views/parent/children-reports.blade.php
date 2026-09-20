@@ -5,7 +5,7 @@
     <!-- Page Header -->
     <div style="margin-bottom: 35px;">
         <h1 style="font-size: 32px; font-weight: 700; color: #1a202c; margin-bottom: 10px;">تقارير الأبناء</h1>
-        <p style="color: #718096; font-size: 16px;">متابعة شاملة لتقدم أبنائك في المنصة</p>
+        <p style="color: #718096; font-size: 16px;">متابعة شاملة لتقدم {{ g('أبنائك', 'أبنائكِ') }} في المنصة</p>
     </div>
 
     <!-- Children Cards -->

@@ -849,7 +849,7 @@
     <!-- Premium Header Section -->
     <div class="dashboard-hero">
         <h1><span class="hero-icon">👨‍👩‍👧‍👦</span> <span class="hero-text">لوحة تحكم ولي الأمر</span></h1>
-        <p>متابعة شاملة وتفصيلية لتقدم أبنائك الأكاديمي</p>
+        <p>متابعة شاملة وتفصيلية لتقدم {{ g('أبنائك', 'أبنائكِ') }} الأكاديمي</p>
     </div>
 
     @if($childrenData->isEmpty())
@@ -857,7 +857,7 @@
         <div class="premium-empty-state">
             <div class="empty-icon">👨‍👩‍👧‍👦</div>
             <h3 class="empty-title">لا يوجد أبناء مسجلين</h3>
-            <p class="empty-text">لم يتم ربط أي طلاب بحسابك حتى الآن. يرجى التواصل مع إدارة المدرسة لإضافة أبنائك.</p>
+            <p class="empty-text">{{ g('لم يتم ربط أي طلاب بحسابك حتى الآن. يرجى التواصل مع إدارة المدرسة لإضافة أبنائك.', 'لم يتم ربط أي طلاب بحسابكِ حتى الآن. يرجى التواصل مع إدارة المدرسة لإضافة أبنائكِ.') }}</p>
         </div>
     @else
         <!-- Premium Statistics Overview -->
@@ -895,7 +895,7 @@
                 <div style="position: absolute; top: -50%; right: -50%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); border-radius: 50%;"></div>
                 <h2 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 800; color: white; position: relative; z-index: 2; display: flex; align-items: center; gap: 0.75rem;">
                     <span>📊</span>
-                    <span>مستوى مدرسة ابنك مقارنة بالمدارس الأخرى</span>
+                    <span>مستوى مدرسة {{ g('ابنك', 'ابنكِ') }} مقارنة بالمدارس الأخرى</span>
                 </h2>
                 <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 0.95rem; position: relative; z-index: 2;">{{ $schoolComparison['school_name'] }} — الترتيب <strong>#{{ $schoolComparison['school_rank'] }}</strong> من أصل {{ $schoolComparison['total_schools'] }} مدرسة</p>
             </div>

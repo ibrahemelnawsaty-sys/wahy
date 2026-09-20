@@ -1109,7 +1109,7 @@
             </div>
             <button class="cd-hero-encourage-btn" onclick="openEncourageModal()">
                 <i class="fas fa-heart"></i>
-                <span>💪 أرسل تحفيز</span>
+                <span>💪 {{ g('أرسل تحفيز', 'أرسلي تحفيز') }}</span>
                 <small>+5 نقاط</small>
             </button>
         </div>
@@ -1377,7 +1377,7 @@
             <div class="cd-suggestions">
                 <div class="cd-suggest-title">
                     <i class="fas fa-lightbulb" style="color: var(--gold);"></i>
-                    اختر نصاً مقترحاً أو اكتب رسالتك
+                    {{ g('اختر نصاً مقترحاً أو اكتب رسالتك', 'اختاري نصاً مقترحاً أو اكتبي رسالتكِ') }}
                 </div>
                 <div class="cd-suggest-grid" id="suggestionsGrid">
                     {{-- Filled by JS --}}
@@ -1385,7 +1385,7 @@
             </div>
 
             {{-- Textarea --}}
-            <textarea class="cd-praise-textarea" id="praiseMessage" placeholder="اكتب رسالتك التحفيزية هنا... 💬" maxlength="1000"></textarea>
+            <textarea class="cd-praise-textarea" id="praiseMessage" placeholder="{{ g('اكتب رسالتك التحفيزية هنا... 💬', 'اكتبي رسالتكِ التحفيزية هنا... 💬') }}" maxlength="1000"></textarea>
 
             {{-- Submit --}}
             <button class="cd-praise-submit" id="praiseSubmitBtn" onclick="submitPraise()">

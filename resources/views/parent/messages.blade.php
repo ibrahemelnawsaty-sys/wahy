@@ -189,7 +189,7 @@
     transition: border-color .15s;
 }
 .rte-editor-msg:focus { border-color: #a5b4fc; }
-.rte-editor-msg:empty::before { content: 'اكتب رسالتك هنا...'; color: var(--w-text-muted, #a0aec0); pointer-events: none; }
+.rte-editor-msg:empty::before { content: '{{ g('اكتب رسالتك هنا...', 'اكتبي رسالتكِ هنا...') }}'; color: var(--w-text-muted, #a0aec0); pointer-events: none; }
 
 .compose-bottom { display: flex; justify-content: flex-end; margin-top: 10px; }
 .btn-send {
@@ -222,7 +222,7 @@
     font-family: 'Cairo', sans-serif; font-size: 14px; line-height: 1.7;
     outline: none; direction: rtl; background: var(--w-card, #fff); color: var(--w-text, #0f172a);
 }
-.new-msg-editor:empty::before { content: 'اكتب رسالتك...'; color: var(--w-text-muted, #a0aec0); pointer-events: none; }
+.new-msg-editor:empty::before { content: '{{ g('اكتب رسالتك...', 'اكتبي رسالتكِ...') }}'; color: var(--w-text-muted, #a0aec0); pointer-events: none; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
 .btn-cancel {
     background: var(--w-bg, #edf2f7); color: var(--w-text, #2d3748);
@@ -320,7 +320,7 @@ html[data-theme="dark"] .new-msg-editor:empty::before { color: var(--w-text-mute
     <div class="msg-header">
         <div class="msg-header-titles">
             <h2>💬 المراسلات مع المعلمين</h2>
-            <span class="msg-header-sub">تواصل مباشر وآمن مع معلمي أبنائك</span>
+            <span class="msg-header-sub">تواصل مباشر وآمن مع معلمي {{ g('أبنائك', 'أبنائكِ') }}</span>
         </div>
         <button class="btn-new-msg" onclick="showNewMessageModal()"><span>✉️</span><span>رسالة جديدة</span></button>
     </div>
@@ -351,7 +351,7 @@ html[data-theme="dark"] .new-msg-editor:empty::before { color: var(--w-text-mute
         <div class="conv-empty">
             <div class="conv-empty-icon">📭</div>
             <div class="conv-empty-title">لا توجد رسائل بعد</div>
-            <div class="conv-empty-text">ابدأ محادثة جديدة مع أحد المعلمين للاطمئنان على أبنائك ومتابعة تقدّمهم.</div>
+            <div class="conv-empty-text">{{ g('ابدأ محادثة جديدة مع أحد المعلمين للاطمئنان على أبنائك ومتابعة تقدّمهم.', 'ابدئي محادثة جديدة مع أحد المعلمين للاطمئنان على أبنائكِ ومتابعة تقدّمهم.') }}</div>
         </div>
         @endforelse
     </div>
@@ -403,7 +403,7 @@ html[data-theme="dark"] .new-msg-editor:empty::before { color: var(--w-text-mute
             <div>
                 <label class="form-label">المعلم</label>
                 <select id="newTeacherId" required class="form-select-field">
-                    <option value="">اختر المعلم...</option>
+                    <option value="">{{ g('اختر المعلم...', 'اختاري المعلم...') }}</option>
                     @foreach($teachers as $teacher)
                     <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
                     @endforeach
@@ -480,7 +480,7 @@ function loadMessages() {
             const c = document.getElementById('messagesContainer');
             c.innerHTML = '';
             if (!messages.length) {
-                c.innerHTML = '<div style="text-align:center;color:#a0aec0;padding:40px 20px;">لا توجد رسائل. ابدأ المحادثة...</div>';
+                c.innerHTML = '<div style="text-align:center;color:#a0aec0;padding:40px 20px;">لا توجد رسائل. {{ g('ابدأ المحادثة...', 'ابدئي المحادثة...') }}</div>';
                 return;
             }
             messages.forEach(msg => {
