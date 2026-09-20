@@ -490,16 +490,16 @@
                             @csrf
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label style="display: block; font-weight: 700; color: #1a202c; margin-bottom: 8px;">اختر نوع المستخدمين</label>
+                                    <label style="display: block; font-weight: 700; color: #1a202c; margin-bottom: 8px;">{{ g('اختر نوع المستخدمين', 'اختاري نوع المستخدمين') }}</label>
                                     <select name="role" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px;">
-                                        <option value="">اختر النوع</option>
+                                        <option value="">{{ g('اختر النوع', 'اختاري النوع') }}</option>
                                         <option value="students">الطلاب</option>
                                         <option value="teachers">المعلمين</option>
                                         <option value="parents">أولياء الأمور</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label style="display: block; font-weight: 700; color: #1a202c; margin-bottom: 8px;">اختر الملف</label>
+                                    <label style="display: block; font-weight: 700; color: #1a202c; margin-bottom: 8px;">{{ g('اختر الملف', 'اختاري الملف') }}</label>
                                     <input type="file" name="file" accept=".xlsx,.xls,.csv" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px;">
                                 </div>
                                 <div class="col-md-2">
@@ -545,7 +545,7 @@
                                 <li>الاسم والبريد الإلكتروني مطلوبان</li>
                                 <li>البريد الإلكتروني يجب أن يكون فريداً</li>
                                 <li>كلمة المرور الافتراضية للمستخدمين الجدد: <strong>123456</strong></li>
-                                <li>للفصل في قالب الطلاب: اكتب اسم الفصل كما هو في النظام</li>
+                                <li>للفصل في قالب الطلاب: {{ g('اكتب اسم الفصل كما هو في النظام', 'اكتبي اسم الفصل كما هو في النظام') }}</li>
                                 <li>لأولياء الأمور: يمكنك كتابة عدة أسماء طلاب مفصولة بفاصلة</li>
                             </ul>
                         </div>

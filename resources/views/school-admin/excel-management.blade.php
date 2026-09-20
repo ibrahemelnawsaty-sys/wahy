@@ -218,12 +218,12 @@
                         <div class="col-md-4">
                             <label style="display: block; font-weight: 700; color: #1a202c; margin-bottom: 8px;">
                                 <i class="fas fa-users me-2" style="color: #667eea;"></i>
-                                اختر نوع المستخدمين
+                                {{ g('اختر نوع المستخدمين', 'اختاري نوع المستخدمين') }}
                             </label>
                             <select name="role" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; transition: all 0.3s;"
                                     onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
                                     onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
-                                <option value="">اختر النوع</option>
+                                <option value="">{{ g('اختر النوع', 'اختاري النوع') }}</option>
                                 <option value="students">الطلاب</option>
                                 <option value="teachers">المعلمين</option>
                                 <option value="parents">أولياء الأمور</option>
@@ -232,7 +232,7 @@
                         <div class="col-md-6">
                             <label style="display: block; font-weight: 700; color: #1a202c; margin-bottom: 8px;">
                                 <i class="fas fa-file-excel me-2" style="color: #10b981;"></i>
-                                اختر الملف (Excel)
+                                {{ g('اختر الملف (Excel)', 'اختاري الملف (Excel)') }}
                             </label>
                             <input type="file" name="file" accept=".xlsx,.xls,.csv" required 
                                    style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; transition: all 0.3s;"
@@ -357,7 +357,7 @@
                                 للفصول:
                             </h6>
                             <p style="margin: 0; color: #854d0e; line-height: 1.8;">
-                                في قالب الطلاب: اكتب اسم الفصل <strong>تماماً</strong> كما هو في النظام
+                                في قالب الطلاب: {{ g('اكتب اسم الفصل', 'اكتبي اسم الفصل') }} <strong>تماماً</strong> كما هو في النظام
                                 <br>
                                 إذا لم يكن الفصل موجوداً، سيتم تسجيل الطالب بدون فصل
                             </p>
@@ -370,7 +370,7 @@
                                 لأولياء الأمور:
                             </h6>
                             <p style="margin: 0; color: #991b1b; line-height: 1.8;">
-                                اكتب أسماء الطلاب مفصولة بفاصلة: <code>الطالب الأول, الطالب الثاني</code>
+                                {{ g('اكتب أسماء الطلاب مفصولة بفاصلة:', 'اكتبي أسماء الطلاب مفصولة بفاصلة:') }} <code>الطالب الأول, الطالب الثاني</code>
                                 <br>
                                 يجب أن تكون أسماء الطلاب موجودة في النظام مسبقاً
                             </p>

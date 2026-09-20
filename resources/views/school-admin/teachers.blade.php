@@ -142,7 +142,7 @@
             <div style="text-align: center; padding: 60px;">
                 <div style="font-size: 64px; margin-bottom: 20px;">👨‍🏫</div>
                 <h3 style="font-size: 22px; font-weight: 600; color: #2d3748; margin-bottom: 10px;">لا يوجد معلمين</h3>
-                <p style="color: #718096;">ابدأ بإضافة معلمين جدد للمدرسة</p>
+                <p style="color: #718096;">{{ g('ابدأ بإضافة معلمين جدد للمدرسة', 'ابدئي بإضافة معلمين جدد للمدرسة') }}</p>
             </div>
             @endforelse
         </div>
@@ -181,7 +181,7 @@ function toggleTeacher(id, activate) {
     
     glassNotify.confirm(
         activate ? 'تفعيل المعلم' : 'إيقاف المعلم',
-        'هل أنت متأكد من ' + (activate ? 'تفعيل' : 'إيقاف') + ' هذا المعلم؟',
+        '{{ g('هل أنت متأكد من', 'هل أنتِ متأكدة من') }} ' + (activate ? 'تفعيل' : 'إيقاف') + ' هذا المعلم؟',
         function() {
             console.log('🔍 Confirm callback executed');
             // TODO: Send AJAX request

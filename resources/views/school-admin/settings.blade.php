@@ -104,7 +104,7 @@
             </div>
             <div>
                 <h5 style="font-weight: 700; margin: 0; color: #1a202c;">بيانات الحساب</h5>
-                <p style="font-size: 13px; color: #718096; margin: 0;">تعديل معلومات حسابك الشخصي</p>
+                <p style="font-size: 13px; color: #718096; margin: 0;">{{ g('تعديل معلومات حسابك الشخصي', 'تعديل معلومات حسابكِ الشخصي') }}</p>
             </div>
         </div>
         <div class="card-body">
@@ -132,8 +132,19 @@
                 </div>
                 
                 <div class="mb-3">
+                    <label class="form-label">الجنس</label>
+                    <select name="gender" class="form-select @error('gender') is-invalid @enderror">
+                        <option value="male" {{ old('gender', $user->gender) === 'male' ? 'selected' : '' }}>ذكر</option>
+                        <option value="female" {{ old('gender', $user->gender) === 'female' ? 'selected' : '' }}>أنثى</option>
+                    </select>
+                    @error('gender')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label">رقم الجوال</label>
-                    <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
+                    <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror"
                            value="{{ old('phone', $user->phone ?? '') }}">
                     @error('phone')
                         <div class="invalid-feedback">{{ $message }}</div>

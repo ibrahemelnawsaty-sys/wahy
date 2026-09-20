@@ -131,7 +131,7 @@
             <div style="text-align: center; padding: 60px;">
                 <div style="font-size: 64px; margin-bottom: 20px;">👨‍🎓</div>
                 <h3 style="font-size: 22px; font-weight: 600; color: #2d3748; margin-bottom: 10px;">لا يوجد طلاب</h3>
-                <p style="color: #718096;">ابدأ بإضافة طلاب جدد للمدرسة</p>
+                <p style="color: #718096;">{{ g('ابدأ بإضافة طلاب جدد للمدرسة', 'ابدئي بإضافة طلاب جدد للمدرسة') }}</p>
             </div>
             @endforelse
         </div>

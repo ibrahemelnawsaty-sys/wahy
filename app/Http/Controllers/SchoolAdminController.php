@@ -1702,6 +1702,7 @@ class SchoolAdminController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $user->id,
+                'gender' => 'nullable|in:male,female', // يكيّف صيغة الخطاب العربيّ
                 'phone' => 'nullable|string|max:20',
             ]);
 
@@ -1720,6 +1721,9 @@ class SchoolAdminController extends Controller
 
             $user->name = $validated['name'];
             $user->email = $validated['email'];
+            if ($request->filled('gender')) {
+                $user->gender = $validated['gender']; // تكييف صيغة الخطاب العربيّ
+            }
             $user->phone = $validated['phone'] ?? $user->phone;
             $user->save();
 

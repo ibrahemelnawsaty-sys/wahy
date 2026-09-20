@@ -18,7 +18,7 @@
                     الإحصائيات والتصنيف
                 </h1>
                 <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin: 0;">
-                    تعرف على تصنيف مدرستك ومعلميك وطلابك على مستوى المنصة والدولة والمدينة
+                    {{ g('تعرف على تصنيف مدرستك ومعلميك وطلابك على مستوى المنصة والدولة والمدينة', 'تعرّفي على تصنيف مدرستكِ ومعلميكِ وطلابكِ على مستوى المنصة والدولة والمدينة') }}
                 </p>
             </div>
         </div>
@@ -174,7 +174,7 @@
                             <span class="rank-name">
                                 {{ $t->name }}
                                 @if($t->school_id == $school->id)
-                                    <small class="badge bg-success ms-1" style="font-size: 10px;">مدرستك</small>
+                                    <small class="badge bg-success ms-1" style="font-size: 10px;">{{ g('مدرستك', 'مدرستكِ') }}</small>
                                 @endif
                             </span>
                             <span class="rank-points">{{ number_format($t->total_points) }} <small>نقطة</small></span>
@@ -200,7 +200,7 @@
                 <div class="stat-card" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
                     <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
                     <div class="stat-value">{{ $studentStats['total_school'] }}</div>
-                    <div class="stat-label">طالب في مدرستك</div>
+                    <div class="stat-label">طالب في {{ g('مدرستك', 'مدرستكِ') }}</div>
                 </div>
             </div>
             <div class="col-md-6">
@@ -232,7 +232,7 @@
                             <span class="rank-name">
                                 {{ $s->name }}
                                 @if($s->school_id == $school->id)
-                                    <small class="badge bg-success ms-1" style="font-size: 10px;">مدرستك</small>
+                                    <small class="badge bg-success ms-1" style="font-size: 10px;">{{ g('مدرستك', 'مدرستكِ') }}</small>
                                 @endif
                             </span>
                             <span class="rank-points">{{ number_format($s->total_points ?? 0) }} <small>نقطة</small></span>
@@ -270,7 +270,7 @@
                             <span class="rank-name">
                                 {{ $s->name }}
                                 @if($s->school_id == $school->id)
-                                    <small class="badge bg-success ms-1" style="font-size: 10px;">مدرستك</small>
+                                    <small class="badge bg-success ms-1" style="font-size: 10px;">{{ g('مدرستك', 'مدرستكِ') }}</small>
                                 @endif
                             </span>
                             <span class="rank-points">{{ number_format($s->total_points ?? 0) }} <small>نقطة</small></span>
