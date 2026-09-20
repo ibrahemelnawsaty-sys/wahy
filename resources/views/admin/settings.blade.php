@@ -21,13 +21,13 @@
             <div class="settings-card-body">
                 <div class="settings-form-group">
                     <label for="site_name" class="settings-form-label">اسم الموقع</label>
-                    <input type="text" id="site_name" name="site_name" class="settings-form-input" value="{{ $settings['site_name'] }}" placeholder="أدخل اسم الموقع" required>
+                    <input type="text" id="site_name" name="site_name" class="settings-form-input" value="{{ $settings['site_name'] }}" placeholder="{{ g('أدخل اسم الموقع', 'أدخلي اسم الموقع') }}" required>
                     <div class="settings-form-help">اسم الموقع الذي سيظهر في الهيدر والفوتر</div>
                 </div>
 
                 <div class="settings-form-group">
                     <label for="site_description" class="settings-form-label">وصف الموقع</label>
-                    <textarea id="site_description" name="site_description" class="settings-form-textarea" rows="3" placeholder="أدخل وصف مختصر عن الموقع" maxlength="300">{{ $settings['site_description'] ?? '' }}</textarea>
+                    <textarea id="site_description" name="site_description" class="settings-form-textarea" rows="3" placeholder="{{ g('أدخل وصف مختصر عن الموقع', 'أدخلي وصف مختصر عن الموقع') }}" maxlength="300">{{ $settings['site_description'] ?? '' }}</textarea>
                     <div class="settings-form-help">
                         <span>وصف مختصر عن الموقع</span>
                         <span class="char-counter" data-target="site_description">

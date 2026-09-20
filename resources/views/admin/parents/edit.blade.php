@@ -93,7 +93,7 @@
             <div class="form-group full-width">
                 <label class="form-label required">المدرسة</label>
                 <select name="school_id" class="form-select" required>
-                    <option value="">اختر المدرسة</option>
+                    <option value="">{{ g('اختر المدرسة', 'اختاري المدرسة') }}</option>
                     @foreach($schools as $school)
                     <option value="{{ $school->id }}" {{ old('school_id', $parent->school_id) == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
                     @endforeach

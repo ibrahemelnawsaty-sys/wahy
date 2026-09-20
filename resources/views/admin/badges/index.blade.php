@@ -266,7 +266,7 @@ html[data-theme="dark"] .badge-condition { background: var(--w-surface-2, #1e293
                 </form>
             </div>
             @if($badge->users_count == 0)
-            <form method="POST" action="{{ route('admin.badges.destroy', $badge) }}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذه الشارة؟')">
+            <form method="POST" action="{{ route('admin.badges.destroy', $badge) }}" style="display: inline;" onsubmit="return confirm('{{ g('هل أنت متأكد من حذف هذه الشارة؟', 'هل أنتِ متأكدة من حذف هذه الشارة؟') }}')">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn-action btn-delete">🗑️</button>
@@ -286,7 +286,7 @@ html[data-theme="dark"] .badge-condition { background: var(--w-surface-2, #1e293
 <div style="text-align: center; padding: 60px; background: white; border-radius: 12px;">
     <div style="font-size: 64px; margin-bottom: 16px;">🏅</div>
     <h3>لا توجد شارات</h3>
-    <p style="color: #64748b; margin-bottom: 24px;">ابدأ بإضافة أول شارة إنجاز</p>
+    <p style="color: #64748b; margin-bottom: 24px;">{{ g('ابدأ بإضافة أول شارة إنجاز', 'ابدئي بإضافة أول شارة إنجاز') }}</p>
     <a href="{{ route('admin.badges.create') }}" class="btn-add">➕ إضافة شارة جديدة</a>
 </div>
 @endif

@@ -234,7 +234,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">ملاحظات للطالب (اختياري)</label>
                 <textarea name="feedback" rows="4" 
                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                          placeholder="اكتب ملاحظاتك هنا...">{{ $submission->feedback }}</textarea>
+                          placeholder="{{ g('اكتب ملاحظاتك هنا...', 'اكتبي ملاحظاتكِ هنا...') }}">{{ $submission->feedback }}</textarea>
             </div>
 
             <!-- أزرار الإرسال -->

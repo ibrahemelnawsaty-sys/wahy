@@ -88,7 +88,7 @@
                     لا توجد صفحات حتى الآن
                 </h3>
                 <p style="color: #64748b; margin-bottom: 24px;">
-                    ابدأ بإنشاء صفحة جديدة باستخدام محرر Drag & Drop
+                    {{ g('ابدأ بإنشاء صفحة جديدة باستخدام محرر Drag & Drop', 'ابدئي بإنشاء صفحة جديدة باستخدام محرر Drag & Drop') }}
                 </p>
                 <a href="{{ route('admin.pages.create') }}" class="admin-btn admin-btn-primary">
                     <span>➕</span>
@@ -105,7 +105,7 @@ function confirmDelete(event, pageName) {
     event.preventDefault();
     
     showConfirm(
-        `هل أنت متأكد من حذف صفحة "<strong>${pageName}</strong>"؟<br><br>⚠️ هذا الإجراء لا يمكن التراجع عنه!`,
+        `{{ g('هل أنت متأكد من حذف صفحة', 'هل أنتِ متأكدة من حذف صفحة') }} "<strong>${pageName}</strong>"؟<br><br>⚠️ هذا الإجراء لا يمكن التراجع عنه!`,
         () => {
             event.target.submit();
         },

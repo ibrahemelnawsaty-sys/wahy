@@ -57,7 +57,7 @@
                             نوع المنتج <span class="text-red-500">*</span>
                         </label>
                         <select name="type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                            <option value="">اختر النوع</option>
+                            <option value="">{{ g('اختر النوع', 'اختاري النوع') }}</option>
                             <option value="avatar" {{ old('type', $item->type) == 'avatar' ? 'selected' : '' }}>صورة رمزية</option>
                             <option value="theme" {{ old('type', $item->type) == 'theme' ? 'selected' : '' }}>ثيم</option>
                             <option value="badge" {{ old('type', $item->type) == 'badge' ? 'selected' : '' }}>شارة</option>
@@ -75,7 +75,7 @@
                             الندرة <span class="text-red-500">*</span>
                         </label>
                         <select name="rarity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                            <option value="">اختر الندرة</option>
+                            <option value="">{{ g('اختر الندرة', 'اختاري الندرة') }}</option>
                             <option value="common" {{ old('rarity', $item->rarity) == 'common' ? 'selected' : '' }}>⚪ عادي</option>
                             <option value="rare" {{ old('rarity', $item->rarity) == 'rare' ? 'selected' : '' }}>🔵 نادر</option>
                             <option value="epic" {{ old('rarity', $item->rarity) == 'epic' ? 'selected' : '' }}>🟣 أسطوري</option>

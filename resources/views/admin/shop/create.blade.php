@@ -12,7 +12,7 @@
             </a>
             <h1 class="text-3xl font-bold text-gray-800">إضافة منتج جديد</h1>
         </div>
-        <p class="text-gray-600">أضف منتج جديد إلى المتجر</p>
+        <p class="text-gray-600">{{ g('أضف منتج جديد إلى المتجر', 'أضيفي منتج جديد إلى المتجر') }}</p>
     </div>
 
     <form action="{{ route('admin.shop.store') }}" method="POST" enctype="multipart/form-data" class="max-w-4xl">
@@ -56,7 +56,7 @@
                             نوع المنتج <span class="text-red-500">*</span>
                         </label>
                         <select name="type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                            <option value="">اختر النوع</option>
+                            <option value="">{{ g('اختر النوع', 'اختاري النوع') }}</option>
                             <option value="avatar" {{ old('type') == 'avatar' ? 'selected' : '' }}>صورة رمزية</option>
                             <option value="theme" {{ old('type') == 'theme' ? 'selected' : '' }}>ثيم</option>
                             <option value="badge" {{ old('type') == 'badge' ? 'selected' : '' }}>شارة</option>
@@ -74,7 +74,7 @@
                             الندرة <span class="text-red-500">*</span>
                         </label>
                         <select name="rarity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                            <option value="">اختر الندرة</option>
+                            <option value="">{{ g('اختر الندرة', 'اختاري الندرة') }}</option>
                             <option value="common" {{ old('rarity') == 'common' ? 'selected' : '' }}>⚪ عادي</option>
                             <option value="rare" {{ old('rarity') == 'rare' ? 'selected' : '' }}>🔵 نادر</option>
                             <option value="epic" {{ old('rarity') == 'epic' ? 'selected' : '' }}>🟣 أسطوري</option>

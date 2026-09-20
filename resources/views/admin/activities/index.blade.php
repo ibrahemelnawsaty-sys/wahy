@@ -263,7 +263,7 @@
 <div class="empty-state">
     <div class="empty-icon">🎯</div>
     <h3 class="empty-title">لا توجد أنشطة</h3>
-    <p style="color: #64748b; margin-bottom: 20px;">ابدأ بإضافة الأنشطة التفاعلية للدروس</p>
+    <p style="color: #64748b; margin-bottom: 20px;">{{ g('ابدأ بإضافة الأنشطة التفاعلية للدروس', 'ابدئي بإضافة الأنشطة التفاعلية للدروس') }}</p>
     <a href="{{ route('admin.activities.create') }}" class="btn btn-primary">➕ إضافة نشاط جديد</a>
 </div>
 @else
@@ -364,7 +364,7 @@
 
 <script>
 function deleteActivity(activityId, activityTitle) {
-    const message = `هل أنت متأكد من حذف النشاط "<strong>${activityTitle}</strong>"؟<br><br>⚠️ هذا الإجراء لا يمكن التراجع عنه!`;
+    const message = `{{ g('هل أنت متأكد من حذف النشاط', 'هل أنتِ متأكدة من حذف النشاط') }} "<strong>${activityTitle}</strong>"؟<br><br>⚠️ هذا الإجراء لا يمكن التراجع عنه!`;
     
     showConfirm(
         message,

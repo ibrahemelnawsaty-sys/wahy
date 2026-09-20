@@ -170,7 +170,7 @@
                     <div style="display: flex; gap: 8px;">
                         <a href="{{ route('admin.parents.edit', $parent) }}" class="btn-action btn-edit"
                            aria-label="تعديل بيانات ولي الأمر {{ $parent->name }}" title="تعديل">✏️</a>
-                        <form method="POST" action="{{ route('admin.parents.destroy', $parent) }}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد؟')">
+                        <form method="POST" action="{{ route('admin.parents.destroy', $parent) }}" style="display: inline;" onsubmit="return confirm('{{ g('هل أنت متأكد؟', 'هل أنتِ متأكدة؟') }}')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-action btn-delete"

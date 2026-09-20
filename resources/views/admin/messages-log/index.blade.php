@@ -632,7 +632,7 @@ html[data-theme="dark"] .ml-sender-card:hover {
                                         <div class="ml-actions">
                                             <a href="{{ route('admin.messages-log.show', $message->id) }}" class="ml-action-btn view" title="عرض التفاصيل">👁️</a>
                                             <a href="{{ route('admin.messages-log.conversation', $message->conversation_id) }}" class="ml-action-btn chat" title="عرض المحادثة">💬</a>
-                                            <form action="{{ route('admin.messages-log.destroy', $message->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذه الرسالة؟')">
+                                            <form action="{{ route('admin.messages-log.destroy', $message->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('{{ g('هل أنت متأكد من حذف هذه الرسالة؟', 'هل أنتِ متأكدة من حذف هذه الرسالة؟') }}')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="ml-action-btn delete" title="حذف">🗑️</button>

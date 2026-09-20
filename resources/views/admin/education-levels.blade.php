@@ -78,7 +78,7 @@
         <div style="background: var(--card-bg, white); border-radius: 16px; padding: 60px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
             <div style="font-size: 48px; margin-bottom: 16px;">🎓</div>
             <div style="font-size: 16px; font-weight: 600; color: var(--text-secondary, #64748b); margin-bottom: 8px;">لا توجد مراحل دراسية</div>
-            <p style="font-size: 14px; color: var(--text-secondary, #94a3b8);">أضف المراحل الدراسية مثل: ابتدائي، متوسط، ثانوي</p>
+            <p style="font-size: 14px; color: var(--text-secondary, #94a3b8);">{{ g('أضف المراحل الدراسية مثل: ابتدائي، متوسط، ثانوي', 'أضيفي المراحل الدراسية مثل: ابتدائي، متوسط، ثانوي') }}</p>
         </div>
         @endforelse
     </div>

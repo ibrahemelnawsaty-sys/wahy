@@ -209,7 +209,7 @@
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">سبب الرفض:</label>
                 <textarea name="rejection_reason" required rows="4" 
                           style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; resize: vertical;"
-                          placeholder="اكتب سبب رفض هذا النشاط..."></textarea>
+                          placeholder="{{ g('اكتب سبب رفض هذا النشاط...', 'اكتبي سبب رفض هذا النشاط...') }}"></textarea>
             </div>
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button type="button" onclick="closeRejectModal()" 
@@ -241,12 +241,12 @@
                 <label style="display:block; padding:12px; border:1px solid #e5e7eb; border-radius:8px; cursor:pointer;">
                     <input type="radio" name="scope" value="specific" onchange="toggleScope()">
                     <strong>مدارس محدّدة</strong>
-                    <span style="display:block; font-size:12px; color:#6b7280; margin-right:22px;">اختر المدارس المستهدفة فقط.</span>
+                    <span style="display:block; font-size:12px; color:#6b7280; margin-right:22px;">{{ g('اختر المدارس المستهدفة فقط.', 'اختاري المدارس المستهدفة فقط.') }}</span>
                 </label>
             </div>
 
             <div id="schoolsPicker" style="display:none; margin-bottom: 18px; border:1px solid #e5e7eb; border-radius:8px; padding:12px; max-height:200px; overflow-y:auto;">
-                <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px;">اختر المدارس:</label>
+                <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px;">{{ g('اختر المدارس:', 'اختاري المدارس:') }}</label>
                 @forelse($schools as $school)
                     <label style="display:block; padding:6px 0; cursor:pointer;">
                         <input type="checkbox" name="school_ids[]" value="{{ $school->id }}"> {{ $school->name }}

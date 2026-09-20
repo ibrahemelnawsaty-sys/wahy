@@ -348,7 +348,7 @@ html[data-theme="dark"] .mlog-times { color: var(--w-text-muted) !important; }
             <a href="{{ route('admin.messages-log.index') }}" class="btn btn-secondary">
                 📋 العودة للسجل
             </a>
-            <form action="{{ route('admin.messages-log.destroy', $message->id) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف هذه الرسالة؟ هذا الإجراء لا يمكن التراجع عنه.')">
+            <form action="{{ route('admin.messages-log.destroy', $message->id) }}" method="POST" onsubmit="return confirm('{{ g('هل أنت متأكد من حذف هذه الرسالة؟ هذا الإجراء لا يمكن التراجع عنه.', 'هل أنتِ متأكدة من حذف هذه الرسالة؟ هذا الإجراء لا يمكن التراجع عنه.') }}')">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger">

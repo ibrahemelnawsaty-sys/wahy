@@ -143,7 +143,7 @@
     <div style="text-align:center;padding:60px;background:white;border-radius:16px;color:#94a3b8;">
         <div style="font-size:60px;margin-bottom:16px;">📭</div>
         <p style="font-size:16px;font-weight:600;">لا توجد أنشطة في البنك</p>
-        <a href="{{ route('admin.activities.create') }}" class="add-btn" style="margin:16px auto 0;text-decoration:none;display:inline-flex;">➕ أضف أول نشاط</a>
+        <a href="{{ route('admin.activities.create') }}" class="add-btn" style="margin:16px auto 0;text-decoration:none;display:inline-flex;">➕ {{ g('أضف أول نشاط', 'أضيفي أول نشاط') }}</a>
     </div>
     @endforelse
 
@@ -231,7 +231,7 @@
             @csrf
             <div class="form-group">
                 <label>عنوان النشاط *</label>
-                <input type="text" name="title" required placeholder="أدخل عنوان النشاط">
+                <input type="text" name="title" required placeholder="{{ g('أدخل عنوان النشاط', 'أدخلي عنوان النشاط') }}">
             </div>
             <div class="form-group">
                 <label>وصف النشاط</label>
@@ -309,7 +309,7 @@
         <h2 style="font-size:20px;font-weight:800;color:#1e293b;margin-bottom:20px;text-align:center;">❌ سبب الرفض</h2>
         <div class="form-group">
             <label>سبب الرفض (اختياري)</label>
-            <textarea id="rejectReason" rows="4" placeholder="اكتب سبب الرفض للمعلم..." style="width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;"></textarea>
+            <textarea id="rejectReason" rows="4" placeholder="{{ g('اكتب سبب الرفض للمعلم...', 'اكتبي سبب الرفض للمعلم...') }}" style="width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;"></textarea>
         </div>
         <div style="display:flex;gap:12px;">
             <button onclick="confirmReject()" style="flex:1;background:#fee2e2;color:#dc2626;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;">
@@ -326,7 +326,7 @@
 <div class="modal-overlay" id="approveModal" onclick="if(event.target===this)closeApproveModal()">
     <div class="modal-box" style="max-width:520px;">
         <h2 style="font-size:20px;font-weight:800;color:#1e293b;margin-bottom:8px;text-align:center;">✅ الموافقة على النشاط</h2>
-        <p style="color:#64748b;font-size:13px;text-align:center;margin-bottom:20px;">اختر كيف يُنشَر لكل المدارس.</p>
+        <p style="color:#64748b;font-size:13px;text-align:center;margin-bottom:20px;">{{ g('اختر كيف يُنشَر لكل المدارس.', 'اختاري كيف يُنشَر لكل المدارس.') }}</p>
         <div class="form-group" style="display:flex;flex-direction:column;gap:10px;">
             <label style="display:flex;gap:10px;align-items:flex-start;padding:14px;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;">
                 <input type="radio" name="approveMode" value="bank" checked style="margin-top:4px;">

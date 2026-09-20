@@ -211,7 +211,7 @@
             <a href="{{ route('admin.schools.show', $school) }}" class="btn-action btn-view">👁️ عرض</a>
             <a href="{{ route('admin.schools.edit', $school) }}" class="btn-action btn-edit">✏️ تعديل</a>
             <a href="{{ route('admin.schools.active-values', $school) }}" class="btn-action btn-edit">🎯 القيم المفعّلة</a>
-            <form method="POST" action="{{ route('admin.schools.destroy', $school) }}" style="flex: 1;" onsubmit="return confirm('هل أنت متأكد؟')">
+            <form method="POST" action="{{ route('admin.schools.destroy', $school) }}" style="flex: 1;" onsubmit="return confirm('{{ g('هل أنت متأكد؟', 'هل أنتِ متأكدة؟') }}')">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn-action btn-delete" style="width: 100%;">🗑️</button>
@@ -228,7 +228,7 @@
 <div style="text-align: center; padding: 60px; background: white; border-radius: 12px;">
     <div style="font-size: 64px; margin-bottom: 16px;">🏫</div>
     <h3>لا توجد مدارس</h3>
-    <p style="color: #64748b;">ابدأ بإضافة مدرسة جديدة</p>
+    <p style="color: #64748b;">{{ g('ابدأ بإضافة مدرسة جديدة', 'ابدئي بإضافة مدرسة جديدة') }}</p>
 </div>
 @endif
 

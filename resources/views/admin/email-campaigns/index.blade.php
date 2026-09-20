@@ -26,7 +26,7 @@
                         <td><a href="{{ route('admin.email-campaigns.show', $c) }}" class="view">تفاصيل</a></td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="empty">لا توجد حملات بعد. ابدأ بـ«حملة جديدة».</td></tr>
+                    <tr><td colspan="6" class="empty">لا توجد حملات بعد. {{ g('ابدأ بـ«حملة جديدة».', 'ابدئي بـ«حملة جديدة».') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -63,7 +63,7 @@
         <div class="canvas-inner" id="builderCanvas" style="background: white; border-radius: 12px; min-height: 500px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
             <div class="empty-canvas" id="emptyBuilderCanvas" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px; padding: 40px;">
                 <div style="font-size: 60px; margin-bottom: 20px; opacity: 0.3;">🎨</div>
-                <div style="font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 10px;">ابدأ ببناء صفحتك</div>
+                <div style="font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 10px;">{{ g('ابدأ ببناء صفحتك', 'ابدئي ببناء صفحتكِ') }}</div>
                 <div style="font-size: 14px; color: #64748b;">اسحب قسم من القائمة اليسرى لإضافته للصفحة</div>
             </div>
         </div>

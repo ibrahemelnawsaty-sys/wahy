@@ -83,7 +83,7 @@
             <div class="form-group full-width">
                 <label class="form-label required">القيمة الأساسية</label>
                 <select name="value_id" class="form-select" required>
-                    <option value="">اختر القيمة</option>
+                    <option value="">{{ g('اختر القيمة', 'اختاري القيمة') }}</option>
                     @foreach($values as $value)
                     <option value="{{ $value->id }}" {{ old('value_id', $selectedValue) == $value->id ? 'selected' : '' }}>
                         {{ $value->icon }} {{ $value->name }}

@@ -263,7 +263,7 @@
 <div class="empty-state">
     <div class="empty-icon">📚</div>
     <h3 class="empty-title">لا توجد دروس</h3>
-    <p style="color: #64748b; margin-bottom: 20px;">ابدأ بإضافة الدروس التعليمية للمعاني</p>
+    <p style="color: #64748b; margin-bottom: 20px;">{{ g('ابدأ بإضافة الدروس التعليمية للمعاني', 'ابدئي بإضافة الدروس التعليمية للمعاني') }}</p>
     <a href="{{ route('admin.lessons.create') }}" class="btn btn-primary">➕ إضافة درس جديد</a>
 </div>
 @else
@@ -338,7 +338,7 @@
                             @csrf
                             <button type="submit" class="action-btn btn-toggle" title="تغيير الحالة">🔄</button>
                         </form>
-                        <form action="{{ route('admin.lessons.destroy', $lesson) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الدرس؟')">
+                        <form action="{{ route('admin.lessons.destroy', $lesson) }}" method="POST" style="display: inline;" onsubmit="return confirm('{{ g('هل أنت متأكد من حذف هذا الدرس؟', 'هل أنتِ متأكدة من حذف هذا الدرس؟') }}')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="action-btn btn-delete" title="حذف">🗑️</button>

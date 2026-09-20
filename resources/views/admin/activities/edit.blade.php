@@ -228,7 +228,7 @@
             <div class="form-group full-width">
                 <label class="form-label required">الدرس</label>
                 <select name="lesson_id" class="form-select" required>
-                    <option value="">اختر الدرس</option>
+                    <option value="">{{ g('اختر الدرس', 'اختاري الدرس') }}</option>
                     @foreach($lessons as $lesson)
                     <option value="{{ $lesson->id }}" {{ old('lesson_id', $activity->lesson_id) == $lesson->id ? 'selected' : '' }}>
                         {{ $lesson->concept?->value?->icon }} {{ $lesson->concept?->name }} - {{ $lesson->title }}
@@ -364,7 +364,7 @@
                                 <span>🎵 صوت (MP3, WAV, AAC)</span>
                             </label>
                         </div>
-                        <small style="color: #64748b; font-size: 13px; display: block; margin-top: 8px;">اختر أنواع الملفات التي يمكن للطلاب رفعها</small>
+                        <small style="color: #64748b; font-size: 13px; display: block; margin-top: 8px;">{{ g('اختر أنواع الملفات التي يمكن للطلاب رفعها', 'اختاري أنواع الملفات التي يمكن للطلاب رفعها') }}</small>
                     </div>
                     <div class="form-group">
                         <label class="form-label">الحد الأقصى لحجم الملف (MB)</label>
@@ -569,7 +569,7 @@ function addQuestion() {
 }
 
 function removeQuestion(index) {
-    if (confirm('هل أنت متأكد من حذف هذا السؤال؟')) {
+    if (confirm('{{ g('هل أنت متأكد من حذف هذا السؤال؟', 'هل أنتِ متأكدة من حذف هذا السؤال؟') }}')) {
         questions.splice(index, 1);
         renderQuestions();
     }
@@ -639,7 +639,7 @@ function renderQuestions() {
                         ${!isOrderingType ? `
                             <div class="correct-indicator ${isCorrect ? 'selected' : ''}" 
                                  onclick="setCorrectAnswer(${index}, ${oIndex})"
-                                 title="اختر كإجابة صحيحة">
+                                 title="{{ g('اختر كإجابة صحيحة', 'اختاري كإجابة صحيحة') }}">
                                 ${isCorrect ? '✓' : '○'}
                             </div>
                         ` : `
@@ -690,13 +690,13 @@ function renderQuestions() {
 
                 ${q.type === 'letter_choice' ? `
                     <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:13px;color:#0369a1;">
-                        🔤 أدخل حروف الكلمة <b>بالترتيب الصحيح</b> — كل الحروف صحيحة والطالب يعيد ترتيبها لتكوين الكلمة. الكلمة المُكوَّنة: <b>${escAttr((q.options || []).map(o => (typeof o === 'string' ? o : '')).join(''))}</b>
+                        🔤 {{ g('أدخل حروف الكلمة', 'أدخلي حروف الكلمة') }} <b>بالترتيب الصحيح</b> — كل الحروف صحيحة والطالب يعيد ترتيبها لتكوين الكلمة. الكلمة المُكوَّنة: <b>${escAttr((q.options || []).map(o => (typeof o === 'string' ? o : '')).join(''))}</b>
                     </div>
                 ` : ''}
                 ${q.type === 'multiple_choice' || q.type === 'true_false' || q.type === 'letter_choice' ? `
                     <div class="options-container">
                         <label style="font-weight: 600; font-size: 13px; color: #475569;">
-                            ${q.type === 'letter_choice' ? 'الحروف بالترتيب الصحيح' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}
+                            ${q.type === 'letter_choice' ? 'الحروف بالترتيب الصحيح' : '{{ g('الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)', 'الخيارات (اضغطي على ○ لتحديد الإجابة الصحيحة)') }}'}
                         </label>
                         ${optionsHtml}
                         ${q.type === 'multiple_choice' || q.type === 'letter_choice' ? `

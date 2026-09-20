@@ -299,7 +299,7 @@
 <div style="text-align: center; padding: 60px; background: white; border-radius: 12px;">
     <div style="font-size: 64px; margin-bottom: 16px;">📋</div>
     <h3>لا توجد استبيانات</h3>
-    <p style="color: #64748b; margin-bottom: 24px;">ابدأ بإنشاء أول استبيان</p>
+    <p style="color: #64748b; margin-bottom: 24px;">{{ g('ابدأ بإنشاء أول استبيان', 'ابدئي بإنشاء أول استبيان') }}</p>
     <a href="{{ route('admin.surveys.create') }}" class="btn-add">➕ إنشاء استبيان جديد</a>
 </div>
 @endif
@@ -479,7 +479,7 @@ function deleteSurvey(surveyId, event) {
     
     // عرض رسالة التأكيد باستخدام glassmorphism popup
     showConfirm(
-        '⚠️ هل أنت متأكد من حذف هذا الاستبيان؟\n\nسيتم حذف جميع الأسئلة المرتبطة به.\nلا يمكن التراجع عن هذا الإجراء.',
+        '⚠️ {{ g('هل أنت متأكد من حذف هذا الاستبيان؟', 'هل أنتِ متأكدة من حذف هذا الاستبيان؟') }}\n\nسيتم حذف جميع الأسئلة المرتبطة به.\nلا يمكن التراجع عن هذا الإجراء.',
         function() {
             console.log('تم تأكيد الحذف، سيتم إرسال الفورم...');
             const form = document.getElementById('delete-survey-form-' + surveyId);

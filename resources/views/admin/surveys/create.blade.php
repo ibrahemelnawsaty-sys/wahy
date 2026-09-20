@@ -292,7 +292,7 @@
             <div style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); padding: 20px; border-radius: 12px; border: 3px solid #8b5cf6; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);">
                 <label class="form-label required" style="color: #5b21b6; font-size: 16px; margin-bottom: 12px; display: block;">📚 الدرس المرتبط بالتقييم</label>
                 <select name="lesson_id" id="lesson_id" class="form-select" style="width: 100%; padding: 14px 16px; border: 2px solid #c4b5fd; border-radius: 10px; font-size: 14px; background: white;">
-                    <option value="">-- اختر الدرس --</option>
+                    <option value="">-- {{ g('اختر الدرس', 'اختاري الدرس') }} --</option>
                     @foreach($lessons as $lesson)
                         <option value="{{ $lesson->id }}" {{ old('lesson_id') == $lesson->id ? 'selected' : '' }}>
                             {{ $lesson->title }}
@@ -325,7 +325,7 @@
             <div style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); padding: 20px; border-radius: 12px; border: 3px solid #8b5cf6; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);">
                 <label class="form-label required" style="color: #5b21b6; font-size: 16px; margin-bottom: 12px; display: block;">⭐ القيمة المرتبطة بالتقييم</label>
                 <select name="value_id" id="value_id" class="form-select" style="width: 100%; padding: 14px 16px; border: 2px solid #c4b5fd; border-radius: 10px; font-size: 14px; background: white;">
-                    <option value="">-- اختر القيمة --</option>
+                    <option value="">-- {{ g('اختر القيمة', 'اختاري القيمة') }} --</option>
                     @foreach($values as $value)
                         <option value="{{ $value->id }}" {{ old('value_id') == $value->id ? 'selected' : '' }}>
                             {{ $value->icon }} {{ $value->name }}
@@ -460,7 +460,7 @@ function addQuestion() {
         
         <div class="form-group">
             <label class="form-label required">نص السؤال</label>
-            <input type="text" name="questions[${questionIndex}][question_text]" class="form-input" required placeholder="اكتب السؤال هنا...">
+            <input type="text" name="questions[${questionIndex}][question_text]" class="form-input" required placeholder="{{ g('اكتب السؤال هنا...', 'اكتبي السؤال هنا...') }}">
         </div>
         
         <div class="form-group">
@@ -539,7 +539,7 @@ function addQuestionWithData(questionData, index) {
         
         <div class="form-group">
             <label class="form-label required">نص السؤال</label>
-            <input type="text" name="questions[${index}][question_text]" class="form-input" required placeholder="اكتب السؤال هنا..." value="${questionData.question_text || ''}">
+            <input type="text" name="questions[${index}][question_text]" class="form-input" required placeholder="{{ g('اكتب السؤال هنا...', 'اكتبي السؤال هنا...') }}" value="${questionData.question_text || ''}">
         </div>
         
         <div class="form-group">
@@ -592,7 +592,7 @@ function removeQuestion(index) {
     if (questionDiv) {
         // تأكيد الحذف إذا كان هناك سؤال واحد فقط
         if (getQuestionCount() <= 1) {
-            if (!confirm('هل أنت متأكد من حذف هذا السؤال؟ سيتوجب عليك إضافة سؤال جديد.')) {
+            if (!confirm('{{ g('هل أنت متأكد من حذف هذا السؤال؟ سيتوجب عليك إضافة سؤال جديد.', 'هل أنتِ متأكدة من حذف هذا السؤال؟ سيتوجب عليكِ إضافة سؤال جديد.') }}')) {
                 return;
             }
         }

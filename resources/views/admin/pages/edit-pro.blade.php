@@ -649,7 +649,7 @@
         <div class="info-grid-3">
             <div class="glass-form-group">
                 <label class="glass-label">اسم الصفحة</label>
-                <input type="text" name="page_name" class="glass-input" value="{{ $page->page_name }}" placeholder="أدخل اسم الصفحة..." required>
+                <input type="text" name="page_name" class="glass-input" value="{{ $page->page_name }}" placeholder="{{ g('أدخل اسم الصفحة...', 'أدخلي اسم الصفحة...') }}" required>
             </div>
             <div class="glass-form-group">
                 <label class="glass-label">Slug</label>
@@ -899,7 +899,7 @@
             <div class="canvas-inner" id="canvas">
                 <div class="empty-canvas" id="emptyCanvas">
                     <div class="empty-icon">🎨</div>
-                    <div class="empty-title">ابدأ ببناء صفحتك</div>
+                    <div class="empty-title">{{ g('ابدأ ببناء صفحتك', 'ابدئي ببناء صفحتكِ') }}</div>
                     <div class="empty-desc">اسحب قسم من القائمة اليسرى لإضافته للصفحة</div>
                 </div>
             </div>
@@ -1198,7 +1198,7 @@ function addComponent(sIndex, colIndex, componentType) {
 function getDefaultContent(type) {
     const defaults = {
         heading: { level: 'h2', text: 'عنوان جديد', align: 'right', fontSize: '32px', color: '#1e293b', fontFamily: 'Cairo', fontWeight: '700' },
-        paragraph: { text: 'اكتب النص هنا...', align: 'right', fontSize: '16px', color: '#334155', fontFamily: 'Cairo', lineHeight: '1.8' },
+        paragraph: { text: '{{ g('اكتب النص هنا...', 'اكتبي النص هنا...') }}', align: 'right', fontSize: '16px', color: '#334155', fontFamily: 'Cairo', lineHeight: '1.8' },
         list: { items: ['عنصر 1', 'عنصر 2', 'عنصر 3'], type: 'ul', fontSize: '16px', color: '#334155' },
         quote: { text: 'اقتباس ملهم هنا...', author: 'المؤلف', fontSize: '18px', color: '#64748b', style: 'border' },
         divider: { color: '#e2e8f0', thickness: '2px', style: 'solid', width: '100%' },
@@ -1481,7 +1481,7 @@ function getComponentForm(comp) {
             return `
                 <div class="form-group">
                     <label>نص الاقتباس</label>
-                    <textarea id="edit_text" class="admin-input" rows="4" placeholder="اكتب الاقتباس هنا...">${comp.content.text || ''}</textarea>
+                    <textarea id="edit_text" class="admin-input" rows="4" placeholder="{{ g('اكتب الاقتباس هنا...', 'اكتبي الاقتباس هنا...') }}">${comp.content.text || ''}</textarea>
                 </div>
                 <div class="form-group">
                     <label>المؤلف</label>

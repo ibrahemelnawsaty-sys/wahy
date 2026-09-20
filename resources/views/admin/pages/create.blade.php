@@ -255,7 +255,7 @@
                     <div class="canvas-area">
                         <div id="dropZone" class="drop-zone">
                             <div style="font-size: 48px; margin-bottom: 16px;">🎨</div>
-                            <h3 style="color: #1e293b; font-size: 18px; margin-bottom: 8px;">ابدأ بسحب البلوكات هنا</h3>
+                            <h3 style="color: #1e293b; font-size: 18px; margin-bottom: 8px;">{{ g('ابدأ بسحب البلوكات هنا', 'ابدئي بسحب البلوكات هنا') }}</h3>
                             <p>اسحب أي بلوك من القائمة اليمنى وأفلته هنا لبناء الصفحة</p>
                         </div>
                         <div id="pageBlocks"></div>

@@ -22,10 +22,10 @@
                 <div style="background: #fffbeb; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-right: 4px solid #f59e0b;">
                     <strong>🎨 كيف تختار الألوان:</strong>
                     <ol style="margin: 10px 0 0 0; padding-right: 20px; line-height: 1.8;">
-                        <li>اضغط على المربع الملون 🟦 لفتح منتقي الألوان</li>
-                        <li>اختر اللون الذي تريده</li>
+                        <li>{{ g('اضغط على المربع الملون 🟦 لفتح منتقي الألوان', 'اضغطي على المربع الملون 🟦 لفتح منتقي الألوان') }}</li>
+                        <li>{{ g('اختر اللون الذي تريده', 'اختاري اللون الذي تريدين') }}</li>
                         <li>كرر العملية لكل لون</li>
-                        <li>اضغط "حفظ التغييرات" في الأسفل ⬇️</li>
+                        <li>{{ g('اضغط "حفظ التغييرات" في الأسفل ⬇️', 'اضغطي "حفظ التغييرات" في الأسفل ⬇️') }}</li>
                     </ol>
                 </div>
                 
@@ -137,7 +137,7 @@
                         <option value="Tajawal" @selected($settings['font_family'] == 'Tajawal')>Tajawal</option>
                         <option value="Almarai" @selected($settings['font_family'] == 'Almarai')>Almarai</option>
                     </select>
-                    <div class="admin-form-help">اختر خط الموقع (يدعم العربية)</div>
+                    <div class="admin-form-help">{{ g('اختر خط الموقع (يدعم العربية)', 'اختاري خط الموقع (يدعم العربية)') }}</div>
                 </div>
             </div>
         </div>

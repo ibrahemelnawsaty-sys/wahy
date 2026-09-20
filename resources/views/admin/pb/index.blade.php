@@ -8,7 +8,7 @@
     <div class="pb-admin-head">
         <div>
             <h2 class="pb-admin-title">صفحات المحرّر الاحترافيّ</h2>
-            <p class="pb-admin-sub">أنشئ صفحاتٍ بالكتل، وحرّر الهيدر والفوتر والجسم كلًّا على حدة، ثمّ انشرها وفعّلها على المسار العامّ.</p>
+            <p class="pb-admin-sub">{{ g('أنشئ صفحاتٍ بالكتل، وحرّر الهيدر والفوتر والجسم كلًّا على حدة، ثمّ انشرها وفعّلها على المسار العامّ.', 'أنشئي صفحاتٍ بالكتل، وحرّري الهيدر والفوتر والجسم كلًّا على حدة، ثمّ انشريها وفعّليها على المسار العامّ.') }}</p>
         </div>
         <a href="{{ route('admin.pb.ui.create') }}" class="btn btn-primary">＋ صفحة جديدة</a>
     </div>
@@ -16,8 +16,8 @@
     @if($pages->isEmpty())
         <div class="pb-empty">
             <div class="pb-empty-emoji">📄</div>
-            <p>لا صفحات بعد. ابدأ بإنشاء صفحة، أو استعمل <code>php artisan pb:scaffold-home</code> لتوليد رئيسيّة مبدئيّة.</p>
-            <a href="{{ route('admin.pb.ui.create') }}" class="btn btn-primary">أنشئ أوّل صفحة</a>
+            <p>لا صفحات بعد. {{ g('ابدأ بإنشاء صفحة، أو استعمل', 'ابدئي بإنشاء صفحة، أو استعملي') }} <code>php artisan pb:scaffold-home</code> لتوليد رئيسيّة مبدئيّة.</p>
+            <a href="{{ route('admin.pb.ui.create') }}" class="btn btn-primary">{{ g('أنشئ أوّل صفحة', 'أنشئي أوّل صفحة') }}</a>
         </div>
     @else
         <div class="pb-table-wrap">

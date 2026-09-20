@@ -359,7 +359,7 @@
 <div class="empty-state">
     <div class="empty-icon">🎯</div>
     <h3 class="empty-title">لا توجد أنشطة لهذا الدرس</h3>
-    <p style="color: #64748b; margin-bottom: 20px;">ابدأ بإضافة الأنشطة التفاعلية لهذا الدرس</p>
+    <p style="color: #64748b; margin-bottom: 20px;">{{ g('ابدأ بإضافة الأنشطة التفاعلية لهذا الدرس', 'ابدئي بإضافة الأنشطة التفاعلية لهذا الدرس') }}</p>
     <a href="{{ route('admin.activities.create', ['lesson_id' => $lesson->id]) }}" class="btn btn-primary">➕ إضافة نشاط جديد</a>
 </div>
 @else

@@ -81,7 +81,7 @@
             <aside class="pb-palette">
                 <button type="button" class="pb-patterns-btn" id="pbPatternsBtn">🧩 أنماط جاهزة</button>
                 <button type="button" class="pb-save-pattern-btn" id="pbSavePatternBtn">💾 احفظ الحاليّ كنمط</button>
-                <div class="pb-panel-label">أو أضف كتلة مفردة</div>
+                <div class="pb-panel-label">{{ g('أو أضف كتلة مفردة', 'أو أضيفي كتلة مفردة') }}</div>
                 <div id="pbPalette" class="pb-palette-list"></div>
             </aside>
 
@@ -98,7 +98,7 @@
                 </div>
                 <div class="pb-side-sec">
                     <div class="pb-panel-label">الخصائص</div>
-                    <div id="pbInspector" class="pb-inspector-body"><p class="pb-hint">اختر كتلةً لتحرير خصائصها.</p></div>
+                    <div id="pbInspector" class="pb-inspector-body"><p class="pb-hint">{{ g('اختر كتلةً لتحرير خصائصها.', 'اختاري كتلةً لتحرير خصائصها.') }}</p></div>
                 </div>
             </aside>
         </div>
@@ -157,7 +157,7 @@
 {{-- مُنتقي الأيقونات (إيموجي) --}}
 <div class="pb-modal" id="pbIconModal" hidden>
     <div class="pb-modal-box">
-        <div class="pb-modal-head"><b>اختر رمزاً</b><button class="pb-modal-x" data-pb-close>✕</button></div>
+        <div class="pb-modal-head"><b>{{ g('اختر رمزاً', 'اختاري رمزاً') }}</b><button class="pb-modal-x" data-pb-close>✕</button></div>
         <div class="pb-modal-body"><div class="pb-icon-grid" id="pbIconGrid"></div></div>
     </div>
 </div>

@@ -40,7 +40,7 @@
         <hr style="margin: 32px 0;">
 
         <h3>محتوى الصفحة</h3>
-        <p style="color: #64748b; margin-bottom: 24px;">أضف أقسام الصفحة باستخدام JSON</p>
+        <p style="color: #64748b; margin-bottom: 24px;">{{ g('أضف أقسام الصفحة باستخدام JSON', 'أضيفي أقسام الصفحة باستخدام JSON') }}</p>
 
         <div class="admin-form-group">
             <label for="json_data">JSON Data</label>

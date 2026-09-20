@@ -185,7 +185,7 @@
                     <div style="display: flex; gap: 8px;">
                         <a href="{{ route('admin.concepts.show', $concept) }}" class="btn-action btn-view">👁️</a>
                         <a href="{{ route('admin.concepts.edit', $concept) }}" class="btn-action btn-edit">✏️</a>
-                        <form method="POST" action="{{ route('admin.concepts.destroy', $concept) }}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد؟')">
+                        <form method="POST" action="{{ route('admin.concepts.destroy', $concept) }}" style="display: inline;" onsubmit="return confirm('{{ g('هل أنت متأكد؟', 'هل أنتِ متأكدة؟') }}')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-action btn-delete">🗑️</button>
@@ -205,7 +205,7 @@
 <div style="text-align: center; padding: 60px; background: white; border-radius: 12px;">
     <div style="font-size: 64px; margin-bottom: 16px;">💡</div>
     <h3>لا توجد مفاهيم</h3>
-    <p style="color: #64748b; margin-bottom: 24px;">ابدأ بإضافة أول مفهوم تعليمي</p>
+    <p style="color: #64748b; margin-bottom: 24px;">{{ g('ابدأ بإضافة أول مفهوم تعليمي', 'ابدئي بإضافة أول مفهوم تعليمي') }}</p>
     <a href="{{ route('admin.concepts.create') }}" class="btn-add">➕ إضافة مفهوم جديد</a>
 </div>
 @endif

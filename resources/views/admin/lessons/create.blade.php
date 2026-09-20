@@ -253,7 +253,7 @@
             <div class="form-group full-width">
                 <label class="form-label required">المفهوم</label>
                 <select name="concept_id" class="form-select" required>
-                    <option value="">اختر المفهوم</option>
+                    <option value="">{{ g('اختر المفهوم', 'اختاري المفهوم') }}</option>
                     @foreach($concepts as $concept)
                     <option value="{{ $concept->id }}" {{ old('concept_id', $selectedConcept) == $concept->id ? 'selected' : '' }}>
                         {{ $concept->value->icon }} {{ $concept->name }}
@@ -305,7 +305,7 @@
                         </label>
                     </div>
                 </div>
-                <small style="color: #64748b; font-size: 13px; margin-top: 8px; display: block;">اختر "مختلط" لإضافة نص وصور وفيديو وصوت معاً</small>
+                <small style="color: #64748b; font-size: 13px; margin-top: 8px; display: block;">{{ g('اختر "مختلط" لإضافة نص وصور وفيديو وصوت معاً', 'اختاري "مختلط" لإضافة نص وصور وفيديو وصوت معاً') }}</small>
                 @error('type')
                     <span style="color: #dc2626; font-size: 13px;">{{ $message }}</span>
                 @enderror
@@ -331,7 +331,7 @@
                     <input type="file" name="images[]" id="imagesInput" class="file-upload-input" accept="image/*" multiple>
                     <label for="imagesInput" class="file-upload-label">
                         <span>📷</span>
-                        <span>اختر صور (يمكن اختيار عدة صور)</span>
+                        <span>{{ g('اختر صور (يمكن اختيار عدة صور)', 'اختاري صوراً (يمكن اختيار عدة صور)') }}</span>
                     </label>
                     <div class="file-preview-container" id="imagesPreview"></div>
                     <small style="color: #64748b; font-size: 13px;">الصيغ المدعومة: JPEG, PNG, JPG, GIF, SVG, WebP (حد أقصى 5MB لكل صورة)</small>
@@ -356,12 +356,12 @@
                     </div>
 
                     <div>
-                        <label class="form-label">أو ارفع ملف فيديو (اختياري)</label>
+                        <label class="form-label">{{ g('أو ارفع ملف فيديو (اختياري)', 'أو ارفعي ملف فيديو (اختياري)') }}</label>
                         <div class="file-upload-wrapper">
                             <input type="file" name="video_file" id="videoFileInput" class="file-upload-input" accept="video/*">
                             <label for="videoFileInput" class="file-upload-label">
                                 <span>🎬</span>
-                                <span>اختر ملف فيديو</span>
+                                <span>{{ g('اختر ملف فيديو', 'اختاري ملف فيديو') }}</span>
                             </label>
                             <div class="file-preview-container" id="videoPreview"></div>
                             <small style="color: #64748b; font-size: 13px;">الصيغ المدعومة: MP4, MOV, AVI, WMV, WebM (حد أقصى 50MB)</small>
@@ -388,12 +388,12 @@
                     </div>
 
                     <div>
-                        <label class="form-label">أو ارفع ملف صوت (اختياري)</label>
+                        <label class="form-label">{{ g('أو ارفع ملف صوت (اختياري)', 'أو ارفعي ملف صوت (اختياري)') }}</label>
                         <div class="file-upload-wrapper">
                             <input type="file" name="audio_file" id="audioFileInput" class="file-upload-input" accept="audio/*">
                             <label for="audioFileInput" class="file-upload-label">
                                 <span>🎧</span>
-                                <span>اختر ملف صوت</span>
+                                <span>{{ g('اختر ملف صوت', 'اختاري ملف صوت') }}</span>
                             </label>
                             <div class="file-preview-container" id="audioPreview"></div>
                             <small style="color: #64748b; font-size: 13px;">الصيغ المدعومة: MP3, WAV, OGG, M4A (حد أقصى 10MB)</small>
@@ -493,7 +493,7 @@
         <h3 style="margin:0 0 20px; font-size:20px; color:#1e293b; display:flex; align-items:center; gap:10px;">🔗 إدراج رابط</h3>
         <div style="margin-bottom:16px;">
             <label style="display:block; font-weight:600; color:#334155; font-size:14px; margin-bottom:6px;">نص الرابط</label>
-            <input type="text" id="rteLinkText" placeholder="أدخل النص الذي سيظهر..." style="width:100%; padding:12px 16px; border:2px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none; transition:border 0.2s; box-sizing:border-box;" onfocus="this.style.borderColor='var(--color-primary)'" onblur="this.style.borderColor='#e2e8f0'">
+            <input type="text" id="rteLinkText" placeholder="{{ g('أدخل النص الذي سيظهر...', 'أدخلي النص الذي سيظهر...') }}" style="width:100%; padding:12px 16px; border:2px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none; transition:border 0.2s; box-sizing:border-box;" onfocus="this.style.borderColor='var(--color-primary)'" onblur="this.style.borderColor='#e2e8f0'">
         </div>
         <div style="margin-bottom:24px;">
             <label style="display:block; font-weight:600; color:#334155; font-size:14px; margin-bottom:6px;">رابط URL</label>
@@ -513,7 +513,7 @@
         <div style="margin-bottom:14px; padding:14px; background:#f0f9ff; border-radius:8px; border:2px dashed #3b82f6;">
             <label for="rteImageFile" style="display:flex; align-items:center; gap:10px; cursor:pointer; color:#1e40af; font-weight:600; font-size:14px;">
                 <span style="font-size:22px;">📤</span>
-                <span>ارفع صورة من جهازك</span>
+                <span>{{ g('ارفع صورة من جهازك', 'ارفعي صورة من جهازكِ') }}</span>
             </label>
             <input type="file" id="rteImageFile" accept="image/*" style="display:none;" onchange="uploadRteImage(this)">
             <div id="rteImageUploadStatus" style="margin-top:8px; font-size:13px; color:#64748b; display:none;"></div>
@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 preview.src = absUrl;
                 document.getElementById('rteImagePreviewBox').style.display = 'block';
                 statusEl.style.color = '#16a34a';
-                statusEl.textContent = '✓ تم الرفع — اضغط "إدراج" لإضافة الصورة للدرس';
+                statusEl.textContent = '{{ g('✓ تم الرفع — اضغط "إدراج" لإضافة الصورة للدرس', '✓ تم الرفع — اضغطي "إدراج" لإضافة الصورة للدرس') }}';
             } else {
                 throw new Error(data.message || 'فشل الرفع');
             }

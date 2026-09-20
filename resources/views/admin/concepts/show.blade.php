@@ -205,7 +205,7 @@
 <div class="empty-state">
     <div class="empty-icon">📚</div>
     <h3 class="empty-title">لا توجد دروس لهذا المفهوم</h3>
-    <p style="color: #64748b; margin-bottom: 20px;">ابدأ بإضافة الدروس المختلفة لهذا المفهوم</p>
+    <p style="color: #64748b; margin-bottom: 20px;">{{ g('ابدأ بإضافة الدروس المختلفة لهذا المفهوم', 'ابدئي بإضافة الدروس المختلفة لهذا المفهوم') }}</p>
     <a href="{{ route('admin.lessons.create', ['concept_id' => $concept->id]) }}" class="btn btn-primary">➕ إضافة درس جديد</a>
 </div>
 @else
