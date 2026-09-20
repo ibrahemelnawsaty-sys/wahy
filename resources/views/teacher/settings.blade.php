@@ -101,6 +101,16 @@
                     @error('current_password')<div style="color:#dc2626;font-size:13px;margin-top:6px;">{{ $message }}</div>@enderror
                 </div>
 
+                <!-- Gender: يكيّف صيغة الخطاب العربيّ (مذكّر/مؤنّث) -->
+                <div>
+                    <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 14px;">الجنس</label>
+                    <select name="gender"
+                            style="width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; transition: all 0.3s;">
+                        <option value="male" {{ $user->gender === 'male' ? 'selected' : '' }}>ذكر</option>
+                        <option value="female" {{ $user->gender === 'female' ? 'selected' : '' }}>أنثى</option>
+                    </select>
+                </div>
+
                 <!-- Phone -->
                 <div>
                     <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 14px;">رقم الجوال</label>
@@ -113,7 +123,7 @@
                 <!-- Bio -->
                 <div>
                     <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 14px;">نبذة تعريفية</label>
-                    <textarea name="bio" rows="4" placeholder="اكتب نبذة قصيرة عنك..."
+                    <textarea name="bio" rows="4" placeholder="{{ g('اكتب نبذة قصيرة عنك...', 'اكتبي نبذة قصيرة عنكِ...') }}"
                               style="width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; resize: vertical; transition: all 0.3s; font-family: 'IBM Plex Sans Arabic', sans-serif;"
                               onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
                               onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">{{ $user->bio ?? '' }}</textarea>

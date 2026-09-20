@@ -74,7 +74,7 @@
 
         {{-- اختيار الأسئلة --}}
         <div style="margin-bottom: 30px;">
-            <label style="font-weight: 700; color: #334155; margin-bottom: 12px; display: block; font-size: 18px;">📋 اختر الأسئلة من بنك الأسئلة *</label>
+            <label style="font-weight: 700; color: #334155; margin-bottom: 12px; display: block; font-size: 18px;">📋 {{ g('اختر الأسئلة من بنك الأسئلة', 'اختاري الأسئلة من بنك الأسئلة') }} *</label>
             <div id="selectedCount" style="margin-bottom: 12px; padding: 10px 16px; background: #eff6ff; border-radius: 8px; color: #2563eb; font-weight: 600;">0 سؤال محدد</div>
 
             @if($questions->count() > 0)

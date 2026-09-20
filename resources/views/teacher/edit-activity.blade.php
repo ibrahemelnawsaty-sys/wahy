@@ -105,7 +105,7 @@
                         <div class="mb-3">
                             <label class="form-label">الدرس المرتبط <span class="text-danger">*</span></label>
                             <select name="lesson_id" class="form-select @error('lesson_id') is-invalid @enderror" required>
-                                <option value="">-- اختر الدرس --</option>
+                                <option value="">-- {{ g('اختر الدرس', 'اختاري الدرس') }} --</option>
                                 @foreach($lessons as $lesson)
                                     <option value="{{ $lesson->id }}"
                                             {{ old('lesson_id', $activity->lesson_id) == $lesson->id ? 'selected' : '' }}>
@@ -195,7 +195,7 @@
                                         <span>🎵 صوت (MP3, WAV, AAC)</span>
                                     </label>
                                 </div>
-                                <div class="form-text">اختر أنواع الملفات التي يمكن للطلاب رفعها (إلغاء الكلّ = السماح بكلّ الأنواع).</div>
+                                <div class="form-text">{{ g('اختر أنواع الملفات التي يمكن للطلاب رفعها (إلغاء الكلّ = السماح بكلّ الأنواع).', 'اختاري أنواع الملفات التي يمكن للطلاب رفعها (إلغاء الكلّ = السماح بكلّ الأنواع).') }}</div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -238,7 +238,7 @@
                                 <div id="questionsList"></div>
                                 <button type="button" class="btn-add-q" onclick="addQuestion()">+ إضافة سؤال</button>
                                 <p class="text-muted small mt-2 mb-0" id="qbuilderHint">
-                                    عدّل الأسئلة الحالية أو أضف أسئلة جديدة. ما تراه هنا هو ما سيُحفظ.
+                                    {{ g('عدّل الأسئلة الحالية أو أضف أسئلة جديدة. ما تراه هنا هو ما سيُحفظ.', 'عدّلي الأسئلة الحالية أو أضيفي أسئلة جديدة. ما ترينه هنا هو ما سيُحفظ.') }}
                                 </p>
                             </div>
                         </div>
@@ -253,7 +253,7 @@
                         @endphp
                         @if(! empty($__existingMedia))
                             <div class="mb-2 mt-3">
-                                <label class="form-label">الوسائط الحالية (حدّد ما تريد حذفه):</label>
+                                <label class="form-label">{{ g('الوسائط الحالية (حدّد ما تريد حذفه):', 'الوسائط الحالية (حدّدي ما تريدين حذفه):') }}</label>
                                 <div style="display:flex; flex-direction:column; gap:8px;">
                                     @foreach($__existingMedia as $__i => $__m)
                                         @php $__p = $__m['path'] ?? ''; @endphp
@@ -432,7 +432,7 @@ function addQuestion() {
 }
 
 function removeQuestion(index) {
-    if (confirm('هل أنت متأكد من حذف هذا السؤال؟')) {
+    if (confirm('{{ g('هل أنت متأكد من حذف هذا السؤال؟', 'هل أنتِ متأكدة من حذف هذا السؤال؟') }}')) {
         questions.splice(index, 1);
         renderQuestions();
     }
@@ -539,7 +539,7 @@ function renderQuestions() {
                     <div class="option-item">
                         ${!isOrderingType ? `
                             <div class="q-correct ${isCorrect ? 'selected' : ''}"
-                                 onclick="setCorrectAnswer(${index}, ${oIndex})" title="اختر كإجابة صحيحة">
+                                 onclick="setCorrectAnswer(${index}, ${oIndex})" title="{{ g('اختر كإجابة صحيحة', 'اختاري كإجابة صحيحة') }}">
                                 ${isCorrect ? '✓' : '○'}
                             </div>
                         ` : `<span class="q-opt-num">${oIndex + 1}</span>`}
@@ -582,7 +582,7 @@ function renderQuestions() {
             </div>
 
             ${(q.type === 'multiple_choice' || q.type === 'true_false' || q.type === 'letter_choice') ? `
-                <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (بالترتيب الصحيح لتكوين الكلمة الهدف)' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}</label>
+                <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (بالترتيب الصحيح لتكوين الكلمة الهدف)' : '{{ g('الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)', 'الخيارات (اضغطي على ○ لتحديد الإجابة الصحيحة)') }}'}</label>
                 <div class="options-list">${optionsHtml}</div>
                 ${(q.type === 'multiple_choice' || q.type === 'letter_choice') ? `
                     <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="addOption(${index})">+ إضافة ${q.type === 'letter_choice' ? 'حرف' : 'خيار'}</button>

@@ -180,7 +180,7 @@
     <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h1 style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 8px;">➕ إضافة نشاط جديد</h1>
-            <p style="color: rgba(255,255,255,0.95); font-size: 16px;">أنشئ نشاطاً تعليمياً احترافياً مع مرفقات وسائط متعددة</p>
+            <p style="color: rgba(255,255,255,0.95); font-size: 16px;">{{ g('أنشئ نشاطاً تعليمياً احترافياً مع مرفقات وسائط متعددة', 'أنشئي نشاطاً تعليمياً احترافياً مع مرفقات وسائط متعددة') }}</p>
         </div>
         <a href="{{ route('teacher.activity-bank.index') }}" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; padding: 12px 24px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.3); font-weight: 700; text-decoration: none;">
             ← العودة لبنك الأنشطة
@@ -295,7 +295,7 @@
                     <span>🎵 صوت (MP3, WAV, AAC)</span>
                 </label>
             </div>
-            <div class="form-hint" style="margin-top: 8px;">اختر أنواع الملفات التي يمكن للطلاب رفعها</div>
+            <div class="form-hint" style="margin-top: 8px;">{{ g('اختر أنواع الملفات التي يمكن للطلاب رفعها', 'اختاري أنواع الملفات التي يمكن للطلاب رفعها') }}</div>
         </div>
         <div class="form-group" style="margin-top: 16px;">
             <label class="form-label">الحد الأقصى لحجم الملف (MB)</label>
@@ -311,7 +311,7 @@
             <div class="form-group">
                 <label class="form-label">الدرس المرتبط</label>
                 <select name="lesson_id" class="form-select">
-                    <option value="">اختر درس (اختياري)</option>
+                    <option value="">{{ g('اختر درس (اختياري)', 'اختاري درساً (اختياري)') }}</option>
                     @foreach($lessons as $lesson)
                     <option value="{{ $lesson->id }}" {{ old('lesson_id') == $lesson->id ? 'selected' : '' }}>{{ $lesson->title }}</option>
                     @endforeach
@@ -320,7 +320,7 @@
             <div class="form-group">
                 <label class="form-label">الفصل الدراسي</label>
                 <select name="classroom_id" id="classroomSelect" class="form-select">
-                    <option value="">اختر فصل (اختياري)</option>
+                    <option value="">{{ g('اختر فصل (اختياري)', 'اختاري فصلاً (اختياري)') }}</option>
                     @foreach($classrooms as $classroom)
                     <option value="{{ $classroom->id }}" {{ old('classroom_id') == $classroom->id ? 'selected' : '' }}>{{ $classroom->name }}</option>
                     @endforeach
@@ -391,7 +391,7 @@
     <input type="hidden" name="questions" id="questionsData" value="{{ old('questions', '') }}">
     <div class="form-card fade-in" id="imageBuilderSection" style="display: {{ old('type') == 'image_order' ? 'block' : 'none' }};">
         <h3>🖼️ صور النشاط</h3>
-        <p class="form-hint" style="margin-bottom: 20px;">أضف صور النشاط بالترتيب الصحيح. الطالب سيراها مبعثرة ويرتبها.</p>
+        <p class="form-hint" style="margin-bottom: 20px;">{{ g('أضف صور النشاط بالترتيب الصحيح. الطالب سيراها مبعثرة ويرتبها.', 'أضيفي صور النشاط بالترتيب الصحيح. الطالب سيراها مبعثرة ويرتبها.') }}</p>
         
         <div id="imagesList"></div>
         
@@ -403,7 +403,7 @@
     <!-- قسم بناء الأسئلة (لاختبار/تمرين) -->
     <div class="form-card fade-in" id="questionsBuilderSection" style="display: {{ in_array(old('type', 'quiz'), ['quiz','exercise']) ? 'block' : 'none' }};">
         <h3>❓ الأسئلة</h3>
-        <p class="form-hint" style="margin-bottom: 20px;">أضف أسئلة النشاط. يمكنك اختيار نوع كل سؤال (اختيار متعدد، صح/خطأ، إجابة قصيرة، اختيار حروف، ترتيب كلمات/جمل).</p>
+        <p class="form-hint" style="margin-bottom: 20px;">{{ g('أضف أسئلة النشاط. يمكنك اختيار نوع كل سؤال (اختيار متعدد، صح/خطأ، إجابة قصيرة، اختيار حروف، ترتيب كلمات/جمل).', 'أضيفي أسئلة النشاط. يمكنكِ اختيار نوع كل سؤال (اختيار متعدد، صح/خطأ، إجابة قصيرة، اختيار حروف، ترتيب كلمات/جمل).') }}</p>
 
         <div id="questionsList"></div>
 
@@ -658,7 +658,7 @@ function addQuestion() {
 }
 
 function removeQuestion(index) {
-    if (confirm('هل أنت متأكد من حذف هذا السؤال؟')) {
+    if (confirm('{{ g('هل أنت متأكد من حذف هذا السؤال؟', 'هل أنتِ متأكدة من حذف هذا السؤال؟') }}')) {
         questions.splice(index, 1);
         renderQuestions();
     }
@@ -767,7 +767,7 @@ function renderQuestions() {
                     <div class="q-option-row">
                         ${!isOrderingType ? `
                             <div class="q-correct ${isCorrect ? 'selected' : ''}"
-                                 onclick="setCorrectAnswer(${index}, ${oIndex})" title="اختر كإجابة صحيحة">
+                                 onclick="setCorrectAnswer(${index}, ${oIndex})" title="{{ g('اختر كإجابة صحيحة', 'اختاري كإجابة صحيحة') }}">
                                 ${isCorrect ? '✓' : '○'}
                             </div>
                         ` : `
@@ -811,7 +811,7 @@ function renderQuestions() {
 
                 ${(q.type === 'multiple_choice' || q.type === 'true_false' || q.type === 'letter_choice') ? `
                     <div class="q-options">
-                        <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (بالترتيب الصحيح لتكوين الكلمة الهدف)' : 'الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)'}</label>
+                        <label class="q-label">${q.type === 'letter_choice' ? 'الحروف (بالترتيب الصحيح لتكوين الكلمة الهدف)' : '{{ g('الخيارات (اضغط على ○ لتحديد الإجابة الصحيحة)', 'الخيارات (اضغطي على ○ لتحديد الإجابة الصحيحة)') }}'}</label>
                         ${optionsHtml}
                         ${(q.type === 'multiple_choice' || q.type === 'letter_choice') ? `
                             <button type="button" class="q-btn-sm q-btn-add" onclick="addOption(${index})">➕ إضافة ${q.type === 'letter_choice' ? 'حرف' : 'خيار'}</button>

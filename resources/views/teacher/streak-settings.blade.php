@@ -5,7 +5,7 @@
 @section('content')
 <div class="content-header" style="margin-bottom: 30px;">
     <h1 style="font-size: 28px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">🔥 نظام مكافأة الالتزام اليومي</h1>
-    <p style="color: #64748b; font-size: 15px; margin: 0;">شجع طلابك على الدخول يومياً وإكمال الأنشطة</p>
+    <p style="color: #64748b; font-size: 15px; margin: 0;">{{ g('شجع طلابك على الدخول يومياً وإكمال الأنشطة', 'شجّعي طلابكِ على الدخول يومياً وإكمال الأنشطة') }}</p>
 </div>
 
 @if(session('success'))

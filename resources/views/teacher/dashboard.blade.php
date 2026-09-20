@@ -37,7 +37,7 @@
             <div style="font-size: 56px; animation: bounce 2s infinite;">👩‍🏫</div>
             <div>
                 <h1 style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 8px;">مرحباً أستاذ {{ auth()->user()->name }}</h1>
-                <p style="color: rgba(255,255,255,0.95); font-size: 16px;">لديك {{ $stats['pending_submissions'] ?? 0 }} أنشطة تحتاج مراجعة</p>
+                <p style="color: rgba(255,255,255,0.95); font-size: 16px;">{{ g('لديك', 'لديكِ') }} {{ $stats['pending_submissions'] ?? 0 }} أنشطة تحتاج مراجعة</p>
             </div>
         </div>
     </div>

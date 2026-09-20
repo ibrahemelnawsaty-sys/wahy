@@ -293,7 +293,7 @@
                     <p class="reward-info-text">
                         نقاط هذا النشاط محدَّدة مسبقاً: <strong>{{ $activityBasePoints }} نقطة</strong>.
                         يحصل الطالب على النقاط والعملات <strong>تلقائياً بحسب الدرجة التي تمنحها</strong>،
-                        تماماً كالأنشطة المُصحَّحة آلياً. أنت تُقيّم فقط — والنظام يوزّع المكافأة.
+                        تماماً كالأنشطة المُصحَّحة آلياً. {{ g('أنت تُقيّم فقط', 'أنتِ تُقيّمين فقط') }} — والنظام يوزّع المكافأة.
                     </p>
                 </div>
 
@@ -303,7 +303,7 @@
                         <span class="label-icon">💬</span>
                         ملاحظات للطالب (اختياري)
                     </label>
-                    <textarea name="feedback" class="form-textarea" rows="4" placeholder="اكتب ملاحظاتك وتعليقاتك للطالب..."></textarea>
+                    <textarea name="feedback" class="form-textarea" rows="4" placeholder="{{ g('اكتب ملاحظاتك وتعليقاتك للطالب...', 'اكتبي ملاحظاتكِ وتعليقاتكِ للطالب...') }}"></textarea>
                 </div>
 
                 <!-- Quick Feedback Templates -->

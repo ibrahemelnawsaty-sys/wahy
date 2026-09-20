@@ -378,7 +378,7 @@
             <div class="empty-state">
                 <div class="empty-icon">👥</div>
                 <h3>لا توجد فرق بعد</h3>
-                <p>ابدأ بإنشاء أول فريق لطلابك للعمل الجماعي والتعاوني</p>
+                <p>{{ g('ابدأ بإنشاء أول فريق لطلابك للعمل الجماعي والتعاوني', 'ابدئي بإنشاء أول فريق لطلابكِ للعمل الجماعي والتعاوني') }}</p>
                 <a href="{{ route('teacher.teams.create') }}" class="btn-empty-create">
                     ✨ إنشاء أول فريق
                 </a>
@@ -400,7 +400,7 @@
         <span class="modal-icon">⚠️</span>
         <div class="modal-title">حذف الفريق</div>
         <div class="modal-text">
-            هل أنت متأكد من حذف فريق <strong id="deleteTeamName"></strong>؟
+            {{ g('هل أنت متأكد من حذف فريق', 'هل أنتِ متأكدة من حذف فريق') }} <strong id="deleteTeamName"></strong>؟
             <br>لا يمكن التراجع عن هذا الإجراء.
         </div>
         <div class="modal-btns">

@@ -126,7 +126,7 @@
         <div class="empty-state">
             <div class="empty-icon">✅</div>
             <h3 class="empty-title">لا توجد أنشطة معلقة!</h3>
-            <p class="empty-sub">تم مراجعة جميع الأنشطة المقدمة من طلابك</p>
+            <p class="empty-sub">{{ g('تم مراجعة جميع الأنشطة المقدمة من طلابك', 'تم مراجعة جميع الأنشطة المقدمة من طلابكِ') }}</p>
         </div>
         @endif
     </div>

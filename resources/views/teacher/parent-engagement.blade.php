@@ -98,7 +98,7 @@
         <div class="pe-empty">
             <div style="font-size:64px;margin-bottom:14px;">👋</div>
             <h3 style="margin:0 0 8px;">لا يوجد أولياء أمور بعد</h3>
-            <p style="opacity:.7;margin:0;">سيظهرون هنا بمجرد تسجيلهم وربطهم بطلابك.</p>
+            <p style="opacity:.7;margin:0;">{{ g('سيظهرون هنا بمجرد تسجيلهم وربطهم بطلابك.', 'سيظهرون هنا بمجرد تسجيلهم وربطهم بطلابكِ.') }}</p>
         </div>
     @endforelse
 </div>

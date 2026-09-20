@@ -65,7 +65,7 @@
     <div style="text-align: center; padding: 60px; background: white; border-radius: 16px;">
         <div style="font-size: 60px; margin-bottom: 15px;">📝</div>
         <h3 style="color: #475569; margin-bottom: 10px;">لا توجد تمارين بعد</h3>
-        <p style="color: #94a3b8;">ابدأ بإنشاء أول تمرين لطلابك</p>
+        <p style="color: #94a3b8;">{{ g('ابدأ بإنشاء أول تمرين لطلابك', 'ابدئي بإنشاء أول تمرين لطلابكِ') }}</p>
         <a href="{{ route('teacher.exercises.create') }}" style="display: inline-block; margin-top: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">➕ إنشاء تمرين</a>
     </div>
     @endforelse
@@ -75,7 +75,7 @@
 
 <script>
 function deleteExercise(id) {
-    if (!confirm('هل أنت متأكد من حذف هذا التمرين؟')) return;
+    if (!confirm('{{ g('هل أنت متأكد من حذف هذا التمرين؟', 'هل أنتِ متأكدة من حذف هذا التمرين؟') }}')) return;
     fetch(`/teacher/exercises/${id}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }

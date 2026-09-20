@@ -195,7 +195,7 @@
         <div class="form-header">
             <div class="form-header-icon">👥</div>
             <h1>إنشاء فريق جديد</h1>
-            <p>أنشئ فريقاً للطلاب للعمل على الأنشطة الجماعية والتعاونية</p>
+            <p>{{ g('أنشئ فريقاً للطلاب للعمل على الأنشطة الجماعية والتعاونية', 'أنشئي فريقاً للطلاب للعمل على الأنشطة الجماعية والتعاونية') }}</p>
         </div>
 
         <div class="form-body">
@@ -221,7 +221,7 @@
                         الفصل الدراسي <span class="required">*</span>
                     </label>
                     <select name="classroom_id" class="fg-input fg-select" required id="classroomSelect">
-                        <option value="">اختر الفصل الدراسي...</option>
+                        <option value="">{{ g('اختر الفصل الدراسي...', 'اختاري الفصل الدراسي...') }}</option>
                         @foreach($classrooms as $classroom)
                             <option value="{{ $classroom->id }}" {{ old('classroom_id') == $classroom->id ? 'selected' : '' }}>
                                 📚 {{ $classroom->name }}
@@ -239,7 +239,7 @@
                         قائد الفريق <span class="required">*</span>
                     </label>
                     <select name="leader_id" class="fg-input fg-select" required>
-                        <option value="">اختر قائد الفريق...</option>
+                        <option value="">{{ g('اختر قائد الفريق...', 'اختاري قائد الفريق...') }}</option>
                         @foreach($students as $student)
                             <option value="{{ $student->id }}" {{ old('leader_id') == $student->id ? 'selected' : '' }}>
                                 👑 {{ $student->name }}

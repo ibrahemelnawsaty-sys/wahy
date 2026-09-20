@@ -98,7 +98,7 @@
         <div style="text-align: center; padding: 60px 20px;">
             <div style="font-size: 80px; margin-bottom: 20px; opacity: 0.3;">📚</div>
             <h3 style="font-size: 20px; font-weight: 700; color: #1a202c; margin-bottom: 10px;">لا توجد أنشطة بعد</h3>
-            <p style="color: #718096; margin-bottom: 20px;">ابدأ بإضافة نشاط جديد إلى بنك الأنشطة</p>
+            <p style="color: #718096; margin-bottom: 20px;">{{ g('ابدأ بإضافة نشاط جديد إلى بنك الأنشطة', 'ابدئي بإضافة نشاط جديد إلى بنك الأنشطة') }}</p>
             <button onclick="showAddActivityModal()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; border-radius: 12px; border: none; font-weight: 700; font-size: 16px; cursor: pointer;">
                 ➕ إضافة نشاط جديد
             </button>
@@ -302,7 +302,7 @@
 
                 <div class="ab-field">
                     <label>وصف النشاط</label>
-                    <textarea name="description" rows="3" placeholder="اكتب وصفاً مختصراً للنشاط...">{{ old('description') }}</textarea>
+                    <textarea name="description" rows="3" placeholder="{{ g('اكتب وصفاً مختصراً للنشاط...', 'اكتبي وصفاً مختصراً للنشاط...') }}">{{ old('description') }}</textarea>
                 </div>
 
                 <div class="ab-form-row">
@@ -386,7 +386,7 @@
 
         @if($classrooms->isEmpty())
             <div style="background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:12px; padding:16px; font-size:14px;">
-                لا توجد فصول مسندة إليك بعد — أضِف فصلاً أولاً لتتمكّن من استخدام أنشطة البنك.
+                {{ g('لا توجد فصول مسندة إليك بعد — أضِف فصلاً أولاً لتتمكّن من استخدام أنشطة البنك.', 'لا توجد فصول مسندة إليكِ بعد — أضيفي فصلاً أولاً لتتمكّني من استخدام أنشطة البنك.') }}
             </div>
         @else
             {{-- (1) نسخة قابلة للتعديل --}}
@@ -397,7 +397,7 @@
                     @csrf
                     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                         <select name="classroom_id" required style="flex:1; min-width:180px; padding:11px 14px; border:2px solid #e2e8f0; border-radius:10px; font-size:14px;">
-                            <option value="">اختر الفصل…</option>
+                            <option value="">{{ g('اختر الفصل…', 'اختاري الفصل…') }}</option>
                             @foreach($classrooms as $classroom)
                                 <option value="{{ $classroom->id }}">{{ $classroom->name }}</option>
                             @endforeach

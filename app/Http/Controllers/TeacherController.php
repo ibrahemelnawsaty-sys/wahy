@@ -571,6 +571,7 @@ class TeacherController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'gender' => 'sometimes|in:male,female', // يكيّف صيغة الخطاب العربيّ
             'phone' => 'sometimes|string|max:20',
             'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048',
             'bio' => 'sometimes|string|max:500',

@@ -19,7 +19,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">📚 إدارة الأنشطة</h2>
-            <p class="text-muted mb-0">أنشئ وعدّل أنشطتك التعليمية</p>
+            <p class="text-muted mb-0">{{ g('أنشئ وعدّل أنشطتك التعليمية', 'أنشئي وعدّلي أنشطتكِ التعليمية') }}</p>
         </div>
         <a href="{{ route('teacher.activities.create') }}" class="btn btn-primary btn-lg">
             <i class="fas fa-plus me-2"></i>إنشاء نشاط جديد
@@ -252,7 +252,7 @@
                 <div class="text-center py-5">
                     <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
                     <h4>لا توجد أنشطة بعد</h4>
-                    <p class="text-muted">ابدأ بإنشاء أول نشاط لطلابك</p>
+                    <p class="text-muted">{{ g('ابدأ بإنشاء أول نشاط لطلابك', 'ابدئي بإنشاء أول نشاط لطلابكِ') }}</p>
                     <a href="{{ route('teacher.activities.create') }}" class="btn btn-primary mt-3">
                         <i class="fas fa-plus me-2"></i>إنشاء نشاط جديد
                     </a>
@@ -265,7 +265,7 @@
 @push('scripts')
 <script>
 function deleteActivity(id) {
-    glassNotify.confirm('هل أنت متأكد من حذف هذا النشاط؟', 'لن تتمكن من استرجاعه', function() {
+    glassNotify.confirm('{{ g('هل أنت متأكد من حذف هذا النشاط؟', 'هل أنتِ متأكدة من حذف هذا النشاط؟') }}', '{{ g('لن تتمكن من استرجاعه', 'لن تتمكني من استرجاعه') }}', function() {
         fetch(`/teacher/activities/${id}`, {
             method: 'DELETE',
             headers: {

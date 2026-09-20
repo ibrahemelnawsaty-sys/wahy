@@ -223,7 +223,7 @@
 }
 .rte-editor-msg:focus { border-color: rgba(102,126,234,0.55); }
 .rte-editor-msg:empty::before {
-    content: 'اكتب رسالتك هنا...';
+    content: '{{ g('اكتب رسالتك هنا...', 'اكتبي رسالتكِ هنا...') }}';
     color: var(--w-text-muted, #a0aec0); pointer-events: none;
 }
 
@@ -266,7 +266,7 @@
     background: var(--w-card, #fff); color: var(--w-text, #0f172a);
 }
 .new-msg-editor:empty::before {
-    content: 'اكتب رسالتك...';
+    content: '{{ g('اكتب رسالتك...', 'اكتبي رسالتكِ...') }}';
     color: var(--w-text-muted, #a0aec0); pointer-events: none;
 }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
@@ -363,7 +363,7 @@ html[data-theme="dark"] .msg-bubble.other .msg-body a { color: #a5b4fc !importan
         <div class="conv-empty">
             <div class="ce-icon">📭</div>
             <h3>لا توجد رسائل بعد</h3>
-            <p>ابدأ رسالة جديدة للتواصل مع أولياء أمور طلابك.</p>
+            <p>{{ g('ابدأ رسالة جديدة للتواصل مع أولياء أمور طلابك.', 'ابدئي رسالة جديدة للتواصل مع أولياء أمور طلابكِ.') }}</p>
         </div>
         @endforelse
     </div>
@@ -417,7 +417,7 @@ html[data-theme="dark"] .msg-bubble.other .msg-body a { color: #a5b4fc !importan
             <div>
                 <label class="form-label">ولي الأمر</label>
                 <select id="newParentId" required class="form-select-field" onchange="populateNewStudents(this)">
-                    <option value="">اختر ولي الأمر...</option>
+                    <option value="">{{ g('اختر ولي الأمر...', 'اختاري ولي الأمر...') }}</option>
                     @foreach($parents as $parent)
                     <option value="{{ $parent->id }}" data-children='@json($parent->children->map(fn($c) => ["id" => $c->id, "name" => $c->name])->values())'>{{ $parent->name }}</option>
                     @endforeach
@@ -512,7 +512,7 @@ function loadMessages() {
             const c = document.getElementById('messagesContainer');
             c.innerHTML = '';
             if (!messages.length) {
-                c.innerHTML = '<div class="chat-empty"><div class="ce-ic">💬</div><div>ابدأ المحادثة الآن</div></div>';
+                c.innerHTML = '<div class="chat-empty"><div class="ce-ic">💬</div><div>{{ g('ابدأ المحادثة الآن', 'ابدئي المحادثة الآن') }}</div></div>';
                 return;
             }
             messages.forEach(msg => {
@@ -608,14 +608,14 @@ function newMsgExec(cmd, val) {
     document.execCommand(cmd, false, val || null);
 }
 function msgInsertImg() {
-    const url = prompt('أدخل رابط الصورة:');
+    const url = prompt('{{ g('أدخل رابط الصورة:', 'أدخلي رابط الصورة:') }}');
     if (url) {
         document.getElementById('msgEditor').focus();
         document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:4px 0;height:auto;">`);
     }
 }
 function newMsgInsertImg() {
-    const url = prompt('أدخل رابط الصورة:');
+    const url = prompt('{{ g('أدخل رابط الصورة:', 'أدخلي رابط الصورة:') }}');
     if (url) {
         document.getElementById('newMsgEditor').focus();
         document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:4px 0;height:auto;">`);
