@@ -66,6 +66,7 @@ class UserManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'gender' => 'required|in:male,female', // يكيّف صيغة الخطاب العربيّ
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:super_admin,school_admin,teacher,student,parent,technical_support',
@@ -135,6 +136,7 @@ class UserManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'gender' => 'nullable|in:male,female', // يكيّف صيغة الخطاب العربيّ (اختياريّ في التعديل)
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:super_admin,school_admin,teacher,student,parent,technical_support',
@@ -179,6 +181,11 @@ class UserManagementController extends Controller
 
         // التحقق بخطوتين (checkbox)
         $validated['two_factor_enabled'] = $request->has('two_factor_enabled') ? true : false;
+
+        // «غير محدّد» تُخزَّن null لا سلسلة فارغة (تُعامَل مذكّراً افتراضاً).
+        if (array_key_exists('gender', $validated) && $validated['gender'] === '') {
+            $validated['gender'] = null;
+        }
 
         $user->update($validated);
 

@@ -149,6 +149,19 @@
                 @enderror
             </div>
 
+            <!-- Gender: يكيّف صيغة الخطاب العربيّ (مذكّر/مؤنّث) -->
+            <div class="form-group">
+                <label class="form-label required">الجنس</label>
+                <select name="gender" class="form-select" required>
+                    <option value="">اختر الجنس</option>
+                    <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>ذكر</option>
+                    <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>أنثى</option>
+                </select>
+                @error('gender')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
             <!-- Role -->
             <div class="form-group">
                 <label class="form-label required">الدور</label>
