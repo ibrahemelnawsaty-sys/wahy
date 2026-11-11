@@ -151,6 +151,18 @@ document.addEventListener('DOMContentLoaded', function() {
         hiddenCode.value = Array.from(inputs).map(inp => inp.value).join('');
     }
 
+    // إرسالٌ واحد فقط: الإرسال التلقائيّ بعد اكتمال الرمز + ضغط Enter/الزرّ كانا يُنتجان طلبين.
+    // Auth::login() في الأوّل يدمّر صفّ الجلسة القديم، فيصل الثاني بكوكي ميّتٍ ⟵ جلسة فارغة ⟵ 419
+    // (مع أنّ الدخول نجح فعلاً — لذا تفتح لوحة التحكم عند تغيير الرابط).
+    let submitted = false;
+    function sendOnce() {
+        syncHiddenCode();
+        if (submitted || hiddenCode.value.length !== 6) return;
+        submitted = true;
+        document.getElementById('submitBtn').disabled = true;
+        form.submit();
+    }
+
     // معالجة الإدخال في كل خانة
     inputs.forEach((input, index) => {
         // عند الكتابة
@@ -174,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (index === inputs.length - 1 && value.length === 1) {
                 const allFilled = Array.from(inputs).every(inp => inp.value.length === 1);
                 if (allFilled) {
-                    setTimeout(() => form.submit(), 300);
+                    setTimeout(sendOnce, 300);
                 }
             }
         });
@@ -216,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // إرسال النموذج تلقائياً إذا كان الكود كاملاً
                 if (digits.length === 6) {
-                    setTimeout(() => form.submit(), 300);
+                    setTimeout(sendOnce, 300);
                 }
             }
         });
@@ -239,7 +251,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             alert('يرجى إدخال الكود المكون من 6 أرقام');
             inputs[0].focus();
+            return;
         }
+        if (submitted) {
+            e.preventDefault();
+            return;
+        }
+        submitted = true;
+        document.getElementById('submitBtn').disabled = true;
     });
 });
 </script>
