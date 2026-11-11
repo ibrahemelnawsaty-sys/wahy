@@ -160,6 +160,7 @@
                     <option value="male" {{ old('gender', $user->gender) === 'male' ? 'selected' : '' }}>ذكر</option>
                     <option value="female" {{ old('gender', $user->gender) === 'female' ? 'selected' : '' }}>أنثى</option>
                 </select>
+                <span id="genderHint" class="error-message" style="color: #64748b; display: none;">يتحدّد تلقائياً بحسب نوع المدرسة (بنين/بنات).</span>
                 @error('gender')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
@@ -188,7 +189,7 @@
                 <select name="school_id" class="form-select">
                     <option value="">بدون مدرسة</option>
                     @foreach($schools as $school)
-                    <option value="{{ $school->id }}" {{ old('school_id', $user->school_id) == $school->id ? 'selected' : '' }}>
+                    <option value="{{ $school->id }}" data-gender="{{ $school->gender }}" {{ old('school_id', $user->school_id) == $school->id ? 'selected' : '' }}>
                         {{ $school->name }}
                     </option>
                     @endforeach
@@ -319,9 +320,22 @@
     // الأدوار المرتبطة بمدرسة (تُعطَّل عملياً بلا مدرسة) — مطابق UserRole::isScopedToSchool
     var schoolScoped = { school_admin: 1, teacher: 1, student: 1, parent: 1 };
 
+    // جنس الطالب يتبع نوع مدرسته (يفرضه الخادم أيضاً؛ هنا فقط ليظهر للأدمن)
+    var genderSelect = document.querySelector('select[name="gender"]');
+    var genderHint = document.getElementById('genderHint');
+    function syncGender(role) {
+        var opt = schoolIdSelect && schoolIdSelect.selectedOptions[0];
+        var sg = opt ? opt.getAttribute('data-gender') : '';
+        var locked = role === 'student' && !!sg;
+        if (locked && genderSelect) { genderSelect.value = sg; }
+        if (genderHint) { genderHint.style.display = locked ? 'block' : 'none'; }
+    }
+    if (genderSelect) { genderSelect.addEventListener('change', function () { sync(); }); }
+
     function sync() {
         var role = roleSelect ? roleSelect.value : '';
         var isSchoolAdmin = (role === 'school_admin');
+        syncGender(role);
         if (schoolIdsGroup) { schoolIdsGroup.style.display = isSchoolAdmin ? 'flex' : 'none'; }
         if (schoolIdGroup) { schoolIdGroup.style.display = isSchoolAdmin ? 'none' : ''; }
 

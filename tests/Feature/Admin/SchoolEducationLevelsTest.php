@@ -40,6 +40,7 @@ class SchoolEducationLevelsTest extends TestCase
             'contact_email' => 'test@school.sa',
             'contact_phone' => '0500000000',
             'status' => 'active',
+            'gender' => 'male',
         ], $overrides);
     }
 
@@ -85,6 +86,7 @@ class SchoolEducationLevelsTest extends TestCase
                 'contact_email' => $school->contact_email,
                 'contact_phone' => $school->contact_phone,
                 'status' => 'active',
+                'gender' => 'male',
                 'education_levels' => [$middle->id, $high->id],
             ])
             ->assertRedirect(route('admin.schools.index'));
@@ -109,6 +111,7 @@ class SchoolEducationLevelsTest extends TestCase
                 'contact_email' => $school->contact_email,
                 'contact_phone' => $school->contact_phone,
                 'status' => 'active',
+                'gender' => 'male',
                 // لا education_levels ⇒ إلغاء تحديد الكل ⇒ فكّ كل الروابط
             ])
             ->assertRedirect(route('admin.schools.index'));

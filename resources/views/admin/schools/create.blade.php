@@ -139,7 +139,20 @@
                 <input type="text" name="contact_phone" class="form-input" value="{{ old('contact_phone') }}" required>
             </div>
 
-            <div class="form-group full-width">
+            <div class="form-group">
+                <label class="form-label required">نوع المدرسة</label>
+                <select name="gender" class="form-select" required>
+                    <option value="">اختر: بنين أو بنات</option>
+                    <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>مدرسة بنين</option>
+                    <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>مدرسة بنات</option>
+                </select>
+                <p class="form-help" style="margin: 0;">يُحدَّد جنس كلّ طلاب المدرسة تلقائياً بحسب نوعها.</p>
+                @error('gender')
+                    <span style="color: #dc2626; font-size: 12px;">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
                 <label class="form-label required">الحالة</label>
                 <select name="status" class="form-select" required>
                     <option value="active" selected>نشط</option>

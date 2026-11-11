@@ -17,7 +17,7 @@ class School extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'description', 'address', 'phone', 'email'])
+            ->logOnly(['name', 'description', 'address', 'phone', 'email', 'gender'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn (string $eventName) => "المدرسة {$eventName}");
@@ -35,6 +35,7 @@ class School extends Model
         'qr_code',
         'created_by',
         'status',
+        'gender', // نوع المدرسة: male = بنين، female = بنات (يحدّد جنس طلابها)
         'is_demo',
         'teacher_token',
         'student_token',

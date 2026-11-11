@@ -704,9 +704,14 @@
                     </div>
                     <div class="form-group">
                         <label>الجنس</label>
-                        <select name="gender" class="form-input">
-                            <option value="male" {{ auth()->user()->gender === 'male' ? 'selected' : '' }}>ذكر</option>
-                            <option value="female" {{ auth()->user()->gender === 'female' ? 'selected' : '' }}>أنثى</option>
+                        @php
+                            // جنس الطالب يتبع نوع مدرسته (بنين/بنات) — مقفول إن كانت المدرسة محدَّدة النوع
+                            $schoolGender = auth()->user()->school?->gender;
+                            $shownGender = $schoolGender ?: auth()->user()->gender;
+                        @endphp
+                        <select name="gender" class="form-input" {{ $schoolGender ? 'disabled' : '' }}>
+                            <option value="male" {{ $shownGender === 'male' ? 'selected' : '' }}>ذكر</option>
+                            <option value="female" {{ $shownGender === 'female' ? 'selected' : '' }}>أنثى</option>
                         </select>
                     </div>
                 </div>

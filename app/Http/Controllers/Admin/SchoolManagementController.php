@@ -67,11 +67,15 @@ class SchoolManagementController extends Controller
             'contact_phone' => 'required|string|max:20',
             'qr_code' => 'nullable|string|unique:schools,qr_code',
             'status' => 'required|in:active,inactive',
+            'gender' => 'required|in:male,female', // بنين/بنات — يحدّد جنس كلّ طلاب المدرسة
             'education_levels' => 'nullable|array',
             'education_levels.*' => 'integer|exists:education_levels,id',
             'classrooms' => 'nullable|array',
             'classrooms.*.name' => 'nullable|string|max:255',
             'classrooms.*.grade_level' => 'nullable|string|max:255',
+        ], [
+            'gender.required' => 'يرجى تحديد نوع المدرسة (بنين أو بنات)',
+            'gender.in' => 'نوع المدرسة غير صحيح',
         ]);
 
         // توليد QR Code تلقائي
@@ -170,8 +174,12 @@ class SchoolManagementController extends Controller
             'contact_phone' => 'required|string|max:20',
             'qr_code' => ['nullable', 'string', Rule::unique('schools')->ignore($school->id)],
             'status' => 'required|in:active,inactive',
+            'gender' => 'required|in:male,female', // المدارس القائمة بلا نوع تُلزَم بتحديده عند أوّل تعديل
             'education_levels' => 'nullable|array',
             'education_levels.*' => 'integer|exists:education_levels,id',
+        ], [
+            'gender.required' => 'يرجى تحديد نوع المدرسة (بنين أو بنات)',
+            'gender.in' => 'نوع المدرسة غير صحيح',
         ]);
 
         // المراحل ليست عموداً في schools — نفصلها ونزامنها عبر pivot.
@@ -179,8 +187,15 @@ class SchoolManagementController extends Controller
         $levelIds = $validated['education_levels'] ?? [];
         unset($validated['education_levels']);
 
-        $school->update($validated);
-        $school->educationLevels()->sync($levelIds);
+        DB::transaction(function () use ($school, $validated, $levelIds) {
+            $school->update($validated);
+            $school->educationLevels()->sync($levelIds);
+
+            // الطلاب القائمون يتبعون نوع المدرسة (تحديث جماعيّ لا يمرّ بـUser::saving).
+            $school->students()
+                ->where(fn ($q) => $q->whereNull('gender')->orWhere('gender', '!=', $validated['gender']))
+                ->update(['gender' => $validated['gender']]);
+        });
 
         return redirect()
             ->route('admin.schools.index')

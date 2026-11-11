@@ -173,6 +173,9 @@
             <div>
                 <h3 class="school-name">{{ $school->name }}</h3>
                 <span class="school-qr">{{ $school->qr_code }}</span>
+                @if($school->gender)
+                    <span class="school-qr">{{ $school->gender === 'female' ? '👧 بنات' : '👦 بنين' }}</span>
+                @endif
             </div>
             <span style="font-size: 24px;">{{ $school->status === 'active' ? '✅' : '⏸️' }}</span>
         </div>
