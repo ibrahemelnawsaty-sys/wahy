@@ -198,7 +198,6 @@
     </script>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">الانتقال إلى المحتوى الرئيسي</a>
     
     <header class="header">
         <div class="container">
