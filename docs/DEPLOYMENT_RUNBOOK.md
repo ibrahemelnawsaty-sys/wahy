@@ -47,7 +47,8 @@ systemctl restart php8.2-fpm
 ## 2. قاعدة البيانات
 ```bash
 mysql -e "CREATE DATABASE atheel_makkah CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -e "CREATE USER 'atheel'@'localhost' IDENTIFIED BY '46A6833jSlqYBb95t';"
+# كلمة المرور: ولِّد واحدة قويّة (openssl rand -base64 24) وضعها في .env (DB_PASSWORD) — لا تكتبها في هذا الملف أبداً
+mysql -e "CREATE USER 'atheel'@'localhost' IDENTIFIED BY '<DB_PASSWORD>';"
 mysql -e "GRANT ALL PRIVILEGES ON atheel_makkah.* TO 'atheel'@'localhost'; FLUSH PRIVILEGES;"
 ```
 
@@ -150,9 +151,18 @@ certbot --nginx -d atheel-makkah.com -d www.atheel-makkah.com --agree-tos -m inf
 
 ## 12. المجدوِل (Cron) — ⚠️ إلزاميّ للنسخ الاحتياطي والسلاسل والإحصاءات
 ```bash
-crontab -e
+# ⚠️ تحت www-data لا root: كرون root يُنشئ ملف اللوج اليوميّ مملوكاً لـroot فيفشل php-fpm والعامل
+# في الكتابة فيه (Permission denied) فيتحوّل أيّ خطأ مسجَّل إلى 500 (حادثة «تمييز التسليم» 2026-11-11).
+crontab -u www-data -e
 # أضف السطر التالي (يشغّل مجدوِل Laravel كلّ دقيقة):
 * * * * * cd /var/www/atheel && php artisan schedule:run >> /dev/null 2>&1
+
+# وأيّ أمر artisan يدويّ عبر SSH يُشغَّل هكذا لا كـroot:
+#   sudo -u www-data php artisan <command>
+# شبكة أمان: ملفّات storage الجديدة تبقى قابلة للكتابة لـwww-data حتى لو أنشأها root
+apt install -y acl
+setfacl -R -m u:www-data:rwX storage bootstrap/cache
+setfacl -dR -m u:www-data:rwX storage bootstrap/cache
 ```
 > بدونه لن تعمل: `backup:run` اليوميّ، تنظيف الإشعارات، تحديث إحصاءات المدارس، فحوص المواعيد.
 
