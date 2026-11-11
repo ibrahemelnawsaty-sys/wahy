@@ -175,7 +175,7 @@
                             <img src="{{ auth()->user()->avatar_url }}" alt="صورة الملف الشخصي" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                         </div>
 
-                        <div id="avatarDropdownMenu" style="display: none; position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 260px; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden;">
+                        <div id="avatarDropdownMenu" style="display: none; position: absolute; top: calc(100% + 10px); left: 0; width: 260px; max-width: calc(100vw - 24px); background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden;">
                             <div style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%); padding: 20px; text-align: center;">
                                 <div style="width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; overflow: hidden; border: 3px solid rgba(255,255,255,0.4);">
                                     <img src="{{ auth()->user()->avatar_url }}" alt="صورة" style="width: 100%; height: 100%; object-fit: cover;">

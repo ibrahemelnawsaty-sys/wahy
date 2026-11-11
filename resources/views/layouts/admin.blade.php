@@ -560,7 +560,7 @@
                         </div>
 
                         <!-- Avatar Dropdown Menu -->
-                        <div id="avatarDropdownMenu" style="display: none; position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 260px; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; animation: popupSlideUp 0.3s ease;">
+                        <div id="avatarDropdownMenu" style="display: none; position: absolute; top: calc(100% + 10px); left: 0; width: 260px; max-width: calc(100vw - 24px); background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; animation: popupSlideUp 0.3s ease;">
                             <!-- User Info Header -->
                             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
                                 <div style="width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; overflow: hidden; border: 3px solid rgba(255,255,255,0.4);">
