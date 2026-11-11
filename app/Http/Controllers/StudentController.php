@@ -2578,10 +2578,11 @@ class StudentController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // مبارياتي الأخيرة
+        // مبارياتي الأخيرة — (amongGender: التحدّيات تُفصل بالجنس؛ يُخفي أيضاً مباريات قديمة بين الجنسين)
         $myMatches = \App\Models\PvpMatch::where(function ($q) use ($student) {
             $q->where('player1_id', $student->id)->orWhere('player2_id', $student->id);
         })
+            ->amongGender($student->gender)
             ->where('status', 'completed')
             ->with(['player1', 'player2', 'winner', 'challenge'])
             ->latest()
@@ -2590,6 +2591,7 @@ class StudentController extends Controller
 
         // دعوات واردة معلّقة: أنا المدعوّ (player2) بانتظار قبولي/رفضي.
         $pendingInvites = \App\Models\PvpMatch::where('player2_id', $student->id)
+            ->amongGender($student->gender)
             ->where('status', 'invited')
             ->with(['player1:id,name', 'challenge:id,title'])
             ->latest()
@@ -2598,6 +2600,7 @@ class StudentController extends Controller
         // مباريات جاهزة للعب (playing) لم أُرسل إجابتي فيها بعد — استئناف غير متزامن
         // (يشمل التحديات العشوائية والموجّهة بعد القبول).
         $readyMatches = \App\Models\PvpMatch::where('status', 'playing')
+            ->amongGender($student->gender)
             ->where(function ($q) use ($student) {
                 $q->where(function ($q2) use ($student) {
                     $q2->where('player1_id', $student->id)->whereNull('player1_answers');
@@ -2637,10 +2640,11 @@ class StudentController extends Controller
             abort(403);
         }
 
-        // البحث عن مباراة بحالة "waiting" (طالب ينتظر)
+        // البحث عن مباراة بحالة "waiting" (طالب ينتظر) — من نفس الجنس فقط؛ وإلّا تُنشأ مباراة جديدة بانتظار نظير.
         $match = \App\Models\PvpMatch::where('challenge_id', $challengeId)
             ->where('status', 'waiting')
             ->where('player1_id', '!=', $student->id)
+            ->amongGender($student->gender)
             ->first();
 
         if ($match) {
@@ -2667,7 +2671,7 @@ class StudentController extends Controller
     }
 
     /**
-     * بحث عن طلاب لتحدّيهم (منافس محدّد) — أي طالب فعّال في المنصة عدا النفس.
+     * بحث عن طلاب لتحدّيهم (منافس محدّد) — طلاب فعّالون من نفس جنسه عدا النفس (التحدّيات تُفصل بالجنس).
      * يُعيد id/name فقط (لا بيانات حساسة).
      */
     public function pvpSearchOpponents(Request $request)
@@ -2678,6 +2682,7 @@ class StudentController extends Controller
         $opponents = \App\Models\User::query()
             ->where('role', 'student')
             ->where('status', 'active')
+            ->where('gender', $student->gender)
             ->where('id', '!=', $student->id)
             ->when($q !== '', fn ($query) => $query->where('name', 'like', '%' . $q . '%'))
             ->orderBy('name')
@@ -2707,9 +2712,10 @@ class StudentController extends Controller
             abort(403);
         }
 
-        // المنافس: طالب فعّال وليس النفس (أي طالب في المنصة).
+        // المنافس: طالب فعّال من نفس الجنس وليس النفس (التحدّيات تُفصل بالجنس — يُفرَض هنا لا في الواجهة فقط).
         $opponent = \App\Models\User::where('role', 'student')
             ->where('status', 'active')
+            ->where('gender', $student->gender)
             ->find($data['opponent_id']);
         if (! $opponent || $opponent->id === $student->id) {
             return response()->json(['success' => false, 'message' => 'المنافس غير صالح'], 422);
@@ -2788,8 +2794,9 @@ class StudentController extends Controller
         $student = Auth::user();
         $match = \App\Models\PvpMatch::findOrFail($matchId);
 
-        // IDOR: فقط المدعوّ يقبل، وفقط عند حالة invited.
-        if ($match->player2_id !== $student->id || $match->status !== 'invited') {
+        // IDOR: فقط المدعوّ يقبل، وفقط عند حالة invited، ومن نفس الجنس (دعوة قديمة بين الجنسين لا تبدأ مباراة).
+        if ($match->player2_id !== $student->id || $match->status !== 'invited'
+            || ! \App\Models\PvpMatch::whereKey($match->id)->amongGender($student->gender)->exists()) {
             abort(403);
         }
 

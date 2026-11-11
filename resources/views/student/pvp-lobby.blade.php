@@ -172,7 +172,7 @@
 <div class="picker-overlay" id="pickerOverlay">
     <div class="picker-box">
         <div class="picker-title" id="pickerTitle">🎯 {{ g('اختر منافساً', 'اختاري منافساً') }}</div>
-        <div class="picker-sub">ابحث عن أي طالب في المنصة وتحدَّه مباشرة</div>
+        <div class="picker-sub">{{ g('ابحث عن طالب وتحدَّه مباشرة', 'ابحثي عن طالبة وتحدَّيها مباشرة') }}</div>
         <input type="text" class="picker-search" id="pickerSearch" placeholder="ابحث بالاسم…" oninput="onOpponentSearch(this.value)">
         <div class="picker-list" id="pickerList"></div>
         <button class="picker-close" onclick="closeOpponentPicker()">إغلاق</button>

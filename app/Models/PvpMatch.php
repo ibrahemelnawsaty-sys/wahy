@@ -41,6 +41,19 @@ class PvpMatch extends Model
         return $this->belongsTo(User::class, 'winner_id');
     }
 
+    /**
+     * التحدّيات تُفصل بالجنس: لاعبا المباراة من جنسٍ واحد (بنون مع بنين، بنات مع بنات).
+     * غير المحدَّد (null) لا يختلط بمحدَّد أبداً — خلافاً لـg() التي تعامله مذكّراً — كي لا تظهر
+     * طالبةٌ بلا جنس مسجَّل للذكور. اللاعب الثاني قد يغيب (مباراة waiting).
+     */
+    public function scopeAmongGender($query, ?string $gender)
+    {
+        return $query
+            ->whereHas('player1', fn ($p) => $p->where('gender', $gender))
+            ->where(fn ($w) => $w->whereNull('player2_id')
+                ->orWhereHas('player2', fn ($p) => $p->where('gender', $gender)));
+    }
+
     public function isWaiting()
     {
         return $this->status === 'waiting';

@@ -29,9 +29,9 @@ class PvpDirectedChallengeTest extends TestCase
         ]);
     }
 
-    private function student(string $name = 'طالب'): User
+    private function student(string $name = 'طالب', ?string $gender = null): User
     {
-        return User::factory()->student()->create(['name' => $name, 'status' => 'active']);
+        return User::factory()->student()->create(['name' => $name, 'status' => 'active', 'gender' => $gender]);
     }
 
     public function test_student_can_challenge_a_specific_opponent_creating_an_invite(): void
@@ -145,6 +145,77 @@ class PvpDirectedChallengeTest extends TestCase
         $this->assertTrue($ids->contains($p2->id), 'يجب أن يظهر طالب آخر');
         $this->assertFalse($ids->contains($p1->id), 'يجب ألا يظهر الطالب نفسه');
         $this->assertFalse($ids->contains($teacher->id), 'يجب ألا يظهر معلم');
+    }
+
+    // ─── فصل التحدّيات بالجنس: بنون مع بنين، بنات مع بنات، وغير المحدَّد مع غير المحدَّد فقط ───
+
+    public function test_opponent_search_is_limited_to_same_gender(): void
+    {
+        $boy = $this->student('زيد', 'male');
+        $boy2 = $this->student('عمرو', 'male');
+        $girl = $this->student('سارة', 'female');
+        $girl2 = $this->student('نورة', 'female');
+        $unset = $this->student('مجهول');
+        $unset2 = $this->student('مجهول٢');
+
+        $idsFor = fn (User $as) => collect($this->actingAs($as)->getJson('/student/pvp-opponents/search?q=')
+            ->assertOk()->json('opponents'))->pluck('id')->values()->all();
+
+        $this->assertSame([$boy2->id], $idsFor($boy));
+        $this->assertSame([$girl2->id], $idsFor($girl));
+        $this->assertSame([$unset2->id], $idsFor($unset)); // غير المحدَّد لا يختلط بذكر ولا بأنثى
+    }
+
+    public function test_cannot_challenge_other_gender_by_direct_request(): void
+    {
+        $challenge = $this->challenge();
+        $boy = $this->student('زيد', 'male');
+        $girl = $this->student('سارة', 'female');
+        $girl2 = $this->student('نورة', 'female');
+
+        // تجاوز الواجهة بإرسال opponent_id يدوياً يُرفض من الخادم في الاتجاهين
+        $this->actingAs($boy)->postJson("/student/pvp/{$challenge->id}/challenge", ['opponent_id' => $girl->id])->assertStatus(422);
+        $this->actingAs($girl)->postJson("/student/pvp/{$challenge->id}/challenge", ['opponent_id' => $boy->id])->assertStatus(422);
+        $this->assertDatabaseCount('pvp_matches', 0);
+
+        // ونفس الجنس يمرّ
+        $this->actingAs($girl)->postJson("/student/pvp/{$challenge->id}/challenge", ['opponent_id' => $girl2->id])->assertOk();
+        $this->assertDatabaseCount('pvp_matches', 1);
+    }
+
+    public function test_random_matchmaking_never_pairs_different_genders(): void
+    {
+        $challenge = $this->challenge();
+        $boy = $this->student('زيد', 'male');
+        $girl = $this->student('سارة', 'female');
+        $boy2 = $this->student('عمرو', 'male');
+
+        $this->actingAs($boy)->postJson("/student/pvp/{$challenge->id}/join")->assertJson(['status' => 'waiting']);
+        // الطالبة لا تُقرَن بالطالب المنتظِر: تنتظر بمباراتها الخاصة
+        $this->actingAs($girl)->postJson("/student/pvp/{$challenge->id}/join")->assertJson(['status' => 'waiting']);
+        // طالب آخر يُقرَن بالطالب لا بالطالبة
+        $this->actingAs($boy2)->postJson("/student/pvp/{$challenge->id}/join")->assertJson(['status' => 'playing']);
+
+        $this->assertDatabaseHas('pvp_matches', ['player1_id' => $boy->id, 'player2_id' => $boy2->id, 'status' => 'playing']);
+        $this->assertDatabaseHas('pvp_matches', ['player1_id' => $girl->id, 'player2_id' => null, 'status' => 'waiting']);
+    }
+
+    public function test_legacy_cross_gender_invite_is_hidden_from_lobby_and_cannot_be_accepted(): void
+    {
+        $challenge = $this->challenge();
+        $boy = $this->student('زيد', 'male');
+        $girl = $this->student('سارة', 'female');
+        $boy2 = $this->student('عمرو', 'male');
+        // دعوات سابقة للفصل: الأولى بين جنسين، والثانية بين ذكرين
+        $legacy = PvpMatch::create(['challenge_id' => $challenge->id, 'player1_id' => $girl->id, 'player2_id' => $boy->id, 'status' => 'invited']);
+        PvpMatch::create(['challenge_id' => $challenge->id, 'player1_id' => $boy2->id, 'player2_id' => $boy->id, 'status' => 'invited']);
+
+        $this->actingAs($boy)->get('/student/pvp')->assertOk()
+            ->assertSee('عمرو')
+            ->assertDontSee('سارة');
+
+        $this->actingAs($boy)->postJson("/student/pvp-invite/{$legacy->id}/accept")->assertForbidden();
+        $this->assertSame('invited', $legacy->refresh()->status);
     }
 
     public function test_reinvite_is_blocked_shortly_after_decline(): void
