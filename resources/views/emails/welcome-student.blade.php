@@ -6,7 +6,7 @@
     <title>مرحباً بك</title>
     <style>
         * {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: {!! email_font_stack() !!};
         }
         body {
             background-color: #f3f4f6;
@@ -93,8 +93,10 @@
             font-size: 14px;
         }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
+@include('emails.partials.rtl-open')
     <div class="container">
         <div class="header">
             <h1>🎓 {{ g('مرحباً بك', 'مرحباً بكِ', $user) }} في منصة {{ setting('site_name', 'أثيل مكة') }} التعليمية</h1>
@@ -169,5 +171,6 @@
             </p>
         </div>
     </div>
+</div>
 </body>
 </html>

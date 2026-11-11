@@ -25,7 +25,7 @@
         a { color: {{ $primary }}; }
         .wrap { width:100%; background:#f1f5f9; padding:24px 12px; }
         .card { width:100%; max-width:600px; margin:0 auto; background:#ffffff; border-radius:16px;
-            overflow:hidden; font-family:'Segoe UI',Tahoma,Arial,'Helvetica Neue',sans-serif;
+            overflow:hidden; font-family:{!! email_font_stack() !!};
             color:#1f2937; box-shadow:0 6px 24px rgba(0,0,0,0.08); }
         .hd { background: {{ $primary }}; padding:24px 28px; text-align:center; }
         .hd .brand { color:#ffffff; font-size:22px; font-weight:800; text-decoration:none; }
@@ -42,13 +42,14 @@
         .ft a { color:#6b7280; text-decoration:none; margin:0 8px; font-size:13px; }
         .ft .cr { color:#9ca3af; font-size:12px; margin-top:10px; display:block; }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
     @isset($previewText)
         <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{ $previewText }}</div>
     @endisset
-    <div class="wrap">
-        <table class="card" role="presentation" width="600" align="center">
+    <div class="wrap" dir="rtl" style="direction:rtl;text-align:right;font-family:{!! email_font_stack() !!};">
+        <table class="card" role="presentation" width="600" align="center" dir="rtl" style="direction:rtl;font-family:{!! email_font_stack() !!};">
             <tr><td class="hd">
                 @if($siteLogo)
                     <a href="{{ url('/') }}"><img class="logo" src="{{ asset('storage/data/' . $siteLogo) }}" alt="{{ $siteName }}"></a>
@@ -56,7 +57,7 @@
                     <a href="{{ url('/') }}" class="brand">🌟 {{ $siteName }}</a>
                 @endif
             </td></tr>
-            <tr><td class="bd">
+            <tr><td class="bd" dir="rtl" style="direction:rtl;text-align:right;font-family:{!! email_font_stack() !!};">
                 @hasSection('title')
                     <div class="title">@yield('title')</div>
                 @endif

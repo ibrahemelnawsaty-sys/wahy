@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تم استلام طلب التسجيل</title>
+    @include('emails.partials.rtl-head')
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa; direction: rtl;">
+<body dir="rtl" style="margin: 0; padding: 0; font-family: {!! email_font_stack() !!}; background-color: #f4f7fa; direction: rtl;">
+@include('emails.partials.rtl-open')
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
         <tr>
             <td align="center" style="padding: 40px 0;">
@@ -88,5 +90,6 @@
             </td>
         </tr>
     </table>
+</div>
 </body>
 </html>

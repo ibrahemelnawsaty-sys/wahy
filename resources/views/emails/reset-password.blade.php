@@ -6,7 +6,7 @@
     <title>إعادة تعيين كلمة المرور</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: {!! email_font_stack() !!};
             direction: rtl;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
@@ -95,8 +95,10 @@
             margin: 10px 0;
         }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
+@include('emails.partials.rtl-open')
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
@@ -139,5 +141,6 @@
             <p style="margin-top: 15px;">© {{ date('Y') }} جميع الحقوق محفوظة</p>
         </div>
     </div>
+</div>
 </body>
 </html>

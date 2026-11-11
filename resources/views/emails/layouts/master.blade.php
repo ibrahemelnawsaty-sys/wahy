@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', setting('site_name', 'أثيل مكة'))</title>
-    {{-- لا خطوط خارجيّة في البريد (يحجبها كثير من العملاء) — نعتمد خطوط النظام العربيّة --}}
+    {{-- خطّ الموقع عبر emails.partials.rtl-head (يسقط إلى خطوط النظام العربيّة حين يحجب العميل الخطوط الخارجيّة) --}}
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
         }
         
         body {
-            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: {!! email_font_stack() !!};
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 40px 20px;
             direction: rtl;
@@ -418,9 +418,10 @@
         }
     </style>
     @stack('styles')
+    @include('emails.partials.rtl-head')
 </head>
-<body>
-    <div class="email-wrapper">
+<body dir="rtl">
+    <div class="email-wrapper" dir="rtl" style="direction:rtl;text-align:right;font-family:{!! email_font_stack() !!};">
         <div class="email-container">
             <!-- Header -->
             <div class="email-header">
@@ -438,7 +439,7 @@
             </div>
 
             <!-- Content -->
-            <div class="email-content">
+            <div class="email-content" dir="rtl" style="direction:rtl;text-align:right;font-family:{!! email_font_stack() !!};">
                 @yield('content')
             </div>
 

@@ -6,7 +6,7 @@
     <title>رمز تأكيد رسالتك - {{ setting('site_name', 'أثيل مكة') }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; padding: 40px 20px; direction: rtl; }
+        body { font-family: {!! email_font_stack() !!}; background-color: #f5f5f5; padding: 40px 20px; direction: rtl; }
         .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
         .header { background: linear-gradient(135deg, #3CCB8A 0%, #2BA55D 100%); padding: 40px 30px; text-align: center; }
         .logo { font-size: 48px; margin-bottom: 10px; }
@@ -33,8 +33,10 @@
             .code-container { padding: 20px; }
         }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
+@include('emails.partials.rtl-open')
     <div class="container">
         <div class="header">
             <div class="logo">✉️</div>
@@ -76,5 +78,6 @@
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

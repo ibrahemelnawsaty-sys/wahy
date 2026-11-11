@@ -6,7 +6,7 @@
     <title>حصلت على وسام جديد</title>
     <style>
         * {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: {!! email_font_stack() !!};
         }
         body {
             background-color: #f3f4f6;
@@ -119,8 +119,10 @@
             margin: 20px 0;
         }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
+@include('emails.partials.rtl-open')
     <div class="container">
         <div class="header">
             <h1>🏆 مبروك! وسام جديد</h1>
@@ -184,5 +186,6 @@
             <p>نفتخر بإنجازاتك! 🌟</p>
         </div>
     </div>
+</div>
 </body>
 </html>

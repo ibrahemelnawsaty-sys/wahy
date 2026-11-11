@@ -107,6 +107,37 @@ if (! function_exists('set_setting')) {
     }
 }
 
+if (! function_exists('email_font_family')) {
+    /**
+     * اسم خطّ الموقع (إعداد font_family نفسه الذي تستعمله اللوحات) منقّىً لأنّه يُحقَن في style مضمَّن.
+     */
+    function email_font_family(): string
+    {
+        $f = preg_replace('/[^\p{L}\p{N} _-]/u', '', (string) setting('font_family', 'IBM Plex Sans Arabic'));
+
+        return trim($f) !== '' ? trim($f) : 'IBM Plex Sans Arabic';
+    }
+}
+
+if (! function_exists('email_font_stack')) {
+    /**
+     * قيمة font-family لقوالب البريد: خطّ الموقع أوّلاً ثم بدائل النظام العربيّة.
+     * (عملاء البريد التي تحجب الخطوط الخارجيّة كـGmail تسقط إلى البدائل — لا حلّ لذلك سوى الصورة.)
+     */
+    function email_font_stack(): string
+    {
+        return "'" . email_font_family() . "','IBM Plex Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif";
+    }
+}
+
+if (! function_exists('email_font_url')) {
+    /** رابط Google Fonts لخطّ الموقع (يعمل في Apple Mail/Outlook Mac/جوّالات سامسونج وغيرها). */
+    function email_font_url(): string
+    {
+        return 'https://fonts.googleapis.com/css2?family=' . str_replace(' ', '+', email_font_family()) . ':wght@400;700&display=swap';
+    }
+}
+
 if (! function_exists('hexToRgba')) {
     /**
      * Convert HEX color to RGBA

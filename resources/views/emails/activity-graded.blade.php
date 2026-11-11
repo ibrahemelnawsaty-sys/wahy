@@ -6,7 +6,7 @@
     <title>{{ g('تم تقييم نشاطك', 'تم تقييم نشاطكِ', $submission->student) }}</title>
     <style>
         * {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: {!! email_font_stack() !!};
         }
         body {
             background-color: #f3f4f6;
@@ -109,8 +109,10 @@
             font-size: 14px;
         }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
+@include('emails.partials.rtl-open')
     <div class="container">
         <div class="header">
             <h1>✅ {{ g('تم تقييم نشاطك', 'تم تقييم نشاطكِ', $submission->student) }}</h1>
@@ -194,5 +196,6 @@
             <p>{{ g('استمر في التعلم والتطور', 'استمري في التعلم والتطور', $submission->student) }} 🚀</p>
         </div>
     </div>
+</div>
 </body>
 </html>

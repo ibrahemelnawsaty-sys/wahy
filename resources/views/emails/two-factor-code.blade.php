@@ -12,7 +12,7 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: {!! email_font_stack() !!};
             background-color: #f5f5f5;
             padding: 40px 20px;
             direction: rtl;
@@ -199,8 +199,10 @@
             }
         }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
+@include('emails.partials.rtl-open')
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -259,5 +261,6 @@
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

@@ -6,7 +6,7 @@
     <title>رسالة تواصل جديدة - منصة {{ setting('site_name', 'أثيل مكة') }}</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: {!! email_font_stack() !!};
             background-color: #f4f4f4;
             direction: rtl;
             margin: 0;
@@ -60,8 +60,10 @@
             font-size: 14px;
         }
     </style>
+    @include('emails.partials.rtl-head')
 </head>
-<body>
+<body dir="rtl">
+@include('emails.partials.rtl-open')
     <div class="container">
         <div class="header">
             <h1>🌟 رسالة تواصل جديدة</h1>
@@ -108,5 +110,6 @@
             <p>تم إرسال هذا البريد تلقائياً، يرجى عدم الرد عليه</p>
         </div>
     </div>
+</div>
 </body>
 </html>
