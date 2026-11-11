@@ -34,14 +34,8 @@ class MailGate
         }
 
         try {
-            $mailable->withSymfonyMessage(function ($message) use ($category, $user, $mailable) {
-                $h = $message->getHeaders();
-                $h->addTextHeader('X-Wahy-Category', $category);
-                if ($user) {
-                    $h->addTextHeader('X-Wahy-User', (string) $user->id);
-                }
-                $h->addTextHeader('X-Wahy-Mailable', class_basename($mailable));
-            });
+            // كائن لا Closure: الـMailable يُسلسَل إلى الطابور (انظر TrackingHeaders)
+            $mailable->withSymfonyMessage(new TrackingHeaders($category, $user?->id, class_basename($mailable)));
 
             // **queue صراحةً لا send**: على هذه الاستضافة لا تستطيع عمليّة الويب فتح اتّصال صادر
             // على 587 (Connection timed out) — فأيّ Mailable غير ShouldQueue كان يُرسَل متزامنًا

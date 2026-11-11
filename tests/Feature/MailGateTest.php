@@ -39,6 +39,32 @@ class MailGateTest extends TestCase
         Mail::assertQueued(LevelUpMail::class, 1);
     }
 
+    /**
+     * Mail::fake لا يُسلسِل شيئاً فأخفى عطلاً حيّاً: الإغلاق (Closure) في withSymfonyMessage يكسر
+     * تسلسل الـjob في الطابور الحقيقيّ ("Serialization of 'Closure' is not allowed") فيسقط كلّ بريد أحداث.
+     */
+    public function test_queued_mailable_is_serializable_and_keeps_tracking_headers(): void
+    {
+        Mail::fake();
+        $u = User::factory()->create(['role' => 'student', 'email' => 'q@example.com']);
+
+        $this->assertTrue(MailGate::send($u, 'level_up', 'event', new LevelUpMail($u, 5)));
+
+        Mail::assertQueued(LevelUpMail::class, function (LevelUpMail $m) use ($u) {
+            $copy = unserialize(serialize($m)); // يرمي استثناءً إن بقي إغلاق
+
+            $email = new \Symfony\Component\Mime\Email();
+            foreach ($copy->callbacks as $cb) {
+                $cb($email);
+            }
+            $h = $email->getHeaders();
+
+            return $h->get('X-Wahy-Category')->getBodyAsString() === 'event'
+                && $h->get('X-Wahy-User')->getBodyAsString() === (string) $u->id
+                && $h->get('X-Wahy-Mailable')->getBodyAsString() === 'LevelUpMail';
+        });
+    }
+
     public function test_master_switch_blocks_all_event_mail(): void
     {
         Mail::fake();
